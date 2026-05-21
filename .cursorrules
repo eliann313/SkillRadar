@@ -1,0 +1,69 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# SKILLRADAR — CURSOR AI RULES & ARCHITECTURAL GUIDELINES
+# ──────────────────────────────────────────────────────────────────────────────
+
+## 1. Project Tech Stack & Context
+*   **Core**: Next.js 15 (App Router) + React 19 + TypeScript (Strict Mode).
+*   **Styling**: Tailwind CSS + shadcn/ui (customizable component copy-paste).
+*   **Database & ORM**: PostgreSQL (Neon Serverless) + Prisma ORM.
+*   **Authentication**: Auth.js v5 (NextAuth) con GitHub OAuth provider.
+*   **AI Integration**: Vercel AI SDK + Google Gemini API (Primary) + OpenRouter (Fallback).
+*   **Files**: UploadThing (PDF uploads).
+
+## 2. Directory Structure & Architecture
+We follow a **Feature-Based Layered Architecture** (Pragmatic Onion style) to group domain logic and keep files focused:
+
+```
+src/
+├── app/                      # Next.js App Router (Routing, layouts, pages, APIs)
+├── features/                 # Core features (Business logic, custom UI, domains)
+│   └── [feature-name]/
+│       ├── components/       # Feature-specific UI components
+│       ├── actions.ts        # Server Actions (Mutations & Forms entry point)
+│       ├── service.ts        # Pure business logic (Services layer)
+│       ├── repository.ts     # SELECTIVE database access via Prisma
+│       └── types.ts          # Feature specific TypeScript declarations
+├── lib/                      # Shared utility wrappers (auth, db, ai, validation)
+├── components/               # Global shared/generic UI components (ui/ from shadcn)
+├── hooks/                    # Global React custom hooks
+└── types/                    # Global TypeScript interfaces
+```
+
+## 3. Server Components vs Client Components
+*   **Default**: Every component is a **Server Component** unless it strictly needs browser APIs, event listeners, or React hooks (`useState`, `useEffect`, etc.).
+*   **Interactivity**: Add `"use client"` at the top *only* when necessary. Keep client components small and leaf-level.
+*   **Data Fetching**: Fetch data directly in Server Components using Services/Repositories. Avoid client-side `fetch`/API routes for internal data loading.
+
+## 4. Server Actions vs Route Handlers
+*   **Server Actions**: Use for mutations, form submissions, and database writing. Keep `"use server"` at the top. Follow the **Result Pattern** instead of throwing uncaught exceptions.
+*   **Route Handlers (`route.ts`)**: Use *only* for third-party webhooks, authentication callbacks, or public APIs consumed by external services.
+
+## 5. Selective Repository Pattern
+*   **Direct Access**: Use direct Prisma queries in `service.ts` or `actions.ts` for simple CRUD actions (e.g., `findById`, basic insert). Avoid thin, anemic repository layers that only wrap Prisma.
+*   **Use Repository**: Write queries in `repository.ts` *only* if:
+    *   The query involves complex multi-table joins or aggregation.
+    *   There is heavy reusable filtering logic.
+    *   The same query is consumed in multiple different services/features.
+
+## 6. Coding & Naming Standards
+*   **TypeScript**: strict mode is ON. Strictly **No `any`**. Use `unknown` with narrow type assertions if type is dynamic.
+*   **Naming Conventions**:
+    *   **React Components / Types / Interfaces**: PascalCase (e.g., `ATSScoreCard.tsx`, `ResumeAnalysis`).
+    *   **Functions & Variables**: camelCase (e.g., `analyzeResume()`, `isUploading`).
+    *   **Files (Non-Components)**: kebab-case (e.g., `cv-analysis/service.ts`, `lib/rate-limit.ts`).
+    *   **Global Constants / Env Vars**: SCREAMING_SNAKE (e.g., `GEMINI_API_KEY`, `MAX_FILE_SIZE_MB`).
+*   **Imports**: Always use absolute imports via the `@/` alias (configured in `tsconfig.json`). No relative imports (e.g., `../../components`).
+
+## 7. Error Handling & Validation
+*   **Zod Schemas**: Always validate data at the boundaries using Zod (specifically in Server Actions, API routes, and forms). Validate server-side without exception.
+*   **Result Pattern for Actions**:
+    ```typescript
+    export type ActionResult<T> = 
+      | { success: true; data: T }
+      | { success: false; error: string };
+    ```
+    Return `{ success: false, error: "Reason" }` in try/catch blocks instead of letting mutations throw uncaught errors.
+
+## 8. AI & Vercel SDK Best Practices
+*   **Timeout & Streaming**: Because of Vercel serverless Hobby limits (10-15s), use **`streamObject`** from the Vercel AI SDK for long LLM analysis (e.g. CV parser, Job Matcher) to maintain the connection.
+*   **Structured Outputs**: Use `generateObject` with a strict Zod schema instead of prompting "respond in JSON" to guarantee TypeScript structural safety.
