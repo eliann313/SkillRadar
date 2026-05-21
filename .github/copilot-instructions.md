@@ -1,4 +1,5 @@
 # GitHub Copilot Instructions
+
 # These are loaded by GitHub Copilot in VS Code / JetBrains automatically.
 
 ## Project context

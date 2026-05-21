@@ -20,7 +20,7 @@ Closes #<!-- issue number -->
 
 <!-- Bullet list of meaningful changes. Skip trivial ones. -->
 
-- 
+-
 
 ## Testing
 

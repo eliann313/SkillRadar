@@ -17,19 +17,25 @@ const eslintConfig = defineConfig([
       // TypeScript Strict & Quality Rules
       // ─────────────────────────────────────────
       "@typescript-eslint/no-explicit-any": "error",
-      "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
-      "@typescript-eslint/consistent-type-imports": ["error", { "prefer": "type-imports" }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_" },
+      ],
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        { prefer: "type-imports" },
+      ],
       "@typescript-eslint/no-floating-promises": "error",
       "@typescript-eslint/no-misused-promises": "error",
 
       // ─────────────────────────────────────────
       // General Quality & Clean Code Rules
       // ─────────────────────────────────────────
-      "no-console": ["warn", { "allow": ["warn", "error"] }],
+      "no-console": ["warn", { allow: ["warn", "error"] }],
       "no-debugger": "error",
       "prefer-const": "error",
       "no-var": "error",
-      "eqeqeq": ["error", "always"],
+      eqeqeq: ["error", "always"],
     },
   },
   globalIgnores([
@@ -39,6 +45,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "node_modules/**",
     "eslint.config.mjs",
+    "postcss.config.mjs",
+    "vitest.config.ts",
+    "next.config.ts",
   ]),
 ]);
 
