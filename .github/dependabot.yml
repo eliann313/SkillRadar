@@ -10,7 +10,7 @@ updates:
       timezone: "America/Argentina/Buenos_Aires"
     open-pull-requests-limit: 10
     reviewers:
-      - "Elian"
+      - "eliann313"
     labels:
       - "dependencies"
       - "automated"
