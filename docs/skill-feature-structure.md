@@ -24,18 +24,21 @@ src/features/{nombre-de-feature}/
 ## Definición de Capas y Responsabilidades
 
 ### 1. Server Actions (`actions.ts`)
-* **Responsabilidad:** Exponer métodos seguros que la interfaz de usuario (Client Components) puede invocar.
-* **Acciones:** Validar sesión, validar inputs con Zod schemas (definidos en `types.ts`), llamar al Service correspondiente, capturar errores y retornar un objeto con `ActionResult<T>`.
+
+- **Responsabilidad:** Exponer métodos seguros que la interfaz de usuario (Client Components) puede invocar.
+- **Acciones:** Validar sesión, validar inputs con Zod schemas (definidos en `types.ts`), llamar al Service correspondiente, capturar errores y retornar un objeto con `ActionResult<T>`.
 
 ### 2. Service Layer (`service.ts`)
-* **Responsabilidad:** Contener la lógica de negocio pura y agnóstica del framework.
-* **Acciones:** Procesamiento de datos, cálculos de compatibilidad, llamadas a Vercel AI SDK para interactuar con Gemini o fallbacks a OpenRouter.
-* **Regla:** Un servicio nunca debe conocer detalles HTTP directos (no maneja directamente cabeceras ni redirecciones del router).
+
+- **Responsabilidad:** Contener la lógica de negocio pura y agnóstica del framework.
+- **Acciones:** Procesamiento de datos, cálculos de compatibilidad, llamadas a Vercel AI SDK para interactuar con Gemini o fallbacks a OpenRouter.
+- **Regla:** Un servicio nunca debe conocer detalles HTTP directos (no maneja directamente cabeceras ni redirecciones del router).
 
 ### 3. Repository Layer (`repository.ts`)
-* **Responsabilidad:** Encapsular consultas complejas a la base de datos a través de Prisma.
-* **Acciones:** Agrupar selects complejos, JOINS manuales o transacciones.
-* **Uso Selectivo:** Para queries CRUD elementales (`findUnique`, `create`), se permite realizar la llamada a `db` directamente desde la capa de servicio para evitar redundancia.
+
+- **Responsabilidad:** Encapsular consultas complejas a la base de datos a través de Prisma.
+- **Acciones:** Agrupar selects complejos, JOINS manuales o transacciones.
+- **Uso Selectivo:** Para queries CRUD elementales (`findUnique`, `create`), se permite realizar la llamada a `db` directamente desde la capa de servicio para evitar redundancia.
 
 ---
 

@@ -1,6 +1,6 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { auth } from "@/lib/auth";
-import { env } from "@/lib/env"; // triggers env validation
+import "@/lib/env";
 
 const f = createUploadthing();
 
@@ -12,7 +12,10 @@ export const ourFileRouter = {
       return { userId: session.user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      console.log(`[UploadThing] Carga completada por usuario: ${metadata.userId}`);
+      // eslint-disable-next-line no-console
+      console.log(
+        `[UploadThing] Carga completada por usuario: ${metadata.userId}`,
+      );
       return { uploadedBy: metadata.userId, url: file.url };
     }),
 } satisfies FileRouter;

@@ -2,11 +2,11 @@ declare module "pdf-parse" {
   interface PDFParseResult {
     numpages: number;
     numrender: number;
-    info: any;
-    metadata: any;
+    info: unknown;
+    metadata: unknown;
     text: string;
     version: string;
   }
-  function pdf(dataBuffer: Buffer, options?: any): Promise<PDFParseResult>;
+  function pdf(dataBuffer: Buffer, options?: unknown): Promise<PDFParseResult>;
   export = pdf;
 }

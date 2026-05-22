@@ -3,13 +3,13 @@
 import {
   createContext,
   useContext,
-
   useState,
   useCallback,
   useEffect,
   type ReactNode,
 } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
+import type { Session } from "next-auth";
 import { updateUserRole } from "@/lib/auth-actions";
 import type {
   User,
@@ -21,7 +21,7 @@ import type {
 
 interface AuthContextType {
   user: DeveloperProfile | RecruiterProfile | null;
-  session: any;
+  session: Session | null;
   isLoading: boolean;
   login: (email: string) => Promise<void>;
   loginWithProvider: (provider: "github" | "google") => Promise<void>;
@@ -63,10 +63,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Sync session and status with context user
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (session?.user) {
       const userId = session.user.id || "default_id";
       const savedRole = session.user.role as UserRole | null;
-      
+
       if (savedRole) {
         const baseUser: User = {
           id: userId,
@@ -103,6 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       setUser(null);
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [session]);
 
   const login = useCallback(async (_email: string) => {
@@ -135,50 +137,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void signOut();
   }, []);
 
-  const setRole = useCallback(async (role: UserRole) => {
-    if (!session?.user) return;
-    
-    const userId = session.user.id || "default_id";
-    
-    // Guardar en base de datos vía Server Action
-    const result = await updateUserRole(role);
-    if (!result.success) {
-      console.error("Error updating user role in DB:", result.error);
-      return;
-    }
-    
-    // Forzar actualización del JWT y sesión en cliente
-    await update({ role });
-    
-    const baseUser: User = {
-      id: userId,
-      email: session.user.email || "user@example.com",
-      name: session.user.name || "Demo User",
-      avatarUrl: session.user.image || undefined,
-      role,
-      createdAt: new Date(),
-    };
+  const setRole = useCallback(
+    async (role: UserRole) => {
+      if (!session?.user) return;
 
-    if (role === "developer") {
-      setUser({
-        ...baseUser,
-        role: "developer",
-        skills: ["TypeScript", "React", "Next.js", "Node.js"],
-        seniority: "mid",
-        lastAtsScore: 78,
-        cvAnalysisCount: 2,
-        jobMatchCount: 1,
-        mockInterviewCount: 0,
-      });
-    } else {
-      setUser({
-        ...baseUser,
-        role: "recruiter",
-        company: "TechCorp",
-        talentSearchCount: 5,
-      });
-    }
-  }, [session, update]);
+      const userId = session.user.id || "default_id";
+
+      // Guardar en base de datos vía Server Action
+      const result = await updateUserRole(role);
+      if (!result.success) {
+        console.error("Error updating user role in DB:", result.error);
+        return;
+      }
+
+      // Forzar actualización del JWT y sesión en cliente
+      await update({ role });
+
+      const baseUser: User = {
+        id: userId,
+        email: session.user.email || "user@example.com",
+        name: session.user.name || "Demo User",
+        avatarUrl: session.user.image || undefined,
+        role,
+        createdAt: new Date(),
+      };
+
+      if (role === "developer") {
+        setUser({
+          ...baseUser,
+          role: "developer",
+          skills: ["TypeScript", "React", "Next.js", "Node.js"],
+          seniority: "mid",
+          lastAtsScore: 78,
+          cvAnalysisCount: 2,
+          jobMatchCount: 1,
+          mockInterviewCount: 0,
+        });
+      } else {
+        setUser({
+          ...baseUser,
+          role: "recruiter",
+          company: "TechCorp",
+          talentSearchCount: 5,
+        });
+      }
+    },
+    [session, update],
+  );
 
   const isSessionLoading = status === "loading" || isLoading;
 
@@ -207,4 +212,3 @@ export function useAuth() {
   }
   return context;
 }
-

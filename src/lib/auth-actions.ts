@@ -18,7 +18,7 @@ export async function updateUserRole(role: "developer" | "recruiter") {
 
     revalidatePath("/");
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[updateUserRole] Error al actualizar rol:", error);
     return { success: false, error: "Error interno al actualizar el rol" };
   }

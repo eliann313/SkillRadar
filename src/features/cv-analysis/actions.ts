@@ -23,20 +23,33 @@ function isAllowedUploadthingUrl(rawUrl: string): boolean {
 
     // Allow-list UploadThing hosts only.
     const host = url.hostname.toLowerCase();
-    return host === "utfs.io" || host.endsWith(".utfs.io");
+    const allowedHosts = ["utfs.io", "ufs.sh"];
+    return allowedHosts.some(
+      (allowed) => host === allowed || host.endsWith("." + allowed),
+    );
   } catch {
     return false;
   }
 }
 
+interface ParseCVResult {
+  id: string;
+  fileName: string;
+  fileUrl: string;
+  createdAt: Date;
+}
+
 export async function uploadAndParseCVAction(
-  input: ParseCVInput
-): Promise<ActionResult<any>> {
+  input: ParseCVInput,
+): Promise<ActionResult<ParseCVResult>> {
   try {
     // 1. Validar autenticación
     const session = await auth();
     if (!session?.user?.id) {
-      return { success: false, error: "No autorizado. Inicie sesión nuevamente." };
+      return {
+        success: false,
+        error: "No autorizado. Inicie sesión nuevamente.",
+      };
     }
 
     const { fileUrl, fileName } = input;
@@ -44,14 +57,21 @@ export async function uploadAndParseCVAction(
       return { success: false, error: "Datos de archivo inválidos." };
     }
 
+    // SSRF Prevention: Validate that the fileUrl belongs to UploadThing's trusted domains
     if (!isAllowedUploadthingUrl(fileUrl)) {
-      return { success: false, error: "URL de archivo inválida o no permitida." };
+      return {
+        success: false,
+        error: "URL de archivo no permitida por razones de seguridad.",
+      };
     }
 
     // 2. Descargar el archivo desde la URL de UploadThing para poder parsearlo
     const response = await fetch(fileUrl);
     if (!response.ok) {
-      return { success: false, error: `No se pudo descargar el archivo para su análisis (Status ${response.status}).` };
+      return {
+        success: false,
+        error: `No se pudo descargar el archivo para su análisis (Status ${response.status}).`,
+      };
     }
 
     const arrayBuffer = await response.arrayBuffer();
@@ -77,11 +97,15 @@ export async function uploadAndParseCVAction(
         createdAt: resume.createdAt,
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[uploadAndParseCVAction] Error general:", error);
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Ocurrió un error inesperado al procesar el archivo.";
     return {
       success: false,
-      error: error.message || "Ocurrió un error inesperado al procesar el archivo.",
+      error: errorMessage,
     };
   }
 }

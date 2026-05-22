@@ -7,6 +7,7 @@ Este template define el estándar e industria de codificación para crear **Serv
 ## Estructura Estándar
 
 Toda Server Action debe seguir este flujo quirúrgico:
+
 1. **Directiva `"use server"`** al inicio del archivo.
 2. **Control de Autenticación:** Validar la sesión del servidor con `auth()`.
 3. **Validación con Zod:** Usar `safeParse` para validar los parámetros de entrada.
@@ -29,18 +30,20 @@ import { revalidatePath } from "next/cache";
 // 1. Definición del Schema con Zod
 const analyzeResumeSchema = z.object({
   resumeId: z.string().cuid("El ID de CV no es válido"),
-  jobText: z.string().min(50, "La oferta laboral debe tener al menos 50 caracteres"),
+  jobText: z
+    .string()
+    .min(50, "La oferta laboral debe tener al menos 50 caracteres"),
 });
 
 export type AnalyzeResumeInput = z.infer<typeof analyzeResumeSchema>;
 
-export type ActionResult<T> = 
+export type ActionResult<T> =
   | { success: true; data: T }
   | { success: false; error: string };
 
 // 2. La Server Action
 export async function analyzeResume(
-  input: AnalyzeResumeInput
+  input: AnalyzeResumeInput,
 ): Promise<ActionResult<{ matchScore: number }>> {
   // A. Control de Autenticación
   const session = await auth();
@@ -60,7 +63,7 @@ export async function analyzeResume(
   try {
     // C. Simulación o lógica de negocio (Llamada al servicio)
     // const result = await jobMatchService.analyze(resumeId, jobText, session.user.id);
-    
+
     // Log estructurado para trazabilidad
     console.log(`[job-match/action] CV analizado exitosamente`, {
       userId: session.user.id,
@@ -80,9 +83,9 @@ export async function analyzeResume(
       error: error.message || error,
     });
 
-    return { 
-      success: false, 
-      error: "Ocurrió un error inesperado al procesar la compatibilidad." 
+    return {
+      success: false,
+      error: "Ocurrió un error inesperado al procesar la compatibilidad.",
     };
   }
 }

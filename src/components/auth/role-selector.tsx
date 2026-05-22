@@ -53,7 +53,7 @@ export function RoleSelector() {
 
   const handleContinue = () => {
     if (selectedRole) {
-      setRole(selectedRole);
+      void setRole(selectedRole);
     }
   };
 
