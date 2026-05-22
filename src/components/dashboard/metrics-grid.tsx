@@ -13,7 +13,7 @@ import { RadialProgress } from "./radial-progress";
 import { useAuth } from "@/lib/auth-context";
 import { FileText, Briefcase, MessageSquare, TrendingUp } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 export function MetricsGrid() {
   const { user, accountLimits } = useAuth();
@@ -47,9 +47,9 @@ export function MetricsGrid() {
               <span className="font-medium text-emerald">+5</span> from last week
             </span>
           </div>
-          <Button variant="outline" size="sm" asChild className="w-full">
-            <Link href="/dashboard/cv-analysis">Improve Score</Link>
-          </Button>
+          <Link href="/dashboard/cv-analysis" className={buttonVariants({ variant: "outline", size: "sm", className: "w-full" })}>
+            Improve Score
+          </Link>
         </CardContent>
       </Card>
 
@@ -86,9 +86,9 @@ export function MetricsGrid() {
               +2 gaps
             </Badge>
           </div>
-          <Button variant="outline" size="sm" asChild className="w-full">
-            <Link href="/dashboard/job-match">New Match</Link>
-          </Button>
+          <Link href="/dashboard/job-match" className={buttonVariants({ variant: "outline", size: "sm", className: "w-full" })}>
+            New Match
+          </Link>
         </CardContent>
       </Card>
 

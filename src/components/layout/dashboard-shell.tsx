@@ -126,7 +126,7 @@ function SidebarContent({ collapsed, onToggle }: SidebarProps) {
               return (
                 <li key={item.href}>
                   <Tooltip>
-                    <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+                    <TooltipTrigger render={linkContent} />
                     <TooltipContent side="right" sideOffset={8}>
                       {item.label}
                     </TooltipContent>
@@ -145,47 +145,51 @@ function SidebarContent({ collapsed, onToggle }: SidebarProps) {
       {/* User section */}
       <div className="p-3">
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className={cn(
-                "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-sidebar-accent",
-                collapsed && "justify-center px-2"
-              )}
-            >
-              <Avatar className="size-8 shrink-0">
-                <AvatarImage src={user?.avatarUrl} alt={user?.name} />
-                <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                  {user?.name
-                    ?.split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase() || "U"}
-                </AvatarFallback>
-              </Avatar>
-              {!collapsed && (
-                <div className="flex-1 overflow-hidden">
-                  <p className="truncate text-sm font-medium text-sidebar-foreground">
-                    {user?.name || "User"}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {user?.email || "user@example.com"}
-                  </p>
-                </div>
-              )}
-            </button>
-          </DropdownMenuTrigger>
+          <DropdownMenuTrigger
+            render={
+              <button
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-sidebar-accent",
+                  collapsed && "justify-center px-2"
+                )}
+              >
+                <Avatar className="size-8 shrink-0">
+                  <AvatarImage src={user?.avatarUrl} alt={user?.name} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                    {user?.name
+                      ?.split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                {!collapsed && (
+                  <div className="flex-1 overflow-hidden">
+                    <p className="truncate text-sm font-medium text-sidebar-foreground">
+                      {user?.name || "User"}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {user?.email || "user@example.com"}
+                    </p>
+                  </div>
+                )}
+              </button>
+            }
+          />
           <DropdownMenuContent align={collapsed ? "center" : "start"} className="w-56">
             <div className="px-2 py-1.5">
               <p className="text-sm font-medium">{user?.name}</p>
               <p className="text-xs text-muted-foreground">{user?.email}</p>
             </div>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard/settings" className="flex items-center gap-2">
-                <Settings className="size-4" />
-                Settings
-              </Link>
-            </DropdownMenuItem>
+            <DropdownMenuItem
+              render={
+                <Link href="/dashboard/settings" className="flex items-center gap-2">
+                  <Settings className="size-4" />
+                  Settings
+                </Link>
+              }
+            />
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="flex items-center gap-2 text-destructive focus:text-destructive"
@@ -233,12 +237,14 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         {/* Mobile header */}
         <header className="flex h-16 items-center gap-4 border-b border-border bg-background px-4 lg:hidden">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </SheetTrigger>
+            <SheetTrigger
+              render={
+                <Button variant="ghost" size="icon">
+                  <Menu />
+                  <span className="sr-only">Toggle menu</span>
+                </Button>
+              }
+            />
           </Sheet>
           <Link href="/dashboard" className="flex items-center gap-2">
             <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
