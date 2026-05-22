@@ -6,7 +6,11 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +18,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 import {
@@ -34,7 +43,11 @@ const developerNavItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/cv-analysis", label: "CV Analysis", icon: FileText },
   { href: "/dashboard/job-match", label: "Job Match", icon: Briefcase },
-  { href: "/dashboard/interview", label: "Mock Interview", icon: MessageSquare },
+  {
+    href: "/dashboard/interview",
+    label: "Mock Interview",
+    icon: MessageSquare,
+  },
 ];
 
 const recruiterNavItems = [
@@ -51,7 +64,8 @@ function SidebarContent({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
-  const navItems = user?.role === "recruiter" ? recruiterNavItems : developerNavItems;
+  const navItems =
+    user?.role === "recruiter" ? recruiterNavItems : developerNavItems;
 
   return (
     <div className="flex h-full flex-col bg-sidebar">
@@ -61,7 +75,7 @@ function SidebarContent({ collapsed, onToggle }: SidebarProps) {
           href="/dashboard"
           className={cn(
             "flex items-center gap-3 transition-all",
-            collapsed && "justify-center"
+            collapsed && "justify-center",
           )}
         >
           <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
@@ -114,7 +128,7 @@ function SidebarContent({ collapsed, onToggle }: SidebarProps) {
                   isActive
                     ? "bg-sidebar-accent text-sidebar-primary"
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                  collapsed && "justify-center px-2"
+                  collapsed && "justify-center px-2",
                 )}
               >
                 <Icon className="size-5 shrink-0" />
@@ -150,7 +164,7 @@ function SidebarContent({ collapsed, onToggle }: SidebarProps) {
               <button
                 className={cn(
                   "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-sidebar-accent",
-                  collapsed && "justify-center px-2"
+                  collapsed && "justify-center px-2",
                 )}
               >
                 <Avatar className="size-8 shrink-0">
@@ -176,7 +190,10 @@ function SidebarContent({ collapsed, onToggle }: SidebarProps) {
               </button>
             }
           />
-          <DropdownMenuContent align={collapsed ? "center" : "start"} className="w-56">
+          <DropdownMenuContent
+            align={collapsed ? "center" : "start"}
+            className="w-56"
+          >
             <div className="px-2 py-1.5">
               <p className="text-sm font-medium">{user?.name}</p>
               <p className="text-xs text-muted-foreground">{user?.email}</p>
@@ -184,7 +201,10 @@ function SidebarContent({ collapsed, onToggle }: SidebarProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               render={
-                <Link href="/dashboard/settings" className="flex items-center gap-2">
+                <Link
+                  href="/dashboard/settings"
+                  className="flex items-center gap-2"
+                >
                   <Settings className="size-4" />
                   Settings
                 </Link>
@@ -215,7 +235,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       <aside
         className={cn(
           "hidden border-r border-sidebar-border bg-sidebar transition-all duration-300 lg:block",
-          collapsed ? "w-[68px]" : "w-64"
+          collapsed ? "w-[68px]" : "w-64",
         )}
       >
         <SidebarContent
@@ -228,7 +248,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="w-64 p-0">
           <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-          <SidebarContent collapsed={false} onToggle={() => setMobileOpen(false)} />
+          <SidebarContent
+            collapsed={false}
+            onToggle={() => setMobileOpen(false)}
+          />
         </SheetContent>
       </Sheet>
 

@@ -3,12 +3,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { TalentCard } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -100,7 +95,9 @@ const formatLastActive = (date: Date) => {
   return `${days}d ago`;
 };
 
-export function TalentDashboard({ talents = mockTalents }: TalentDashboardProps) {
+export function TalentDashboard({
+  talents = mockTalents,
+}: TalentDashboardProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredTalents = talents.filter((talent) => {
@@ -131,7 +128,9 @@ export function TalentDashboard({ talents = mockTalents }: TalentDashboardProps)
             <Users className="size-5 text-primary" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-foreground">{talents.length}</p>
+            <p className="text-2xl font-bold text-foreground">
+              {talents.length}
+            </p>
             <p className="text-xs text-muted-foreground">Available</p>
           </div>
         </div>
@@ -178,7 +177,7 @@ export function TalentDashboard({ talents = mockTalents }: TalentDashboardProps)
                       variant="outline"
                       className={cn(
                         "mt-2 capitalize",
-                        seniorityColors[talent.estimatedSeniority]
+                        seniorityColors[talent.estimatedSeniority],
                       )}
                     >
                       <Award className="mr-1 size-3" />
@@ -188,7 +187,12 @@ export function TalentDashboard({ talents = mockTalents }: TalentDashboardProps)
                   <div className="text-right">
                     <div className="flex items-center gap-1">
                       <TrendingUp className="size-4 text-muted-foreground" />
-                      <span className={cn("text-2xl font-bold", getScoreColor(talent.averageScore))}>
+                      <span
+                        className={cn(
+                          "text-2xl font-bold",
+                          getScoreColor(talent.averageScore),
+                        )}
+                      >
                         {talent.averageScore}
                       </span>
                     </div>

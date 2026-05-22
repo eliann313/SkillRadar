@@ -55,7 +55,12 @@ function SettingsContent() {
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" defaultValue={user.email} disabled />
+                <Input
+                  id="email"
+                  type="email"
+                  defaultValue={user.email}
+                  disabled
+                />
               </div>
             </div>
             {user.role === "recruiter" && (
@@ -79,9 +84,7 @@ function SettingsContent() {
               <Building className="size-5 text-primary" />
               Account Type
             </CardTitle>
-            <CardDescription>
-              Your current plan and role
-            </CardDescription>
+            <CardDescription>Your current plan and role</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
@@ -112,12 +115,16 @@ function SettingsContent() {
           <CardContent className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-foreground">Email Notifications</p>
+                <p className="font-medium text-foreground">
+                  Email Notifications
+                </p>
                 <p className="text-sm text-muted-foreground">
                   Receive updates about your analyses and matches
                 </p>
               </div>
-              <Button variant="outline" size="sm">Configure</Button>
+              <Button variant="outline" size="sm">
+                Configure
+              </Button>
             </div>
             <Separator />
             <div className="flex items-center justify-between">
@@ -127,7 +134,9 @@ function SettingsContent() {
                   Get a summary of your activity every week
                 </p>
               </div>
-              <Button variant="outline" size="sm">Configure</Button>
+              <Button variant="outline" size="sm">
+                Configure
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -139,19 +148,21 @@ function SettingsContent() {
               <Shield className="size-5 text-primary" />
               Security
             </CardTitle>
-            <CardDescription>
-              Manage your security settings
-            </CardDescription>
+            <CardDescription>Manage your security settings</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-foreground">Connected Accounts</p>
+                <p className="font-medium text-foreground">
+                  Connected Accounts
+                </p>
                 <p className="text-sm text-muted-foreground">
                   Manage your linked social accounts
                 </p>
               </div>
-              <Button variant="outline" size="sm">Manage</Button>
+              <Button variant="outline" size="sm">
+                Manage
+              </Button>
             </div>
             <Separator />
             <div className="flex items-center justify-between">
@@ -161,7 +172,9 @@ function SettingsContent() {
                   Permanently delete your account and all data
                 </p>
               </div>
-              <Button variant="destructive" size="sm">Delete</Button>
+              <Button variant="destructive" size="sm">
+                Delete
+              </Button>
             </div>
           </CardContent>
         </Card>

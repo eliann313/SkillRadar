@@ -33,7 +33,12 @@ export function RadialProgress({
   };
 
   return (
-    <div className={cn("relative inline-flex items-center justify-center", className)}>
+    <div
+      className={cn(
+        "relative inline-flex items-center justify-center",
+        className,
+      )}
+    >
       <svg
         width={size}
         height={size}
@@ -55,7 +60,10 @@ export function RadialProgress({
           cy={size / 2}
           r={radius}
           fill="none"
-          className={cn("transition-all duration-500 ease-out", getStrokeColor())}
+          className={cn(
+            "transition-all duration-500 ease-out",
+            getStrokeColor(),
+          )}
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={offset}

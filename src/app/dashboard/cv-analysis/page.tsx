@@ -74,8 +74,13 @@ function CVAnalysisContent() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <CVUploadForm onAnalyze={(content) => { void handleAnalyze(content); }} isLoading={isLoading} />
-        
+        <CVUploadForm
+          onAnalyze={(content) => {
+            void handleAnalyze(content);
+          }}
+          isLoading={isLoading}
+        />
+
         {analysis && (
           <div className="lg:col-span-2">
             <AnalysisResults analysis={analysis} />

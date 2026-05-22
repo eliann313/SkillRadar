@@ -54,10 +54,17 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
             </CardDescription>
           </div>
           <div className="text-right">
-            <span className={cn("text-4xl font-bold", getScoreColor(match.matchScore))}>
+            <span
+              className={cn(
+                "text-4xl font-bold",
+                getScoreColor(match.matchScore),
+              )}
+            >
               {match.matchScore}%
             </span>
-            <p className="text-sm text-muted-foreground">{getScoreLabel(match.matchScore)}</p>
+            <p className="text-sm text-muted-foreground">
+              {getScoreLabel(match.matchScore)}
+            </p>
           </div>
         </div>
       </CardHeader>
@@ -72,7 +79,7 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
             <div
               className={cn(
                 "h-full transition-all duration-500",
-                getProgressColor(match.matchScore)
+                getProgressColor(match.matchScore),
               )}
               style={{ width: `${match.matchScore}%` }}
             />
@@ -145,8 +152,9 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
               <div>
                 <p className="font-medium text-foreground">Strong Candidate</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Your profile aligns well with this position. Consider applying and
-                  highlighting your {match.alignedSkills.slice(0, 3).join(", ")} experience.
+                  Your profile aligns well with this position. Consider applying
+                  and highlighting your{" "}
+                  {match.alignedSkills.slice(0, 3).join(", ")} experience.
                 </p>
               </div>
             </>
@@ -154,10 +162,13 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
             <>
               <AlertCircle className="size-5 shrink-0 text-warning" />
               <div>
-                <p className="font-medium text-foreground">Consider Upskilling</p>
+                <p className="font-medium text-foreground">
+                  Consider Upskilling
+                </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Focus on learning {match.missingSkills.slice(0, 2).join(" and ")} to
-                  improve your match score for similar positions.
+                  Focus on learning{" "}
+                  {match.missingSkills.slice(0, 2).join(" and ")} to improve
+                  your match score for similar positions.
                 </p>
               </div>
             </>

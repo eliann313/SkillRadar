@@ -129,7 +129,9 @@ export function LoginForm() {
                   <Mail className="size-6 text-primary" />
                 </div>
                 <div>
-                  <p className="font-medium text-foreground">Check your email</p>
+                  <p className="font-medium text-foreground">
+                    Check your email
+                  </p>
                   <p className="mt-1 text-sm text-muted-foreground">
                     We sent a magic link to{" "}
                     <span className="font-medium text-foreground">{email}</span>
@@ -144,7 +146,12 @@ export function LoginForm() {
                 </Button>
               </div>
             ) : (
-              <form onSubmit={(e) => { void handleMagicLink(e); }} className="flex flex-col gap-4">
+              <form
+                onSubmit={(e) => {
+                  void handleMagicLink(e);
+                }}
+                className="flex flex-col gap-4"
+              >
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -159,7 +166,10 @@ export function LoginForm() {
                 <Button type="submit" disabled={isLoading || !email}>
                   {isLoading ? (
                     <>
-                      <Loader2 data-icon="inline-start" className="animate-spin" />
+                      <Loader2
+                        data-icon="inline-start"
+                        className="animate-spin"
+                      />
                       Sending...
                     </>
                   ) : (

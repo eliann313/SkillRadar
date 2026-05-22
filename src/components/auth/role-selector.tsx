@@ -14,7 +14,13 @@ import type { UserRole } from "@/lib/types";
 import { Code2, Users, ArrowRight, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const roles: { id: UserRole; title: string; description: string; icon: React.ReactNode; features: string[] }[] = [
+const roles: {
+  id: UserRole;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  features: string[];
+}[] = [
   {
     id: "developer",
     title: "Developer",
@@ -84,7 +90,7 @@ export function RoleSelector() {
               className={cn(
                 "cursor-pointer border-border/50 bg-card/50 backdrop-blur-sm transition-all hover:border-primary/50 hover:bg-card/80",
                 selectedRole === role.id &&
-                  "border-primary bg-primary/5 ring-1 ring-primary/20"
+                  "border-primary bg-primary/5 ring-1 ring-primary/20",
               )}
               onClick={() => setSelectedRole(role.id)}
             >
@@ -95,7 +101,7 @@ export function RoleSelector() {
                       "flex size-12 items-center justify-center rounded-lg transition-colors",
                       selectedRole === role.id
                         ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground"
+                        : "bg-muted text-muted-foreground",
                     )}
                   >
                     {role.icon}

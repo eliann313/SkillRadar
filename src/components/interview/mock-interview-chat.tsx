@@ -21,7 +21,9 @@ interface MockInterviewChatProps {
   initialMessages?: ChatMessage[];
 }
 
-export function MockInterviewChat({ initialMessages = [] }: MockInterviewChatProps) {
+export function MockInterviewChat({
+  initialMessages = [],
+}: MockInterviewChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -50,7 +52,9 @@ export function MockInterviewChat({ initialMessages = [] }: MockInterviewChatPro
     setIsTyping(true);
 
     // Simulate AI response
-    await new Promise((resolve) => setTimeout(resolve, 1500 + Math.random() * 1000));
+    await new Promise((resolve) =>
+      setTimeout(resolve, 1500 + Math.random() * 1000),
+    );
 
     const aiResponses = [
       "That's a great point. Can you tell me more about a challenging project you worked on recently?",
@@ -133,7 +137,7 @@ export function MockInterviewChat({ initialMessages = [] }: MockInterviewChatPro
                   key={message.id}
                   className={cn(
                     "flex gap-3",
-                    message.role === "user" && "flex-row-reverse"
+                    message.role === "user" && "flex-row-reverse",
                   )}
                 >
                   <Avatar className="size-8 shrink-0">
@@ -141,7 +145,7 @@ export function MockInterviewChat({ initialMessages = [] }: MockInterviewChatPro
                       className={cn(
                         message.role === "assistant"
                           ? "bg-primary/10 text-primary"
-                          : "bg-indigo/10 text-indigo"
+                          : "bg-indigo/10 text-indigo",
                       )}
                     >
                       {message.role === "assistant" ? (
@@ -156,7 +160,7 @@ export function MockInterviewChat({ initialMessages = [] }: MockInterviewChatPro
                       "max-w-[80%] rounded-2xl px-4 py-3",
                       message.role === "assistant"
                         ? "rounded-tl-sm bg-muted"
-                        : "rounded-tr-sm bg-primary text-primary-foreground"
+                        : "rounded-tr-sm bg-primary text-primary-foreground",
                     )}
                   >
                     <p className="text-sm leading-relaxed">{message.content}</p>
@@ -165,7 +169,7 @@ export function MockInterviewChat({ initialMessages = [] }: MockInterviewChatPro
                         "mt-1 text-xs",
                         message.role === "assistant"
                           ? "text-muted-foreground"
-                          : "text-primary-foreground/70"
+                          : "text-primary-foreground/70",
                       )}
                     >
                       {message.timestamp.toLocaleTimeString([], {

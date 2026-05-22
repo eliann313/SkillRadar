@@ -18,7 +18,10 @@ interface JobOfferInputProps {
   isLoading?: boolean;
 }
 
-export function JobOfferInput({ onMatch, isLoading = false }: JobOfferInputProps) {
+export function JobOfferInput({
+  onMatch,
+  isLoading = false,
+}: JobOfferInputProps) {
   const [offerText, setOfferText] = useState("");
 
   const handleMatch = () => {

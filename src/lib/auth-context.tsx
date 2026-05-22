@@ -35,7 +35,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<DeveloperProfile | RecruiterProfile | null>(
-    null
+    null,
   );
   const [isLoading, setIsLoading] = useState(false);
   const [accountLimits] = useState<AccountLimits>(defaultLimits);
@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setIsLoading(false);
     },
-    []
+    [],
   );
 
   const logout = useCallback(() => {

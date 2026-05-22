@@ -32,7 +32,10 @@ interface CVUploadFormProps {
   isLoading?: boolean;
 }
 
-export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps) {
+export function CVUploadForm({
+  onAnalyze,
+  isLoading = false,
+}: CVUploadFormProps) {
   const [file, setFile] = useState<File | null>(null);
   const [textContent, setTextContent] = useState("");
   const [isTextOpen, setIsTextOpen] = useState(false);
@@ -90,7 +93,7 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
               isDragActive
                 ? "border-primary bg-primary/5"
                 : "border-border hover:border-primary/50 hover:bg-muted/50",
-              isLoading && "pointer-events-none opacity-50"
+              isLoading && "pointer-events-none opacity-50",
             )}
           >
             <input {...getInputProps()} />
@@ -133,17 +136,19 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
         {/* Collapsible text input */}
         <Collapsible open={isTextOpen} onOpenChange={setIsTextOpen}>
           <CollapsibleTrigger
-            render={<Button
-              variant="ghost"
-              className="w-full justify-between text-muted-foreground"
-              disabled={isLoading}
-            />}
+            render={
+              <Button
+                variant="ghost"
+                className="w-full justify-between text-muted-foreground"
+                disabled={isLoading}
+              />
+            }
           >
             <span>Or paste your CV text</span>
             <ChevronDown
               className={cn(
                 "size-4 transition-transform",
-                isTextOpen && "rotate-180"
+                isTextOpen && "rotate-180",
               )}
             />
           </CollapsibleTrigger>

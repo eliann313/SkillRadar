@@ -37,17 +37,27 @@ export function MetricsGrid() {
         <CardContent className="flex flex-col items-center gap-4 pt-4">
           <RadialProgress value={atsScore} size={140} strokeWidth={10}>
             <div className="flex flex-col items-center">
-              <span className="text-3xl font-bold text-foreground">{atsScore}</span>
+              <span className="text-3xl font-bold text-foreground">
+                {atsScore}
+              </span>
               <span className="text-xs text-muted-foreground">out of 100</span>
             </div>
           </RadialProgress>
           <div className="flex items-center gap-2 text-sm">
             <TrendingUp className="size-4 text-emerald" />
             <span className="text-muted-foreground">
-              <span className="font-medium text-emerald">+5</span> from last week
+              <span className="font-medium text-emerald">+5</span> from last
+              week
             </span>
           </div>
-          <Link href="/dashboard/cv-analysis" className={buttonVariants({ variant: "outline", size: "sm", className: "w-full" })}>
+          <Link
+            href="/dashboard/cv-analysis"
+            className={buttonVariants({
+              variant: "outline",
+              size: "sm",
+              className: "w-full",
+            })}
+          >
             Improve Score
           </Link>
         </CardContent>
@@ -67,7 +77,9 @@ export function MetricsGrid() {
         <CardContent className="flex flex-col gap-4 pt-4">
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Senior Frontend Dev</span>
+              <span className="text-sm text-muted-foreground">
+                Senior Frontend Dev
+              </span>
               <span className="text-2xl font-bold text-foreground">85%</span>
             </div>
             <Progress value={85} className="h-2" />
@@ -86,7 +98,14 @@ export function MetricsGrid() {
               +2 gaps
             </Badge>
           </div>
-          <Link href="/dashboard/job-match" className={buttonVariants({ variant: "outline", size: "sm", className: "w-full" })}>
+          <Link
+            href="/dashboard/job-match"
+            className={buttonVariants({
+              variant: "outline",
+              size: "sm",
+              className: "w-full",
+            })}
+          >
             New Match
           </Link>
         </CardContent>
@@ -96,7 +115,9 @@ export function MetricsGrid() {
       <Card className="border-border/50 bg-card/50 backdrop-blur-sm md:col-span-2 lg:col-span-1">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-medium">Account Limits</CardTitle>
+            <CardTitle className="text-base font-medium">
+              Account Limits
+            </CardTitle>
             <Badge variant="outline" className="text-xs">
               Free Plan
             </Badge>
@@ -116,7 +137,11 @@ export function MetricsGrid() {
               </span>
             </div>
             <Progress
-              value={(accountLimits.cvAnalysis.used / accountLimits.cvAnalysis.limit) * 100}
+              value={
+                (accountLimits.cvAnalysis.used /
+                  accountLimits.cvAnalysis.limit) *
+                100
+              }
               className="h-1.5"
             />
           </div>
@@ -133,7 +158,10 @@ export function MetricsGrid() {
               </span>
             </div>
             <Progress
-              value={(accountLimits.jobMatch.used / accountLimits.jobMatch.limit) * 100}
+              value={
+                (accountLimits.jobMatch.used / accountLimits.jobMatch.limit) *
+                100
+              }
               className="h-1.5"
             />
           </div>
@@ -146,12 +174,15 @@ export function MetricsGrid() {
                 <span className="text-muted-foreground">Mock Interview</span>
               </div>
               <span className="font-medium">
-                {accountLimits.mockInterview.used}/{accountLimits.mockInterview.limit}
+                {accountLimits.mockInterview.used}/
+                {accountLimits.mockInterview.limit}
               </span>
             </div>
             <Progress
               value={
-                (accountLimits.mockInterview.used / accountLimits.mockInterview.limit) * 100
+                (accountLimits.mockInterview.used /
+                  accountLimits.mockInterview.limit) *
+                100
               }
               className="h-1.5"
             />

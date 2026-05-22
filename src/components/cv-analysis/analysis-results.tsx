@@ -32,7 +32,11 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
         <CardContent className="flex flex-col items-center gap-6 py-8 sm:flex-row sm:justify-around">
           {/* ATS Score */}
           <div className="flex flex-col items-center gap-2">
-            <RadialProgress value={analysis.atsScore} size={120} strokeWidth={8}>
+            <RadialProgress
+              value={analysis.atsScore}
+              size={120}
+              strokeWidth={8}
+            >
               <div className="flex flex-col items-center">
                 <span className="text-2xl font-bold text-foreground">
                   {analysis.atsScore}
