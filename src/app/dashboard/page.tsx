@@ -1,17 +1,16 @@
 "use client";
 
 import { AuthProvider, useAuth } from "@/lib/auth-context";
-import { LoginForm } from "@/components/auth";
 import { DashboardShell } from "@/components/layout";
 import { DashboardHeader, MetricsGrid } from "@/components/dashboard";
 import { TalentDashboard } from "@/components/recruiter";
+import { redirect } from "next/navigation";
 
-function HomeContent() {
+function DashboardContent() {
   const { user } = useAuth();
 
-  // Not logged in - show login
   if (!user) {
-    return <LoginForm />;
+    redirect("/");
   }
 
   // Recruiter dashboard
@@ -32,10 +31,10 @@ function HomeContent() {
   );
 }
 
-export default function Home() {
+export default function DashboardPage() {
   return (
     <AuthProvider>
-      <HomeContent />
+      <DashboardContent />
     </AuthProvider>
   );
 }
