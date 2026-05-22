@@ -45,7 +45,8 @@ export async function uploadAndParseCVAction(
       };
     }
 
-    // SSRF Prevention: Validate that the fileUrl belongs to UploadThing's trusted domains
+    // SSRF Prevention: Extract the unique fileKey and reconstruct the target URL using 100% hardcoded secure hosts.
+    // This physically blocks any host-level manipulation (SSRF) and terminates CodeQL's taint propagation.
     let validatedUrl: string;
     try {
       const parsedUrl = new URL(fileUrl);
@@ -58,43 +59,40 @@ export async function uploadAndParseCVAction(
         };
       }
 
-      // Disallow credentials and explicit custom ports
-      if (parsedUrl.username || parsedUrl.password) {
-        return {
-          success: false,
-          error: "URL de archivo no permitida por razones de seguridad.",
-        };
-      }
-      if (parsedUrl.port && parsedUrl.port !== "443") {
-        return {
-          success: false,
-          error: "URL de archivo no permitida por razones de seguridad.",
-        };
-      }
-
-      // Allow-list UploadThing hosts only
+      // Allow-list UploadThing hosts only at structural level
       const host = parsedUrl.hostname.toLowerCase();
-      if (
-        host !== "utfs.io" &&
-        !host.endsWith(".utfs.io") &&
-        host !== "ufs.sh" &&
-        !host.endsWith(".ufs.sh")
-      ) {
+      const isUfs = host === "ufs.sh" || host.endsWith(".ufs.sh");
+      const isUtfs = host === "utfs.io" || host.endsWith(".utfs.io");
+      if (!isUfs && !isUtfs) {
         return {
           success: false,
           error: "URL de archivo no permitida por razones de seguridad.",
         };
       }
 
-      validatedUrl = parsedUrl.toString();
-
-      // Double validation check on the reconstructed URL to ensure taint-tracking is completely broken for CodeQL.
-      if (!UPLOADTHING_URL_REGEX.test(validatedUrl)) {
+      // Extract the fileKey which resides after the "/f/" path segments
+      const urlPath = parsedUrl.pathname;
+      if (!urlPath.startsWith("/f/")) {
         return {
           success: false,
-          error: "URL de archivo no permitida por razones de seguridad.",
+          error: "Estructura de URL no permitida por razones de seguridad.",
         };
       }
+      const fileKey = urlPath.substring(3); // Extracts everything after "/f/"
+
+      // Extremely strict whitelist of safe characters for the fileKey to prevent any path traversal or injection attempts
+      const SAFE_FILE_KEY_REGEX = /^[a-zA-Z0-9\-_.]+$/;
+      if (!SAFE_FILE_KEY_REGEX.test(fileKey)) {
+        return {
+          success: false,
+          error: "Nombre de archivo contiene caracteres no permitidos.",
+        };
+      }
+
+      // Reconstruct the URL using 100% static hosts, completely decoupling the request host from user input.
+      validatedUrl = isUfs
+        ? `https://ufs.sh/f/${fileKey}`
+        : `https://utfs.io/f/${fileKey}`;
     } catch {
       return {
         success: false,
