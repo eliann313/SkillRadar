@@ -10,6 +10,25 @@ interface ParseCVInput {
   fileName: string;
 }
 
+function isAllowedUploadthingUrl(rawUrl: string): boolean {
+  try {
+    const url = new URL(rawUrl);
+
+    // Only allow HTTPS URLs.
+    if (url.protocol !== "https:") return false;
+
+    // Disallow credentialed URLs and explicit custom ports.
+    if (url.username || url.password) return false;
+    if (url.port && url.port !== "443") return false;
+
+    // Allow-list UploadThing hosts only.
+    const host = url.hostname.toLowerCase();
+    return host === "utfs.io" || host.endsWith(".utfs.io");
+  } catch {
+    return false;
+  }
+}
+
 export async function uploadAndParseCVAction(
   input: ParseCVInput
 ): Promise<ActionResult<any>> {
@@ -23,6 +42,10 @@ export async function uploadAndParseCVAction(
     const { fileUrl, fileName } = input;
     if (!fileUrl || !fileName) {
       return { success: false, error: "Datos de archivo inválidos." };
+    }
+
+    if (!isAllowedUploadthingUrl(fileUrl)) {
+      return { success: false, error: "URL de archivo inválida o no permitida." };
     }
 
     // 2. Descargar el archivo desde la URL de UploadThing para poder parsearlo
