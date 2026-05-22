@@ -14,6 +14,13 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "./src"),
+      "next/server": path.resolve(
+        import.meta.dirname,
+        "./node_modules/next/server.js",
+      ),
     },
+  },
+  ssr: {
+    noExternal: ["next-auth"],
   },
 });
