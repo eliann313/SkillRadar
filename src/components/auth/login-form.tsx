@@ -19,9 +19,8 @@ import { RoleSelector } from "./role-selector";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
-  const [showRoleSelector, setShowRoleSelector] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
-  const { login, loginWithProvider, isLoading } = useAuth();
+  const { login, loginWithProvider, isLoading, user, session } = useAuth();
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,10 +31,10 @@ export function LoginForm() {
 
   const handleProviderLogin = async (provider: "github" | "google") => {
     await loginWithProvider(provider);
-    setShowRoleSelector(true);
   };
 
-  if (showRoleSelector) {
+  // If authenticated but role hasn't been chosen yet, render the selector
+  if (session && !user) {
     return <RoleSelector />;
   }
 

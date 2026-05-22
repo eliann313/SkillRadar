@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { SessionProvider } from "next-auth/react";
 import "./globals.css";
 
 const inter = Inter({
@@ -45,7 +46,9 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased bg-background`}
     >
       <body className="min-h-full flex flex-col bg-background">
-        <TooltipProvider delay={300}>{children}</TooltipProvider>
+        <SessionProvider>
+          <TooltipProvider delay={300}>{children}</TooltipProvider>
+        </SessionProvider>
       </body>
     </html>
   );
