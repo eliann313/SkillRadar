@@ -144,7 +144,7 @@ export function LoginForm() {
                 </Button>
               </div>
             ) : (
-              <form onSubmit={handleMagicLink} className="flex flex-col gap-4">
+              <form onSubmit={(e) => { void handleMagicLink(e); }} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="email">Email</Label>
                   <Input

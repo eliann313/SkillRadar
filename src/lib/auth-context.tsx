@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [accountLimits] = useState<AccountLimits>(defaultLimits);
 
-  const login = useCallback(async (email: string) => {
+  const login = useCallback(async (_email: string) => {
     setIsLoading(true);
     // Simulate magic link auth
     await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loginWithProvider = useCallback(
-    async (provider: "github" | "google") => {
+    async (_provider: "github" | "google") => {
       setIsLoading(true);
       // Simulate OAuth flow
       await new Promise((resolve) => setTimeout(resolve, 1000));

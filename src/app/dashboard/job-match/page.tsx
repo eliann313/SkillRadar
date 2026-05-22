@@ -60,7 +60,7 @@ function JobMatchContent() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <JobOfferInput onMatch={handleMatch} isLoading={isLoading} />
+        <JobOfferInput onMatch={(offer) => { void handleMatch(offer); }} isLoading={isLoading} />
         
         {match && <MatchScoreCard match={match} />}
       </div>
