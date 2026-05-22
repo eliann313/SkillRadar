@@ -21,8 +21,6 @@ interface MockInterviewChatProps {
   initialMessages?: ChatMessage[];
 }
 
-const systemPrompt = `You are an experienced technical interviewer. Ask relevant questions about the candidate's experience, technical skills, and problem-solving abilities. Be professional but friendly.`;
-
 export function MockInterviewChat({ initialMessages = [] }: MockInterviewChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
@@ -76,13 +74,13 @@ export function MockInterviewChat({ initialMessages = [] }: MockInterviewChatPro
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      void handleSend();
     }
   };
 
   const startInterview = () => {
     setIsTyping(true);
-    setTimeout(() => {
+    void setTimeout(() => {
       const welcomeMessage: ChatMessage = {
         id: crypto.randomUUID(),
         role: "assistant",
@@ -214,7 +212,7 @@ export function MockInterviewChat({ initialMessages = [] }: MockInterviewChatPro
               />
               <Button
                 size="icon"
-                onClick={handleSend}
+                onClick={() => void handleSend()}
                 disabled={!input.trim() || isTyping}
               >
                 <Send />

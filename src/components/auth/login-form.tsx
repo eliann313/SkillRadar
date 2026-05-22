@@ -78,7 +78,7 @@ export function LoginForm() {
               <Button
                 variant="outline"
                 className="w-full gap-2"
-                onClick={() => handleProviderLogin("github")}
+                onClick={() => void handleProviderLogin("github")}
                 disabled={isLoading}
               >
                 <GitHubLogoIcon data-icon="inline-start" />
@@ -87,7 +87,7 @@ export function LoginForm() {
               <Button
                 variant="outline"
                 className="w-full gap-2"
-                onClick={() => handleProviderLogin("google")}
+                onClick={() => void handleProviderLogin("google")}
                 disabled={isLoading}
               >
                 <svg

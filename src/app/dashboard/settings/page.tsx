@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { redirect } from "next/navigation";
-import { User, Building, Mail, Bell, Shield, CreditCard } from "lucide-react";
+import { User, Building, Bell, Shield } from "lucide-react";
 
 function SettingsContent() {
   const { user } = useAuth();

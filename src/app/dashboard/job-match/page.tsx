@@ -40,7 +40,7 @@ function JobMatchContent() {
     redirect("/dashboard");
   }
 
-  const handleMatch = async (offer: string) => {
+  const handleMatch = async (_offer: string) => {
     setIsLoading(true);
     // Simulate AI matching
     await new Promise((resolve) => setTimeout(resolve, 2000));

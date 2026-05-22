@@ -54,7 +54,7 @@ function CVAnalysisContent() {
     redirect("/dashboard");
   }
 
-  const handleAnalyze = async (content: string) => {
+  const handleAnalyze = async (_content: string) => {
     setIsLoading(true);
     // Simulate AI analysis
     await new Promise((resolve) => setTimeout(resolve, 2500));

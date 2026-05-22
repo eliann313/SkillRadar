@@ -46,7 +46,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await new Promise((resolve) => setTimeout(resolve, 1500));
     setIsLoading(false);
     // In real app, this would send magic link email
-    console.log("[v0] Magic link sent to:", email);
   }, []);
 
   const loginWithProvider = useCallback(
@@ -55,7 +54,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Simulate OAuth flow
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setIsLoading(false);
-      console.log("[v0] OAuth initiated with:", provider);
     },
     []
   );
