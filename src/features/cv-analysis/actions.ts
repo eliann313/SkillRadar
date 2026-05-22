@@ -9,29 +9,6 @@ interface ParseCVInput {
   fileUrl: string;
   fileName: string;
 }
-
-function isAllowedUploadthingUrl(rawUrl: string): boolean {
-  try {
-    const url = new URL(rawUrl);
-
-    // Only allow HTTPS URLs.
-    if (url.protocol !== "https:") return false;
-
-    // Disallow credentialed URLs and explicit custom ports.
-    if (url.username || url.password) return false;
-    if (url.port && url.port !== "443") return false;
-
-    // Allow-list UploadThing hosts only.
-    const host = url.hostname.toLowerCase();
-    const allowedHosts = ["utfs.io", "ufs.sh"];
-    return allowedHosts.some(
-      (allowed) => host === allowed || host.endsWith("." + allowed),
-    );
-  } catch {
-    return false;
-  }
-}
-
 interface ParseCVResult {
   id: string;
   fileName: string;
@@ -58,15 +35,56 @@ export async function uploadAndParseCVAction(
     }
 
     // SSRF Prevention: Validate that the fileUrl belongs to UploadThing's trusted domains
-    if (!isAllowedUploadthingUrl(fileUrl)) {
+    let validatedUrl: string;
+    try {
+      const parsedUrl = new URL(fileUrl);
+
+      // Only allow HTTPS URLs
+      if (parsedUrl.protocol !== "https:") {
+        return {
+          success: false,
+          error: "URL de archivo no permitida por razones de seguridad.",
+        };
+      }
+
+      // Disallow credentials and explicit custom ports
+      if (parsedUrl.username || parsedUrl.password) {
+        return {
+          success: false,
+          error: "URL de archivo no permitida por razones de seguridad.",
+        };
+      }
+      if (parsedUrl.port && parsedUrl.port !== "443") {
+        return {
+          success: false,
+          error: "URL de archivo no permitida por razones de seguridad.",
+        };
+      }
+
+      // Allow-list UploadThing hosts only
+      const host = parsedUrl.hostname.toLowerCase();
+      if (
+        host !== "utfs.io" &&
+        !host.endsWith(".utfs.io") &&
+        host !== "ufs.sh" &&
+        !host.endsWith(".ufs.sh")
+      ) {
+        return {
+          success: false,
+          error: "URL de archivo no permitida por razones de seguridad.",
+        };
+      }
+
+      validatedUrl = parsedUrl.toString();
+    } catch {
       return {
         success: false,
-        error: "URL de archivo no permitida por razones de seguridad.",
+        error: "URL de archivo inválida o no permitida.",
       };
     }
 
     // 2. Descargar el archivo desde la URL de UploadThing para poder parsearlo
-    const response = await fetch(fileUrl);
+    const response = await fetch(validatedUrl);
     if (!response.ok) {
       return {
         success: false,
