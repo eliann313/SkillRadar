@@ -1,0 +1,104 @@
+name: PR Conflict & Rebase Labeler
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  conflict-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for Merge Conflicts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+
+            // Función para analizar y etiquetar una PR individual
+            async function checkPRConflict(prNumber) {
+              console.log(`Checking conflict status for PR #${prNumber}...`);
+              
+              // Obtener detalles completos de la PR para tener acceso al atributo 'mergeable'
+              let pr = await github.rest.pulls.get({
+                owner,
+                repo,
+                pull_number: prNumber
+              });
+
+              // Si es null, GitHub está calculando la fusión en segundo plano. Esperamos un poco y reintentamos.
+              if (pr.data.mergeable === null) {
+                console.log("Mergeable status is null (calculating). Waiting 4 seconds...");
+                await new Promise(resolve => setTimeout(resolve, 4000));
+                pr = await github.rest.pulls.get({
+                  owner,
+                  repo,
+                  pull_number: prNumber
+                });
+              }
+
+              const isConflict = pr.data.mergeable === false || pr.data.mergeable_state === 'dirty';
+              console.log(`PR #${prNumber} mergeable state: "${pr.data.mergeable_state}", mergeable: ${pr.data.mergeable} -> Is conflict: ${isConflict}`);
+
+              // Obtener etiquetas actuales
+              const { data: currentLabelsData } = await github.rest.issues.listLabelsOnIssue({
+                owner,
+                repo,
+                issue_number: prNumber
+              });
+              const currentLabels = new Set(currentLabelsData.map(l => l.name));
+              const labelName = "review: need-rebase";
+
+              if (isConflict) {
+                if (!currentLabels.has(labelName)) {
+                  console.log(`Adding "${labelName}" to PR #${prNumber}`);
+                  await github.rest.issues.addLabels({
+                    owner,
+                    repo,
+                    issue_number: prNumber,
+                    labels: [labelName]
+                  });
+                }
+              } else {
+                if (currentLabels.has(labelName)) {
+                  console.log(`Removing "${labelName}" from PR #${prNumber}`);
+                  try {
+                    await github.rest.issues.removeLabel({
+                      owner,
+                      repo,
+                      issue_number: prNumber,
+                      name: labelName
+                    });
+                  } catch (err) {
+                    console.warn(`Failed to remove label from PR #${prNumber}:`, err.message);
+                  }
+                }
+              }
+            }
+
+            // Flujo de ejecución según el evento desencadenador
+            if (context.eventName === 'pull_request') {
+              // Solo revisamos la PR actual
+              const prNumber = context.payload.pull_request.number;
+              await checkPRConflict(prNumber);
+            } else {
+              // Es un push a main/develop, revisamos TODAS las PRs abiertas
+              console.log(`Push event detected on base branch. Listing all open PRs to verify conflicts...`);
+              const { data: openPRs } = await github.rest.pulls.list({
+                owner,
+                repo,
+                state: 'open'
+              });
+
+              console.log(`Found ${openPRs.length} open Pull Request(s) to analyze.`);
+              for (const pr of openPRs) {
+                await checkPRConflict(pr.number);
+              }
+            }
+
+            console.log("Conflict check finished successfully.");
