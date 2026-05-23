@@ -24,6 +24,7 @@
     "@prisma/client": "^7.8.0",
     "@radix-ui/react-icons": "^1.3.2",
     "@uploadthing/react": "^7.3.3",
+    "@vercel/analytics": "^2.0.1",
     "ai": "^6.0.190",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
