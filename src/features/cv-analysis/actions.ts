@@ -13,6 +13,8 @@ interface ParseCVResult {
   id: string;
   fileName: string;
   fileUrl: string;
+  atsScore?: number | null;
+  analysis?: unknown;
   createdAt: Date;
 }
 
@@ -129,6 +131,8 @@ export async function uploadAndParseCVAction(
         id: resume.id,
         fileName: resume.fileName,
         fileUrl: resume.fileUrl,
+        atsScore: resume.atsScore,
+        analysis: resume.analysis,
         createdAt: resume.createdAt,
       },
     };
