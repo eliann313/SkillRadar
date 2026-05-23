@@ -77,17 +77,17 @@ Este archivo sirve como el inventario de desarrollo oficial y priorizado de **Sk
   - [ ] Invocar a la Server Action de comparación y renderizar en los componentes `MatchScoreCard` e `GapAnalysis` los datos vivos de la DB.
 - **Rama Git:** `feature/job-match-frontend`
 
-### 🎴 Tarjeta 9.0: Implementar Modo Demo / Simulación Seguro (Server-Side Guest Sessions)
+### 🎴 Tarjeta 9.0: Implementar Modo Demo / Simulación Seguro (Server-Side Guest Sessions para Dev y Recruiter)
 
 - **Prioridad:** Alta 🔴
 - **Descripción:**
-  Añadir una vía de acceso instantánea en el login que inicie una sesión real de "Invitado/Guest" en el servidor utilizando Auth.js v5 (vía Credentials Provider o sesión temporal). La lógica de desvío e inyección de datos mockeados se gestiona **estrictamente en el servidor** (Server Actions y API Routes) validando el rol `"guest"` del token JWT, impidiendo cualquier bypass o manipulación desde el React Context del cliente.
+  Añadir dos vías de acceso instantáneas en el inicio de sesión que inicien una sesión real de "Invitado/Guest" en el servidor utilizando Auth.js v5 (vía Credentials Provider). Se inyectarán dinámicamente credenciales con los roles reales `"developer"` o `"recruiter"`, acompañados de una propiedad `isGuest: true` securizada en el JWT, permitiendo evaluar toda la interfaz correspondiente sin comprometer datos reales ni incurrir en cobros a APIs de terceros.
 - **Criterios de Aceptación:**
-  - [ ] Añadir botón "Explorar como Invitado (Modo Demo)" en el `LoginForm`.
-  - [ ] Configurar un Credentials Provider secundario en Auth.js v5 para generar un JWT válido con `role: "guest"` e inyectar datos predefinidos de usuario ("Demo User").
-  - [ ] En las Server Actions y APIs, verificar el rol de la sesión: si `session.user.role === "guest"`, interceptar y retornar directamente los datos de simulación simulados (los mocks de v0) sin hacer llamadas de cobro a Gemini ni alterar las tablas reales de la base de datos.
-  - [ ] Desplegar un banner superior visual en el dashboard avisando que se navega bajo Modo Demo.
-- **🔒 Seguridad Crítica:** Prohibido delegar el estado de simulación al cliente. El desvío de flujo debe ser validado criptográficamente en el servidor mediante el token JWT de Auth.js v5.
+  - [ ] Añadir dos botones distintos en `LoginForm`: "Explorar como Dev (Invitado)" y "Explorar como Recruiter (Invitado)".
+  - [ ] Configurar un Credentials Provider en Auth.js v5 que reciba el rol como parámetro de credencial y genere un JWT válido con el rol respectivo (`"developer"` o `"recruiter"`) e inyecte `isGuest: true`.
+  - [ ] En las Server Actions y APIs, verificar la propiedad `isGuest`: si `session.user.isGuest === true`, interceptar el flujo y retornar datos simulados estructurados (los mocks correspondientes a cada rol) sin alterar tablas de Neon Postgres ni realizar peticiones de red reales (UploadThing, Gemini).
+  - [ ] Desplegar un banner superior visual ("Sticky Top" de color ámbar/índigo) integrado en el shell del dashboard avisando al usuario que navega en modo Demo según su rol actual.
+- **🔒 Seguridad Crítica:** Prohibido delegar el estado de simulación al cliente. Toda ramificación de flujo e inyección de mocks debe verificarse en el servidor validando la propiedad encriptada `isGuest` dentro de la sesión de Auth.js v5.
 - **Rama Git:** `feature/guest-demo-simulation-mode`
 
 ---

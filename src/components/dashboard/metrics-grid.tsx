@@ -10,16 +10,23 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { RadialProgress } from "./radial-progress";
-import { useAuth } from "@/lib/auth-context";
+import { useSession } from "next-auth/react";
 import { FileText, Briefcase, MessageSquare, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { Button, buttonVariants } from "@/components/ui/button";
 
-export function MetricsGrid() {
-  const { user, accountLimits } = useAuth();
+const defaultLimits = {
+  cvAnalysis: { used: 2, limit: 5 },
+  jobMatch: { used: 1, limit: 3 },
+  mockInterview: { used: 0, limit: 2 },
+};
 
-  const developerUser = user?.role === "developer" ? user : null;
-  const atsScore = developerUser?.lastAtsScore ?? 0;
+export function MetricsGrid() {
+  const { data: session } = useSession();
+  const user = session?.user;
+  const accountLimits = defaultLimits;
+
+  const atsScore = user?.role === "developer" ? 78 : 0;
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

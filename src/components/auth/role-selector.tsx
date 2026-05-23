@@ -9,7 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useAuth } from "@/lib/auth-context";
+import { useSession } from "next-auth/react";
+import { updateUserRole } from "@/lib/auth-actions";
 import type { UserRole } from "@/lib/types";
 import { Code2, Users, ArrowRight, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -49,11 +50,24 @@ const roles: {
 
 export function RoleSelector() {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
-  const { setRole } = useAuth();
+  const { update } = useSession();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleContinue = () => {
-    if (selectedRole) {
-      void setRole(selectedRole);
+  const handleContinue = async () => {
+    if (!selectedRole || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const result = await updateUserRole(selectedRole);
+      if (result.success) {
+        await update({ role: selectedRole });
+        window.location.href = "/dashboard";
+      } else {
+        console.error("Failed to update role:", result.error);
+      }
+    } catch (err) {
+      console.error("Error choosing role:", err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -135,11 +149,11 @@ export function RoleSelector() {
         <div className="mt-6 flex justify-center">
           <Button
             size="lg"
-            disabled={!selectedRole}
-            onClick={handleContinue}
+            disabled={!selectedRole || isSubmitting}
+            onClick={() => void handleContinue()}
             className="gap-2"
           >
-            Continue
+            {isSubmitting ? "Saving..." : "Continue"}
             <ArrowRight data-icon="inline-end" />
           </Button>
         </div>

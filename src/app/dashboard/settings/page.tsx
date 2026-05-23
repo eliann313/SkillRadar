@@ -1,7 +1,6 @@
 "use client";
 
-import { AuthProvider, useAuth } from "@/lib/auth-context";
-import { DashboardShell } from "@/components/layout";
+import { useSession } from "next-auth/react";
 import {
   Card,
   CardContent,
@@ -16,16 +15,29 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { redirect } from "next/navigation";
 import { User, Building, Bell, Shield } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
-function SettingsContent() {
-  const { user } = useAuth();
+export default function SettingsPage() {
+  const { data: session, status } = useSession();
 
-  if (!user) {
+  if (status === "loading") {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-[200px] w-full" />
+        <Skeleton className="h-[150px] w-full" />
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated" || !session?.user) {
     redirect("/");
   }
 
+  const user = session.user;
+
   return (
-    <DashboardShell>
+    <>
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
           Settings
@@ -51,14 +63,14 @@ function SettingsContent() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="name">Full Name</Label>
-                <Input id="name" defaultValue={user.name} />
+                <Input id="name" defaultValue={user.name || ""} />
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
-                  defaultValue={user.email}
+                  defaultValue={user.email || ""}
                   disabled
                 />
               </div>
@@ -68,7 +80,7 @@ function SettingsContent() {
                 <Label htmlFor="company">Company</Label>
                 <Input
                   id="company"
-                  defaultValue={(user as { company?: string }).company || ""}
+                  defaultValue="TechCorp"
                   placeholder="Enter your company name"
                 />
               </div>
@@ -179,14 +191,6 @@ function SettingsContent() {
           </CardContent>
         </Card>
       </div>
-    </DashboardShell>
-  );
-}
-
-export default function SettingsPage() {
-  return (
-    <AuthProvider>
-      <SettingsContent />
-    </AuthProvider>
+    </>
   );
 }

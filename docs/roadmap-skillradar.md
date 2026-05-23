@@ -4,10 +4,10 @@
 | ------------ | ---------------------- |
 | **Proyecto** | SkillRadar             |
 | **Tipo**     | Architecture + Roadmap |
-| **Versión**  | v1.1.0                 |
-| **Estado**   | Draft                  |
-| **Autor**    | Elian                  |
-| **Fecha**    | 2026-05-21             |
+| **Versión**  | v1.2.0                 |
+| **Estado**   | Active                 |
+| **Autor**    | Elian & Antigravity    |
+| **Fecha**    | 2026-05-23             |
 
 ---
 
@@ -301,7 +301,6 @@ project-root/
 │   │   │   ├── page.tsx              # Landing page (/)
 │   │   │   └── layout.tsx
 │   │   ├── dashboard/                # App principal (protegida)
-│   │   │   ├── layout.tsx            # Sidebar + shell del dashboard
 │   │   │   ├── page.tsx              # Overview
 │   │   │   ├── cv/
 │   │   │   │   └── page.tsx
@@ -323,37 +322,23 @@ project-root/
 │   │   ├── layout.tsx                # Root layout
 │   │   └── globals.css
 │   │
-│   ├── features/                     # Lógica por feature (el corazón del proyecto)
+│   ├── features/                     # Lógica de negocio de features en el servidor
 │   │   ├── cv-analysis/
 │   │   │   ├── actions.ts            # Server Actions
 │   │   │   ├── service.ts            # Lógica de negocio
 │   │   │   ├── repository.ts         # Queries Prisma
-│   │   │   ├── types.ts              # Tipos TypeScript
-│   │   │   └── components/           # Componentes UI de esta feature
-│   │   │       ├── CVUploadForm.tsx
-│   │   │       ├── ATSScoreCard.tsx
-│   │   │       └── AnalysisResults.tsx
+│   │   │   └── types.ts              # Tipos TypeScript
 │   │   ├── job-match/
 │   │   │   ├── actions.ts
 │   │   │   ├── service.ts
 │   │   │   ├── repository.ts
-│   │   │   ├── types.ts
-│   │   │   └── components/
-│   │   │       ├── JobOfferInput.tsx
-│   │   │       ├── MatchScoreCard.tsx
-│   │   │       └── GapAnalysis.tsx
+│   │   │   └── types.ts
 │   │   ├── github-analysis/
 │   │   │   ├── actions.ts
 │   │   │   ├── service.ts
 │   │   │   ├── repository.ts
-│   │   │   ├── types.ts
-│   │   │   └── components/
-│   │   │       ├── ConnectGithubButton.tsx
-│   │   │       ├── RepoList.tsx
-│   │   │       └── LanguageChart.tsx
+│   │   │   └── types.ts
 │   │   └── auth/
-│   │       ├── components/
-│   │       │   └── SignInButton.tsx
 │   │       └── types.ts
 │   │
 │   ├── lib/                          # Utilidades compartidas
@@ -370,16 +355,20 @@ project-root/
 │   │   │   └── github.ts
 │   │   └── utils.ts                  # cn(), formatters, etc
 │   │
-│   ├── components/                   # Componentes UI compartidos (no de features)
-│   │   ├── ui/                       # shadcn/ui components (generados)
-│   │   ├── layout/
+│   ├── components/                   # Componentes UI de la aplicación (por feature y compartidos)
+│   │   ├── ui/                       # Componentes shadcn/ui (generados)
+│   │   ├── layout/                   # Layout estructural
 │   │   │   ├── Sidebar.tsx
 │   │   │   ├── Navbar.tsx
 │   │   │   └── DashboardShell.tsx
-│   │   └── shared/
-│   │       ├── ScoreCircle.tsx
-│   │       ├── LoadingSpinner.tsx
-│   │       └── EmptyState.tsx
+│   │   ├── auth/                     # Componentes de autenticación (ej. LoginForm)
+│   │   ├── cv-analysis/              # Componentes visuales de la feature CV
+│   │   │   ├── cv-upload-form.tsx
+│   │   │   └── analysis-results.tsx
+│   │   ├── job-match/                # Componentes visuales de la feature Job Match
+│   │   ├── interview/                # Componentes visuales de la feature Mock Interview
+│   │   ├── recruiter/                # Componentes visuales de la feature Recruiter
+│   │   └── shared/                   # Componentes compartidos y reutilizables
 │   │
 │   ├── hooks/                        # Custom React hooks
 │   │   ├── useAnalysis.ts

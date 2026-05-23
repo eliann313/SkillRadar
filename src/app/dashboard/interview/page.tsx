@@ -1,23 +1,33 @@
 "use client";
 
-import { AuthProvider, useAuth } from "@/lib/auth-context";
-import { DashboardShell } from "@/components/layout";
+import { useSession } from "next-auth/react";
 import { MockInterviewChat } from "@/components/interview";
 import { redirect } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
-function InterviewContent() {
-  const { user } = useAuth();
+export default function InterviewPage() {
+  const { data: session, status } = useSession();
 
-  if (!user) {
+  if (status === "loading") {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-96" />
+        <Skeleton className="h-[400px] w-full" />
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated" || !session?.user) {
     redirect("/");
   }
 
-  if (user.role !== "developer") {
+  if (session.user.role !== "developer") {
     redirect("/dashboard");
   }
 
   return (
-    <DashboardShell>
+    <>
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
           Mock Interview
@@ -30,14 +40,6 @@ function InterviewContent() {
       <div className="mx-auto max-w-3xl">
         <MockInterviewChat />
       </div>
-    </DashboardShell>
-  );
-}
-
-export default function InterviewPage() {
-  return (
-    <AuthProvider>
-      <InterviewContent />
-    </AuthProvider>
+    </>
   );
 }

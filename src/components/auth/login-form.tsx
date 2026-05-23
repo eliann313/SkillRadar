@@ -12,31 +12,59 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/lib/auth-context";
+import { signIn, useSession } from "next-auth/react";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
-import { Mail, Loader2 } from "lucide-react";
+import { Mail, Loader2, Bot, Users } from "lucide-react";
 import { RoleSelector } from "./role-selector";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
-  const { login, loginWithProvider, isLoading, user, session } = useAuth();
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const { data: session, status } = useSession();
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
-    await login(email);
-    setEmailSent(true);
+    setIsAuthLoading(true);
+    try {
+      await signIn("resend", { email, redirect: false });
+      setEmailSent(true);
+    } catch (err) {
+      console.error("Magic link error:", err);
+    } finally {
+      setIsAuthLoading(false);
+    }
   };
 
   const handleProviderLogin = async (provider: "github" | "google") => {
-    await loginWithProvider(provider);
+    setIsAuthLoading(true);
+    try {
+      await signIn(provider, { callbackUrl: "/dashboard" });
+    } catch (err) {
+      console.error("Provider login error:", err);
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  const handleGuestLogin = async (role: "developer" | "recruiter") => {
+    setIsAuthLoading(true);
+    try {
+      await signIn("credentials", { role, callbackUrl: "/dashboard" });
+    } catch (err) {
+      console.error("Guest login error:", err);
+    } finally {
+      setIsAuthLoading(false);
+    }
   };
 
   // If authenticated but role hasn't been chosen yet, render the selector
-  if (session && !user) {
+  if (session && !session.user.role) {
     return <RoleSelector />;
   }
+
+  const isLoading = status === "loading" || isAuthLoading;
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
@@ -113,6 +141,27 @@ export function LoginForm() {
                 </svg>
                 Continue with Google
               </Button>
+
+              <div className="grid grid-cols-2 gap-3 mt-1">
+                <Button
+                  variant="secondary"
+                  className="w-full gap-2 text-xs"
+                  onClick={() => void handleGuestLogin("developer")}
+                  disabled={isLoading}
+                >
+                  <Bot className="size-4 shrink-0 text-primary animate-pulse" />
+                  Dev Demo
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="w-full gap-2 text-xs"
+                  onClick={() => void handleGuestLogin("recruiter")}
+                  disabled={isLoading}
+                >
+                  <Users className="size-4 shrink-0 text-indigo-500 animate-pulse" />
+                  Recruiter Demo
+                </Button>
+              </div>
             </div>
 
             <div className="flex items-center gap-4">

@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { AuthProvider, useAuth } from "@/lib/auth-context";
-import { DashboardShell } from "@/components/layout";
+import { useSession } from "next-auth/react";
 import { CVUploadForm, AnalysisResults } from "@/components/cv-analysis";
 import type { CVAnalysis } from "@/lib/types";
 import { redirect } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const mockAnalysis: CVAnalysis = {
   id: "1",
@@ -41,16 +41,29 @@ const mockAnalysis: CVAnalysis = {
   createdAt: new Date(),
 };
 
-function CVAnalysisContent() {
-  const { user } = useAuth();
+export default function CVAnalysisPage() {
+  const { data: session, status } = useSession();
   const [analysis, setAnalysis] = useState<CVAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  if (!user) {
+  if (status === "loading") {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-96" />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Skeleton className="h-[300px]" />
+          <Skeleton className="h-[300px]" />
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated" || !session?.user) {
     redirect("/");
   }
 
-  if (user.role !== "developer") {
+  if (session.user.role !== "developer") {
     redirect("/dashboard");
   }
 
@@ -63,7 +76,7 @@ function CVAnalysisContent() {
   };
 
   return (
-    <DashboardShell>
+    <>
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
           CV Analysis
@@ -87,14 +100,6 @@ function CVAnalysisContent() {
           </div>
         )}
       </div>
-    </DashboardShell>
-  );
-}
-
-export default function CVAnalysisPage() {
-  return (
-    <AuthProvider>
-      <CVAnalysisContent />
-    </AuthProvider>
+    </>
   );
 }

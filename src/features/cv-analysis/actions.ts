@@ -36,6 +36,51 @@ export async function uploadAndParseCVAction(
       return { success: false, error: "Datos de archivo inválidos." };
     }
 
+    const isGuest = session.user.isGuest === true;
+    if (isGuest) {
+      // Simular retraso de análisis de IA para realismo
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      return {
+        success: true,
+        data: {
+          id: "demo-resume-id",
+          fileName: fileName || "curriculum_demo.pdf",
+          fileUrl: fileUrl || "https://utfs.io/f/demo",
+          atsScore: 82,
+          analysis: {
+            atsScore: 82,
+            keywords: [
+              "React",
+              "TypeScript",
+              "Next.js",
+              "Node.js",
+              "Tailwind CSS",
+              "Git",
+            ],
+            missingKeywords: [
+              "CI/CD",
+              "Docker",
+              "AWS",
+              "Testing (Jest/Vitest)",
+            ],
+            formatIssues: [
+              "Falta de enlaces profesionales directos (LinkedIn/GitHub)",
+            ],
+            strengths: [
+              "Fuerte dominio técnico en el ecosistema moderno de React y TypeScript.",
+              "Estructura clara y secciones bien organizadas que facilitan el parseo por ATS.",
+            ],
+            improvements: [
+              "Se sugiere enriquecer las descripciones de proyectos utilizando métricas de impacto (metodología STAR).",
+              "Añadir exposición explícita en prácticas de CI/CD y despliegue en la nube.",
+            ],
+            estimatedSeniority: "mid",
+          },
+          createdAt: new Date(),
+        },
+      };
+    }
+
     // SSRF Prevention: Validate that the fileUrl belongs to UploadThing's trusted domains using a strict regex barrier guard.
     // This is natively recognized by CodeQL static analyzer as a sanitization barrier for SSRF.
     const UPLOADTHING_URL_REGEX =
