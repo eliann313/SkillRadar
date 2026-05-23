@@ -1,0 +1,8 @@
+# Cursor Indexing Ignore List
+.next/
+node_modules/
+prisma/migrations/
+coverage/
+.vercel/
+*.tsbuildinfo
+public/

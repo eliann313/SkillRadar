@@ -68,7 +68,7 @@ No es un chatbot. Es una herramienta con flujos definidos, datos estructurados, 
 ### 2.1 Decisión de Stack
 
 ```
-Frontend:  Next.js 15 (App Router) + TypeScript + Tailwind CSS + shadcn/ui
+Frontend:  Next.js 16 (App Router) + TypeScript + Tailwind CSS v4 + shadcn/ui
 Backend:   Next.js Route Handlers + Server Actions (mismo proyecto)
 Database:  PostgreSQL via Neon (free tier, con connection pooling activado)
 ORM:       Prisma
@@ -81,7 +81,7 @@ Dev local: Docker Compose solo para PostgreSQL local
 
 ### 2.2 Por qué cada elección
 
-#### Next.js 15 (App Router) — no NestJS
+#### Next.js 16 (App Router) — no NestJS
 
 NestJS es excelente pero requiere aprender Angular-style DI, decoradores, módulos, providers, y además deployarlo separado. Para este scope, Next.js App Router ya te da:
 
@@ -641,22 +641,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 });
 ```
 
-**Proteger rutas en middleware:**
+**Proteger rutas en proxy.ts (Next.js 16):**
+
+En Next.js 16, la convención `middleware.ts` en la raíz se ha deprecado en favor de `src/proxy.ts` usando un named export llamado `proxy`:
 
 ```typescript
-// middleware.ts (raíz del proyecto)
-import { auth } from "@/lib/auth";
+// src/proxy.ts (Next.js 16 Route Protection)
+import NextAuth from "next-auth";
+import { authConfig } from "./lib/auth.config";
 
-export default auth((req) => {
-  if (!req.auth && req.nextUrl.pathname.startsWith("/dashboard")) {
-    return Response.redirect(new URL("/login", req.url));
-  }
-});
+export const proxy = NextAuth(authConfig).auth;
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/", "/dashboard/:path*"],
 };
 ```
+
+_(La lógica de autorización y redirección se gestiona dentro de la callback `authorized` en `src/lib/auth.config.ts`)_.
 
 **Verificar sesión siempre en Server Actions:**
 
@@ -865,7 +866,7 @@ En producción usás Neon directamente. No necesitás Docker en Vercel.
 - [ ] Instalar Auth.js v5
 - [ ] Configurar GitHub OAuth App en github.com/settings/developers
 - [ ] Implementar `lib/auth.ts`
-- [ ] Configurar `middleware.ts` para proteger `/dashboard`
+- [x] Configurar `src/proxy.ts` para proteger `/dashboard` (Completado en base de código)
 - [ ] Crear `app/api/auth/[...nextauth]/route.ts`
 - [ ] Diseñar layout del dashboard: sidebar + main content
 - [ ] Implementar `Sidebar.tsx` con navegación
@@ -876,10 +877,10 @@ En producción usás Neon directamente. No necesitás Docker en Vercel.
 
 - Cómo funciona OAuth 2.0 a alto nivel (importante para entrevistas)
 - Qué es una sesión vs un JWT
-- Cómo funciona `middleware.ts` en Next.js
+- Cómo funciona `src/proxy.ts` en Next.js 16
 - Cómo extender los tipos de `Session` en TypeScript
 
-**Hacé vos solo:** El diseño del sidebar y dashboard shell. La configuración del middleware.
+**Hacé vos solo:** El diseño del sidebar y dashboard shell. La configuración del proxy.
 
 **Podés delegar a IA:** La config boilerplate de Auth.js (es verbosa y específica de la versión).
 

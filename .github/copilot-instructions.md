@@ -5,7 +5,7 @@
 ## Project context
 
 AI-powered developer profiling and ATS optimization platform.
-Stack: Next.js 15 (App Router), TypeScript (strict), Tailwind CSS, shadcn/ui.
+Stack: Next.js 16 (App Router), TypeScript (strict), Tailwind CSS v4, shadcn/ui + Base UI v1.
 
 ## Coding standards
 
