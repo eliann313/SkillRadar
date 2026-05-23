@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SessionProvider } from "next-auth/react";
+import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
@@ -50,6 +51,7 @@ export default function RootLayout({
         <SessionProvider>
           <TooltipProvider delay={300}>{children}</TooltipProvider>
         </SessionProvider>
+        <Analytics />
         <SpeedInsights />
       </body>
     </html>
