@@ -1,4 +1,6 @@
 import { db } from "@/lib/db";
+import type { ATSAnalysis } from "./types";
+import type { Prisma } from "@prisma/client";
 
 export class ResumeRepository {
   static async create(data: {
@@ -9,6 +11,23 @@ export class ResumeRepository {
   }) {
     return await db.resume.create({
       data,
+    });
+  }
+
+  static async updateAnalysis(
+    id: string,
+    userId: string,
+    data: {
+      atsScore: number;
+      analysis: ATSAnalysis;
+    },
+  ) {
+    return await db.resume.update({
+      where: { id, userId },
+      data: {
+        atsScore: data.atsScore,
+        analysis: data.analysis as unknown as Prisma.InputJsonValue, // Cast seguro para compatibilidad de tipos estrictos con Prisma JSON
+      },
     });
   }
 

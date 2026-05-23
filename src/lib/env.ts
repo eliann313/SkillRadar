@@ -4,7 +4,9 @@ const isProd = process.env.NODE_ENV === "production";
 const isBuildTime =
   process.env.NEXT_PHASE === "phase-production-build" ||
   !!process.env.CI ||
-  process.env.VERCEL === "1";
+  process.env.VERCEL === "1" ||
+  process.env.VITEST === "true" ||
+  process.env.NODE_ENV === "test";
 
 const envSchema = z.object({
   DATABASE_URL: z.string().url("DATABASE_URL debe ser una URL válida"),
