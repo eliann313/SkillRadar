@@ -84,7 +84,7 @@ jobs:
 
             // Filtrar lo que realmente se debe agregar (que no esté ya)
             const finalLabelsToAdd = Array.from(labelsToAdd).filter(l => !currentLabels.has(l));
-            
+
             // Filtrar lo que realmente se debe quitar (que esté actualmente)
             const finalLabelsToRemove = Array.from(labelsToRemove).filter(l => currentLabels.has(l));
 
