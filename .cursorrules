@@ -67,3 +67,10 @@ src/
 ## 8. AI & Vercel SDK Best Practices
 *   **Timeout & Streaming**: Because of Vercel serverless Hobby limits (10-15s), use **`streamObject`** from the Vercel AI SDK for long LLM analysis (e.g. CV parser, Job Matcher) to maintain the connection.
 *   **Structured Outputs**: Use `generateObject` with a strict Zod schema instead of prompting "respond in JSON" to guarantee TypeScript structural safety.
+
+## 9. Code Quality, Formatting & Git Hooks
+*   **Git Hooks (Husky & lint-staged)**: The repository enforces code quality via Git Hooks pre-commit. Any attempt to commit code will automatically trigger `eslint --fix` and `prettier --write` on the modified/staged files.
+*   **Linting & Style**: No linter warnings or TypeScript compiler errors are allowed in commits. Cursor AI Assistants **must** run `npm run lint` and `npm run format` (or equivalent checks) locally before proposing/committing code.
+*   **TypeScript strictness**: Strictly **No `any`** in new or modified files. Always resolve types properly using generics, strict interfaces, or narrow unions.
+*   **Format on Save**: Format on save is enabled for VSCode/Cursor. Ensure Prettier is selected as the default formatter for all `.ts`, `.tsx`, `.css`, `.json`, and `.md` files.
+
