@@ -1,6 +1,6 @@
 # SkillRadar 🎯
 
-🌎 [Leer en Español](./README.es.md)
+🌎 [Leer en Español](./docs/README.es.md)
 
 SkillRadar is a modern, production-ready developer platform designed for **talent assessment, resume parsing, and Applicant Tracking System (ATS) optimization**. The application leverages state-of-the-art Artificial Intelligence to extract structured skills, estimate technical seniority, and compute deep alignment metrics against job descriptions.
 

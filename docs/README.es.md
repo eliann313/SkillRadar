@@ -1,6 +1,6 @@
 # SkillRadar 🎯
 
-🌎 [Read in English](./README.md)
+🌎 [Read in English](../README.md)
 
 SkillRadar es una plataforma moderna y de grado industrial para el **análisis de talento, evaluación de currículums (CV) y optimización para Sistemas de Seguimiento de Candidatos (ATS)**. La aplicación utiliza modelos avanzados de Inteligencia Artificial para extraer de forma estructurada habilidades, estimar el seniority de perfiles técnicos y calcular métricas críticas de adecuación a ofertas laborales.
 
