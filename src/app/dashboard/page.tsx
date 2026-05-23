@@ -1,40 +1,25 @@
-"use client";
-
-import { AuthProvider, useAuth } from "@/lib/auth-context";
-import { DashboardShell } from "@/components/layout";
+import { auth } from "@/lib/auth";
 import { DashboardHeader, MetricsGrid } from "@/components/dashboard";
 import { TalentDashboard } from "@/components/recruiter";
 import { redirect } from "next/navigation";
 
-function DashboardContent() {
-  const { user } = useAuth();
+export default async function DashboardPage() {
+  const session = await auth();
 
-  if (!user) {
+  if (!session?.user) {
     redirect("/");
   }
 
   // Recruiter dashboard
-  if (user.role === "recruiter") {
-    return (
-      <DashboardShell>
-        <TalentDashboard />
-      </DashboardShell>
-    );
+  if (session.user.role === "recruiter") {
+    return <TalentDashboard />;
   }
 
   // Developer dashboard
   return (
-    <DashboardShell>
+    <div className="flex flex-col gap-6">
       <DashboardHeader />
       <MetricsGrid />
-    </DashboardShell>
-  );
-}
-
-export default function DashboardPage() {
-  return (
-    <AuthProvider>
-      <DashboardContent />
-    </AuthProvider>
+    </div>
   );
 }

@@ -1,41 +1,14 @@
-"use client";
-
-import { AuthProvider, useAuth } from "@/lib/auth-context";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth";
-import { DashboardShell } from "@/components/layout";
-import { DashboardHeader, MetricsGrid } from "@/components/dashboard";
-import { TalentDashboard } from "@/components/recruiter";
 
-function HomeContent() {
-  const { user } = useAuth();
+export default async function Home() {
+  const session = await auth();
 
-  // Not logged in - show login
-  if (!user) {
-    return <LoginForm />;
+  // Si ya tiene una sesión con rol, redirigir directo al dashboard
+  if (session?.user?.role) {
+    redirect("/dashboard");
   }
 
-  // Recruiter dashboard
-  if (user.role === "recruiter") {
-    return (
-      <DashboardShell>
-        <TalentDashboard />
-      </DashboardShell>
-    );
-  }
-
-  // Developer dashboard
-  return (
-    <DashboardShell>
-      <DashboardHeader />
-      <MetricsGrid />
-    </DashboardShell>
-  );
-}
-
-export default function Home() {
-  return (
-    <AuthProvider>
-      <HomeContent />
-    </AuthProvider>
-  );
+  return <LoginForm />;
 }

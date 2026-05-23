@@ -1,9 +1,10 @@
 "use client";
 
-import { useAuth } from "@/lib/auth-context";
+import { useSession } from "next-auth/react";
 
 export function DashboardHeader() {
-  const { user } = useAuth();
+  const { data: session } = useSession();
+  const user = session?.user;
 
   const getGreeting = () => {
     const hour = new Date().getHours();

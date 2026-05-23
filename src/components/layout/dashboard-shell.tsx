@@ -24,7 +24,7 @@ import {
   SheetTrigger,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { useAuth } from "@/lib/auth-context";
+import { useSession, signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -62,7 +62,11 @@ interface SidebarProps {
 
 function SidebarContent({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { data: session } = useSession();
+  const user = session?.user;
+  const logout = () => {
+    void signOut({ callbackUrl: "/" });
+  };
 
   const navItems =
     user?.role === "recruiter" ? recruiterNavItems : developerNavItems;
@@ -168,7 +172,10 @@ function SidebarContent({ collapsed, onToggle }: SidebarProps) {
                 )}
               >
                 <Avatar className="size-8 shrink-0">
-                  <AvatarImage src={user?.avatarUrl} alt={user?.name} />
+                  <AvatarImage
+                    src={user?.image || undefined}
+                    alt={user?.name || undefined}
+                  />
                   <AvatarFallback className="bg-primary/10 text-primary text-xs">
                     {user?.name
                       ?.split(" ")
