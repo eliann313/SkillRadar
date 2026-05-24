@@ -14,8 +14,8 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 | --- | ------- | ------ | ------------------------------------------- | ------------- |
 | 1   | 9.0 ✅  | M9     | Modo Demo / Guest Sessions                  | Base          |
 | 2   | 1.1 ✅  | M1     | Dashboard Shell compartido                  | Base          |
-| 3   | 16.1    | M16    | Rate Limiting con Upstash                   | 🔴 Bloqueante |
-| 4   | 16.2    | M16    | Error Boundaries del Dashboard              | 🔴 Bloqueante |
+| 3   | 16.1 ✅ | M16    | Rate Limiting con Upstash                   | 🔴 Bloqueante |
+| 4   | 16.2 ✅ | M16    | Error Boundaries del Dashboard              | 🔴 Bloqueante |
 | 5   | 7.1     | M7     | AI Multi-Model Service                      | 🔴 Bloqueante |
 | 6   | 8.1     | M8     | Google OAuth Provider                       | 🔴 Bloqueante |
 | 7   | 2.1     | M2     | CV Upload con UploadThing                   | Core MVP      |
@@ -108,23 +108,23 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 16.1: Rate Limiting & Quota Protection con Upstash
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴 — **Bloqueante de producción**
 - **Descripción:**
   Ninguna tarjeta del backlog aborda el rate limiting de los endpoints de IA. Con la app pública en Vercel y los free tiers de Gemini/Groq, un único usuario (o bot) puede quemar toda la quota disponible en minutos. Implementar rate limiting por `userId` autenticado y por IP para usuarios no autenticados (modo demo), usando Upstash Redis como backend de contadores con ventana deslizante.
 - **Criterios de Aceptación:**
-  - [ ] Crear cuenta gratuita en [Upstash](https://upstash.com/) y configurar una base de datos Redis.
-  - [ ] Instalar `@upstash/ratelimit` y `@upstash/redis` en el proyecto.
-  - [ ] Crear `src/lib/rate-limit.ts` con la abstracción del `Ratelimit` configurado con `slidingWindow`.
-  - [ ] Aplicar el limiter en las Server Actions de análisis de CV (`uploadAndParseCVAction`) y Job Match, retornando `{ success: false, error: "Límite alcanzado..." }` con el tiempo de reset.
-  - [ ] Definir límites iniciales conservadores: 5 análisis de CV por usuario por día, 10 Job Matches por usuario por día.
-  - [ ] Mostrar en la UI un mensaje amigable indicando el límite alcanzado y el tiempo aproximado de reset.
-  - [ ] Registrar `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` en `.env.example` y en las variables de Vercel.
+  - [x] Crear cuenta gratuita en [Upstash](https://upstash.com/) y configurar una base de datos Redis.
+  - [x] Instalar `@upstash/ratelimit` y `@upstash/redis` en el proyecto.
+  - [x] Crear `src/lib/rate-limit.ts` con la abstracción del `Ratelimit` configurado con `slidingWindow`.
+  - [x] Aplicar el limiter en las Server Actions de análisis de CV (`uploadAndParseCVAction`) y Job Match, retornando `{ success: false, error: "Límite alcanzado..." }` con el tiempo de reset.
+  - [x] Definir límites iniciales conservadores: 5 análisis de CV por usuario por día, 10 Job Matches por usuario por día.
+  - [x] Mostrar en la UI un mensaje amigable indicando el límite alcanzado y el tiempo aproximado de reset.
+  - [x] Registrar `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` en `.env.example` y en las variables de Vercel.
 - **Rama Git:** `feature/rate-limiting-upstash`
 
 ### 🎴 Tarjeta 16.2: Error Boundaries Globales del Dashboard
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Con un pipeline de análisis de IA que puede fallar por network, timeout o schema inválido del LLM, es crítico tener error boundaries que muestren estados de error amigables en lugar de pantallas en blanco. Next.js App Router provee `error.tsx` y `loading.tsx` por ruta como convención nativa.
