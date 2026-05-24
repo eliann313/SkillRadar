@@ -21,9 +21,12 @@ model User {
   sessions      Session[]
   
   // SkillRadar custom relations
-  resumes       Resume[]
-  jobMatches    JobMatch[]
-  githubAnalyses GithubAnalysis[]
+  resumes           Resume[]
+  jobMatches        JobMatch[]
+  githubAnalyses    GithubAnalysis[]
+  interviewSessions InterviewSession[]
+  receivedRequests  ContactRequest[]   @relation("DeveloperRequests")
+  sentRequests      ContactRequest[]   @relation("RecruiterRequests")
 }
 
 model Account {
@@ -105,4 +108,31 @@ model GithubAnalysis {
   createdAt    DateTime @default(now())
 
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model InterviewSession {
+  id         String   @id @default(cuid())
+  userId     String
+  resumeId   String?
+  jobMatchId String?
+  score      Int?     // Calificación global promedio (0-100)
+  debrief    Json?    // Calificaciones estructuradas y feedback cualitativo
+  messages   Json     // Historial de la conversación [{ role: "user" | "assistant", content: "" }]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ContactRequest {
+  id          String   @id @default(cuid())
+  recruiterId String
+  developerId String
+  message     String   @db.Text
+  status      String   @default("pending") // "pending" | "accepted" | "declined"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  recruiter   User     @relation("RecruiterRequests", fields: [recruiterId], references: [id], onDelete: Cascade)
+  developer   User     @relation("DeveloperRequests", fields: [developerId], references: [id], onDelete: Cascade)
 }
