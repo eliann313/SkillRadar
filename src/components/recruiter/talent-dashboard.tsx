@@ -240,12 +240,14 @@ export function TalentDashboard({
                 <div className="flex items-center justify-between border-t border-border pt-3">
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Clock className="size-3" />
-                    <span>{formatLastActive(talent.lastActive)}</span>
+                    <span suppressHydrationWarning>
+                      {formatLastActive(talent.lastActive)}
+                    </span>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="gap-1.5 opacity-0 transition-opacity group-hover:opacity-100"
+                    className="gap-1.5 lg:opacity-0 transition-opacity lg:group-hover:opacity-100 opacity-100"
                   >
                     <Eye className="size-3" />
                     View
