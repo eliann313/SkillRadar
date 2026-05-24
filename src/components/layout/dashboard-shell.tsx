@@ -58,9 +58,14 @@ const recruiterNavItems = [
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
+  isMobile?: boolean;
 }
 
-function SidebarContent({ collapsed, onToggle }: SidebarProps) {
+function SidebarContent({
+  collapsed,
+  onToggle,
+  isMobile = false,
+}: SidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const user = session?.user;
@@ -162,72 +167,116 @@ function SidebarContent({ collapsed, onToggle }: SidebarProps) {
 
       {/* User section */}
       <div className="p-3">
-        <DropdownMenu modal={false}>
-          <DropdownMenuTrigger
-            render={
-              <button
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-sidebar-accent",
-                  collapsed && "justify-center px-2",
-                )}
-              >
-                <Avatar className="size-8 shrink-0">
-                  <AvatarImage
-                    src={user?.image || undefined}
-                    alt={user?.name || undefined}
-                  />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                    {user?.name
-                      ?.split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase() || "U"}
-                  </AvatarFallback>
-                </Avatar>
-                {!collapsed && (
-                  <div className="flex-1 overflow-hidden">
-                    <p className="truncate text-sm font-medium text-sidebar-foreground">
-                      {user?.name || "User"}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {user?.email || "user@example.com"}
-                    </p>
-                  </div>
-                )}
-              </button>
-            }
-          />
-          <DropdownMenuContent
-            align={collapsed ? "center" : "start"}
-            className="w-56"
-            portaled={false}
-          >
-            <div className="px-2 py-1.5">
-              <p className="text-sm font-medium">{user?.name}</p>
-              <p className="text-xs text-muted-foreground">{user?.email}</p>
+        {isMobile ? (
+          <div className="flex flex-col gap-2 rounded-lg bg-sidebar-accent/30 p-3">
+            <div className="flex items-center gap-3 px-1">
+              <Avatar className="size-9 shrink-0">
+                <AvatarImage
+                  src={user?.image || undefined}
+                  alt={user?.name || undefined}
+                />
+                <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                  {user?.name
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase() || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 overflow-hidden">
+                <p className="truncate text-sm font-semibold text-sidebar-foreground">
+                  {user?.name || "User"}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {user?.email || "user@example.com"}
+                </p>
+              </div>
             </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              <Link
+                href="/dashboard/settings"
+                className="flex items-center justify-center gap-2 rounded-md bg-sidebar-accent/50 hover:bg-sidebar-accent px-3 py-2 text-xs font-medium text-sidebar-foreground transition-colors border border-sidebar-border/30"
+                onClick={onToggle}
+              >
+                <Settings className="size-3.5" />
+                <span>Settings</span>
+              </Link>
+              <button
+                onClick={logout}
+                className="flex items-center justify-center gap-2 rounded-md bg-destructive/10 hover:bg-destructive/20 px-3 py-2 text-xs font-medium text-destructive transition-colors border border-destructive/20"
+              >
+                <LogOut className="size-3.5" />
+                <span>Log out</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger
               render={
-                <Link
-                  href="/dashboard/settings"
-                  className="flex items-center gap-2"
+                <button
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-sidebar-accent",
+                    collapsed && "justify-center px-2",
+                  )}
                 >
-                  <Settings className="size-4" />
-                  Settings
-                </Link>
+                  <Avatar className="size-8 shrink-0">
+                    <AvatarImage
+                      src={user?.image || undefined}
+                      alt={user?.name || undefined}
+                    />
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                      {user?.name
+                        ?.split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  {!collapsed && (
+                    <div className="flex-1 overflow-hidden">
+                      <p className="truncate text-sm font-medium text-sidebar-foreground">
+                        {user?.name || "User"}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {user?.email || "user@example.com"}
+                      </p>
+                    </div>
+                  )}
+                </button>
               }
             />
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="flex items-center gap-2 text-destructive focus:text-destructive"
-              onClick={logout}
+            <DropdownMenuContent
+              align={collapsed ? "center" : "start"}
+              className="w-56"
             >
-              <LogOut className="size-4" />
-              Log out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <div className="px-2 py-1.5">
+                <p className="text-sm font-medium">{user?.name}</p>
+                <p className="text-xs text-muted-foreground">{user?.email}</p>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                render={
+                  <Link
+                    href="/dashboard/settings"
+                    className="flex items-center gap-2"
+                  >
+                    <Settings className="size-4" />
+                    Settings
+                  </Link>
+                }
+              />
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="flex items-center gap-2 text-destructive focus:text-destructive"
+                onClick={logout}
+              >
+                <LogOut className="size-4" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
     </div>
   );
@@ -259,6 +308,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           <SidebarContent
             collapsed={false}
             onToggle={() => setMobileOpen(false)}
+            isMobile
           />
         </SheetContent>
       </Sheet>
