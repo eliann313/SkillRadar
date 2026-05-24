@@ -67,7 +67,7 @@ export function LoginForm() {
   const isLoading = status === "loading" || isAuthLoading;
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <main className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="mb-8 text-center">
@@ -230,19 +230,25 @@ export function LoginForm() {
               </form>
             )}
 
-            <p className="text-center text-xs text-muted-foreground">
+            <p className="text-center text-xs text-zinc-400">
               By continuing, you agree to our{" "}
-              <a href="#" className="text-primary hover:underline">
+              <a
+                href="#"
+                className="text-primary underline hover:text-primary/80"
+              >
                 Terms of Service
               </a>{" "}
               and{" "}
-              <a href="#" className="text-primary hover:underline">
+              <a
+                href="#"
+                className="text-primary underline hover:text-primary/80"
+              >
                 Privacy Policy
               </a>
             </p>
           </CardContent>
         </Card>
       </div>
-    </div>
+    </main>
   );
 }

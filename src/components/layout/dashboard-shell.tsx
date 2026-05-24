@@ -200,6 +200,7 @@ function SidebarContent({ collapsed, onToggle }: SidebarProps) {
           <DropdownMenuContent
             align={collapsed ? "center" : "start"}
             className="w-56"
+            portaled={false}
           >
             <div className="px-2 py-1.5">
               <p className="text-sm font-medium">{user?.name}</p>
