@@ -20,6 +20,14 @@ const envSchema = z.object({
     ? z.string().min(1, "GEMINI_API_KEY es requerido en producción")
     : z.string().optional(),
   OPENROUTER_API_KEY: z.string().optional(),
+  UPSTASH_REDIS_REST_URL: isProd
+    ? z
+        .string()
+        .url("UPSTASH_REDIS_REST_URL debe ser una URL válida en producción")
+    : z.string().optional(),
+  UPSTASH_REDIS_REST_TOKEN: isProd
+    ? z.string().min(1, "UPSTASH_REDIS_REST_TOKEN es requerido en producción")
+    : z.string().optional(),
 });
 
 // Realizar el parseo seguro
@@ -48,6 +56,8 @@ if (!parsedEnv.success) {
       UPLOADTHING_APP_ID: process.env.UPLOADTHING_APP_ID,
       GEMINI_API_KEY: process.env.GEMINI_API_KEY,
       OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+      UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
+      UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     };
   } else {
     console.error(
@@ -68,6 +78,10 @@ if (!isProd && parsedEnv.success) {
     missingApis.push("UPLOADTHING_SECRET");
   if (!parsedEnv.data.UPLOADTHING_APP_ID)
     missingApis.push("UPLOADTHING_APP_ID");
+  if (!parsedEnv.data.UPSTASH_REDIS_REST_URL)
+    missingApis.push("UPSTASH_REDIS_REST_URL");
+  if (!parsedEnv.data.UPSTASH_REDIS_REST_TOKEN)
+    missingApis.push("UPSTASH_REDIS_REST_TOKEN");
 
   if (missingApis.length > 0) {
     console.warn(

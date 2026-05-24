@@ -4,10 +4,10 @@
 | ------------ | ---------------------- |
 | **Proyecto** | SkillRadar             |
 | **Tipo**     | Architecture + Roadmap |
-| **Versión**  | v1.2.0                 |
+| **Versión**  | v1.3.0                 |
 | **Estado**   | Active                 |
 | **Autor**    | Elian & Antigravity    |
-| **Fecha**    | 2026-05-23             |
+| **Fecha**    | 2026-05-24             |
 
 ---
 
@@ -54,12 +54,26 @@ No es un chatbot. Es una herramienta con flujos definidos, datos estructurados, 
 - Conectar GitHub → análisis de repos + score técnico
 - Dashboard con resultados
 
-**V2 (muestra que pensaste en escala):**
+**V2 & V3 (Visión de Plataforma y Escala B2B/B2C):**
 
-- Career roadmap generado por IA
-- Comparación histórica de análisis
-- Vista recruiter
-- Mock interview
+**Para Desarrolladores (B2C):**
+
+- Career roadmap generado por IA y sugerencias de Up-skilling.
+- Mock interview técnica contextualizada (modos: Standard, Pressure, Recruiter Simulation).
+- **Job Tracker Kanban:** Gestión del ciclo de vida de la postulación dentro del dashboard.
+- **Smart Pitch Generator:** Redacción de "Cover Letters" proactivas basadas en el encaje de la oferta (aportes de valor y resolución de gaps).
+- **AI Resume Builder:** Editor en vivo en la plataforma para construir y descargar el PDF con retroalimentación instantánea (Impact Verbs Analyzer).
+- Auditoría SEO de perfil de LinkedIn.
+- **Score Progression Analytics:** Dashboard de evolución histórica del ATS score y skills cerrados (driver de retención).
+- **Perfil Público Compartible:** URL `skillradar.app/u/[username]` con Skill Radar Chart y toggles de privacidad por sección (growth loop viral).
+- **Badge Embebible para GitHub README:** SVG dinámico linkeable al perfil público para distribución orgánica.
+
+**Para Reclutadores (B2B):**
+
+- Reverse Job-Matching sobre pools de talento anónimos.
+- **Double-Blind Privacy:** Contacto ciego donde el candidato tiene la decisión de revelar sus datos.
+- **Generador de Preguntas de Entrevista:** Sugerencias técnicas precisas para empoderar al reclutador no técnico a indagar sobre áreas de oportunidad del candidato.
+- Shortlists inteligentes y Market Intelligence (Heatmaps de skills).
 
 ---
 
@@ -225,55 +239,32 @@ model User {
   emailVerified DateTime?
   image         String?
   githubUsername String?
+  role          String    @default("developer") // "developer" | "recruiter"
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  resumes       Resume[]
-  jobMatches    JobMatch[]
-  githubAnalyses GithubAnalysis[]
+  accounts           Account[]
+  sessions           Session[]
+  resumes            Resume[]
+  jobMatches         JobMatch[]
+  githubAnalyses     GithubAnalysis[]
+  receivedRequests   ContactRequest[] @relation("DeveloperRequests")
+  sentRequests       ContactRequest[] @relation("RecruiterRequests")
 }
 
-model Resume {
+// ... (tus modelos Resume, JobMatch y GithubAnalysis quedan igual) ...
+
+model ContactRequest {
   id          String   @id @default(cuid())
-  userId      String
-  fileName    String
-  fileUrl     String
-  rawText     String   @db.Text
-  atsScore    Int?
-  analysis    Json?    // { keywords: [], missing: [], suggestions: [] }
+  recruiterId String
+  developerId String
+  message     String   @db.Text
+  status      String   @default("pending") // pending, accepted, declined
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jobMatches  JobMatch[]
-}
-
-model JobMatch {
-  id           String   @id @default(cuid())
-  userId       String
-  resumeId     String?
-  jobOfferText String   @db.Text
-  matchScore   Int?
-  analysis     Json?    // { requiredSkills: [], missingSkills: [], seniority: "", recommendations: [] }
-  createdAt    DateTime @default(now())
-
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  resume       Resume?  @relation(fields: [resumeId], references: [id])
-}
-
-model GithubAnalysis {
-  id           String   @id @default(cuid())
-  userId       String
-  githubUser   String
-  profileScore Int?
-  languages    Json?    // { TypeScript: 45, Python: 30, ... }
-  repos        Json?    // array de repo summaries
-  activity     Json?    // commits/week, streak, etc
-  analysis     Json?    // { strengths: [], weaknesses: [], suggestions: [] }
-  createdAt    DateTime @default(now())
-
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recruiter   User     @relation("RecruiterRequests", fields: [recruiterId], references: [id])
+  developer   User     @relation("DeveloperRequests", fields: [developerId], references: [id])
 }
 ```
 
@@ -379,10 +370,9 @@ project-root/
 │       └── index.ts
 │
 ├── docker-compose.yml                # Solo PostgreSQL local
-├── .env.local                        # Variables de entorno (no commiteado)
+├── .env                        # Variables de entorno (no commiteado)
 ├── .env.example                      # Template de variables (sí commiteado)
 ├── next.config.ts
-├── tailwind.config.ts
 ├── tsconfig.json
 └── package.json
 ```
@@ -1075,6 +1065,45 @@ GET https://api.github.com/users/{username}/events
 
 ---
 
+## 8.5 Expansión de Arquitectura Definitiva (Nuevas Features)
+
+Para mantener el enfoque en la Inteligencia de Talento, sumaremos características avanzadas una vez que el MVP Core (Fases 0 a 5) esté estable:
+
+### ❌ Decisiones Críticas y Antipatrones (Lo que NO haremos)
+
+- **Construir un ATS:** No haremos tableros Kanban de candidatos ni pipelines.
+- **Chat interno en tiempo real:** Mantendremos un modelo asíncrono para no requerir WebSockets.
+- **Clon de LeetCode:** No habrá sandboxes de ejecución de código.
+
+### 🌟 Nuevas Features: "Hacerlo Inteligente"
+
+- **Context Pipeline:** El Job Match precargará automáticamente el `Resume` del dev desde la BD.
+- **Mock Interview Contextual:** El chat inyectará el CV y la JD, devolviendo un _Debrief JSON asíncrono_ al presionar "Finalizar".
+- **Reverse Job-Matching (Recruiter):** El reclutador pega una JD y la IA rankea el Talent Pool anónimo.
+- **Explainability Layer:** Todo score incluye el razonamiento de la IA (Fortalezas y Evidencia Faltante).
+
+### 🚀 Nuevas Features: "Hacerlo Defendible" (Diferenciación)
+
+- **Contact Request Flow (Doble Ciego):** El recruiter envía un Pitch anónimo. El dev lo recibe y si acepta, revelan identidades.
+- **GitHub Confidence Score:** Traducción de repositorios y commits en un score de validación técnica ("Proof of Skill").
+- **Smart Shortlists & Market Intelligence:** Alertas de talento y mapas de calor (heatmaps) de skills escasos.
+
+### 🛡️ Nuevas Features: "Hacerlo Seguro" (Infraestructura)
+
+- **Rate Limiting con Upstash Redis** (M16.1): Protección de quota de IA por usuario/IP antes de exponer a producción.
+- **Error Boundaries Globales** (M16.2): `error.tsx` por ruta del dashboard para manejar fallos del pipeline de IA sin pantallas en blanco.
+
+### 📈 Nuevas Features: "Hacerlo Viral" (Crecimiento)
+
+- **Score Progression Analytics** (M17.1): Página `/dashboard/progress` con evolución histórica del ATS score y skills cerrados.
+- **Perfil Público Compartible** (M17.2): URL pública con Skill Radar Chart visible para recruiters, con privacidad por toggles.
+- **Badge Embebible** (M17.3): SVG dinámico `GET /api/badge/[username]` para poner en el README de GitHub del dev.
+
+### 🧠 Nuevas Features: "Hacerlo Más Inteligente" (Developer Intelligence)
+
+- **GitHub Schema Extendido** (M18.1): Seniority signals reales — `commitFrequency`, `readmeQualityScore`, `detectedPatterns` (CI, testing, Docker, auth, caching, observability). Concepto de "Evidence-based Skills" vs. "Claims-based Skills".
+- **Modos de Entrevista Avanzados** (M18.2): Pressure Mode y Recruiter Simulation Mode como extensiones del Mock Interview del M6.
+
 ## 9. Deployment y CI/CD
 
 ### 9.1 Vercel
@@ -1164,13 +1193,14 @@ describe("calculateATSScore", () => {
 
 Si el proyecto crece, estas son las migraciones naturales:
 
-| Cuando                      | Qué hacer                                                          |
-| --------------------------- | ------------------------------------------------------------------ |
-| El análisis tarda demasiado | Mover procesamiento a background jobs con **Inngest** (free tier)  |
-| Muchas llamadas a IA        | Implementar caché de resultados en DB (mismo CV → mismo resultado) |
-| Backend muy complejo        | Extraer Route Handlers a **NestJS** separado en Railway            |
-| Muchos usuarios             | Agregar **Redis** para caché y sesiones                            |
-| Análisis más preciso        | Implementar embeddings + RAG con **pgvector** en Neon              |
+| Cuando                           | Qué hacer                                                            |
+| -------------------------------- | -------------------------------------------------------------------- |
+| El análisis tarda demasiado      | Mover procesamiento a background jobs con **Inngest** (free tier)    |
+| Muchas llamadas a IA             | Implementar caché de resultados en DB (mismo CV → mismo resultado)   |
+| Backend muy complejo             | Extraer Route Handlers a **NestJS** separado en Railway              |
+| Muchos usuarios                  | Agregar **Redis** para caché y sesiones (ya está con Upstash en M16) |
+| Análisis más preciso             | Implementar embeddings + RAG con **pgvector** en Neon (Fase 3)       |
+| Necesitás analizar repos pesados | Mover GitHub analysis a async jobs con **Trigger.dev** o Inngest     |
 
 ---
 
@@ -1247,7 +1277,9 @@ Verificar disponibilidad en namecheap.com y GitHub antes de crear el repo públi
 
 ## Historial de Cambios
 
-| Versión | Fecha      | Cambios                                                                                                                                                                                                                                                  |
-| ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| v1.0.0  | 2026-05-21 | Versión inicial del roadmap                                                                                                                                                                                                                              |
-| v1.1.0  | 2026-05-21 | Incorpora audit técnico: Vercel AI SDK para streaming, `generateObject` para Structured Outputs, fallback textarea para PDFs con imagen, repository pattern pragmático, GitHub Analyzer movido a V2, Neon connection pooling, nombre fijado a SkillRadar |
+| Versión | Fecha      | Cambios                                                                                                                                                                                                                                                                                           |
+| ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v1.0.0  | 2026-05-21 | Versión inicial del roadmap                                                                                                                                                                                                                                                                       |
+| v1.1.0  | 2026-05-21 | Incorpora audit técnico: Vercel AI SDK para streaming, `generateObject` para Structured Outputs, fallback textarea para PDFs con imagen, repository pattern pragmático, GitHub Analyzer movido a V2, Neon connection pooling, nombre fijado a SkillRadar                                          |
+| v1.2.0  | 2026-05-23 | Expansión a plataforma B2B/B2C: Incorpora Módulos 13-15 (Resume Builder, Job Tracker, Recruiter Empowerment), backlog extendido a v1.3 con 34 tarjetas                                                                                                                                            |
+| v1.3.0  | 2026-05-24 | Auditoría RFC + incorporación de Módulos 16-18: Rate Limiting (Upstash), Error Boundaries, Score Progression Analytics, Perfil Público con Radar Chart, Badge Embebible, GitHub Schema Extendido con Evidence-based Seniority Signals, Modos de Entrevista Avanzados. Backlog actualizado a v1.4. |
