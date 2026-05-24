@@ -14,13 +14,8 @@ const envSchema = z.object({
   AUTH_SECRET: z.string().min(1, "AUTH_SECRET es requerido"),
   GITHUB_CLIENT_ID: z.string().min(1, "GITHUB_CLIENT_ID es requerido"),
   GITHUB_CLIENT_SECRET: z.string().min(1, "GITHUB_CLIENT_SECRET es requerido"),
-  // Variables de servicios de terceros (estrictas en producción, opcionales en desarrollo)
-  UPLOADTHING_SECRET: isProd
-    ? z.string().min(1, "UPLOADTHING_SECRET es requerido en producción")
-    : z.string().optional(),
-  UPLOADTHING_APP_ID: isProd
-    ? z.string().min(1, "UPLOADTHING_APP_ID es requerido en producción")
-    : z.string().optional(),
+  UPLOADTHING_SECRET: z.string().optional(),
+  UPLOADTHING_APP_ID: z.string().optional(),
   GEMINI_API_KEY: isProd
     ? z.string().min(1, "GEMINI_API_KEY es requerido en producción")
     : z.string().optional(),
