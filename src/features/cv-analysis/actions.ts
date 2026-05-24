@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { CVAnalysisService } from "./service";
 import type { ActionResult } from "./types";
 import { revalidatePath } from "next/cache";
+import { checkCVRateLimit, getClientIp } from "@/lib/rate-limit";
 
 interface ParseCVInput {
   fileUrl: string;
@@ -31,12 +32,30 @@ export async function uploadAndParseCVAction(
       };
     }
 
+    // 2. Control de Rate Limiting (por UserId para autenticados o por IP en modo Demo/Guest)
+    const isGuest = session.user.isGuest === true;
+    const identifier = isGuest
+      ? `ip:${await getClientIp()}`
+      : `user:${session.user.id}`;
+
+    const limitResult = await checkCVRateLimit(identifier);
+    if (!limitResult.success) {
+      const resetTime = new Date(limitResult.reset);
+      const now = new Date();
+      const diffMs = resetTime.getTime() - now.getTime();
+      const diffHours = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60)));
+
+      return {
+        success: false,
+        error: `Has alcanzado el límite diario de análisis (5 por día). Tu cuota se restablecerá en aproximadamente ${diffHours} ${diffHours === 1 ? "hora" : "horas"}.`,
+      };
+    }
+
     const { fileUrl, fileName } = input;
     if (!fileUrl || !fileName) {
       return { success: false, error: "Datos de archivo inválidos." };
     }
 
-    const isGuest = session.user.isGuest === true;
     if (isGuest) {
       // Simular retraso de análisis de IA para realismo
       await new Promise((resolve) => setTimeout(resolve, 1500));
