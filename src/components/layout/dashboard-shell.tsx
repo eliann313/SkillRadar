@@ -162,7 +162,7 @@ function SidebarContent({ collapsed, onToggle }: SidebarProps) {
 
       {/* User section */}
       <div className="p-3">
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger
             render={
               <button
