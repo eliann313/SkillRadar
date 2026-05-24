@@ -16,7 +16,7 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 | 2   | 1.1 ✅  | M1     | Dashboard Shell compartido                  | Base          |
 | 3   | 16.1 ✅ | M16    | Rate Limiting con Upstash                   | 🔴 Bloqueante |
 | 4   | 16.2 ✅ | M16    | Error Boundaries del Dashboard              | 🔴 Bloqueante |
-| 5   | 7.1     | M7     | AI Multi-Model Service                      | 🔴 Bloqueante |
+| 5   | 7.1 ✅  | M7     | AI Multi-Model Service                      | 🔴 Bloqueante |
 | 6   | 8.1     | M8     | Google OAuth Provider                       | 🔴 Bloqueante |
 | 7   | 2.1     | M2     | CV Upload con UploadThing                   | Core MVP      |
 | 8   | 2.2     | M2     | CV Parse con Gemini Real                    | Core MVP      |
@@ -129,28 +129,31 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 - **Descripción:**
   Con un pipeline de análisis de IA que puede fallar por network, timeout o schema inválido del LLM, es crítico tener error boundaries que muestren estados de error amigables en lugar de pantallas en blanco. Next.js App Router provee `error.tsx` y `loading.tsx` por ruta como convención nativa.
 - **Criterios de Aceptación:**
-  - [ ] Crear `src/app/dashboard/error.tsx` que capture errores de Server Components con un mensaje claro y un botón "Reintentar" (usando el callback `reset` de Next.js).
-  - [ ] Crear `src/app/dashboard/cv-analysis/error.tsx` y `src/app/dashboard/job-match/error.tsx` con mensajes contextuales por feature.
-  - [ ] Crear `src/app/dashboard/loading.tsx` con un skeleton global del layout del dashboard para transiciones de navegación.
-  - [ ] Verificar que los errores de Server Actions en el cliente muestren el toast de error de `sonner` en lugar de silenciarse.
+  - [x] Crear `src/app/dashboard/error.tsx` que capture errores de Server Components con un mensaje claro y un botón "Reintentar" (usando el callback `reset` de Next.js).
+  - [x] Crear `src/app/dashboard/cv-analysis/error.tsx` y `src/app/dashboard/job-match/error.tsx` con mensajes contextuales por feature.
+  - [x] Crear `src/app/dashboard/loading.tsx` con un skeleton global del layout del dashboard para transiciones de navegación.
+  - [x] Verificar que los errores de Server Actions en el cliente muestren el toast de error de `sonner` en lugar de silenciarse.
 - **Rama Git:** `feature/dashboard-error-boundaries`
 
 ---
 
 ## 🧠 Módulo 7: AI Services (parcial — tarjeta bloqueante)
 
-### 🎴 Tarjeta 7.1: Crear Servicio de IA Multi-Modelo Unificado (Gemini + Groq + OpenRouter)
+### 🎴 Tarjeta 7.1: Crear Servicio de IA Multi-Modelo Unificado (Gemini + Groq + OpenRouter + OpenAI + Anthropic)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴 — **Bloqueante de todo el pipeline de IA**
 - **Descripción:**
-  Desacoplar la llamada a la IA de los servicios de negocio individuales para evitar código repetido y refactorizaciones masivas. Crear un wrapper unificado en `src/lib/ai/` que gestione conmutaciones automáticas por error en cascada (`Gemini -> Groq -> OpenRouter`) ante errores de cuota o rate limit.
+  Desacoplar la llamada a la IA de los servicios de negocio individuales. Crear un motor de IA unificado y flexible en `src/lib/ai/` que permita a los usuarios configurar sus propias **API Keys** de Gemini, Groq, OpenRouter, OpenAI y Anthropic cifradas en base de datos de forma ultra-segura (AES-256-GCM). Habilitar la selección granular de modelos avanzados de última generación en cada feature y la **exención inteligente de rate limiting** para usuarios que traigan sus propias llaves.
 - **Criterios de Aceptación:**
-  - [ ] Crear el directorio `src/lib/ai/` con `index.ts`, `gemini.ts`, `groq.ts` y `openrouter.ts`.
-  - [ ] Configurar las variables de entorno `GROQ_API_KEY` y `OPENROUTER_API_KEY` con validación Zod en `src/lib/env.ts`.
-  - [ ] Implementar la resiliencia en `index.ts`: si la promesa de Gemini falla o arroja un error 429, capturarlo y reintentar inmediatamente la llamada con Groq (usando Llama 3 70B) o OpenRouter.
-  - [ ] Adaptar `src/features/cv-analysis/ai-service.ts` para que consuma esta nueva abstracción en lugar de llamar directamente al proveedor de Google.
-- **💡 Razón del Cambio:** Debe implementarse antes de codificar Job Match y Mock Interview para heredar la resiliencia de forma nativa sin tocar múltiples archivos después.
+  - [x] Extender el modelo `User` en `prisma/schema.prisma` agregando campos opcionales cifrados para las API Keys de los 5 proveedores y preferencias por defecto.
+  - [x] Implementar un módulo criptográfico `src/lib/crypto.ts` para encriptar y desencriptar transparente y robustamente las API Keys en el servidor mediante **AES-256-GCM** y un secret `ENCRYPTION_KEY`.
+  - [x] Crear el factory central de IA en `src/lib/ai/index.ts` integrando los proveedores dinámicos `@ai-sdk/google`, `@ai-sdk/openai` y `@ai-sdk/anthropic` de Vercel AI SDK.
+  - [x] Diseñar el soporte para modelos de vanguardia (Gemini 3.5 Flash, Gemini 3.1 Pro, GPT-5.5, Claude Opus 4.7) mediante dropdowns preconfigurados e inputs de texto libre para IDs de modelos personalizados en la UI.
+  - [x] Configurar las Server Actions de `cv-analysis` y `job-match` para **omitir el rate limit de Upstash** si el usuario tiene su propia API Key configurada para la acción elegida.
+  - [x] Adaptar `src/features/cv-analysis/ai-service.ts` para que consuma esta nueva abstracción flexible en lugar del cliente estático.
+  - [x] Crear la tarjeta de configuración interactiva de IA en la página de `/dashboard/settings` ocultando las claves en texto plano y mostrando solo indicadores booleanos (`hasKey`).
+- **💡 Razón del Cambio:** Sentar las bases del pipeline de IA premium y flexible antes de codificar Job Match y Mock Interview para que hereden toda la resiliencia y el soporte multi-modelo de vanguardia automáticamente.
 - **Rama Git:** `feature/ai-multimodel-service`
 
 ---

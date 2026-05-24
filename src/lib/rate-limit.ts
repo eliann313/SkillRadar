@@ -2,6 +2,7 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { env } from "./env";
 import { headers } from "next/headers";
+import { db } from "./db";
 
 // Tipo para el resultado del rate limiting que coincide con la firma de Upstash
 export interface RateLimitResult {
@@ -10,8 +11,7 @@ export interface RateLimitResult {
   remaining: number;
   reset: number; // Timestamp en milisegundos cuando se restablece la ventana
 }
-
-// Estructura en memoria para simular el comportamiento de Ventana Deslizante (slidingWindow) en desarrollo local
+// ... [rest of top definitions kept unmodified] ...
 class InMemorySlidingWindow {
   private history = new Map<string, number[]>();
 
@@ -86,7 +86,7 @@ if (hasUpstashConfig) {
       prefix: "ratelimit:job-match",
     });
 
-    console.info(
+    console.warn(
       "🛡️ [RateLimit] Upstash Redis inicializado correctamente para Rate Limiting.",
     );
   } catch (error) {
@@ -138,11 +138,63 @@ export async function getClientIp(): Promise<string> {
 }
 
 /**
+ * Helper interno para verificar si un usuario tiene configurada alguna API Key personal.
+ */
+async function checkUserHasApiKeyBypass(identifier: string): Promise<boolean> {
+  if (identifier.startsWith("user:")) {
+    const userId = identifier.substring(5);
+    try {
+      const user = await db.user.findUnique({
+        where: { id: userId },
+        select: {
+          geminiApiKey: true,
+          groqApiKey: true,
+          openrouterApiKey: true,
+          openaiApiKey: true,
+          anthropicApiKey: true,
+        },
+      });
+
+      const hasOwnKey = !!(
+        user?.geminiApiKey ||
+        user?.groqApiKey ||
+        user?.openrouterApiKey ||
+        user?.openaiApiKey ||
+        user?.anthropicApiKey
+      );
+
+      if (hasOwnKey) {
+        console.warn(
+          `🛡️ [RateLimit] Bypass activado para el usuario ${userId} por poseer API Keys personales.`,
+        );
+        return true;
+      }
+    } catch (dbError) {
+      console.error(
+        "❌ [RateLimit] Error consultando API Keys de usuario para bypass:",
+        dbError,
+      );
+    }
+  }
+  return false;
+}
+
+/**
  * Verifica el límite de análisis de CV para un identificador (UserId o IP).
  */
 export async function checkCVRateLimit(
   identifier: string,
 ): Promise<RateLimitResult> {
+  // Primero verificar el bypass de llaves personales de usuario
+  if (await checkUserHasApiKeyBypass(identifier)) {
+    return {
+      success: true,
+      limit: 999,
+      remaining: 999,
+      reset: Date.now() + WINDOW_DURATION_MS,
+    };
+  }
+
   const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
 
   if (cvLimiter instanceof Ratelimit) {
@@ -164,6 +216,16 @@ export async function checkCVRateLimit(
 export async function checkJobMatchRateLimit(
   identifier: string,
 ): Promise<RateLimitResult> {
+  // Primero verificar el bypass de llaves personales de usuario
+  if (await checkUserHasApiKeyBypass(identifier)) {
+    return {
+      success: true,
+      limit: 999,
+      remaining: 999,
+      reset: Date.now() + WINDOW_DURATION_MS,
+    };
+  }
+
   const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
 
   if (jobMatchLimiter instanceof Ratelimit) {

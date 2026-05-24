@@ -1,68 +1,115 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { generateObject } from "ai";
 import { atsAnalysisSchema, type ATSAnalysis } from "./types";
 import { env } from "@/lib/env";
+import { db } from "@/lib/db";
+import { AIService, type AIServiceOptions } from "@/lib/ai";
 
 export class CVAnalysisAIService {
-  private static getGoogleProvider() {
-    const apiKey = env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return null;
-    }
-    return createGoogleGenerativeAI({
-      apiKey,
-    });
-  }
-
   /**
    * Genera un análisis ATS estructurado a partir del texto de un currículum.
-   * Si no hay una API Key de Gemini configurada en el entorno, entra en modo simulación dinámica
-   * para no bloquear el desarrollo en local.
+   * Carga las preferencias del usuario y sus API keys si se provee userId,
+   * y hace uso del AIService unificado con tolerancia a fallos.
    */
-  static async analyze(cvText: string): Promise<ATSAnalysis> {
-    const google = this.getGoogleProvider();
+  static async analyze(cvText: string, userId?: string): Promise<ATSAnalysis> {
+    let userSettings: AIServiceOptions["userSettings"] = undefined;
 
-    if (!google) {
+    if (userId) {
+      try {
+        console.warn(
+          `[CVAnalysisAIService] Cargando API keys y preferencias para usuario ID: ${userId}...`,
+        );
+        const user = await db.user.findUnique({
+          where: { id: userId },
+          select: {
+            geminiApiKey: true,
+            groqApiKey: true,
+            openrouterApiKey: true,
+            openaiApiKey: true,
+            anthropicApiKey: true,
+            defaultAiProvider: true,
+            defaultAiModel: true,
+          },
+        });
+
+        if (user) {
+          userSettings = {
+            geminiApiKeyEncrypted: user.geminiApiKey,
+            groqApiKeyEncrypted: user.groqApiKey,
+            openrouterApiKeyEncrypted: user.openrouterApiKey,
+            openaiApiKeyEncrypted: user.openaiApiKey,
+            anthropicApiKeyEncrypted: user.anthropicApiKey,
+            preferredProvider: user.defaultAiProvider,
+            preferredModel: user.defaultAiModel,
+          };
+          console.warn(
+            `[CVAnalysisAIService] Proveedor preferido: ${userSettings.preferredProvider} (${userSettings.preferredModel})`,
+          );
+        }
+      } catch (dbError) {
+        console.error(
+          "❌ [CVAnalysisAIService] Error cargando preferencias del usuario de base de datos:",
+          dbError,
+        );
+      }
+    }
+
+    // Si no hay API key global ni local/usuario cargada, caemos en simulación en desarrollo local para no bloquear al dev
+    const hasGlobalKeys = !!(
+      env.GEMINI_API_KEY ||
+      process.env.GROQ_API_KEY ||
+      process.env.OPENROUTER_API_KEY ||
+      process.env.OPENAI_API_KEY ||
+      process.env.ANTHROPIC_API_KEY
+    );
+    const hasUserKeys = !!(
+      userSettings &&
+      (userSettings.geminiApiKeyEncrypted ||
+        userSettings.groqApiKeyEncrypted ||
+        userSettings.openrouterApiKeyEncrypted ||
+        userSettings.openaiApiKeyEncrypted ||
+        userSettings.anthropicApiKeyEncrypted)
+    );
+
+    if (!hasGlobalKeys && !hasUserKeys) {
       console.warn(
-        "⚠️ [CVAnalysisAIService] GEMINI_API_KEY no configurada. Ejecutando en Modo Simulación Offline (Mock).",
+        "⚠️ [CVAnalysisAIService] No hay claves API globales ni de usuario configuradas. Ejecutando en Modo Simulación Offline (Mock).",
       );
       return this.generateSimulatedAnalysis(cvText);
     }
 
     try {
       console.warn(
-        "[CVAnalysisAIService] Iniciando análisis ATS estructurado con Gemini 2.5 Flash...",
+        `[CVAnalysisAIService] Iniciando análisis ATS estructurado con AIService unificado...`,
       );
 
-      const { object } = await generateObject({
-        model: google("gemini-2.5-flash"),
+      const object = await AIService.generateStructuredObject<ATSAnalysis>({
         schema: atsAnalysisSchema,
         system: `Eres un experto en Sistemas de Seguimiento de Candidatos (ATS) y reclutamiento técnico en la industria del software.
 Tu tarea es analizar el currículum proporcionado con un rigor analítico excelente y profesional.
 Debes evaluar la calidad del perfil, detectar problemas de formato comunes en ATS (ej. uso de tablas complejas, falta de información de contacto clara, secciones mal organizadas), identificar keywords presentes y keywords críticas faltantes según las tendencias del desarrollo de software moderno, señalar fortalezas y mejoras clave, y estimar su nivel de seniority general.`,
         prompt: `Analiza exhaustivamente el siguiente contenido de currículum y genera una evaluación ATS estructurada:\n\n${cvText}`,
+        userSettings,
       });
 
       console.warn(
-        "[CVAnalysisAIService] Análisis completado con éxito a través de la API.",
+        "[CVAnalysisAIService] Análisis completado con éxito a través del AIService.",
       );
       return object;
     } catch (error) {
       console.error(
-        "[CVAnalysisAIService] Error durante el análisis con Gemini API:",
+        "[CVAnalysisAIService] Error durante el análisis con AIService:",
         error,
       );
 
       // Fallback robusto en desarrollo por si falla la llamada
       if (process.env.NODE_ENV !== "production") {
         console.warn(
-          "⚠️ [CVAnalysisAIService] Falló la API en desarrollo. Retornando simulación como fallback.",
+          "⚠️ [CVAnalysisAIService] Falló la inferencia del AIService en desarrollo. Retornando simulación como fallback.",
         );
         return this.generateSimulatedAnalysis(cvText);
       }
 
       throw new Error(
-        "No se pudo completar el análisis del currículum con la IA",
+        "No se pudo completar el análisis del currículum con la IA a través del servicio centralizado.",
       );
     }
   }
