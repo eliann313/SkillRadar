@@ -54,12 +54,23 @@ No es un chatbot. Es una herramienta con flujos definidos, datos estructurados, 
 - Conectar GitHub → análisis de repos + score técnico
 - Dashboard con resultados
 
-**V2 (muestra que pensaste en escala):**
+**V2 & V3 (Visión de Plataforma y Escala B2B/B2C):**
 
-- Career roadmap generado por IA
-- Comparación histórica de análisis
-- Vista recruiter
-- Mock interview
+**Para Desarrolladores (B2C):**
+
+- Career roadmap generado por IA y sugerencias de Up-skilling.
+- Mock interview técnica contextualizada.
+- **Job Tracker Kanban:** Gestión del ciclo de vida de la postulación dentro del dashboard.
+- **Smart Pitch Generator:** Redacción de "Cover Letters" proactivas basadas en el encaje de la oferta (aportes de valor y resolución de gaps).
+- **AI Resume Builder:** Editor en vivo en la plataforma para construir y descargar el PDF con retroalimentación instantánea (Impact Verbs Analyzer).
+- Auditoría SEO de perfil de LinkedIn.
+
+**Para Reclutadores (B2B):**
+
+- Reverse Job-Matching sobre pools de talento anónimos.
+- **Double-Blind Privacy:** Contacto ciego donde el candidato tiene la decisión de revelar sus datos.
+- **Generador de Preguntas de Entrevista:** Sugerencias técnicas precisas para empoderar al reclutador no técnico a indagar sobre áreas de oportunidad del candidato.
+- Shortlists inteligentes y Market Intelligence (Heatmaps de skills).
 
 ---
 
@@ -225,55 +236,32 @@ model User {
   emailVerified DateTime?
   image         String?
   githubUsername String?
+  role          String    @default("developer") // "developer" | "recruiter"
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  resumes       Resume[]
-  jobMatches    JobMatch[]
-  githubAnalyses GithubAnalysis[]
+  accounts           Account[]
+  sessions           Session[]
+  resumes            Resume[]
+  jobMatches         JobMatch[]
+  githubAnalyses     GithubAnalysis[]
+  receivedRequests   ContactRequest[] @relation("DeveloperRequests")
+  sentRequests       ContactRequest[] @relation("RecruiterRequests")
 }
 
-model Resume {
+// ... (tus modelos Resume, JobMatch y GithubAnalysis quedan igual) ...
+
+model ContactRequest {
   id          String   @id @default(cuid())
-  userId      String
-  fileName    String
-  fileUrl     String
-  rawText     String   @db.Text
-  atsScore    Int?
-  analysis    Json?    // { keywords: [], missing: [], suggestions: [] }
+  recruiterId String
+  developerId String
+  message     String   @db.Text
+  status      String   @default("pending") // pending, accepted, declined
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jobMatches  JobMatch[]
-}
-
-model JobMatch {
-  id           String   @id @default(cuid())
-  userId       String
-  resumeId     String?
-  jobOfferText String   @db.Text
-  matchScore   Int?
-  analysis     Json?    // { requiredSkills: [], missingSkills: [], seniority: "", recommendations: [] }
-  createdAt    DateTime @default(now())
-
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  resume       Resume?  @relation(fields: [resumeId], references: [id])
-}
-
-model GithubAnalysis {
-  id           String   @id @default(cuid())
-  userId       String
-  githubUser   String
-  profileScore Int?
-  languages    Json?    // { TypeScript: 45, Python: 30, ... }
-  repos        Json?    // array de repo summaries
-  activity     Json?    // commits/week, streak, etc
-  analysis     Json?    // { strengths: [], weaknesses: [], suggestions: [] }
-  createdAt    DateTime @default(now())
-
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recruiter   User     @relation("RecruiterRequests", fields: [recruiterId], references: [id])
+  developer   User     @relation("DeveloperRequests", fields: [developerId], references: [id])
 }
 ```
 
@@ -379,10 +367,9 @@ project-root/
 │       └── index.ts
 │
 ├── docker-compose.yml                # Solo PostgreSQL local
-├── .env.local                        # Variables de entorno (no commiteado)
+├── .env                        # Variables de entorno (no commiteado)
 ├── .env.example                      # Template de variables (sí commiteado)
 ├── next.config.ts
-├── tailwind.config.ts
 ├── tsconfig.json
 └── package.json
 ```
@@ -1074,6 +1061,29 @@ GET https://api.github.com/users/{username}/events
 - Repos con descripción vs sin descripción
 
 ---
+
+## 8.5 Expansión de Arquitectura Definitiva (Nuevas Features)
+
+Para mantener el enfoque en la Inteligencia de Talento, sumaremos características avanzadas una vez que el MVP Core (Fases 0 a 5) esté estable:
+
+### ❌ Decisiones Críticas y Antipatrones (Lo que NO haremos)
+
+- **Construir un ATS:** No haremos tableros Kanban de candidatos ni pipelines.
+- **Chat interno en tiempo real:** Mantendremos un modelo asíncrono para no requerir WebSockets.
+- **Clon de LeetCode:** No habrá sandboxes de ejecución de código.
+
+### 🌟 Nuevas Features: "Hacerlo Inteligente"
+
+- **Context Pipeline:** El Job Match precargará automáticamente el `Resume` del dev desde la BD.
+- **Mock Interview Contextual:** El chat inyectará el CV y la JD, devolviendo un _Debrief JSON asíncrono_ al presionar "Finalizar".
+- **Reverse Job-Matching (Recruiter):** El reclutador pega una JD y la IA rankea el Talent Pool anónimo.
+- **Explainability Layer:** Todo score incluye el razonamiento de la IA (Fortalezas y Evidencia Faltante).
+
+### 🚀 Nuevas Features: "Hacerlo Defendible" (Diferenciación)
+
+- **Contact Request Flow (Doble Ciego):** El recruiter envía un Pitch anónimo. El dev lo recibe y si acepta, revelan identidades.
+- **GitHub Confidence Score:** Traducción de repositorios y commits en un score de validación técnica ("Proof of Skill").
+- **Smart Shortlists & Market Intelligence:** Alertas de talento y mapas de calor (heatmaps) de skills escasos.
 
 ## 9. Deployment y CI/CD
 
