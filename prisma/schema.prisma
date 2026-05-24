@@ -27,6 +27,17 @@ model User {
   interviewSessions InterviewSession[]
   receivedRequests  ContactRequest[]   @relation("DeveloperRequests")
   sentRequests      ContactRequest[]   @relation("RecruiterRequests")
+
+  // Claves de API Personales (Cifradas con AES-256-GCM)
+  geminiApiKey       String?   @db.Text
+  groqApiKey         String?   @db.Text
+  openrouterApiKey   String?   @db.Text
+  openaiApiKey       String?   @db.Text
+  anthropicApiKey    String?   @db.Text
+  
+  // Preferencias de Inferencia
+  defaultAiProvider  String    @default("gemini") // "gemini" | "groq" | "openrouter" | "openai" | "anthropic"
+  defaultAiModel     String    @default("gemini-2.5-flash")
 }
 
 model Account {

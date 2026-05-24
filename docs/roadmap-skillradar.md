@@ -88,7 +88,7 @@ Database:  PostgreSQL via Neon (free tier, con connection pooling activado)
 ORM:       Prisma
 Auth:      Auth.js v5 (NextAuth) con GitHub OAuth
 Files:     UploadThing (free tier)
-IA:        Vercel AI SDK + Google Gemini (proveedor) + OpenRouter (fallback manual)
+IA:        Vercel AI SDK + Google Gemini, Groq, OpenRouter, OpenAI, Anthropic (cifrado AES-256-GCM y multi-modelo del usuario)
 Deploy:    Vercel (free tier, Hobby plan)
 Dev local: Docker Compose solo para PostgreSQL local
 ```
@@ -131,15 +131,15 @@ ORM con generación de tipos automática. Cuando hacés una query, TypeScript ya
 
 No reinventés auth. Es complejo, tiene edge cases de seguridad, y no es lo que querés mostrar en portfolio. Auth.js maneja sesiones, tokens, OAuth, y tiene integración nativa con Next.js.
 
-#### Vercel AI SDK + Google Gemini + OpenRouter
+#### Vercel AI SDK + Motor Multi-Modelo Cifrado (Gemini, Groq, OpenRouter, OpenAI, Anthropic)
 
-El Vercel AI SDK es la librería estándar del ecosistema para integrar LLMs en Next.js. Resuelve un problema crítico que no es obvio hasta que llegás a producción:
+El Vercel AI SDK es la librería estándar del ecosistema para integrar LLMs en Next.js. Resuelve problemas críticos de timeouts serverless y estructuración JSON:
 
-> ⚠️ **Riesgo crítico sin SDK:** Vercel Hobby plan tiene timeout de 10-15s por función. Un LLM analizando un CV completo tarda 15-25s. Sin streaming, tu Server Action da **error 504 en producción** aunque funcione perfecto en local (sin límite de tiempo). Con `streamObject` del AI SDK, la conexión se mantiene viva y el usuario ve resultados aparecer progresivamente.
-
-Además, el SDK incluye `generateObject` que usa **Structured Outputs** a nivel API — en lugar de pedirle al modelo "respondé solo JSON" (que puede alucinar y romper el `z.parse`), el modelo tiene el schema como restricción nativa y garantiza un objeto válido.
-
-Usamos **Gemini como proveedor principal** (free tier generoso) con un **fallback manual a OpenRouter** para cuando Gemini excede rate limits. El AI SDK no cubre OpenRouter natively de forma completa, así que el fallback es código propio pero minimal.
+- **Structured Outputs**: El SDK incluye `generateObject` que pasa un schema Zod de forma nativa a la API del LLM, forzando la inferencia a cumplir el formato y evitando alucinaciones de parseo.
+- **Soporte Híbrido de Inferencia**:
+  - **Free Tier (Global)**: Para el uso por defecto del sistema, nos apoyamos en `gemini-2.5-flash` y en la cascada hacia Groq/OpenRouter.
+  - **API Keys Personales Cifradas (AES-256-GCM)**: Los desarrolladores avanzados pueden ingresar de forma segura y cifrada sus credenciales de Anthropic o OpenAI para usar modelos ultra-premium de vanguardia (Claude 3.5 Sonnet, Claude Opus 4.7, GPT-5.5) a su propio costo.
+  - **Exención de Rate Limiting**: Si el usuario configura sus llaves personales en Settings, se omitirá el límite estricto de Upstash de la plataforma para sus análisis, incentivando el uso avanzado sostenible.
 
 #### Docker solo para local
 
@@ -676,47 +676,47 @@ export async function analyzeResume(...) {
 
 ### 7.6 Abstracción de IA con Vercel AI SDK
 
-El AI SDK unifica la interfaz para distintos proveedores. En lugar de clientes HTTP manuales:
+El AI SDK unifica la interfaz para distintos proveedores en `src/lib/ai/index.ts`. En lugar de hardcodear modelos, permitimos que el frontend pase el modelo preferido como variable y que el backend resuelva las llaves de API cifradas del usuario (o las del sistema en cascada):
 
 ```typescript
-// lib/ai/index.ts
+// src/lib/ai/index.ts
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { generateObject, streamObject } from "ai";
-import { z } from "zod";
+import { createOpenAI } from "@ai-sdk/openai";
+import { createAnthropic } from "@ai-sdk/anthropic";
+import { generateObject } from "ai";
+import { decrypt } from "@/lib/crypto";
 
-const google = createGoogleGenerativeAI({
-  apiKey: env.GEMINI_API_KEY,
-});
-
-// Para análisis que requieren streaming (Server Actions con UI progresiva):
-export async function streamAnalysis<T>(
-  prompt: string,
-  schema: z.ZodSchema<T>,
-) {
-  try {
-    return await streamObject({
-      model: google("gemini-1.5-flash"),
-      prompt,
-      schema,
-    });
-  } catch (error) {
-    // Fallback a OpenRouter (Llama 3 gratis)
-    console.warn("[AI] Gemini failed, falling back to OpenRouter", error);
-    return await streamObjectWithOpenRouter(prompt, schema);
+// Resolvemos dinámicamente el modelo y proveedor según las llaves seguras del usuario o de la app:
+private static getModelInstance(provider: string, model: string, userKeys: UserKeys) {
+  if (provider === "anthropic") {
+    const apiKey = userKeys.anthropicApiKeyEncrypted ? decrypt(userKeys.anthropicApiKeyEncrypted) : undefined;
+    if (!apiKey) throw new Error("API Key de Anthropic no configurada.");
+    const anthropic = createAnthropic({ apiKey });
+    return anthropic(model); // 'model' es dinámico (ej: 'claude-4-7-opus')
   }
+
+  if (provider === "openai") {
+    const apiKey = userKeys.openaiApiKeyEncrypted ? decrypt(userKeys.openaiApiKeyEncrypted) : undefined;
+    if (!apiKey) throw new Error("API Key de OpenAI no configurada.");
+    const openai = createOpenAI({ apiKey });
+    return openai(model); // 'model' es dinámico (ej: 'gpt-5.5')
+  }
+
+  if (provider === "gemini") {
+    const apiKey = userKeys.geminiApiKeyEncrypted ? decrypt(userKeys.geminiApiKeyEncrypted) : process.env.GEMINI_API_KEY;
+    const google = createGoogleGenerativeAI({ apiKey });
+    return google(model);
+  }
+  // ... otros proveedores (groq, openrouter)
 }
 
-// Para análisis que NO necesitan streaming (background, pequeños):
-export async function generateAnalysis<T>(
-  prompt: string,
-  schema: z.ZodSchema<T>,
-): Promise<T> {
-  const { object } = await generateObject({
-    model: google("gemini-1.5-flash"),
-    prompt,
-    schema,
-  });
-  return object; // TypeScript sabe exactamente qué tipo es
+// Generación estructurada con cascade-fallback inteligente
+export async function generateStructuredObject<T>(options: AIServiceOptions<T>) {
+  const primaryProvider = options.preferredProvider || "gemini";
+  const primaryModel = options.preferredModel || "gemini-2.5-flash";
+
+  // Si falla la llave personal del usuario, el sistema conmuta automáticamente a las globales en cascada
+  // garantizando una resiliencia total.
 }
 ```
 
@@ -894,20 +894,21 @@ En producción usás Neon directamente. No necesitás Docker en Vercel.
 
 ---
 
-### FASE 3 — ATS Analysis (Semana 3-4)
+### FASE 3 — ATS Analysis & Motor Multi-Modelo (Semana 3-4)
 
-**Objetivo:** El sistema analiza el CV y devuelve un score ATS + recomendaciones usando streaming para evitar timeouts.
+**Objetivo:** El sistema analiza el CV y devuelve un score ATS + recomendaciones de forma dinámica y flexible utilizando el motor de IA centralizado y resiliente.
 
 **Tareas:**
 
-- [ ] Instalar `ai`, `@ai-sdk/google`
-- [ ] Implementar `lib/ai/index.ts` con `generateAnalysis` y `streamAnalysis`
-- [ ] Implementar `lib/ai/openrouter.ts` como fallback
+- [ ] Instalar `ai`, `@ai-sdk/google`, `@ai-sdk/openai`, `@ai-sdk/anthropic`
+- [ ] Implementar `src/lib/crypto.ts` para cifrado AES-256-GCM
+- [ ] Implementar `src/lib/ai/index.ts` con el factory dinámico y el fallback en cascada inteligente
 - [ ] Agregar **textarea de fallback** en la UI de CV upload: "¿No se pudo leer tu PDF? Pegá el texto acá"
-- [ ] Diseñar el schema Zod del análisis ATS (pasado a `generateObject`)
-- [ ] Implementar `cvAnalysisService.analyze(text: string)`
-- [ ] Implementar Server Action con **streaming** usando `createStreamableValue` de `ai/rsc`
-- [ ] Implementar `ATSScoreCard`, `AnalysisResults` con actualización progresiva
+- [ ] Diseñar el schema Zod del análisis ATS (pasado a `generateStructuredObject`)
+- [ ] Implementar `cvAnalysisService.analyze(text: string, userKeys: UserKeys)`
+- [ ] Integrar el selector dinámico de modelos en la UI del Dashboard (con opción de ID personalizado)
+- [ ] Configurar la Server Action para **omitir el rate limit de Upstash** si el usuario provee su propia API key
+- [ ] Implementar `ATSScoreCard`, `AnalysisResults` y la visualización interactiva de settings con banderas `hasKey`
 
 **El schema de análisis (reemplaza el prompt de texto libre):**
 
