@@ -162,15 +162,15 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 8.1: Configurar Google OAuth Provider
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴 — **Bug activo: botón visible en landing sin funcionalidad**
 - **Descripción:**
   Habilitar el inicio de sesión con Google OAuth creando las credenciales de cliente en Google Cloud Console, vinculando el botón "Google" de la UI y configurando las variables de entorno seguras. El botón "Continue with Google" ya está visible en la landing pero no tiene provider configurado — es un bug activo de primera impresión.
 - **Criterios de Aceptación:**
-  - [ ] Crear un proyecto en Google Cloud Console y configurar la pantalla de consentimiento de OAuth.
-  - [ ] Agregar las URLs autorizadas de redirección de NextAuth en la consola de Google.
-  - [ ] Registrar las variables `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` en el archivo `.env.local` y validarlas en `src/lib/env.ts`.
-  - [ ] Probar el inicio de sesión en local y verificar que asocie correctamente al usuario en la base de datos de Neon Prisma.
+  - [x] Crear un proyecto en Google Cloud Console y configurar la pantalla de consentimiento de OAuth.
+  - [x] Agregar las URLs autorizadas de redirección de NextAuth en la consola de Google.
+  - [x] Registrar las variables `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` en el archivo `.env.local` y validarlas en `src/lib/env.ts`.
+  - [x] Probar el inicio de sesión en local y verificar que asocie correctamente al usuario en la base de datos de Neon Prisma.
 - **Rama Git:** `feature/auth-google-provider`
 
 ---
