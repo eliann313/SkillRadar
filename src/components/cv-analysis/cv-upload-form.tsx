@@ -31,7 +31,7 @@ import { toast } from "sonner";
 import { getSignedFileUrlAction } from "@/app/actions/cv-actions";
 
 interface CVUploadFormProps {
-  onAnalyze: (content: string) => void;
+  onAnalyze: (content: string, fileName?: string) => void;
   isLoading?: boolean;
 }
 
@@ -61,17 +61,17 @@ export function CVUploadForm({
           if (signedRes.success && signedRes.url) {
             // El análisis del backend requiere la URL estable original de UploadThing
             // ya que expira de forma controlada y persistida en Neon Postgres.
-            onAnalyze(uploadedFile.url);
+            onAnalyze(uploadedFile.url, uploadedFile.name);
           } else {
             toast.error(
               signedRes.error ||
                 "No se pudo generar el token de acceso privado.",
             );
-            onAnalyze(uploadedFile.url);
+            onAnalyze(uploadedFile.url, uploadedFile.name);
           }
         } catch (err) {
           console.error("Error generating signed URL:", err);
-          onAnalyze(uploadedFile.url);
+          onAnalyze(uploadedFile.url, uploadedFile.name);
         }
       }
     },
