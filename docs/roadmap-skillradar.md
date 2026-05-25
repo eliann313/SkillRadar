@@ -901,9 +901,9 @@ En producción usás Neon directamente. No necesitás Docker en Vercel.
 **Tareas:**
 
 - [ ] Instalar `ai`, `@ai-sdk/google`, `@ai-sdk/openai`, `@ai-sdk/anthropic`
-- [ ] Implementar `src/lib/crypto.ts` para cifrado AES-256-GCM
+- [ ] Implementar `src/lib/crypto.ts` para cifrado AES-256-GCM (generando un **IV único y aleatorio de 12 bytes y un Auth Tag de 16 bytes** por clave, serializados como `iv:tag:ciphertext` en la DB) para evitar patrones de repetición y robustecer contra ingeniería inversa
 - [ ] Implementar `src/lib/ai/index.ts` con el factory dinámico y el fallback en cascada inteligente
-- [ ] Agregar **textarea de fallback** en la UI de CV upload: "¿No se pudo leer tu PDF? Pegá el texto acá"
+- [ ] Agregar **textarea de fallback** y soporte de **LinkedIn PDF parser** en la UI: pegá el texto o subí tu perfil exportado en PDF
 - [ ] Diseñar el schema Zod del análisis ATS (pasado a `generateStructuredObject`)
 - [ ] Implementar `cvAnalysisService.analyze(text: string, userKeys: UserKeys)`
 - [ ] Integrar el selector dinámico de modelos en la UI del Dashboard (con opción de ID personalizado)
@@ -1085,7 +1085,7 @@ Para mantener el enfoque en la Inteligencia de Talento, sumaremos característic
 
 ### 🚀 Nuevas Features: "Hacerlo Defendible" (Diferenciación)
 
-- **Contact Request Flow (Doble Ciego):** El recruiter envía un Pitch anónimo. El dev lo recibe y si acepta, revelan identidades.
+- **Contact Request Flow (Doble Ciego):** El recruiter envía un Pitch anónimo. El dev lo recibe y si acepta, revelan identidades. Protegido rigurosamente en el servidor mediante DTOs para que la data sensible nunca viaje al navegador si la petición de contacto no está aceptada.
 - **GitHub Confidence Score:** Traducción de repositorios y commits en un score de validación técnica ("Proof of Skill").
 - **Smart Shortlists & Market Intelligence:** Alertas de talento y mapas de calor (heatmaps) de skills escasos.
 

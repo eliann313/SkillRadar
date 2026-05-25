@@ -123,7 +123,7 @@ function SidebarContent({
       <Separator className="bg-sidebar-border" />
 
       {/* Navigation */}
-      <nav className="flex-1 p-3">
+      <nav className="flex-1 overflow-y-auto p-3 scrollbar-thin">
         <ul className="flex flex-col gap-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
@@ -291,7 +291,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "hidden border-r border-sidebar-border bg-sidebar transition-all duration-300 lg:block",
+          "hidden border-r border-sidebar-border bg-sidebar transition-all duration-300 lg:block sticky top-0 h-screen",
           collapsed ? "w-[68px]" : "w-64",
         )}
       >
