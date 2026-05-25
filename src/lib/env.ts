@@ -14,6 +14,8 @@ const envSchema = z.object({
   AUTH_SECRET: z.string().min(1, "AUTH_SECRET es requerido"),
   GITHUB_CLIENT_ID: z.string().min(1, "GITHUB_CLIENT_ID es requerido"),
   GITHUB_CLIENT_SECRET: z.string().min(1, "GITHUB_CLIENT_SECRET es requerido"),
+  GOOGLE_CLIENT_ID: z.string().min(1, "GOOGLE_CLIENT_ID es requerido"),
+  GOOGLE_CLIENT_SECRET: z.string().min(1, "GOOGLE_CLIENT_SECRET es requerido"),
   UPLOADTHING_SECRET: z.string().optional(),
   UPLOADTHING_APP_ID: z.string().optional(),
   GEMINI_API_KEY: isProd
@@ -52,6 +54,9 @@ if (!parsedEnv.success) {
       GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID || "placeholder-github-id",
       GITHUB_CLIENT_SECRET:
         process.env.GITHUB_CLIENT_SECRET || "placeholder-github-secret",
+      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || "placeholder-google-id",
+      GOOGLE_CLIENT_SECRET:
+        process.env.GOOGLE_CLIENT_SECRET || "placeholder-google-secret",
       UPLOADTHING_SECRET: process.env.UPLOADTHING_SECRET,
       UPLOADTHING_APP_ID: process.env.UPLOADTHING_APP_ID,
       GEMINI_API_KEY: process.env.GEMINI_API_KEY,
