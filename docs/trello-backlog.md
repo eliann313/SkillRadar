@@ -17,42 +17,43 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 | 3   | 16.1 ✅ | M16    | Rate Limiting con Upstash                   | 🔴 Bloqueante |
 | 4   | 16.2 ✅ | M16    | Error Boundaries del Dashboard              | 🔴 Bloqueante |
 | 5   | 7.1 ✅  | M7     | AI Multi-Model Service                      | 🔴 Bloqueante |
-| 6   | 8.1     | M8     | Google OAuth Provider                       | 🔴 Bloqueante |
-| 7   | 2.1     | M2     | CV Upload con UploadThing                   | Core MVP      |
-| 8   | 2.2     | M2     | CV Parse con Gemini Real                    | Core MVP      |
-| 9   | 2.3     | M2     | Textarea Fallback (OCR/Canva)               | Core MVP      |
-| 10  | 3.1     | M3     | Job Match Backend                           | Core MVP      |
-| 11  | 3.2     | M3     | Job Match AI Service                        | Core MVP      |
-| 12  | 3.3     | M3     | Job Match Frontend                          | Core MVP      |
-| 13  | 10.1    | M10    | Dashboard con Datos Reales                  | Core MVP      |
-| 14  | 10.2    | M10    | Context Pipeline CV→Match                   | Core MVP      |
-| 15  | 4.1     | M4     | Landing Page Comercial                      | Core MVP      |
-| 16  | 4.2     | M4     | Skeletons + Toasts (UX Polish)              | Core MVP      |
-| 17  | 6.1     | M6     | Mock Interview con AI real                  | Diferenciador |
-| 18  | 5.1     | M5     | GitHub Analyzer Backend                     | Diferenciador |
-| 19  | 5.2     | M5     | GitHub Dashboard Frontend                   | Diferenciador |
-| 20  | 8.2     | M8     | Magic Links con Resend                      | Diferenciador |
-| 21  | 1.2     | M1     | Dark & Light Theme                          | Diferenciador |
-| 22  | 11.1    | M11    | Reverse Job-Matching (Recruiter)            | Recruiter     |
-| 23  | 11.2    | M11    | Skill Gap Action Plan                       | Recruiter     |
-| 24  | 11.3    | M11    | Explainability Layer                        | Recruiter     |
-| 25  | 12.1    | M12    | Doble Ciego (Contact Request)               | Recruiter     |
-| 26  | 12.2    | M12    | Smart Shortlist                             | Recruiter     |
-| 27  | 12.3    | M12    | Market Intelligence Heatmaps                | Recruiter     |
-| 28  | 13.1    | M13    | AI Resume Builder                           | Recruiter     |
-| 29  | 13.2    | M13    | Impact Verb Analyzer                        | Recruiter     |
-| 30  | 13.3    | M13    | LinkedIn Profile Audit                      | Recruiter     |
-| 31  | 14.1    | M14    | Job Tracker Kanban                          | Recruiter     |
-| 32  | 14.2    | M14    | Smart Pitch / Cover Letter                  | Recruiter     |
-| 33  | 15.1    | M15    | Observaciones Técnicas                      | Recruiter     |
-| 34  | 15.2    | M15    | Generador de Preguntas de Entrevista        | Recruiter     |
-| 35  | 17.1    | M17    | Score Progression Analytics                 | Growth        |
-| 36  | 17.2    | M17    | Perfil Público Compartible                  | Growth        |
-| 37  | 17.3    | M17    | Badge Embebible para GitHub README          | Growth        |
-| 38  | 7.2     | M7     | Career Copilot Widget                       | Growth        |
-| 39  | 18.1    | M18    | GitHub Schema Extendido (Seniority Signals) | Intelligence  |
-| 40  | 18.2    | M18    | Modos de Entrevista Avanzados               | Intelligence  |
-| 41  | 4.3     | M4     | i18n con next-intl                          | Opcional      |
+| 6   | 7.3 ✅  | M7     | Auditoría y Verificación del Criptosistema  | 🔴 Bloqueante |
+| 7   | 8.1 ✅  | M8     | Google OAuth Provider                       | 🔴 Bloqueante |
+| 8   | 2.1     | M2     | CV Upload con UploadThing                   | Core MVP      |
+| 9   | 2.2     | M2     | CV Parse con Gemini Real                    | Core MVP      |
+| 10  | 2.3     | M2     | Textarea Fallback (OCR/Canva)               | Core MVP      |
+| 11  | 3.1     | M3     | Job Match Backend                           | Core MVP      |
+| 12  | 3.2     | M3     | Job Match AI Service                        | Core MVP      |
+| 13  | 3.3     | M3     | Job Match Frontend                          | Core MVP      |
+| 14  | 10.1    | M10    | Dashboard con Datos Reales                  | Core MVP      |
+| 15  | 10.2    | M10    | Context Pipeline CV→Match                   | Core MVP      |
+| 16  | 4.1     | M4     | Landing Page Comercial                      | Core MVP      |
+| 17  | 4.2     | M4     | Skeletons + Toasts (UX Polish)              | Core MVP      |
+| 18  | 6.1     | M6     | Mock Interview con AI real                  | Diferenciador |
+| 19  | 5.1     | M5     | GitHub Analyzer Backend                     | Diferenciador |
+| 20  | 5.2     | M5     | GitHub Dashboard Frontend                   | Diferenciador |
+| 21  | 8.2     | M8     | Magic Links con Resend                      | Diferenciador |
+| 22  | 1.2     | M1     | Dark & Light Theme                          | Diferenciador |
+| 23  | 11.1    | M11    | Reverse Job-Matching (Recruiter)            | Recruiter     |
+| 24  | 11.2    | M11    | Skill Gap Action Plan                       | Recruiter     |
+| 25  | 11.3    | M11    | Explainability Layer                        | Recruiter     |
+| 26  | 12.1    | M12    | Doble Ciego (Contact Request)               | Recruiter     |
+| 27  | 12.2    | M12    | Smart Shortlist                             | Recruiter     |
+| 28  | 12.3    | M12    | Market Intelligence Heatmaps                | Recruiter     |
+| 29  | 13.1    | M13    | AI Resume Builder                           | Recruiter     |
+| 30  | 13.2    | M13    | Impact Verb Analyzer                        | Recruiter     |
+| 31  | 13.3    | M13    | LinkedIn Profile Audit                      | Recruiter     |
+| 32  | 14.1    | M14    | Job Tracker Kanban                          | Recruiter     |
+| 33  | 14.2    | M14    | Smart Pitch / Cover Letter                  | Recruiter     |
+| 34  | 15.1    | M15    | Observaciones Técnicas                      | Recruiter     |
+| 35  | 15.2    | M15    | Generador de Preguntas de Entrevista        | Recruiter     |
+| 36  | 17.1    | M17    | Score Progression Analytics                 | Growth        |
+| 37  | 17.2    | M17    | Perfil Público Compartible                  | Growth        |
+| 38  | 17.3    | M17    | Badge Embebible para GitHub README          | Growth        |
+| 39  | 7.2     | M7     | Career Copilot Widget                       | Growth        |
+| 40  | 18.1    | M18    | GitHub Schema Extendido (Seniority Signals) | Intelligence  |
+| 41  | 18.2    | M18    | Modos de Entrevista Avanzados               | Intelligence  |
+| 42  | 4.3     | M4     | i18n con next-intl                          | Opcional      |
 
 ---
 
@@ -147,7 +148,7 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
   Desacoplar la llamada a la IA de los servicios de negocio individuales. Crear un motor de IA unificado y flexible en `src/lib/ai/` que permita a los usuarios configurar sus propias **API Keys** de Gemini, Groq, OpenRouter, OpenAI y Anthropic cifradas en base de datos de forma ultra-segura (AES-256-GCM). Habilitar la selección granular de modelos avanzados de última generación en cada feature y la **exención inteligente de rate limiting** para usuarios que traigan sus propias llaves.
 - **Criterios de Aceptación:**
   - [x] Extender el modelo `User` en `prisma/schema.prisma` agregando campos opcionales cifrados para las API Keys de los 5 proveedores y preferencias por defecto.
-  - [x] Implementar un módulo criptográfico `src/lib/crypto.ts` para encriptar y desencriptar transparente y robustamente las API Keys en el servidor mediante **AES-256-GCM** y un secret `ENCRYPTION_KEY`.
+  - [x] Implementar un módulo criptográfico `src/lib/crypto.ts` para encriptar y desencriptar transparente y robustamente las API Keys en el servidor mediante **AES-256-GCM** y un secret `ENCRYPTION_KEY`. Cada operación de encriptación debe generar un **IV de 12 bytes aleatorio único y un Auth Tag de 16 bytes**, concatenados como `iv:tag:ciphertext` en la base de datos de Neon Postgres para evitar patrones de repetición y blindar la seguridad contra ingeniería inversa.
   - [x] Crear el factory central de IA en `src/lib/ai/index.ts` integrando los proveedores dinámicos `@ai-sdk/google`, `@ai-sdk/openai` y `@ai-sdk/anthropic` de Vercel AI SDK.
   - [x] Diseñar el soporte para modelos de vanguardia (Gemini 3.5 Flash, Gemini 3.1 Pro, GPT-5.5, Claude Opus 4.7) mediante dropdowns preconfigurados e inputs de texto libre para IDs de modelos personalizados en la UI.
   - [x] Configurar las Server Actions de `cv-analysis` y `job-match` para **omitir el rate limit de Upstash** si el usuario tiene su propia API Key configurada para la acción elegida.
@@ -155,6 +156,18 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
   - [x] Crear la tarjeta de configuración interactiva de IA en la página de `/dashboard/settings` ocultando las claves en texto plano y mostrando solo indicadores booleanos (`hasKey`).
 - **💡 Razón del Cambio:** Sentar las bases del pipeline de IA premium y flexible antes de codificar Job Match y Mock Interview para que hereden toda la resiliencia y el soporte multi-modelo de vanguardia automáticamente.
 - **Rama Git:** `feature/ai-multimodel-service`
+
+### 🎴 Tarjeta 7.3: Auditoría, Testing Unitario y Verificación en Producción del Criptosistema (AES-256-GCM)
+
+- **Estado:** `[x] Completada`
+- **Prioridad:** Media 🟡
+- **Descripción:**
+  Aunque la librería de criptografía central `src/lib/crypto.ts` y el motor `AIService` ya están codificados en el repositorio, es crítico realizar un proceso de auditoría formal. Implementaremos pruebas de integración que validen el ciclo de vida completo: inserción en base de datos de Neon, correcto almacenamiento del formato `iv:tag:ciphertext`, verificación de que el IV cambie en cada guardado de la misma llave (evitando patrones repetitivos), y manejo de errores ante corrupción de datos.
+- **Criterios de Aceptación:**
+  - [x] Escribir tests unitarios con Vitest en `src/lib/crypto.test.ts` que demuestren que dos llamadas consecutivas de encriptación sobre el mismo texto plano devuelven textos cifrados diferentes (gracias a IVs distintos).
+  - [x] Validar que un texto cifrado alterado intencionadamente falle al descifrar por error de Auth Tag de forma segura.
+  - [x] Ejecutar una prueba de persistencia real en Neon Postgres con datos cifrados de prueba simulando la acción de `/dashboard/settings`.
+- **Rama Git:** `feature/crypto-system-verification`
 
 ---
 
@@ -188,11 +201,12 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 - **Estado:** `[ ] Pendiente`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
-  Vincular el componente maqueta de v0 `CVUploadForm` (`src/components/cv-analysis/cv-upload-form.tsx`) para que suba el archivo PDF seleccionado por el usuario al CDN real de UploadThing usando el endpoint de backend que ya está expuesto en `src/app/api/uploadthing/route.ts`.
+  Vincular el componente maqueta de v0 `CVUploadForm` (`src/components/cv-analysis/cv-upload-form.tsx`) para que suba el archivo PDF seleccionado por el usuario al CDN real de UploadThing usando el endpoint de backend que ya está expuesto en `src/app/api/uploadthing/route.ts`. Para resguardar la privacidad de la información altamente sensible del CV (PII), se establecerá un esquema de almacenamiento privado con URLs firmadas temporales de corta duración (ej: AWS S3 privado o similar).
 - **Criterios de Aceptación:**
   - [ ] Importar e integrar el hook `useUploadThing` de `@uploadthing/react` en `cv-upload-form.tsx`.
   - [ ] Configurar el estado de progreso visual en el área drag-and-drop mientras se realiza la subida.
-  - [ ] Capturar adecuadamente la respuesta del servidor con la URL de archivo segura (`https://utfs.io/f/...` o `https://ufs.sh/f/...`).
+  - [ ] Capturar adecuadamente la respuesta del servidor con la URL de archivo segura y configurar el acceso privado en la nube.
+  - [ ] Implementar la generación de URLs firmadas temporales (Pre-signed URLs) de corta duración para la visualización del archivo.
   - [ ] Manejar errores de red o restricciones de archivos de más de 4MB de forma amigable.
 - **Rama Git:** `feature/cv-uploadthing-frontend`
 
@@ -452,6 +466,7 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
   - [ ] Crear un componente reutilizable de tipo Modal/Drawer de shadcn/ui llamado `ExplainabilityPanel`.
   - [ ] Configurar el prompt del parser para extraer el razonamiento cualitativo de la IA detrás de los scores otorgados.
   - [ ] Habilitar un botón interactivo (ej: icono de ojo o "Ver Razonamiento") junto a cada puntaje que abra este panel con las justificaciones, la evidencia encontrada y los puntos débiles detectados de forma clara.
+  - [ ] Implementar una política de seguridad estricta para las claves de API (OpenAI/Gemini/Anthropic): todas las llamadas se realizarán únicamente desde Server Actions, utilizando variables de entorno en Vercel con encriptación en reposo y sin exponer jamás las claves al lado cliente.
 - **Rama Git:** `feature/explainability-layer`
 
 ---
@@ -469,7 +484,7 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
   - [ ] Implementar la Server Action `createContactRequestAction` que valide el rol `"recruiter"` y cree la fila en la tabla `ContactRequest` con estado `"pending"`.
   - [ ] Crear la vista de "Peticiones de Contacto Recibidas" en el dashboard del Desarrollador (`/dashboard/requests` o sección de notificaciones) cargando las solicitudes donde `developerId === currentUser.id`.
   - [ ] Implementar las Server Actions `acceptContactRequestAction` (cambia el estado a `"accepted"`) y `declineContactRequestAction` (cambia el estado a `"declined"`).
-  - [ ] Configurar el control de privacidad en la API/Server Component del Recruiter: si el estado es `"accepted"`, se revela el `email`, `name`, `githubUsername` e `image` del candidato; de lo contrario, se renderiza estrictamente como perfil anónimo.
+  - [ ] Configurar el control de privacidad estricto del lado del servidor (Server-Only DTOs): si el estado no es `"accepted"`, la Server Action o API del Recruiter omite por completo los campos `name`, `email`, `githubUsername` e `image` en la consulta de base de datos. De esta forma, el payload JSON jamás viaja al navegador si el contacto está pendiente.
 - **Rama Git:** `feature/double-blind-contact`
 
 ### 🎴 Tarjeta 12.2: Smart Shortlist y Alertas de Recruiter
@@ -529,11 +544,12 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 - **Estado:** `[ ] Pendiente`
 - **Prioridad:** Media 🟡
 - **Descripción:**
-  El usuario proporciona la URL pública de su LinkedIn. Un servicio extrae la información (o el usuario pega su contenido) y la IA analiza específicamente el Titular, la sección 'Acerca de' y la densidad de palabras clave, entregando feedback sobre cómo optimizar el perfil para algoritmos de búsqueda de reclutadores.
+  Implementar una auditoría SEO para el perfil de LinkedIn del usuario libre de riesgos legales y sin costos de APIs de scraping externas. El sistema permitirá al usuario pegar directamente su extracto/experiencia o subir el PDF generado por su perfil de LinkedIn (`Ctrl + P` -> Guardar como PDF), reutilizando la infraestructura de parseo. La IA analizará el Titular, la sección 'Acerca de' y la densidad de palabras clave para optimizar su posicionamiento.
 - **Criterios de Aceptación:**
-  - [ ] Crear una interfaz con un campo de texto para que el usuario pegue el texto copiado de su perfil de LinkedIn o inserte su extracto.
-  - [ ] Configurar un prompt especializado en el posicionamiento de LinkedIn (SEO de perfil técnico).
-  - [ ] Retornar y mostrar una calificación del perfil con consejos específicos para mejorar el titular, la sección "Acerca de" y las descripciones de cargos.
+  - [ ] Crear una interfaz que permita subir el perfil de LinkedIn exportado en PDF o pegar directamente el texto copiado de su perfil.
+  - [ ] Integrar el lector de PDFs del Módulo 2 para extraer el texto estructurado del PDF de LinkedIn.
+  - [ ] Configurar un prompt especializado en posicionamiento orgánico en búsquedas de reclutadores de LinkedIn (SEO técnico).
+  - [ ] Retornar y mostrar una calificación del perfil con consejos específicos de mejora para el titular, el "Acerca de" y la descripción de responsabilidades.
 - **Rama Git:** `feature/linkedin-profile-audit`
 
 ---
