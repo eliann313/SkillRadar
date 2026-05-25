@@ -19,7 +19,7 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 | 5   | 7.1 ✅  | M7     | AI Multi-Model Service                      | 🔴 Bloqueante |
 | 6   | 7.3 ✅  | M7     | Auditoría y Verificación del Criptosistema  | 🔴 Bloqueante |
 | 7   | 8.1 ✅  | M8     | Google OAuth Provider                       | 🔴 Bloqueante |
-| 8   | 2.1     | M2     | CV Upload con UploadThing                   | Core MVP      |
+| 8   | 2.1 ✅  | M2     | CV Upload con UploadThing                   | Core MVP      |
 | 9   | 2.2     | M2     | CV Parse con Gemini Real                    | Core MVP      |
 | 10  | 2.3     | M2     | Textarea Fallback (OCR/Canva)               | Core MVP      |
 | 11  | 3.1     | M3     | Job Match Backend                           | Core MVP      |
@@ -198,16 +198,16 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 2.1: Conectar Subida de Archivos con UploadThing en Frontend
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Vincular el componente maqueta de v0 `CVUploadForm` (`src/components/cv-analysis/cv-upload-form.tsx`) para que suba el archivo PDF seleccionado por el usuario al CDN real de UploadThing usando el endpoint de backend que ya está expuesto en `src/app/api/uploadthing/route.ts`. Para resguardar la privacidad de la información altamente sensible del CV (PII), se establecerá un esquema de almacenamiento privado con URLs firmadas temporales de corta duración (ej: AWS S3 privado o similar).
 - **Criterios de Aceptación:**
-  - [ ] Importar e integrar el hook `useUploadThing` de `@uploadthing/react` en `cv-upload-form.tsx`.
-  - [ ] Configurar el estado de progreso visual en el área drag-and-drop mientras se realiza la subida.
-  - [ ] Capturar adecuadamente la respuesta del servidor con la URL de archivo segura y configurar el acceso privado en la nube.
-  - [ ] Implementar la generación de URLs firmadas temporales (Pre-signed URLs) de corta duración para la visualización del archivo.
-  - [ ] Manejar errores de red o restricciones de archivos de más de 4MB de forma amigable.
+  - [x] Importar e integrar el hook `useUploadThing` de `@uploadthing/react` en `cv-upload-form.tsx`.
+  - [x] Configurar el estado de progreso visual en el área drag-and-drop mientras se realiza la subida.
+  - [x] Capturar adecuadamente la respuesta del servidor con la URL de archivo segura y configurar el acceso privado en la nube.
+  - [x] Implementar la generación de URLs firmadas temporales (Pre-signed URLs) de corta duración para la visualización del archivo.
+  - [x] Manejar errores de red o restricciones de archivos de más de 4MB de forma amigable.
 - **Rama Git:** `feature/cv-uploadthing-frontend`
 
 ### 🎴 Tarjeta 2.2: Enlazar Formulario de CV con Server Action y Gemini Real

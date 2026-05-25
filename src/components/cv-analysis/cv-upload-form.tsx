@@ -26,11 +26,16 @@ import {
   Loader2,
   Sparkles,
 } from "lucide-react";
+import { useUploadThing } from "@/lib/uploadthing-client";
+import { toast } from "sonner";
+import { getSignedFileUrlAction } from "@/app/actions/cv-actions";
 
 interface CVUploadFormProps {
   onAnalyze: (content: string) => void;
   isLoading?: boolean;
 }
+
+const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
 
 export function CVUploadForm({
   onAnalyze,
@@ -39,10 +44,56 @@ export function CVUploadForm({
   const [file, setFile] = useState<File | null>(null);
   const [textContent, setTextContent] = useState("");
   const [isTextOpen, setIsTextOpen] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const { startUpload } = useUploadThing("resumeUploader", {
+    onClientUploadComplete: async (res) => {
+      setIsUploading(false);
+      setUploadProgress(0);
+      const uploadedFile = res?.[0];
+      if (uploadedFile) {
+        toast.success(`Archivo "${uploadedFile.name}" subido de forma segura.`);
+
+        try {
+          // Generar URL firmada temporal de corta duración
+          const signedRes = await getSignedFileUrlAction(uploadedFile.url);
+          if (signedRes.success && signedRes.url) {
+            // El análisis del backend requiere la URL estable original de UploadThing
+            // ya que expira de forma controlada y persistida en Neon Postgres.
+            onAnalyze(uploadedFile.url);
+          } else {
+            toast.error(
+              signedRes.error ||
+                "No se pudo generar el token de acceso privado.",
+            );
+            onAnalyze(uploadedFile.url);
+          }
+        } catch (err) {
+          console.error("Error generating signed URL:", err);
+          onAnalyze(uploadedFile.url);
+        }
+      }
+    },
+    onUploadError: (error: Error) => {
+      setIsUploading(false);
+      setUploadProgress(0);
+      toast.error(`Error al subir el archivo: ${error.message}`);
+    },
+    onUploadProgress: (p) => {
+      setUploadProgress(p);
+    },
+  });
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const pdfFile = acceptedFiles[0];
     if (pdfFile) {
+      if (pdfFile.size > MAX_FILE_SIZE) {
+        toast.error(
+          "El archivo excede el límite de 4MB. Por favor, sube un archivo más pequeño.",
+        );
+        return;
+      }
       setFile(pdfFile);
       setTextContent("");
     }
@@ -54,23 +105,32 @@ export function CVUploadForm({
       "application/pdf": [".pdf"],
     },
     maxFiles: 1,
-    disabled: isLoading,
+    disabled: isLoading || isUploading,
   });
 
   const handleRemoveFile = () => {
     setFile(null);
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (file) {
-      // In real app, parse PDF content
-      onAnalyze(`PDF content from: ${file.name}`);
+      setIsUploading(true);
+      try {
+        const uploadResult = await startUpload([file]);
+        if (!uploadResult) {
+          setIsUploading(false);
+        }
+      } catch (err) {
+        console.error("Upload error:", err);
+        setIsUploading(false);
+        toast.error("Ocurrió un error inesperado al subir el archivo.");
+      }
     } else if (textContent.trim()) {
       onAnalyze(textContent);
     }
   };
 
-  const canAnalyze = (file || textContent.trim()) && !isLoading;
+  const canAnalyze = (file || textContent.trim()) && !isLoading && !isUploading;
 
   return (
     <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
@@ -110,26 +170,42 @@ export function CVUploadForm({
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-between rounded-xl border border-border bg-muted/30 p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                <FileText className="size-5 text-primary" />
+          <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/30 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+                  <FileText className="size-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">{file.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {(file.size / 1024).toFixed(1)} KB
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-medium text-foreground">{file.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {(file.size / 1024).toFixed(1)} KB
-                </p>
-              </div>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={handleRemoveFile}
+                disabled={isLoading || isUploading}
+              >
+                <X />
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={handleRemoveFile}
-              disabled={isLoading}
-            >
-              <X />
-            </Button>
+            {isUploading && (
+              <div className="mt-2 space-y-1.5">
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Uploading CV...</span>
+                  <span>{uploadProgress}%</span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all duration-300 ease-out"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -140,7 +216,7 @@ export function CVUploadForm({
               <Button
                 variant="ghost"
                 className="w-full justify-between text-muted-foreground"
-                disabled={isLoading}
+                disabled={isLoading || isUploading}
               />
             }
           >
@@ -164,7 +240,7 @@ export function CVUploadForm({
                   if (e.target.value) setFile(null);
                 }}
                 className="min-h-[200px] resize-none"
-                disabled={isLoading}
+                disabled={isLoading || isUploading}
               />
             </div>
           </CollapsibleContent>
@@ -174,17 +250,24 @@ export function CVUploadForm({
         <Button
           size="lg"
           className="w-full gap-2"
-          onClick={handleAnalyze}
+          onClick={() => {
+            void handleAnalyze();
+          }}
           disabled={!canAnalyze}
         >
-          {isLoading ? (
+          {isUploading ? (
             <>
-              <Loader2 data-icon="inline-start" className="animate-spin" />
+              <Loader2 className="animate-spin" />
+              Uploading to secure storage ({uploadProgress}%)...
+            </>
+          ) : isLoading ? (
+            <>
+              <Loader2 className="animate-spin" />
               Analyzing...
             </>
           ) : (
             <>
-              <Sparkles data-icon="inline-start" />
+              <Sparkles />
               Analyze with AI
             </>
           )}
