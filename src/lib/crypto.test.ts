@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import type { User } from "@prisma/client";
 import { encrypt, decrypt } from "./crypto";
 import { db } from "./db";
 
@@ -67,7 +68,7 @@ describe("Criptosistema AES-256-GCM (Tarjeta 7.3)", () => {
     const hasDatabaseUrl = !!process.env.DATABASE_URL;
 
     if (hasDatabaseUrl) {
-      console.log(
+      console.warn(
         "🔌 [Crypto Test] Conexión real a base de datos Neon detectada. Ejecutando test de persistencia real...",
       );
 
@@ -104,7 +105,7 @@ describe("Criptosistema AES-256-GCM (Tarjeta 7.3)", () => {
           where: { id: testUser.id },
         });
 
-        console.log(
+        console.warn(
           "✅ [Crypto Test] Test de persistencia real en Neon Postgres completado y limpio con éxito.",
         );
       } catch (dbError) {
@@ -115,16 +116,22 @@ describe("Criptosistema AES-256-GCM (Tarjeta 7.3)", () => {
         throw dbError; // Si está configurado el URL pero falla, queremos que falle el test
       }
     } else {
-      console.log(
+      console.warn(
         "ℹ️ [Crypto Test] No se detectó DATABASE_URL en el entorno. Ejecutando simulación segura mediante Mocking de Prisma...",
       );
 
       // Crear mocks simulando el comportamiento de Prisma
-      const mockUser = {
+      const mockUser: User = {
         id: "test-cuid-12345",
         email: testEmail,
         name: "Mock Crypto User",
+        emailVerified: null,
+        image: null,
         geminiApiKey: encryptedKey,
+        groqApiKey: null,
+        openrouterApiKey: null,
+        openaiApiKey: null,
+        anthropicApiKey: null,
         role: "developer",
         defaultAiProvider: "gemini",
         defaultAiModel: "gemini-2.5-flash",
@@ -175,7 +182,7 @@ describe("Criptosistema AES-256-GCM (Tarjeta 7.3)", () => {
 
       // Restaurar mocks originales
       vi.restoreAllMocks();
-      console.log(
+      console.warn(
         "✅ [Crypto Test] Simulación de persistencia Prisma completada y verificada exitosamente.",
       );
     }
