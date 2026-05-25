@@ -1,12 +1,1 @@
-declare module "pdf-parse" {
-  interface PDFParseResult {
-    numpages: number;
-    numrender: number;
-    info: unknown;
-    metadata: unknown;
-    text: string;
-    version: string;
-  }
-  function pdf(dataBuffer: Buffer, options?: unknown): Promise<PDFParseResult>;
-  export = pdf;
-}
+// Legacy ambient types for pdf-parse (now resolved natively from node_modules/pdf-parse)

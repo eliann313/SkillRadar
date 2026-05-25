@@ -1,12 +1,15 @@
-import pdf from "pdf-parse";
+import { PDFParse } from "pdf-parse";
 import { ResumeRepository } from "./repository";
 import { CVAnalysisAIService } from "./ai-service";
 
 export class CVAnalysisService {
   static async parsePDF(buffer: Buffer): Promise<string> {
     try {
-      const data = await pdf(buffer);
-      return data.text || "";
+      const parser = new PDFParse({ data: buffer });
+      const textResult = await parser.getText();
+      const rawText = textResult.text || "";
+      await parser.destroy();
+      return rawText;
     } catch (error) {
       console.error("[CVAnalysisService] Error parseando PDF:", error);
       throw new Error("No se pudo extraer el texto del PDF");

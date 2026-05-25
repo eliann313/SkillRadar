@@ -6,40 +6,9 @@ import { CVUploadForm, AnalysisResults } from "@/components/cv-analysis";
 import type { CVAnalysis } from "@/lib/types";
 import { redirect } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const mockAnalysis: CVAnalysis = {
-  id: "1",
-  userId: "user-1",
-  atsScore: 78,
-  detectedKeywords: [
-    "React",
-    "TypeScript",
-    "Next.js",
-    "Node.js",
-    "REST API",
-    "Git",
-    "Agile",
-    "JavaScript",
-    "CSS",
-    "HTML",
-  ],
-  missingKeywords: [
-    "CI/CD",
-    "Docker",
-    "AWS",
-    "Testing",
-    "Performance Optimization",
-  ],
-  estimatedSeniority: "mid",
-  suggestions: [
-    "Add specific metrics and achievements to quantify your impact (e.g., 'Improved page load time by 40%').",
-    "Include experience with CI/CD pipelines and containerization technologies like Docker.",
-    "Mention cloud platform experience (AWS, GCP, or Azure) even if basic.",
-    "Add a dedicated 'Technical Skills' section with categorized skills for better ATS parsing.",
-    "Include links to your GitHub profile or portfolio projects to showcase your work.",
-  ],
-  createdAt: new Date(),
-};
+import { uploadAndParseCVAction } from "@/features/cv-analysis/actions";
+import { toast } from "sonner";
+import type { ATSAnalysis } from "@/features/cv-analysis/types";
 
 export default function CVAnalysisPage() {
   const { data: session, status } = useSession();
@@ -67,12 +36,60 @@ export default function CVAnalysisPage() {
     redirect("/dashboard");
   }
 
-  const handleAnalyze = async (_content: string) => {
+  const handleAnalyze = async (content: string, fileName?: string) => {
     setIsLoading(true);
-    // Simulate AI analysis
-    await new Promise((resolve) => setTimeout(resolve, 2500));
-    setAnalysis(mockAnalysis);
-    setIsLoading(false);
+    try {
+      const isUrl =
+        content.startsWith("http://") || content.startsWith("https://");
+
+      if (isUrl) {
+        const result = await uploadAndParseCVAction({
+          fileUrl: content,
+          fileName: fileName || "curriculum.pdf",
+        });
+
+        if (result.success) {
+          const dbResume = result.data;
+          const dbAnalysis = dbResume.analysis as ATSAnalysis | null;
+
+          const rawSeniority = dbAnalysis?.estimatedSeniority || "mid";
+          const mappedSeniority: "junior" | "mid" | "senior" | "lead" =
+            rawSeniority === "semi-senior"
+              ? "mid"
+              : (rawSeniority as "junior" | "mid" | "senior" | "lead");
+
+          const mappedAnalysis: CVAnalysis = {
+            id: dbResume.id,
+            userId: session.user.id,
+            atsScore: dbResume.atsScore ?? (dbAnalysis?.atsScore || 0),
+            detectedKeywords: dbAnalysis?.keywords || [],
+            missingKeywords: dbAnalysis?.missingKeywords || [],
+            estimatedSeniority: mappedSeniority,
+            suggestions: [
+              ...(dbAnalysis?.improvements || []),
+              ...(dbAnalysis?.formatIssues || []),
+            ],
+            createdAt: new Date(dbResume.createdAt),
+          };
+
+          setAnalysis(mappedAnalysis);
+          toast.success("¡Análisis de CV completado con éxito!");
+        } else {
+          toast.error(
+            result.error || "Ocurrió un error al procesar el archivo.",
+          );
+        }
+      } else {
+        toast.error(
+          "El análisis mediante texto pegado estará disponible próximamente. Por favor sube un archivo PDF.",
+        );
+      }
+    } catch (error) {
+      console.error("Error al analizar el CV:", error);
+      toast.error("Ocurrió un error inesperado al analizar el CV.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -88,8 +105,8 @@ export default function CVAnalysisPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <CVUploadForm
-          onAnalyze={(content) => {
-            void handleAnalyze(content);
+          onAnalyze={(content, name) => {
+            void handleAnalyze(content, name);
           }}
           isLoading={isLoading}
         />
