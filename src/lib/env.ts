@@ -14,12 +14,22 @@ const envSchema = z.object({
   AUTH_SECRET: z.string().min(1, "AUTH_SECRET es requerido"),
   GITHUB_CLIENT_ID: z.string().min(1, "GITHUB_CLIENT_ID es requerido"),
   GITHUB_CLIENT_SECRET: z.string().min(1, "GITHUB_CLIENT_SECRET es requerido"),
+  GOOGLE_CLIENT_ID: z.string().min(1, "GOOGLE_CLIENT_ID es requerido"),
+  GOOGLE_CLIENT_SECRET: z.string().min(1, "GOOGLE_CLIENT_SECRET es requerido"),
   UPLOADTHING_SECRET: z.string().optional(),
   UPLOADTHING_APP_ID: z.string().optional(),
   GEMINI_API_KEY: isProd
     ? z.string().min(1, "GEMINI_API_KEY es requerido en producción")
     : z.string().optional(),
   OPENROUTER_API_KEY: z.string().optional(),
+  UPSTASH_REDIS_REST_URL: isProd
+    ? z
+        .string()
+        .url("UPSTASH_REDIS_REST_URL debe ser una URL válida en producción")
+    : z.string().optional(),
+  UPSTASH_REDIS_REST_TOKEN: isProd
+    ? z.string().min(1, "UPSTASH_REDIS_REST_TOKEN es requerido en producción")
+    : z.string().optional(),
 });
 
 // Realizar el parseo seguro
@@ -44,10 +54,15 @@ if (!parsedEnv.success) {
       GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID || "placeholder-github-id",
       GITHUB_CLIENT_SECRET:
         process.env.GITHUB_CLIENT_SECRET || "placeholder-github-secret",
+      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || "placeholder-google-id",
+      GOOGLE_CLIENT_SECRET:
+        process.env.GOOGLE_CLIENT_SECRET || "placeholder-google-secret",
       UPLOADTHING_SECRET: process.env.UPLOADTHING_SECRET,
       UPLOADTHING_APP_ID: process.env.UPLOADTHING_APP_ID,
       GEMINI_API_KEY: process.env.GEMINI_API_KEY,
       OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+      UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
+      UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     };
   } else {
     console.error(
@@ -68,6 +83,10 @@ if (!isProd && parsedEnv.success) {
     missingApis.push("UPLOADTHING_SECRET");
   if (!parsedEnv.data.UPLOADTHING_APP_ID)
     missingApis.push("UPLOADTHING_APP_ID");
+  if (!parsedEnv.data.UPSTASH_REDIS_REST_URL)
+    missingApis.push("UPSTASH_REDIS_REST_URL");
+  if (!parsedEnv.data.UPSTASH_REDIS_REST_TOKEN)
+    missingApis.push("UPSTASH_REDIS_REST_TOKEN");
 
   if (missingApis.length > 0) {
     console.warn(

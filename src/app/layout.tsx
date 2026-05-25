@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SessionProvider } from "next-auth/react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({
@@ -50,6 +51,7 @@ export default function RootLayout({
         <SessionProvider>
           <TooltipProvider delay={300}>{children}</TooltipProvider>
         </SessionProvider>
+        <Toaster theme="dark" richColors position="top-right" />
         <Analytics />
         <SpeedInsights />
       </body>

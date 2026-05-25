@@ -37,7 +37,10 @@ export class CVAnalysisService {
 
     try {
       // 3. Ejecutar el análisis ATS estructurado (con fallback offline integrado en el servicio de IA)
-      const aiAnalysis = await CVAnalysisAIService.analyze(rawText);
+      const aiAnalysis = await CVAnalysisAIService.analyze(
+        rawText,
+        params.userId,
+      );
 
       // 4. Actualizar el registro de base de datos con los resultados del análisis
       const updatedResume = await ResumeRepository.updateAnalysis(

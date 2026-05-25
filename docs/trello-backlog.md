@@ -1,12 +1,85 @@
-# 📋 SkillRadar — Trello Backlog & Roadmap Sync (Orden Secuencial v1.3)
+# 📋 SkillRadar — Trello Backlog & Roadmap Sync (Orden Secuencial v1.4)
 
-Este archivo sirve como el inventario de desarrollo oficial y priorizado de **SkillRadar**. Contiene la definición exacta de las tarjetas del tablero de Trello, organizadas de forma **estrictamente secuencial y por módulos de negocio** (del Módulo 1 al Módulo 12) para que puedas seguir el desarrollo de forma sucesiva y ordenada, sin perderte en el proceso.
+Este archivo sirve como el inventario de desarrollo oficial y priorizado de **SkillRadar**. Contiene la definición exacta de las tarjetas del tablero de Trello, organizadas de forma **estrictamente secuencial por orden de ejecución real** — no por número de módulo. Las tarjetas de infraestructura y las que desbloquean funcionalidades críticas aparecen primero.
 
 Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado actual (`[x] Completada` o `[ ] Pendiente`).
 
+> 💡 **Nota:** Los números de módulo (M1–M18) se mantienen como referencia para el tablero de Trello. El orden de lectura de este archivo **es el orden de ejecución**.
+
 ---
 
-## 🏗️ Módulo 1: Layout & Core Shell
+## Secuencia de Ejecución — Resumen
+
+| #   | Tarjeta | Módulo | Descripción breve                           | Tier          |
+| --- | ------- | ------ | ------------------------------------------- | ------------- |
+| 1   | 9.0 ✅  | M9     | Modo Demo / Guest Sessions                  | Base          |
+| 2   | 1.1 ✅  | M1     | Dashboard Shell compartido                  | Base          |
+| 3   | 16.1 ✅ | M16    | Rate Limiting con Upstash                   | 🔴 Bloqueante |
+| 4   | 16.2 ✅ | M16    | Error Boundaries del Dashboard              | 🔴 Bloqueante |
+| 5   | 7.1 ✅  | M7     | AI Multi-Model Service                      | 🔴 Bloqueante |
+| 6   | 8.1     | M8     | Google OAuth Provider                       | 🔴 Bloqueante |
+| 7   | 2.1     | M2     | CV Upload con UploadThing                   | Core MVP      |
+| 8   | 2.2     | M2     | CV Parse con Gemini Real                    | Core MVP      |
+| 9   | 2.3     | M2     | Textarea Fallback (OCR/Canva)               | Core MVP      |
+| 10  | 3.1     | M3     | Job Match Backend                           | Core MVP      |
+| 11  | 3.2     | M3     | Job Match AI Service                        | Core MVP      |
+| 12  | 3.3     | M3     | Job Match Frontend                          | Core MVP      |
+| 13  | 10.1    | M10    | Dashboard con Datos Reales                  | Core MVP      |
+| 14  | 10.2    | M10    | Context Pipeline CV→Match                   | Core MVP      |
+| 15  | 4.1     | M4     | Landing Page Comercial                      | Core MVP      |
+| 16  | 4.2     | M4     | Skeletons + Toasts (UX Polish)              | Core MVP      |
+| 17  | 6.1     | M6     | Mock Interview con AI real                  | Diferenciador |
+| 18  | 5.1     | M5     | GitHub Analyzer Backend                     | Diferenciador |
+| 19  | 5.2     | M5     | GitHub Dashboard Frontend                   | Diferenciador |
+| 20  | 8.2     | M8     | Magic Links con Resend                      | Diferenciador |
+| 21  | 1.2     | M1     | Dark & Light Theme                          | Diferenciador |
+| 22  | 11.1    | M11    | Reverse Job-Matching (Recruiter)            | Recruiter     |
+| 23  | 11.2    | M11    | Skill Gap Action Plan                       | Recruiter     |
+| 24  | 11.3    | M11    | Explainability Layer                        | Recruiter     |
+| 25  | 12.1    | M12    | Doble Ciego (Contact Request)               | Recruiter     |
+| 26  | 12.2    | M12    | Smart Shortlist                             | Recruiter     |
+| 27  | 12.3    | M12    | Market Intelligence Heatmaps                | Recruiter     |
+| 28  | 13.1    | M13    | AI Resume Builder                           | Recruiter     |
+| 29  | 13.2    | M13    | Impact Verb Analyzer                        | Recruiter     |
+| 30  | 13.3    | M13    | LinkedIn Profile Audit                      | Recruiter     |
+| 31  | 14.1    | M14    | Job Tracker Kanban                          | Recruiter     |
+| 32  | 14.2    | M14    | Smart Pitch / Cover Letter                  | Recruiter     |
+| 33  | 15.1    | M15    | Observaciones Técnicas                      | Recruiter     |
+| 34  | 15.2    | M15    | Generador de Preguntas de Entrevista        | Recruiter     |
+| 35  | 17.1    | M17    | Score Progression Analytics                 | Growth        |
+| 36  | 17.2    | M17    | Perfil Público Compartible                  | Growth        |
+| 37  | 17.3    | M17    | Badge Embebible para GitHub README          | Growth        |
+| 38  | 7.2     | M7     | Career Copilot Widget                       | Growth        |
+| 39  | 18.1    | M18    | GitHub Schema Extendido (Seniority Signals) | Intelligence  |
+| 40  | 18.2    | M18    | Modos de Entrevista Avanzados               | Intelligence  |
+| 41  | 4.3     | M4     | i18n con next-intl                          | Opcional      |
+
+---
+
+## ✅ TIER BASE — Fundamentos ya completados
+
+> Estas tarjetas ya están implementadas. Se listan primero como referencia del punto de partida.
+
+---
+
+## 🔒 Módulo 9: Modo Demo / Simulación
+
+### 🎴 Tarjeta 9.0: Implementar Modo Demo / Simulación Seguro (Server-Side Guest Sessions para Dev y Recruiter)
+
+- **Estado:** `[x] Completada`
+- **Prioridad:** Alta 🔴
+- **Descripción:**
+  Añadir dos vías de acceso instantáneas en el inicio de sesión que inicien una sesión real de "Invitado/Guest" en el servidor utilizando Auth.js v5 (vía Credentials Provider). Se inyectarán dinámicamente credenciales con los roles reales `"developer"` o `"recruiter"`, acompañados de una propiedad `isGuest: true` securizada en el JWT, permitiendo evaluar toda la interfaz correspondiente sin comprometer datos reales ni incurrir en cobros a APIs de terceros.
+- **Criterios de Aceptación:**
+  - [x] Añadir dos botones distintos en `LoginForm`: "Dev Demo" y "Recruiter Demo".
+  - [x] Configurar un Credentials Provider en Auth.js v5 que reciba el rol como parámetro de credencial y genere un JWT válido con el rol respectivo (`"developer"` o `"recruiter"`) e inyecte `isGuest: true`.
+  - [x] En las Server Actions y APIs, verificar la propiedad `isGuest`: si `session.user.isGuest === true`, interceptar el flujo y retornar datos simulados estructurados (los mocks correspondientes a cada rol) sin alterar tablas de Neon Postgres ni realizar peticiones de red reales (UploadThing, Gemini).
+  - [x] Desplegar un banner superior visual ("Sticky Top" de color degradado ámbar/índigo) integrado en el shell del dashboard avisando al usuario que navega en modo Demo según su rol actual.
+- **Rama Git:** `feature/guest-demo-simulation-mode`
+
+---
+
+## 🏗️ Módulo 1: Layout & Core Shell (parcial)
 
 ### 🎴 Tarjeta 1.1: Migrar Dashboard Shell a Layout Compartido (Next.js App Router)
 
@@ -21,18 +94,90 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
   - [x] Verificar que las navegaciones internas a través del Sidebar no recarguen el menú ni parpadeen visualmente.
 - **Rama Git:** `feature/dashboard-shared-layout`
 
-### 🎴 Tarjeta 1.2: Implementar Dark & Light Theme con next-themes
+---
 
-- **Estado:** `[ ] Pendiente`
+## 🔴 TIER 1 — Infraestructura & Bloqueantes Críticos
+
+> ⚠️ **Ejecutar antes de cualquier feature de IA o autenticación.** Estas tarjetas son precondiciones de producción — si no están implementadas, un bot puede quemar toda la quota de Gemini en minutos y el botón de Google en la landing está roto para usuarios reales.
+
+---
+
+## 🛡️ Módulo 16: Infraestructura & Seguridad de Producción
+
+> ⚠️ **Precondición:** Las tarjetas de este módulo deben implementarse **antes** de hacer cualquier merge a producción de los módulos de análisis de IA (2.x, 3.x, 6.x). Son infraestructura base, no features opcionales.
+
+### 🎴 Tarjeta 16.1: Rate Limiting & Quota Protection con Upstash
+
+- **Estado:** `[x] Completada`
+- **Prioridad:** Alta 🔴 — **Bloqueante de producción**
+- **Descripción:**
+  Ninguna tarjeta del backlog aborda el rate limiting de los endpoints de IA. Con la app pública en Vercel y los free tiers de Gemini/Groq, un único usuario (o bot) puede quemar toda la quota disponible en minutos. Implementar rate limiting por `userId` autenticado y por IP para usuarios no autenticados (modo demo), usando Upstash Redis como backend de contadores con ventana deslizante.
+- **Criterios de Aceptación:**
+  - [x] Crear cuenta gratuita en [Upstash](https://upstash.com/) y configurar una base de datos Redis.
+  - [x] Instalar `@upstash/ratelimit` y `@upstash/redis` en el proyecto.
+  - [x] Crear `src/lib/rate-limit.ts` con la abstracción del `Ratelimit` configurado con `slidingWindow`.
+  - [x] Aplicar el limiter en las Server Actions de análisis de CV (`uploadAndParseCVAction`) y Job Match, retornando `{ success: false, error: "Límite alcanzado..." }` con el tiempo de reset.
+  - [x] Definir límites iniciales conservadores: 5 análisis de CV por usuario por día, 10 Job Matches por usuario por día.
+  - [x] Mostrar en la UI un mensaje amigable indicando el límite alcanzado y el tiempo aproximado de reset.
+  - [x] Registrar `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` en `.env.example` y en las variables de Vercel.
+- **Rama Git:** `feature/rate-limiting-upstash`
+
+### 🎴 Tarjeta 16.2: Error Boundaries Globales del Dashboard
+
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
-  Instalar y configurar `next-themes` para dar soporte dinámico de color en el frontend y añadir un selector visual de temas en la barra superior del dashboard.
+  Con un pipeline de análisis de IA que puede fallar por network, timeout o schema inválido del LLM, es crítico tener error boundaries que muestren estados de error amigables en lugar de pantallas en blanco. Next.js App Router provee `error.tsx` y `loading.tsx` por ruta como convención nativa.
 - **Criterios de Aceptación:**
-  - [ ] Instalar la librería `next-themes` en el proyecto.
-  - [ ] Configurar el provider de temas en `src/app/layout.tsx`.
-  - [ ] Crear un componente selector `ThemeToggle` usando shadcn/ui.
-  - [ ] Comprobar que los estilos de Tailwind CSS v4 respondan adecuadamente al cambiar de modo en todas las vistas principales.
-- **Rama Git:** `feature/theme-switcher-implementation`
+  - [x] Crear `src/app/dashboard/error.tsx` que capture errores de Server Components con un mensaje claro y un botón "Reintentar" (usando el callback `reset` de Next.js).
+  - [x] Crear `src/app/dashboard/cv-analysis/error.tsx` y `src/app/dashboard/job-match/error.tsx` con mensajes contextuales por feature.
+  - [x] Crear `src/app/dashboard/loading.tsx` con un skeleton global del layout del dashboard para transiciones de navegación.
+  - [x] Verificar que los errores de Server Actions en el cliente muestren el toast de error de `sonner` en lugar de silenciarse.
+- **Rama Git:** `feature/dashboard-error-boundaries`
+
+---
+
+## 🧠 Módulo 7: AI Services (parcial — tarjeta bloqueante)
+
+### 🎴 Tarjeta 7.1: Crear Servicio de IA Multi-Modelo Unificado (Gemini + Groq + OpenRouter + OpenAI + Anthropic)
+
+- **Estado:** `[x] Completada`
+- **Prioridad:** Alta 🔴 — **Bloqueante de todo el pipeline de IA**
+- **Descripción:**
+  Desacoplar la llamada a la IA de los servicios de negocio individuales. Crear un motor de IA unificado y flexible en `src/lib/ai/` que permita a los usuarios configurar sus propias **API Keys** de Gemini, Groq, OpenRouter, OpenAI y Anthropic cifradas en base de datos de forma ultra-segura (AES-256-GCM). Habilitar la selección granular de modelos avanzados de última generación en cada feature y la **exención inteligente de rate limiting** para usuarios que traigan sus propias llaves.
+- **Criterios de Aceptación:**
+  - [x] Extender el modelo `User` en `prisma/schema.prisma` agregando campos opcionales cifrados para las API Keys de los 5 proveedores y preferencias por defecto.
+  - [x] Implementar un módulo criptográfico `src/lib/crypto.ts` para encriptar y desencriptar transparente y robustamente las API Keys en el servidor mediante **AES-256-GCM** y un secret `ENCRYPTION_KEY`.
+  - [x] Crear el factory central de IA en `src/lib/ai/index.ts` integrando los proveedores dinámicos `@ai-sdk/google`, `@ai-sdk/openai` y `@ai-sdk/anthropic` de Vercel AI SDK.
+  - [x] Diseñar el soporte para modelos de vanguardia (Gemini 3.5 Flash, Gemini 3.1 Pro, GPT-5.5, Claude Opus 4.7) mediante dropdowns preconfigurados e inputs de texto libre para IDs de modelos personalizados en la UI.
+  - [x] Configurar las Server Actions de `cv-analysis` y `job-match` para **omitir el rate limit de Upstash** si el usuario tiene su propia API Key configurada para la acción elegida.
+  - [x] Adaptar `src/features/cv-analysis/ai-service.ts` para que consuma esta nueva abstracción flexible en lugar del cliente estático.
+  - [x] Crear la tarjeta de configuración interactiva de IA en la página de `/dashboard/settings` ocultando las claves en texto plano y mostrando solo indicadores booleanos (`hasKey`).
+- **💡 Razón del Cambio:** Sentar las bases del pipeline de IA premium y flexible antes de codificar Job Match y Mock Interview para que hereden toda la resiliencia y el soporte multi-modelo de vanguardia automáticamente.
+- **Rama Git:** `feature/ai-multimodel-service`
+
+---
+
+## 🔑 Módulo 8: Autenticación Novedosa (parcial — Google OAuth)
+
+### 🎴 Tarjeta 8.1: Configurar Google OAuth Provider
+
+- **Estado:** `[x] Completada`
+- **Prioridad:** Alta 🔴 — **Bug activo: botón visible en landing sin funcionalidad**
+- **Descripción:**
+  Habilitar el inicio de sesión con Google OAuth creando las credenciales de cliente en Google Cloud Console, vinculando el botón "Google" de la UI y configurando las variables de entorno seguras. El botón "Continue with Google" ya está visible en la landing pero no tiene provider configurado — es un bug activo de primera impresión.
+- **Criterios de Aceptación:**
+  - [x] Crear un proyecto en Google Cloud Console y configurar la pantalla de consentimiento de OAuth.
+  - [x] Agregar las URLs autorizadas de redirección de NextAuth en la consola de Google.
+  - [x] Registrar las variables `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` en el archivo `.env.local` y validarlas en `src/lib/env.ts`.
+  - [x] Probar el inicio de sesión en local y verificar que asocie correctamente al usuario en la base de datos de Neon Prisma.
+- **Rama Git:** `feature/auth-google-provider`
+
+---
+
+## 🟠 TIER 2 — Core MVP
+
+> El núcleo del producto. El backlog avanza estrictamente en este orden: sin CV real no hay Job Match, sin Job Match no hay Dashboard útil.
 
 ---
 
@@ -119,7 +264,36 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ---
 
-## 🎨 Módulo 4: Marketing Landing & UX
+## 📊 Módulo 10: Live Dashboard & Context Pipeline
+
+### 🎴 Tarjeta 10.1: Dashboard con Datos Reales y "Next Action"
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Alta 🔴
+- **Descripción:**
+  El Dashboard muestra métricas vivas de Neon (último score, uso de base de datos). Agregar "Next Action Cards" dinámicas basadas en la progresión del usuario (ej: "Sube tu CV para empezar", "Toma una Mock Interview").
+- **Criterios de Aceptación:**
+  - [ ] Reemplazar todos los datos estáticos del overview del Dashboard con queries reales de Prisma que consulten los últimos scores de `Resume`, `JobMatch` y `GithubAnalysis`.
+  - [ ] Implementar un componente dinámico "Next Action" que evalúe el estado del usuario en la DB y renderice una tarjeta interactiva con un llamado a la acción (ej: si no tiene CV, muestra "Subir CV"; si tiene CV pero no matches, muestra "Comparar Oferta").
+  - [ ] Agregar un gráfico pequeño de progreso histórico del Score ATS utilizando Recharts o componentes Tailwind.
+- **Rama Git:** `feature/dashboard-live-data`
+
+### 🎴 Tarjeta 10.2: Context Pipeline - Conectar CV Real al Match
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Alta 🔴
+- **Descripción:**
+  Al iniciar un Job Match, el sistema debe precargar los skills extraídos del Resume del usuario desde la DB, no usar mocks genéricos. El dev solo pega la Oferta, la IA cruza Oferta vs CV real.
+- **Criterios de Aceptación:**
+  - [ ] Modificar la query del servicio de Job Match para recibir el `resumeId` seleccionado por el desarrollador.
+  - [ ] Extraer el JSON estructurado de habilidades y experiencia de la tabla `Resume` en Postgres.
+  - [ ] Enviar al prompt de Gemini/Llama el texto estructurado del currículum real recuperado de la base de datos junto con el texto de la nueva Job Offer.
+  - [ ] Validar que los resultados del Match se guarden correctamente en la tabla `JobMatch` con su respectiva relación de clave foránea a la tabla `Resume`.
+- **Rama Git:** `feature/job-match-context-pipeline`
+
+---
+
+## 🎨 Módulo 4: Marketing Landing & UX (parcial)
 
 ### 🎴 Tarjeta 4.1: Diseñar Landing Page Comercial de Marketing en `/`
 
@@ -146,19 +320,29 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
   - [ ] Desplegar avisos flotantes interactivos de éxito o error tras subidas de archivos o ejecuciones de la IA.
 - **Rama Git:** `feature/ux-polish-skeletons`
 
-### 🎴 Tarjeta 4.3: Implementar Internacionalización (i18n) Nativa con next-intl
+---
+
+## 🟡 TIER 3 — Diferenciadores del Producto
+
+> Features que nos separan de Jobscan y Rezi. Requieren el Core MVP funcionando.
+
+---
+
+## 💬 Módulo 6: Mock Interview
+
+### 🎴 Tarjeta 6.1: Conectar Chat de Mock Interview con Vercel AI SDK y Gemini
 
 - **Estado:** `[ ] Pendiente`
-- **Prioridad:** Media 🟡
+- **Prioridad:** Media 🟡 (¡Subido desde Baja / Fase 2!)
 - **Descripción:**
-  Configurar la infraestructura de traducción en el proyecto para dar soporte dinámico a múltiples idiomas (Español/Inglés) sin duplicar código. Utilizaremos la librería estándar `next-intl` aprovechando el enrutamiento dinámico `[locale]` de Next.js App Router para una traducción limpia y mantenible tanto en el servidor como en el cliente.
+  Actualmente, el chat interactivo en `/dashboard/interview` responde preguntas aleatorias en base a un array plano en el cliente. Vamos a conectar esta UI con el Vercel AI SDK e implementar una Server Action real para simular una entrevista técnica en vivo adaptada al CV y habilidades del desarrollador, persistiendo el resultado en la base de datos.
 - **Criterios de Aceptación:**
-  - [ ] Instalar la librería `next-intl`.
-  - [ ] Configurar los archivos de diccionarios en la raíz (`messages/en.json` y `messages/es.json`) con las traducciones base del shell y la landing.
-  - [ ] Reestructurar el enrutamiento envolviendo las páginas del dashboard y marketing bajo la carpeta dinámica `src/app/[locale]/`.
-  - [ ] Configurar el enrutamiento y la redirección automática del idioma en el middleware/proxy de la aplicación.
-  - [ ] Crear un componente selector de idioma (`LanguageSwitcher` con shadcn/ui) integrado en la barra superior o en el sidebar para alternar entre Español e Inglés con un clic.
-- **Rama Git:** `feature/i18n-next-intl-setup`
+  - [ ] Integrar el hook de chat dinámico en `src/components/interview/mock-interview-chat.tsx` utilizando `useChat` o Server Actions en streaming.
+  - [ ] Implementar la Server Action que inyecte el CV seleccionado y los gaps del Job Match al prompt del LLM (Gemini 2.5 Flash / Groq) como contexto de entrevista técnica estructurada.
+  - [ ] Escribir la lógica del disparador "Finalizar Entrevista": el chat termina, y el sistema invoca una llamada de LLM separada asíncrona para compilar el **Debrief JSON** estructurado con calificaciones por área (ej. comunicación técnica, arquitectura, testing).
+  - [ ] Guardar los datos de la entrevista en el nuevo modelo `InterviewSession` de Prisma (relacionando `userId`, `debrief`, `score` de match y el array serializado de `messages`).
+  - [ ] Validar que la UI del dashboard renderice adecuadamente los scores históricos de estas entrevistas para el "Score Progression Timeline".
+- **Rama Git:** `feature/mock-interview-ai-real`
 
 ---
 
@@ -191,70 +375,7 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ---
 
-## 💬 Módulo 6: Mock Interview
-
-### 🎴 Tarjeta 6.1: Conectar Chat de Mock Interview con Vercel AI SDK y Gemini
-
-- **Estado:** `[ ] Pendiente`
-- **Prioridad:** Media 🟡 (¡Subido desde Baja / Fase 2!)
-- **Descripción:**
-  Actualmente, el chat interactivo en `/dashboard/interview` responde preguntas aleatorias en base a un array plano en el cliente. Vamos a conectar esta UI con el Vercel AI SDK e implementar una Server Action real para simular una entrevista técnica en vivo adaptada al CV y habilidades del desarrollador, persistiendo el resultado en la base de datos.
-- **Criterios de Aceptación:**
-  - [ ] Integrar el hook de chat dinámico en `src/components/interview/mock-interview-chat.tsx` utilizando `useChat` o Server Actions en streaming.
-  - [ ] Implementar la Server Action que inyecte el CV seleccionado y los gaps del Job Match al prompt del LLM (Gemini 2.5 Flash / Groq) como contexto de entrevista técnica estructurada.
-  - [ ] Escribir la lógica del disparador "Finalizar Entrevista": el chat termina, y el sistema invoca una llamada de LLM separada asíncrona para compilar el **Debrief JSON** estructurado con calificaciones por área (ej. comunicación técnica, arquitectura, testing).
-  - [ ] Guardar los datos de la entrevista en el nuevo modelo `InterviewSession` de Prisma (relacionando `userId`, `debrief`, `score` de match y el array serializado de `messages`).
-  - [ ] Validar que la UI del dashboard renderice adecuadamente los scores históricos de estas entrevistas para el "Score Progression Timeline".
-- **Rama Git:** `feature/mock-interview-ai-real`
-
----
-
-## 🧠 Módulo 7: AI Services
-
-### 🎴 Tarjeta 7.1: Crear Servicio de IA Multi-Modelo Unificado (Gemini + Groq + OpenRouter)
-
-- **Estado:** `[ ] Pendiente`
-- **Prioridad:** Media 🟡 (¡Crucial para la robustez del sistema!)
-- **Descripción:**
-  Desacoplar la llamada a la IA de los servicios de negocio individuales para evitar código repetido y refactorizaciones masivas. Crear un wrapper unificado en `src/lib/ai/` que gestione conmutaciones automáticas por error en cascada (`Gemini -> Groq -> OpenRouter`) ante errores de cuota o rate limit.
-- **Criterios de Aceptación:**
-  - [ ] Crear el directorio `src/lib/ai/` con `index.ts`, `gemini.ts`, `groq.ts` y `openrouter.ts`.
-  - [ ] Configurar las variables de entorno `GROQ_API_KEY` y `OPENROUTER_API_KEY` con validación Zod en `src/lib/env.ts`.
-  - [ ] Implementar la resiliencia en `index.ts`: si la promesa de Gemini falla o arroja un error 429, capturarlo y reintentar inmediatamente la llamada con Groq (usando Llama 3 70B) o OpenRouter.
-  - [ ] Adaptar `src/features/cv-analysis/ai-service.ts` para que consuma esta nueva abstracción en lugar de llamar directamente al proveedor de Google.
-- **💡 Razón del Cambio:** Debe implementarse antes de codificar Job Match y Mock Interview para heredar la resiliencia de forma nativa sin tocar múltiples archivos después.
-- **Rama Git:** `feature/ai-multimodel-service`
-
-### 🎴 Tarjeta 7.2: Implementar Chatbot Flotante (Career Copilot) con useChat
-
-- **Estado:** `[ ] Pendiente`
-- **Prioridad:** Baja 🟢
-- **Descripción:**
-  Agregar un widget de chatbot flotante de asistencia interactiva (burbuja de chat) accesible en la esquina inferior del dashboard. El chatbot debe permitir al desarrollador hacer consultas sobre su currículum, consejos de carrera y cómo estudiar para los gaps técnicos detectados.
-- **Criterios de Aceptación:**
-  - [ ] Crear un Route Handler en `/api/chat` usando `streamText` del Vercel AI SDK conectando con el modelo rápido de **Groq** o **Gemini**.
-  - [ ] Diseñar el widget UI flotante interactivo en `src/components/dashboard/career-copilot.tsx` utilizando Lucide Icons y shadcn/ui.
-  - [ ] Integrar el hook reactivo `useChat` para gestionar el estado de los mensajes en tiempo real.
-  - [ ] Cargar de forma automática el CV parseado actual del usuario en las instrucciones del sistema (`system prompt`) para que el Copiloto tenga contexto real del desarrollador al responder.
-  - [ ] Añadir la burbuja del chat en el layout compartido del dashboard.
-- **Rama Git:** `feature/career-copilot-widget`
-
----
-
-## 🔑 Módulo 8: Autenticación Novedosa
-
-### 🎴 Tarjeta 8.1: Configurar Google OAuth Provider
-
-- **Estado:** `[ ] Pendiente`
-- **Prioridad:** Media 🟡
-- **Descripción:**
-  Habilitar el inicio de sesión con Google OAuth creando las credenciales de cliente en Google Cloud Console, vinculando el botón "Google" de la UI y configurando las variables de entorno seguras.
-- **Criterios de Aceptación:**
-  - [ ] Crear un proyecto en Google Cloud Console y configurar la pantalla de consentimiento de OAuth.
-  - [ ] Agregar las URLs autorizadas de redirección de NextAuth en la consola de Google.
-  - [ ] Registrar las variables `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` en el archivo `.env.local` y validarlas en `src/lib/env.ts`.
-  - [ ] Probar el inicio de sesión en local y verificar que asocie correctamente al usuario en la base de datos de Neon Prisma.
-- **Rama Git:** `feature/auth-google-provider`
+## 🔑 Módulo 8: Autenticación Novedosa (parcial — Magic Links)
 
 ### 🎴 Tarjeta 8.2: Magic Links de Email sin Contraseña con Resend
 
@@ -271,49 +392,26 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ---
 
-## 🔒 Módulo 9: Modo Demo / Simulación
+## 🏗️ Módulo 1: Layout & Core Shell (parcial — Dark Mode)
 
-### 🎴 Tarjeta 9.0: Implementar Modo Demo / Simulación Seguro (Server-Side Guest Sessions para Dev y Recruiter)
+### 🎴 Tarjeta 1.2: Implementar Dark & Light Theme con next-themes
 
-- **Estado:** `[x] Completada`
-- **Prioridad:** Alta 🔴
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Media 🟡
 - **Descripción:**
-  Añadir dos vías de acceso instantáneas en el inicio de sesión que inicien una sesión real de "Invitado/Guest" en el servidor utilizando Auth.js v5 (vía Credentials Provider). Se inyectarán dinámicamente credenciales con los roles reales `"developer"` o `"recruiter"`, acompañados de una propiedad `isGuest: true` securizada en el JWT, permitiendo evaluar toda la interfaz correspondiente sin comprometer datos reales ni incurrir en cobros a APIs de terceros.
+  Instalar y configurar `next-themes` para dar soporte dinámico de color en el frontend y añadir un selector visual de temas en la barra superior del dashboard.
 - **Criterios de Aceptación:**
-  - [x] Añadir dos botones distintos en `LoginForm`: "Dev Demo" y "Recruiter Demo".
-  - [x] Configurar un Credentials Provider en Auth.js v5 que reciba el rol como parámetro de credencial y genere un JWT válido con el rol respectivo (`"developer"` o `"recruiter"`) e inyecte `isGuest: true`.
-  - [x] En las Server Actions y APIs, verificar la propiedad `isGuest`: si `session.user.isGuest === true`, interceptar el flujo y retornar datos simulados estructurados (los mocks correspondientes a cada rol) sin alterar tablas de Neon Postgres ni realizar peticiones de red reales (UploadThing, Gemini).
-  - [x] Desplegar un banner superior visual ("Sticky Top" de color degradado ámbar/índigo) integrado en el shell del dashboard avisando al usuario que navega en modo Demo según su rol actual.
-- **Rama Git:** `feature/guest-demo-simulation-mode`
+  - [ ] Instalar la librería `next-themes` en el proyecto.
+  - [ ] Configurar el provider de temas en `src/app/layout.tsx`.
+  - [ ] Crear un componente selector `ThemeToggle` usando shadcn/ui.
+  - [ ] Comprobar que los estilos de Tailwind CSS v4 respondan adecuadamente al cambiar de modo en todas las vistas principales.
+- **Rama Git:** `feature/theme-switcher-implementation`
 
 ---
 
-## 📊 Módulo 10: Live Dashboard & Context Pipeline
+## 🟢 TIER 4 — Plataforma Recruiter
 
-### 🎴 Tarjeta 10.1: Dashboard con Datos Reales y "Next Action"
-
-- **Estado:** `[ ] Pendiente`
-- **Prioridad:** Alta 🔴
-- **Descripción:**
-  El Dashboard muestra métricas vivas de Neon (último score, uso de base de datos). Agregar "Next Action Cards" dinámicas basadas en la progresión del usuario (ej: "Sube tu CV para empezar", "Toma una Mock Interview").
-- **Criterios de Aceptación:**
-  - [ ] Reemplazar todos los datos estáticos del overview del Dashboard con queries reales de Prisma que consulten los últimos scores de `Resume`, `JobMatch` y `GithubAnalysis`.
-  - [ ] Implementar un componente dinámico "Next Action" que evalúe el estado del usuario en la DB y renderice una tarjeta interactiva con un llamado a la acción (ej: si no tiene CV, muestra "Subir CV"; si tiene CV pero no matches, muestra "Comparar Oferta").
-  - [ ] Agregar un gráfico pequeño de progreso histórico del Score ATS utilizando Recharts o componentes Tailwind.
-- **Rama Git:** `feature/dashboard-live-data`
-
-### 🎴 Tarjeta 10.2: Context Pipeline - Conectar CV Real al Match
-
-- **Estado:** `[ ] Pendiente`
-- **Prioridad:** Alta 🔴
-- **Descripción:**
-  Al iniciar un Job Match, el sistema debe precargar los skills extraídos del Resume del usuario desde la DB, no usar mocks genéricos. El dev solo pega la Oferta, la IA cruza Oferta vs CV real.
-- **Criterios de Aceptación:**
-  - [ ] Modificar la query del servicio de Job Match para recibir el `resumeId` seleccionado por el desarrollador.
-  - [ ] Extraer el JSON estructurado de habilidades y experiencia de la tabla `Resume` en Postgres.
-  - [ ] Enviar al prompt de Gemini/Llama el texto estructurado del currículum real recuperado de la base de datos junto con el texto de la nueva Job Offer.
-  - [ ] Validar que los resultados del Match se guarden correctamente en la tabla `JobMatch` con su respectiva relación de clave foránea a la tabla `Resume`.
-- **Rama Git:** `feature/job-match-context-pipeline`
+> El lado B2B del producto. Requiere que el Tier 2 (Core MVP) esté completo y en producción. La cadena de dependencias es: M11 → M12 → M15.
 
 ---
 
@@ -397,6 +495,8 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
   - [ ] Integrar un gráfico de tipo Treemap, Nube de Palabras o Barras Horizontales con Recharts en la sección de Recruiter.
   - [ ] Mostrar visualmente los "Skills Más Demandados vs. Más Abundantes" para dar una perspectiva del mercado de candidatos al reclutador.
 - **Rama Git:** `feature/recruiter-market-intelligence`
+
+---
 
 ## 📝 Módulo 13: Perfil Público y Resume Builder Interactivo
 
@@ -491,3 +591,150 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
   - [ ] Invocar a la IA para estructurar preguntas de entrevista específicas ("Pregúntale sobre su experiencia con Docker en X...") junto con la **respuesta clave esperada** para guiar al entrevistador no técnico.
   - [ ] Implementar un botón en la UI del Recruiter para "Descargar Guía de Entrevista en PDF".
 - **Rama Git:** `feature/recruiter-interview-questions`
+
+---
+
+## 🔵 TIER 5 — Growth, Retención & Developer Intelligence
+
+> Features de crecimiento orgánico y análisis avanzado. Requieren que el Tier 4 esté completo.
+
+---
+
+## 📈 Módulo 17: Score Progression & Perfil Público
+
+### 🎴 Tarjeta 17.1: Score Progression Analytics
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Alta 🔴 — **Driver principal de retención de usuarios**
+- **Descripción:**
+  La Tarjeta 10.1 menciona un "gráfico pequeño de progreso histórico" como un bullet point dentro de sus criterios, pero esta feature merece su propia página dedicada. Una vista `/dashboard/progress` que muestre la evolución temporal del ATS score por CV, el número de Job Matches realizados, y los skills que el usuario cerró a lo largo del tiempo. Es el principal motor de retención: el usuario vuelve a la plataforma para verificar si mejoró.
+- **Criterios de Aceptación:**
+  - [ ] Crear la página `src/app/dashboard/progress/page.tsx`.
+  - [ ] Implementar una query Prisma que recupere el historial de scores de la tabla `Resume` ordenados por `createdAt` para el usuario autenticado.
+  - [ ] Diseñar un gráfico de área con Recharts mostrando la evolución del `atsScore` a lo largo del tiempo (eje X: fecha, eje Y: score 0-100).
+  - [ ] Agregar una sección de "Skills Cerrados": listar skills que aparecían como `missingSkills` en el primer Job Match del usuario pero ya no aparecen en el último, a modo de logros tangibles.
+  - [ ] Agregar métricas secundarias: número total de Job Matches realizados y score promedio de los últimos 5 matches.
+  - [ ] Agregar el ítem "Progreso" en el sidebar del dashboard con un ícono apropiado de Lucide.
+  - [ ] Mostrar un estado vacío con CTA ("Subí tu primer CV para empezar a trackear tu progreso") si el usuario no tiene historial aún.
+- **Rama Git:** `feature/score-progression-analytics`
+
+### 🎴 Tarjeta 17.2: Perfil Público Compartible (`/u/[username]`)
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Media 🟡 — **Growth loop viral**
+- **Descripción:**
+  Una URL pública `skillradar.app/u/[username]` que el developer puede compartir con recruiters. Muestra un resumen visual de su perfil: skill radar chart (con los ejes del producto: Frontend, Backend, DevOps, Architecture, Testing), seniority estimado, top skills extraídos y distribución de lenguajes de GitHub. El developer controla qué información es visible mediante toggles en Settings. Este feature crea el principal loop viral: un recruiter que recibe el link cae en la app y se registra. **Nota:** mostrar el skill radar chart en lugar del ATS score crudo para que el contexto sea más claro e interpretable para recruiters no técnicos.
+- **Criterios de Aceptación:**
+  - [ ] Agregar los campos `isPublicProfile: Boolean @default(false)` y `publicUsername: String? @unique` al modelo `User` en Prisma y migrar.
+  - [ ] Crear la ruta pública `src/app/u/[username]/page.tsx` (sin requerir autenticación para GET).
+  - [ ] Implementar la query de servidor que cargue solo los datos públicos del perfil: top 10 skills, distribución de lenguajes, seniority label, y fecha de último análisis.
+  - [ ] Diseñar la UI del perfil público con el skill radar chart (usando Recharts `RadarChart`), badges de skills y score de seniority.
+  - [ ] Crear en `src/app/dashboard/settings/page.tsx` una sección "Perfil Público" con toggles individuales para cada dato visible (skills, GitHub, seniority).
+  - [ ] Agregar un botón "Compartir perfil" en el dashboard con copia al portapapeles de la URL pública.
+  - [ ] Implementar meta tags Open Graph y Twitter Card en la página pública para previews enriquecidos al compartir en LinkedIn o X.
+- **Rama Git:** `feature/public-profile-shareable`
+
+### 🎴 Tarjeta 17.3: Badge Embebible para GitHub README
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Baja 🟢 — **Distribución orgánica / Adquisición viral**
+- **Descripción:**
+  Un endpoint que genera un SVG dinámico con el resumen del perfil SkillRadar del developer, diseñado para ser embebido en el README de GitHub del usuario con una sola línea de Markdown. Al hacer click en el badge, el recruiter llega al perfil público del dev en SkillRadar. El SVG se genera server-side con template literals (sin Canvas, sin React — compatible con el renderer de imágenes de GitHub). Se actualiza automáticamente con los últimos datos del usuario. **Depende de la Tarjeta 17.2** (Perfil Público).
+- **Criterios de Aceptación:**
+  - [ ] Crear el Route Handler `src/app/api/badge/[username]/route.ts` que devuelva `Content-Type: image/svg+xml`.
+  - [ ] Diseñar el template SVG del badge: nombre, seniority label (ej: "Mid-level Developer"), top 3 skills como píldoras de texto, y logo de SkillRadar. Dimensiones estándar de badge (ej: 540×180px).
+  - [ ] Configurar `Cache-Control: public, max-age=3600` para que GitHub pueda cachear el SVG sin saturar el endpoint.
+  - [ ] Mostrar el badge solo si el usuario tiene `isPublicProfile: true`; retornar 404 si el perfil es privado.
+  - [ ] Agregar en el panel de Perfil Público de Settings la instrucción de cómo embeber el badge, con el snippet de Markdown listo para copiar: `[![SkillRadar](https://skillradar.app/api/badge/[username])](https://skillradar.app/u/[username])`.
+- **Rama Git:** `feature/embeddable-badge`
+
+---
+
+## 🧠 Módulo 7: AI Services (parcial — Career Copilot)
+
+### 🎴 Tarjeta 7.2: Implementar Chatbot Flotante (Career Copilot) con useChat
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Baja 🟢
+- **Descripción:**
+  Agregar un widget de chatbot flotante de asistencia interactiva (burbuja de chat) accesible en la esquina inferior del dashboard. El chatbot debe permitir al desarrollador hacer consultas sobre su currículum, consejos de carrera y cómo estudiar para los gaps técnicos detectados.
+- **Criterios de Aceptación:**
+  - [ ] Crear un Route Handler en `/api/chat` usando `streamText` del Vercel AI SDK conectando con el modelo rápido de **Groq** o **Gemini**.
+  - [ ] Diseñar el widget UI flotante interactivo en `src/components/dashboard/career-copilot.tsx` utilizando Lucide Icons y shadcn/ui.
+  - [ ] Integrar el hook reactivo `useChat` para gestionar el estado de los mensajes en tiempo real.
+  - [ ] Cargar de forma automática el CV parseado actual del usuario en las instrucciones del sistema (`system prompt`) para que el Copiloto tenga contexto real del desarrollador al responder.
+  - [ ] Añadir la burbuja del chat en el layout compartido del dashboard.
+- **Rama Git:** `feature/career-copilot-widget`
+
+---
+
+## 🧠 Módulo 18: Developer Intelligence Engine (GitHub Avanzado)
+
+> 💡 Este módulo extiende el análisis de GitHub del Módulo 5 con señales más profundas de seniority técnica, incorporando el concepto de **"Evidence-based Skills"**: validar lo que el dev _demuestra_ que sabe a través de su actividad real de código, no solo lo que declara en el CV.
+
+### 🎴 Tarjeta 18.1: GitHub Schema Extendido con Seniority Signals
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Media 🟡 — **Diferenciador único vs. competidores**
+- **Descripción:**
+  El schema actual de `GithubAnalysis` captura principalmente distribución de bytes por lenguaje. Extenderlo para capturar señales temporales y cualitativas que son mucho más relevantes para estimar seniority: frecuencia de commits, calidad de READMEs, patrones de arquitectura detectados por la IA (presencia de CI/CD, testing, RBAC, auth flows, queue systems, caching, observability tooling). Estas señales son exactamente lo que diferencia a un Senior de un Mid-level en el mundo real.
+- **Criterios de Aceptación:**
+  - [ ] Actualizar el Zod Schema de GitHub en `src/lib/validations/github.ts` agregando los nuevos campos:
+    ```typescript
+    commitFrequency: z.enum(['daily', 'weekly', 'sporadic', 'inactive']),
+    readmeQualityScore: z.number().min(0).max(100),
+    longestStreakDays: z.number(),
+    topRepoTopics: z.array(z.string()),
+    senioritySignals: z.array(z.string()), // evidencia cualitativa detectada por IA
+    detectedPatterns: z.object({
+      hasCI: z.boolean(),
+      hasTesting: z.boolean(),
+      hasDocker: z.boolean(),
+      hasAuthImplementation: z.boolean(),
+      hasCaching: z.boolean(),
+      hasObservability: z.boolean(),
+    }),
+    ```
+  - [ ] Migrar el modelo `GithubAnalysis` en Prisma para incluir los nuevos campos (o almacenarlos en el JSON de análisis existente).
+  - [ ] Actualizar el prompt de análisis de GitHub en el servicio para extraer estas señales explícitamente.
+  - [ ] Actualizar la vista `/dashboard/github` para mostrar el `detectedPatterns` como un checklist visual de señales de madurez técnica.
+- **Rama Git:** `feature/github-schema-extended`
+
+### 🎴 Tarjeta 18.2: Modos de Entrevista Avanzados (Pressure & Recruiter Simulation)
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Baja 🟢 — **Extensión del Mock Interview (M6)**
+- **Descripción:**
+  Extender el Mock Interview del Módulo 6 con dos modos adicionales más allá del modo conversacional estándar. El **Pressure Mode** simula presión real de entrevista: el entrevistador de IA interrumpe, hace preguntas con ambigüedad intencional, pone límites de tiempo implícitos y sigue con edge cases. El **Recruiter Simulation Mode** evalúa la claridad comunicacional del dev: cómo estructura sus respuestas, si puede explicar conceptos técnicos a una persona no técnica, y su metodología de debugging. **Depende de la Tarjeta 6.1** (Mock Interview base funcionando).
+- **Criterios de Aceptación:**
+  - [ ] Agregar un selector de modo (`Standard` / `Pressure` / `Recruiter Simulation`) en la pantalla de inicio de la entrevista en `/dashboard/interview`.
+  - [ ] Implementar variantes del system prompt para cada modo:
+    - **Pressure:** interrupciones frecuentes, preguntas de follow-up agresivas, reformulación de la pregunta si la respuesta es vaga.
+    - **Recruiter Simulation:** foco en comunicación clara, preguntas del estilo "explicame X como si no supiera programar", evaluación de pensamiento estructurado.
+  - [ ] Incluir en el **Debrief JSON** final los campos `communicationScore`, `structuredThinkingScore` y `pressureHandlingScore` además de los técnicos.
+  - [ ] Mostrar en los resultados del Debrief un resumen diferenciado por modo.
+- **Rama Git:** `feature/interview-advanced-modes`
+
+---
+
+## ⚪ TIER 6 — Expansión Opcional
+
+> ⚠️ **No ejecutar hasta que M15 esté completo y el core esté estabilizado en producción.** Reestructurar el routing bajo `[locale]/` en medio del desarrollo de módulos core duplica el costo de mantenimiento.
+
+---
+
+## 🎨 Módulo 4: Marketing Landing & UX (parcial — i18n)
+
+### 🎴 Tarjeta 4.3: Implementar Internacionalización (i18n) Nativa con next-intl
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Baja 🟢 — **Ejecutar al final del roadmap**
+- **Descripción:**
+  Configurar la infraestructura de traducción en el proyecto para dar soporte dinámico a múltiples idiomas (Español/Inglés) sin duplicar código. Utilizaremos la librería estándar `next-intl` aprovechando el enrutamiento dinámico `[locale]` de Next.js App Router para una traducción limpia y mantenible tanto en el servidor como en el cliente.
+- **Criterios de Aceptación:**
+  - [ ] Instalar la librería `next-intl`.
+  - [ ] Configurar los archivos de diccionarios en la raíz (`messages/en.json` y `messages/es.json`) con las traducciones base del shell y la landing.
+  - [ ] Reestructurar el enrutamiento envolviendo las páginas del dashboard y marketing bajo la carpeta dinámica `src/app/[locale]/`.
+  - [ ] Configurar el enrutamiento y la redirección automática del idioma en el middleware/proxy de la aplicación.
+  - [ ] Crear un componente selector de idioma (`LanguageSwitcher` con shadcn/ui) integrado en la barra superior o en el sidebar para alternar entre Español e Inglés con un clic.
+- **Rama Git:** `feature/i18n-next-intl-setup`
