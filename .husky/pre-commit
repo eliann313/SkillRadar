@@ -1,7 +1,7 @@
 npx lint-staged
 
-# Intentar ejecutar Semgrep local de manera silenciosa si está instalado en el PATH
-if command -v semgrep >/dev/null 2>&1; then
+# Intentar ejecutar Semgrep local si está instalado en el PATH o en node_modules
+if command -v semgrep >/dev/null 2>&1 || npx semgrep --version >/dev/null 2>&1; then
   echo "🛡️ [Husky] Detectado Semgrep CLI. Corriendo análisis estático local..."
   npm run security:scan
 else
