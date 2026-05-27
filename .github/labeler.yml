@@ -2,60 +2,60 @@
 # See: https://github.com/actions/labeler
 
 "area: devops":
-  - changed-files:
-      - any-glob-to-any-file:
-          - ".github/**/*"
-          - ".vscode/**/*"
-          - ".gitignore"
-          - "package.json"
-          - "package-lock.json"
-          - "tsconfig.json"
-          - "eslint.config.mjs"
-          - "vitest.config.ts"
-          - "postcss.config.mjs"
+    - changed-files:
+          - any-glob-to-any-file:
+                - ".github/**/*"
+                - ".vscode/**/*"
+                - ".gitignore"
+                - "package.json"
+                - "package-lock.json"
+                - "tsconfig.json"
+                - "eslint.config.mjs"
+                - "vitest.config.ts"
+                - "postcss.config.mjs"
 
 "area: database":
-  - changed-files:
-      - any-glob-to-any-file:
-          - "prisma/**/*"
-          - "db/**/*"
-          - "src/lib/db.ts"
+    - changed-files:
+          - any-glob-to-any-file:
+                - "prisma/**/*"
+                - "db/**/*"
+                - "src/lib/db.ts"
 
 "area: frontend":
-  - changed-files:
-      - any-glob-to-any-file:
-          - "src/app/**/*"
-          - "src/components/**/*"
-          - "src/styles/**/*"
-          - "public/**/*"
-      - any-glob-to-all-files:
-          - "!src/app/api/**/*"
-          - "!**/*.test.*"
-          - "!**/*.spec.*"
+    - changed-files:
+          - any-glob-to-any-file:
+                - "src/app/**/*"
+                - "src/components/**/*"
+                - "src/styles/**/*"
+                - "public/**/*"
+          - any-glob-to-all-files:
+                - "!src/app/api/**/*"
+                - "!**/*.test.*"
+                - "!**/*.spec.*"
 
 "area: backend":
-  - changed-files:
-      - any-glob-to-any-file:
-          - "src/app/api/**/*"
-          - "src/lib/**/*"
-          - "src/services/**/*"
-          - "src/actions/**/*"
-      - any-glob-to-all-files:
-          - "!src/lib/db.ts"
-          - "!**/*.test.*"
-          - "!**/*.spec.*"
+    - changed-files:
+          - any-glob-to-any-file:
+                - "src/app/api/**/*"
+                - "src/lib/**/*"
+                - "src/services/**/*"
+                - "src/actions/**/*"
+          - any-glob-to-all-files:
+                - "!src/lib/db.ts"
+                - "!**/*.test.*"
+                - "!**/*.spec.*"
 
 "area: testing":
-  - changed-files:
-      - any-glob-to-any-file:
-          - "src/**/*.test.ts"
-          - "src/**/*.test.tsx"
-          - "src/**/*.spec.ts"
-          - "src/**/*.spec.tsx"
-          - "src/__tests__/**/*"
+    - changed-files:
+          - any-glob-to-any-file:
+                - "src/**/*.test.ts"
+                - "src/**/*.test.tsx"
+                - "src/**/*.spec.ts"
+                - "src/**/*.spec.tsx"
+                - "src/__tests__/**/*"
 
 "documentation":
-  - changed-files:
-      - any-glob-to-any-file:
-          - "**/*.md"
-          - "docs/**/*"
+    - changed-files:
+          - any-glob-to-any-file:
+                - "**/*.md"
+                - "docs/**/*"

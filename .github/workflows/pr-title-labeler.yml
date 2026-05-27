@@ -1,115 +1,115 @@
 name: PR Title & Metadata Labeler
 
 on:
-  pull_request:
-    types: [opened, edited, synchronize]
+    pull_request:
+        types: [opened, edited, synchronize]
 
 permissions:
-  contents: read
-  pull-requests: write
+    contents: read
+    pull-requests: write
 
 jobs:
-  labeler:
-    runs-on: ubuntu-latest
-    steps:
-      - name: PR Metadata Labeler
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { owner, repo } = context.repo;
-            const pr = context.payload.pull_request;
-            const prNumber = pr.number;
-            const title = pr.title || "";
-            const body = pr.body || "";
-            const branchName = pr.head.ref || "";
+    labeler:
+        runs-on: ubuntu-latest
+        steps:
+            - name: PR Metadata Labeler
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const { owner, repo } = context.repo;
+                      const pr = context.payload.pull_request;
+                      const prNumber = pr.number;
+                      const title = pr.title || "";
+                      const body = pr.body || "";
+                      const branchName = pr.head.ref || "";
 
-            const labelsToAdd = new Set();
-            const labelsToRemove = new Set();
+                      const labelsToAdd = new Set();
+                      const labelsToRemove = new Set();
 
-            console.log(`Processing PR #${prNumber} - Title: "${title}"`);
+                      console.log(`Processing PR #${prNumber} - Title: "${title}"`);
 
-            // --- 1. Detección de "v0" ---
-            // v0 de Vercel suele tener referencias a "v0" en el título, descripción o nombre de rama
-            const v0Regex = /\bv0\b/i;
-            if (v0Regex.test(title) || v0Regex.test(body) || v0Regex.test(branchName)) {
-              console.log("Detected v0 signature, adding label: v0");
-              labelsToAdd.add("v0");
-            }
+                      // --- 1. Detección de "v0" ---
+                      // v0 de Vercel suele tener referencias a "v0" en el título, descripción o nombre de rama
+                      const v0Regex = /\bv0\b/i;
+                      if (v0Regex.test(title) || v0Regex.test(body) || v0Regex.test(branchName)) {
+                        console.log("Detected v0 signature, adding label: v0");
+                        labelsToAdd.add("v0");
+                      }
 
-            // --- 2. Detección del tipo de cambio (Conventional Commits) ---
-            // Patrones comunes: "feat: ...", "feat(scope): ...", "fix: ...", "refactor: ...", etc.
-            const featRegex = /^(feat|feature)(\(.*\))?\s*:/i;
-            const fixRegex = /^(fix|bug|hotfix)(\(.*\))?\s*:/i;
-            const refactorRegex = /^refactor(\(.*\))?\s*:/i;
+                      // --- 2. Detección del tipo de cambio (Conventional Commits) ---
+                      // Patrones comunes: "feat: ...", "feat(scope): ...", "fix: ...", "refactor: ...", etc.
+                      const featRegex = /^(feat|feature)(\(.*\))?\s*:/i;
+                      const fixRegex = /^(fix|bug|hotfix)(\(.*\))?\s*:/i;
+                      const refactorRegex = /^refactor(\(.*\))?\s*:/i;
 
-            if (featRegex.test(title)) {
-              console.log("Detected feature PR");
-              labelsToAdd.add("type: feature");
-              labelsToAdd.add("enhancement");
-              labelsToRemove.add("type: refactor");
-              labelsToRemove.add("type: hotfix");
-              labelsToRemove.add("bug");
-            } else if (fixRegex.test(title)) {
-              console.log("Detected fix/hotfix PR");
-              labelsToAdd.add("type: hotfix");
-              labelsToAdd.add("bug");
-              labelsToRemove.add("type: feature");
-              labelsToRemove.add("type: refactor");
-              labelsToRemove.add("enhancement");
-            } else if (refactorRegex.test(title)) {
-              console.log("Detected refactor PR");
-              labelsToAdd.add("type: refactor");
-              labelsToRemove.add("type: feature");
-              labelsToRemove.add("type: hotfix");
-              labelsToRemove.add("bug");
-              labelsToRemove.add("enhancement");
-            }
+                      if (featRegex.test(title)) {
+                        console.log("Detected feature PR");
+                        labelsToAdd.add("type: feature");
+                        labelsToAdd.add("enhancement");
+                        labelsToRemove.add("type: refactor");
+                        labelsToRemove.add("type: hotfix");
+                        labelsToRemove.add("bug");
+                      } else if (fixRegex.test(title)) {
+                        console.log("Detected fix/hotfix PR");
+                        labelsToAdd.add("type: hotfix");
+                        labelsToAdd.add("bug");
+                        labelsToRemove.add("type: feature");
+                        labelsToRemove.add("type: refactor");
+                        labelsToRemove.add("enhancement");
+                      } else if (refactorRegex.test(title)) {
+                        console.log("Detected refactor PR");
+                        labelsToAdd.add("type: refactor");
+                        labelsToRemove.add("type: feature");
+                        labelsToRemove.add("type: hotfix");
+                        labelsToRemove.add("bug");
+                        labelsToRemove.add("enhancement");
+                      }
 
-            // --- 3. Gestión del estado de la revisión ---
-            // Al abrir o actualizar (sincronizar) la PR con nuevos commits, se asume que requiere revisión ("status: review-needed")
-            // y se limpia cualquier estado previo de cambios requeridos o aprobación para obligar a una nueva revisión
-            labelsToAdd.add("status: review-needed");
-            labelsToRemove.add("status: changes-requested");
-            labelsToRemove.add("review: need-fixes");
-            labelsToRemove.add("review: approve");
+                      // --- 3. Gestión del estado de la revisión ---
+                      // Al abrir o actualizar (sincronizar) la PR con nuevos commits, se asume que requiere revisión ("status: review-needed")
+                      // y se limpia cualquier estado previo de cambios requeridos o aprobación para obligar a una nueva revisión
+                      labelsToAdd.add("status: review-needed");
+                      labelsToRemove.add("status: changes-requested");
+                      labelsToRemove.add("review: need-fixes");
+                      labelsToRemove.add("review: approve");
 
-            // --- 4. Aplicar cambios en GitHub ---
-            // Obtener etiquetas actuales de la PR
-            const { data: currentLabelsData } = await github.rest.issues.listLabelsOnIssue({
-              owner,
-              repo,
-              issue_number: prNumber
-            });
-            const currentLabels = new Set(currentLabelsData.map(l => l.name));
+                      // --- 4. Aplicar cambios en GitHub ---
+                      // Obtener etiquetas actuales de la PR
+                      const { data: currentLabelsData } = await github.rest.issues.listLabelsOnIssue({
+                        owner,
+                        repo,
+                        issue_number: prNumber
+                      });
+                      const currentLabels = new Set(currentLabelsData.map(l => l.name));
 
-            // Filtrar lo que realmente se debe agregar (que no esté ya)
-            const finalLabelsToAdd = Array.from(labelsToAdd).filter(l => !currentLabels.has(l));
+                      // Filtrar lo que realmente se debe agregar (que no esté ya)
+                      const finalLabelsToAdd = Array.from(labelsToAdd).filter(l => !currentLabels.has(l));
 
-            // Filtrar lo que realmente se debe quitar (que esté actualmente)
-            const finalLabelsToRemove = Array.from(labelsToRemove).filter(l => currentLabels.has(l));
+                      // Filtrar lo que realmente se debe quitar (que esté actualmente)
+                      const finalLabelsToRemove = Array.from(labelsToRemove).filter(l => currentLabels.has(l));
 
-            if (finalLabelsToAdd.length > 0) {
-              console.log(`Adding labels: ${finalLabelsToAdd.join(', ')}`);
-              await github.rest.issues.addLabels({
-                owner,
-                repo,
-                issue_number: prNumber,
-                labels: finalLabelsToAdd
-              });
-            }
+                      if (finalLabelsToAdd.length > 0) {
+                        console.log(`Adding labels: ${finalLabelsToAdd.join(', ')}`);
+                        await github.rest.issues.addLabels({
+                          owner,
+                          repo,
+                          issue_number: prNumber,
+                          labels: finalLabelsToAdd
+                        });
+                      }
 
-            for (const labelName of finalLabelsToRemove) {
-              console.log(`Removing label: ${labelName}`);
-              try {
-                await github.rest.issues.removeLabel({
-                  owner,
-                  repo,
-                  issue_number: prNumber,
-                  name: labelName
-                });
-              } catch (err) {
-                console.warn(`Failed to remove label "${labelName}":`, err.message);
-              }
-            }
+                      for (const labelName of finalLabelsToRemove) {
+                        console.log(`Removing label: ${labelName}`);
+                        try {
+                          await github.rest.issues.removeLabel({
+                            owner,
+                            repo,
+                            issue_number: prNumber,
+                            name: labelName
+                          });
+                        } catch (err) {
+                          console.warn(`Failed to remove label "${labelName}":`, err.message);
+                        }
+                      }
 
-            console.log("PR Metadata Labeler successfully finished.");
+                      console.log("PR Metadata Labeler successfully finished.");

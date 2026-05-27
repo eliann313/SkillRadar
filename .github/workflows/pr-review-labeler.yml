@@ -1,81 +1,81 @@
 name: PR Review Labeler
 
 on:
-  pull_request_review:
-    types: [submitted]
+    pull_request_review:
+        types: [submitted]
 
 permissions:
-  contents: read
-  pull-requests: write
+    contents: read
+    pull-requests: write
 
 jobs:
-  review-labeler:
-    runs-on: ubuntu-latest
-    steps:
-      - name: PR Review Labeler
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { owner, repo } = context.repo;
-            const prNumber = context.payload.pull_request.number;
-            const review = context.payload.review;
-            const state = review.state.toLowerCase();
+    review-labeler:
+        runs-on: ubuntu-latest
+        steps:
+            - name: PR Review Labeler
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const { owner, repo } = context.repo;
+                      const prNumber = context.payload.pull_request.number;
+                      const review = context.payload.review;
+                      const state = review.state.toLowerCase();
 
-            console.log(`Processing review for PR #${prNumber} - State: "${state}"`);
+                      console.log(`Processing review for PR #${prNumber} - State: "${state}"`);
 
-            const labelsToAdd = new Set();
-            const labelsToRemove = new Set();
+                      const labelsToAdd = new Set();
+                      const labelsToRemove = new Set();
 
-            if (state === 'approved') {
-              console.log("Review approved! Adding approval labels and removing blocking labels.");
-              labelsToAdd.add("review: approve");
-              labelsToRemove.add("status: review-needed");
-              labelsToRemove.add("status: changes-requested");
-              labelsToRemove.add("review: need-fixes");
-            } else if (state === 'changes_requested') {
-              console.log("Changes requested! Adding need-fixes labels and removing approval labels.");
-              labelsToAdd.add("status: changes-requested");
-              labelsToAdd.add("review: need-fixes");
-              labelsToRemove.add("status: review-needed");
-              labelsToRemove.add("review: approve");
-            } else {
-              console.log(`Review state is "${state}". No label changes required.`);
-              return; // No hacemos cambios para comentarios generales
-            }
+                      if (state === 'approved') {
+                        console.log("Review approved! Adding approval labels and removing blocking labels.");
+                        labelsToAdd.add("review: approve");
+                        labelsToRemove.add("status: review-needed");
+                        labelsToRemove.add("status: changes-requested");
+                        labelsToRemove.add("review: need-fixes");
+                      } else if (state === 'changes_requested') {
+                        console.log("Changes requested! Adding need-fixes labels and removing approval labels.");
+                        labelsToAdd.add("status: changes-requested");
+                        labelsToAdd.add("review: need-fixes");
+                        labelsToRemove.add("status: review-needed");
+                        labelsToRemove.add("review: approve");
+                      } else {
+                        console.log(`Review state is "${state}". No label changes required.`);
+                        return; // No hacemos cambios para comentarios generales
+                      }
 
-            // Aplicar cambios en GitHub
-            const { data: currentLabelsData } = await github.rest.issues.listLabelsOnIssue({
-              owner,
-              repo,
-              issue_number: prNumber
-            });
-            const currentLabels = new Set(currentLabelsData.map(l => l.name));
+                      // Aplicar cambios en GitHub
+                      const { data: currentLabelsData } = await github.rest.issues.listLabelsOnIssue({
+                        owner,
+                        repo,
+                        issue_number: prNumber
+                      });
+                      const currentLabels = new Set(currentLabelsData.map(l => l.name));
 
-            const finalLabelsToAdd = Array.from(labelsToAdd).filter(l => !currentLabels.has(l));
-            const finalLabelsToRemove = Array.from(labelsToRemove).filter(l => currentLabels.has(l));
+                      const finalLabelsToAdd = Array.from(labelsToAdd).filter(l => !currentLabels.has(l));
+                      const finalLabelsToRemove = Array.from(labelsToRemove).filter(l => currentLabels.has(l));
 
-            if (finalLabelsToAdd.length > 0) {
-              console.log(`Adding labels: ${finalLabelsToAdd.join(', ')}`);
-              await github.rest.issues.addLabels({
-                owner,
-                repo,
-                issue_number: prNumber,
-                labels: finalLabelsToAdd
-              });
-            }
+                      if (finalLabelsToAdd.length > 0) {
+                        console.log(`Adding labels: ${finalLabelsToAdd.join(', ')}`);
+                        await github.rest.issues.addLabels({
+                          owner,
+                          repo,
+                          issue_number: prNumber,
+                          labels: finalLabelsToAdd
+                        });
+                      }
 
-            for (const labelName of finalLabelsToRemove) {
-              console.log(`Removing label: ${labelName}`);
-              try {
-                await github.rest.issues.removeLabel({
-                  owner,
-                  repo,
-                  issue_number: prNumber,
-                  name: labelName
-                });
-              } catch (err) {
-                console.warn(`Failed to remove label "${labelName}":`, err.message);
-              }
-            }
+                      for (const labelName of finalLabelsToRemove) {
+                        console.log(`Removing label: ${labelName}`);
+                        try {
+                          await github.rest.issues.removeLabel({
+                            owner,
+                            repo,
+                            issue_number: prNumber,
+                            name: labelName
+                          });
+                        } catch (err) {
+                          console.warn(`Failed to remove label "${labelName}":`, err.message);
+                        }
+                      }
 
-            console.log("PR Review Labeler successfully finished.");
+                      console.log("PR Review Labeler successfully finished.");

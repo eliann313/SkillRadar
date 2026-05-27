@@ -137,9 +137,9 @@ El Vercel AI SDK es la librería estándar del ecosistema para integrar LLMs en 
 
 - **Structured Outputs**: El SDK incluye `generateObject` que pasa un schema Zod de forma nativa a la API del LLM, forzando la inferencia a cumplir el formato y evitando alucinaciones de parseo.
 - **Soporte Híbrido de Inferencia**:
-  - **Free Tier (Global)**: Para el uso por defecto del sistema, nos apoyamos en `gemini-2.5-flash` y en la cascada hacia Groq/OpenRouter.
-  - **API Keys Personales Cifradas (AES-256-GCM)**: Los desarrolladores avanzados pueden ingresar de forma segura y cifrada sus credenciales de Anthropic o OpenAI para usar modelos ultra-premium de vanguardia (Claude 3.5 Sonnet, Claude Opus 4.7, GPT-5.5) a su propio costo.
-  - **Exención de Rate Limiting**: Si el usuario configura sus llaves personales en Settings, se omitirá el límite estricto de Upstash de la plataforma para sus análisis, incentivando el uso avanzado sostenible.
+    - **Free Tier (Global)**: Para el uso por defecto del sistema, nos apoyamos en `gemini-2.5-flash` y en la cascada hacia Groq/OpenRouter.
+    - **API Keys Personales Cifradas (AES-256-GCM)**: Los desarrolladores avanzados pueden ingresar de forma segura y cifrada sus credenciales de Anthropic o OpenAI para usar modelos ultra-premium de vanguardia (Claude 3.5 Sonnet, Claude Opus 4.7, GPT-5.5) a su propio costo.
+    - **Exención de Rate Limiting**: Si el usuario configura sus llaves personales en Settings, se omitirá el límite estricto de Upstash de la plataforma para sus análisis, incentivando el uso avanzado sostenible.
 
 #### Docker solo para local
 
@@ -474,14 +474,14 @@ Son funciones que se ejecutan en el servidor pero pueden ser llamadas desde un C
 "use server";
 
 export async function analyzeResume(formData: FormData) {
-  // Esta función corre en el servidor aunque la llame un Client Component
-  const session = await getServerSession();
-  if (!session) throw new Error("No autorizado");
+    // Esta función corre en el servidor aunque la llame un Client Component
+    const session = await getServerSession();
+    if (!session) throw new Error("No autorizado");
 
-  const file = formData.get("file") as File;
-  // validar, parsear, llamar IA, guardar en DB...
+    const file = formData.get("file") as File;
+    // validar, parsear, llamar IA, guardar en DB...
 
-  revalidatePath("/dashboard/cv"); // refresca los datos del Server Component
+    revalidatePath("/dashboard/cv"); // refresca los datos del Server Component
 }
 ```
 
@@ -512,9 +512,9 @@ Son APIs REST de toda la vida, pero dentro de Next.js. Usarlos cuando:
 ```typescript
 // app/api/github/analyze/route.ts
 export async function POST(request: Request) {
-  const body = await request.json();
-  // lógica...
-  return Response.json({ data });
+    const body = await request.json();
+    // lógica...
+    return Response.json({ data });
 }
 ```
 
@@ -554,10 +554,10 @@ Usar **Zod** en todas las boundaries:
 import { z } from "zod";
 
 export const uploadCVSchema = z.object({
-  file: z
-    .instanceof(File)
-    .refine((f) => f.size <= 5 * 1024 * 1024, "El archivo no puede superar 5MB")
-    .refine((f) => f.type === "application/pdf", "Solo se aceptan PDFs"),
+    file: z
+        .instanceof(File)
+        .refine((f) => f.size <= 5 * 1024 * 1024, "El archivo no puede superar 5MB")
+        .refine((f) => f.type === "application/pdf", "Solo se aceptan PDFs"),
 });
 
 export type UploadCVInput = z.infer<typeof uploadCVSchema>;
@@ -573,20 +573,18 @@ Estrategia de dos capas:
 
 ```typescript
 // En lugar de throw, retornar un objeto con estado
-export async function analyzeResume(
-  input: UploadCVInput,
-): Promise<ActionResult<ResumeAnalysis>> {
-  try {
-    const parsed = uploadCVSchema.safeParse(input);
-    if (!parsed.success) {
-      return { success: false, error: parsed.error.message };
+export async function analyzeResume(input: UploadCVInput): Promise<ActionResult<ResumeAnalysis>> {
+    try {
+        const parsed = uploadCVSchema.safeParse(input);
+        if (!parsed.success) {
+            return { success: false, error: parsed.error.message };
+        }
+        const result = await cvAnalysisService.analyze(parsed.data);
+        return { success: true, data: result };
+    } catch (err) {
+        console.error("[analyzeResume]", err);
+        return { success: false, error: "Error interno al analizar el CV" };
     }
-    const result = await cvAnalysisService.analyze(parsed.data);
-    return { success: true, data: result };
-  } catch (err) {
-    console.error("[analyzeResume]", err);
-    return { success: false, error: "Error interno al analizar el CV" };
-  }
 }
 ```
 
@@ -609,14 +607,14 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "./db";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(db),
-  providers: [GitHub],
-  callbacks: {
-    session({ session, user }) {
-      session.user.id = user.id; // agregar id al session type
-      return session;
+    adapter: PrismaAdapter(db),
+    providers: [GitHub],
+    callbacks: {
+        session({ session, user }) {
+            session.user.id = user.id; // agregar id al session type
+            return session;
+        },
     },
-  },
 });
 ```
 
@@ -632,7 +630,7 @@ import { authConfig } from "./lib/auth.config";
 export const proxy = NextAuth(authConfig).auth;
 
 export const config = {
-  matcher: ["/", "/dashboard/:path*"],
+    matcher: ["/", "/dashboard/:path*"],
 };
 ```
 
@@ -748,10 +746,10 @@ Validar variables de entorno al inicio de la app con Zod:
 import { z } from "zod";
 
 const envSchema = z.object({
-  DATABASE_URL: z.string().url(),
-  NEXTAUTH_SECRET: z.string().min(1),
-  GEMINI_API_KEY: z.string().min(1),
-  // ...
+    DATABASE_URL: z.string().url(),
+    NEXTAUTH_SECRET: z.string().min(1),
+    GEMINI_API_KEY: z.string().min(1),
+    // ...
 });
 
 export const env = envSchema.parse(process.env);
@@ -765,9 +763,9 @@ Para MVP, `console.error` estructurado es suficiente. Patrón que muestra criter
 ```typescript
 // Siempre incluir contexto: [módulo] mensaje + datos relevantes
 console.error("[cv-analysis/service] Error al parsear PDF:", {
-  userId: session.user.id,
-  fileName,
-  error: err.message,
+    userId: session.user.id,
+    fileName,
+    error: err.message,
 });
 ```
 
@@ -780,19 +778,19 @@ En V2 se puede integrar **Axiom** o **Sentry** (ambos tienen free tier).
 version: "3.8"
 
 services:
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: devuser
-      POSTGRES_PASSWORD: devpass
-      POSTGRES_DB: platform_dev
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    db:
+        image: postgres:16-alpine
+        environment:
+            POSTGRES_USER: devuser
+            POSTGRES_PASSWORD: devpass
+            POSTGRES_DB: platform_dev
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
 
 volumes:
-  postgres_data:
+    postgres_data:
 ```
 
 ```bash
@@ -917,13 +915,13 @@ En producción usás Neon directamente. No necesitás Docker en Vercel.
 import { z } from "zod";
 
 export const atsAnalysisSchema = z.object({
-  atsScore: z.number().min(0).max(100),
-  keywords: z.array(z.string()),
-  missingKeywords: z.array(z.string()),
-  formatIssues: z.array(z.string()),
-  strengths: z.array(z.string()),
-  improvements: z.array(z.string()),
-  estimatedSeniority: z.enum(["junior", "semi-senior", "senior"]),
+    atsScore: z.number().min(0).max(100),
+    keywords: z.array(z.string()),
+    missingKeywords: z.array(z.string()),
+    formatIssues: z.array(z.string()),
+    strengths: z.array(z.string()),
+    improvements: z.array(z.string()),
+    estimatedSeniority: z.enum(["junior", "semi-senior", "senior"]),
 });
 
 export type ATSAnalysis = z.infer<typeof atsAnalysisSchema>;
@@ -935,13 +933,13 @@ import { generateAnalysis } from "@/lib/ai";
 import { atsAnalysisSchema } from "./types";
 
 export async function analyzeCV(cvText: string) {
-  // generateObject pasa el schema como Structured Output a Gemini
-  // El modelo NO puede devolver JSON inválido — es una restricción a nivel de inferencia
-  return await generateAnalysis(
-    `Analizá este CV como experto en ATS y selección tech:\n\n${cvText}`,
-    atsAnalysisSchema,
-  );
-  // TypeScript ya sabe que el return es ATSAnalysis — sin casteos, sin try/catch de parse
+    // generateObject pasa el schema como Structured Output a Gemini
+    // El modelo NO puede devolver JSON inválido — es una restricción a nivel de inferencia
+    return await generateAnalysis(
+        `Analizá este CV como experto en ATS y selección tech:\n\n${cvText}`,
+        atsAnalysisSchema,
+    );
+    // TypeScript ya sabe que el return es ATSAnalysis — sin casteos, sin try/catch de parse
 }
 ```
 
@@ -1121,24 +1119,24 @@ Para mantener el enfoque en la Inteligencia de Talento, sumaremos característic
 name: CI
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
+    push:
+        branches: [main, develop]
+    pull_request:
+        branches: [main]
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run type-check # tsc --noEmit
-      - run: npx prisma validate # valida el schema
+    check:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: "npm"
+            - run: npm ci
+            - run: npm run lint
+            - run: npm run type-check # tsc --noEmit
+            - run: npx prisma validate # valida el schema
 ```
 
 ### 9.3 Branch strategy
@@ -1175,14 +1173,14 @@ import { describe, it, expect } from "vitest";
 import { calculateATSScore } from "./service";
 
 describe("calculateATSScore", () => {
-  it("should return 0 for empty CV", () => {
-    expect(calculateATSScore("")).toBe(0);
-  });
+    it("should return 0 for empty CV", () => {
+        expect(calculateATSScore("")).toBe(0);
+    });
 
-  it("should detect missing contact information", () => {
-    const result = calculateATSScore("John Doe, React developer");
-    expect(result.issues).toContain("missing_email");
-  });
+    it("should detect missing contact information", () => {
+        const result = calculateATSScore("John Doe, React developer");
+        expect(result.issues).toContain("missing_email");
+    });
 });
 ```
 

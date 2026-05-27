@@ -8,53 +8,43 @@ import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({
-  variable: "--font-sans",
-  subsets: ["latin"],
+    variable: "--font-sans",
+    subsets: ["latin"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+    variable: "--font-geist-mono",
+    subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "SkillRadar | AI-Powered Developer Profile Analysis",
-  description:
-    "Analyze your technical profile with AI, match with job offers, and prepare for interviews. For developers and recruiters.",
-  keywords: [
-    "developer",
-    "CV analysis",
-    "job matching",
-    "AI",
-    "technical skills",
-    "recruiters",
-  ],
+    title: "SkillRadar | AI-Powered Developer Profile Analysis",
+    description:
+        "Analyze your technical profile with AI, match with job offers, and prepare for interviews. For developers and recruiters.",
+    keywords: ["developer", "CV analysis", "job matching", "AI", "technical skills", "recruiters"],
 };
 
 export const viewport: Viewport = {
-  themeColor: "#09090b",
-  width: "device-width",
-  initialScale: 1,
+    themeColor: "#09090b",
+    width: "device-width",
+    initialScale: 1,
 };
 
 export default function RootLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-  return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased bg-background`}
-    >
-      <body className="min-h-full flex flex-col bg-background">
-        <SessionProvider>
-          <TooltipProvider delay={300}>{children}</TooltipProvider>
-        </SessionProvider>
-        <Toaster theme="dark" richColors position="top-right" />
-        <Analytics />
-        <SpeedInsights />
-      </body>
-    </html>
-  );
+    return (
+        <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased bg-background`}>
+            <body className="min-h-full flex flex-col bg-background">
+                <SessionProvider>
+                    <TooltipProvider delay={300}>{children}</TooltipProvider>
+                </SessionProvider>
+                <Toaster theme="dark" richColors position="top-right" />
+                <Analytics />
+                <SpeedInsights />
+            </body>
+        </html>
+    );
 }

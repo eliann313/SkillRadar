@@ -22,19 +22,19 @@ Stack: Next.js 16 (App Router), TypeScript (strict), Tailwind CSS v4, shadcn/ui 
 // ✅ Server Action pattern
 "use server";
 export async function myAction(data: FormData) {
-  const parsed = schema.safeParse(Object.fromEntries(data));
-  if (!parsed.success) return { error: parsed.error.flatten() };
-  // ...
+    const parsed = schema.safeParse(Object.fromEntries(data));
+    if (!parsed.success) return { error: parsed.error.flatten() };
+    // ...
 }
 
 // ✅ API Route pattern (Next.js App Router)
 export async function GET(request: Request) {
-  try {
-    // logic
-    return Response.json({ data });
-  } catch (error) {
-    return Response.json({ error: "Internal error" }, { status: 500 });
-  }
+    try {
+        // logic
+        return Response.json({ data });
+    } catch (error) {
+        return Response.json({ error: "Internal error" }, { status: 500 });
+    }
 }
 ```
 

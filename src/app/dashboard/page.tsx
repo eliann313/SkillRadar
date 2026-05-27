@@ -4,22 +4,22 @@ import { TalentDashboard } from "@/components/recruiter";
 import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
-  const session = await auth();
+    const session = await auth();
 
-  if (!session?.user) {
-    redirect("/");
-  }
+    if (!session?.user) {
+        redirect("/");
+    }
 
-  // Recruiter dashboard
-  if (session.user.role === "recruiter") {
-    return <TalentDashboard />;
-  }
+    // Recruiter dashboard
+    if (session.user.role === "recruiter") {
+        return <TalentDashboard />;
+    }
 
-  // Developer dashboard
-  return (
-    <div className="flex flex-col gap-6">
-      <DashboardHeader />
-      <MetricsGrid />
-    </div>
-  );
+    // Developer dashboard
+    return (
+        <div className="flex flex-col gap-6">
+            <DashboardHeader />
+            <MetricsGrid />
+        </div>
+    );
 }
