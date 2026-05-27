@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: PR Metadata Labeler
-        uses: actions/github-script@3a2844b360a4f5f5e6a0d0d6c4d7e2264c185799 # v9.0.0
+        uses: actions/github-script@v7
         with:
           script: |
             const { owner, repo } = context.repo;
