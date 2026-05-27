@@ -16,6 +16,9 @@ concurrency:
 env:
     NODE_VERSION: "20"
 
+permissions:
+    contents: read
+
 jobs:
     # ─────────────────────────────────────────
     # 1. Code quality: lint + type-check + format
