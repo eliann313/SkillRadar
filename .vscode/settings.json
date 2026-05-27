@@ -1,20 +1,20 @@
 {
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit",
-    "source.organizeImports": "explicit"
-  },
-  "editor.rulers": [100],
-  "editor.tabSize": 2,
-  "typescript.preferences.importModuleSpecifier": "non-relative",
-  "typescript.updateImportsOnFileMove.enabled": "always",
-  "tailwindCSS.experimental.classRegex": [
-    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
-    ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
-  ],
-  "files.exclude": {
-    "**/.next": true,
-    "**/node_modules": true
-  }
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit",
+        "source.organizeImports": "explicit"
+    },
+    "editor.rulers": [100],
+    "editor.tabSize": 2,
+    "typescript.preferences.importModuleSpecifier": "non-relative",
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "tailwindCSS.experimental.classRegex": [
+        ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+        ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+    ],
+    "files.exclude": {
+        "**/.next": true,
+        "**/node_modules": true
+    }
 }

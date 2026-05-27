@@ -46,11 +46,11 @@ _(No secrets required for the basic free setup at this stage. Later you may add 
 Go to **Settings → Branches → Add branch ruleset** and configure `main`:
 
 - [x] Require pull request before merging
-  - Required approvals: **1**
-  - [x] Dismiss stale pull request approvals when new commits are pushed
+    - Required approvals: **1**
+    - [x] Dismiss stale pull request approvals when new commits are pushed
 - [x] Require status checks to pass before merging
-  - Add: `Code Quality`, `Tests`, `Build` (from ci.yml)
-  - Add: `CodeQL Analysis` (from security.yml)
+    - Add: `Code Quality`, `Tests`, `Build` (from ci.yml)
+    - Add: `CodeQL Analysis` (from security.yml)
 - [x] Require conversation resolution before merging
 - [x] Require linear history (enforces squash/rebase)
 - [x] Block force pushes
@@ -86,18 +86,18 @@ Make sure these scripts exist in your `package.json`:
 
 ```json
 {
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix",
-    "type-check": "tsc --noEmit",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "test": "vitest run",
-    "test:watch": "vitest"
-  }
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "lint": "next lint",
+        "lint:fix": "next lint --fix",
+        "type-check": "tsc --noEmit",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "test": "vitest run",
+        "test:watch": "vitest"
+    }
 }
 ```
 

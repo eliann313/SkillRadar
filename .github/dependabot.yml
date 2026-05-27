@@ -1,69 +1,69 @@
 version: 2
 updates:
-  # Next.js / Node dependencies
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "America/Argentina/Buenos_Aires"
-    open-pull-requests-limit: 10
-    reviewers:
-      - "eliann313"
-    labels:
-      - "dependencies"
-      - "automated"
-    commit-message:
-      prefix: "chore(deps)"
-      prefix-development: "chore(dev-deps)"
-      include: "scope"
-    groups:
-      # Group all non-breaking Next.js / React updates
-      nextjs-ecosystem:
-        patterns:
-          - "next"
-          - "react"
-          - "react-dom"
-          - "@types/react*"
-        update-types:
-          - "minor"
-          - "patch"
-      # Group TypeScript tooling
-      typescript-tooling:
-        patterns:
-          - "typescript"
-          - "@typescript-eslint/*"
-          - "ts-*"
-        update-types:
-          - "minor"
-          - "patch"
-      # Group linting/formatting
-      linting:
-        patterns:
-          - "eslint*"
-          - "prettier*"
-          - "@eslint/*"
-        update-types:
-          - "minor"
-          - "patch"
-    ignore:
-      # Pin major versions manually — review breaking changes yourself
-      - dependency-name: "next"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "react"
-        update-types: ["version-update:semver-major"]
+    # Next.js / Node dependencies
+    - package-ecosystem: "npm"
+      directory: "/"
+      schedule:
+          interval: "weekly"
+          day: "monday"
+          time: "09:00"
+          timezone: "America/Argentina/Buenos_Aires"
+      open-pull-requests-limit: 10
+      reviewers:
+          - "eliann313"
+      labels:
+          - "dependencies"
+          - "automated"
+      commit-message:
+          prefix: "chore(deps)"
+          prefix-development: "chore(dev-deps)"
+          include: "scope"
+      groups:
+          # Group all non-breaking Next.js / React updates
+          nextjs-ecosystem:
+              patterns:
+                  - "next"
+                  - "react"
+                  - "react-dom"
+                  - "@types/react*"
+              update-types:
+                  - "minor"
+                  - "patch"
+          # Group TypeScript tooling
+          typescript-tooling:
+              patterns:
+                  - "typescript"
+                  - "@typescript-eslint/*"
+                  - "ts-*"
+              update-types:
+                  - "minor"
+                  - "patch"
+          # Group linting/formatting
+          linting:
+              patterns:
+                  - "eslint*"
+                  - "prettier*"
+                  - "@eslint/*"
+              update-types:
+                  - "minor"
+                  - "patch"
+      ignore:
+          # Pin major versions manually — review breaking changes yourself
+          - dependency-name: "next"
+            update-types: ["version-update:semver-major"]
+          - dependency-name: "react"
+            update-types: ["version-update:semver-major"]
 
-  # GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "America/Argentina/Buenos_Aires"
-    labels:
-      - "dependencies"
-      - "github-actions"
-    commit-message:
-      prefix: "chore(actions)"
+    # GitHub Actions
+    - package-ecosystem: "github-actions"
+      directory: "/"
+      schedule:
+          interval: "weekly"
+          day: "monday"
+          time: "09:00"
+          timezone: "America/Argentina/Buenos_Aires"
+      labels:
+          - "dependencies"
+          - "github-actions"
+      commit-message:
+          prefix: "chore(actions)"
