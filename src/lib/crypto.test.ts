@@ -32,6 +32,9 @@ describe("Criptosistema AES-256-GCM (Tarjeta 7.3)", () => {
 
         const [iv, tag, ciphertext] = parts;
 
+        // Ocultar temporalmente los console.error esperados durante este test
+        const spyError = vi.spyOn(console, "error").mockImplementation(() => {});
+
         // 1. Alterar el ciphertext (cambiar el último carácter hexadecimal)
         const alteredCiphertext = ciphertext.slice(0, -1) + (ciphertext.slice(-1) === "a" ? "b" : "a");
         const corruptedEncrypted1 = `${iv}:${tag}:${alteredCiphertext}`;
@@ -48,6 +51,9 @@ describe("Criptosistema AES-256-GCM (Tarjeta 7.3)", () => {
         const alteredIv = iv.slice(0, -1) + (iv.slice(-1) === "a" ? "b" : "a");
         const corruptedEncrypted3 = `${alteredIv}:${tag}:${ciphertext}`;
         expect(decrypt(corruptedEncrypted3)).toBe("");
+
+        // Restaurar el console.error original
+        spyError.mockRestore();
     });
 
     it("debe realizar el ciclo completo de encriptación y desencriptación con éxito", () => {

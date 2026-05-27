@@ -16,9 +16,6 @@ concurrency:
 env:
     NODE_VERSION: "20"
 
-permissions:
-    contents: read
-
 jobs:
     # ─────────────────────────────────────────
     # 1. Code quality: lint + type-check + format
@@ -28,10 +25,10 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+              uses: actions/checkout@v6
 
             - name: Setup Node.js
-              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+              uses: actions/setup-node@v6
               with:
                   node-version: ${{ env.NODE_VERSION }}
                   cache: "npm"
@@ -57,10 +54,10 @@ jobs:
         needs: quality
         steps:
             - name: Checkout
-              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+              uses: actions/checkout@v6
 
             - name: Setup Node.js
-              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+              uses: actions/setup-node@v6
               with:
                   node-version: ${{ env.NODE_VERSION }}
                   cache: "npm"
@@ -72,7 +69,7 @@ jobs:
               run: npm run test -- --coverage
 
             - name: Upload coverage to Codecov
-              uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
+              uses: codecov/codecov-action@v6
               with:
                   fail_ci_if_error: false
               continue-on-error: true
@@ -86,10 +83,10 @@ jobs:
         needs: [quality, test]
         steps:
             - name: Checkout
-              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+              uses: actions/checkout@v6
 
             - name: Setup Node.js
-              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+              uses: actions/setup-node@v6
               with:
                   node-version: ${{ env.NODE_VERSION }}
                   cache: "npm"
@@ -104,8 +101,9 @@ jobs:
                   NEXT_TELEMETRY_DISABLED: 1
 
             - name: Upload build artifact
-              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+              uses: actions/upload-artifact@v7
               with:
                   name: nextjs-build-${{ github.sha }}
                   path: .next/
+                  include-hidden-files: true
                   retention-days: 7
