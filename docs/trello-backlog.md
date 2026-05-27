@@ -219,6 +219,8 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 - **Criterios de Aceptación:**
   - [ ] Reemplazar la constante estática `mockAnalysis` en `src/app/dashboard/cv-analysis/page.tsx` por datos reales.
   - [ ] Invocar a `uploadAndParseCVAction` pasándole la URL de UploadThing obtenida tras subir el archivo y el nombre del PDF.
+  - [ ] En la Server Action, verificar estrictamente que la sesión de usuario sea válida y aplicar el validador de SSRF y Regex de la URL de UploadThing antes de descargar el archivo.
+  - [ ] Mantener las barreras de prompt del sistema en `CVAnalysisAIService.ts` que marcan el CV como datos pasivos de entrada para neutralizar inyecciones de prompt.
   - [ ] Renderizar en los componentes `ATSScoreCard` y `AnalysisResults` la información real proveniente del objeto de base de datos Neon.
   - [ ] Comprobar que la base de datos de Neon almacena correctamente el JSON del análisis estructurado bajo la fila de la tabla `Resume`.
 - **💡 Arquitectura de IA:** Conectar esta acción a la abstracción multi-modelo desarrollada en la **Tarjeta 7.1** para permitir la conmutación por error (fallback a Groq/OpenRouter) sin acoplar la llamada a Google de forma rígida.
@@ -250,6 +252,7 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
   - [ ] Crear el directorio `src/features/job-match/`.
   - [ ] Definir el Zod Schema para la evaluación estructurada del cruzado de datos (seniority match, alignedSkills, missingSkills, matchScore y recomendaciones).
   - [ ] Implementar la query Prisma en `repository.ts` para crear y guardar las comparaciones en la tabla `JobMatch`.
+  - [ ] **Seguridad (IDOR / Scope Guard):** Validar en la acción del servidor que el `resumeId` consultado pertenezca estrictamente al `userId` autenticado de la sesión. Bloquear e impedir cualquier consulta sobre CVs ajenos.
 - **Rama Git:** `feature/job-match-backend`
 
 ### 🎴 Tarjeta 3.2: Diseñar Prompt e Inferencia de Match en Servidor con IA
@@ -371,6 +374,9 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 - **Criterios de Aceptación:**
   - [ ] Crear el conector en `src/lib/github.ts` que consulte la API de GitHub.
   - [ ] Crear el Route Handler `/src/app/api/github/analyze/route.ts`.
+  - [ ] **Seguridad (Cifrado de Tokens):** Encriptar los access tokens de GitHub OAuth si son guardados o expuestos de forma intermedia, utilizando el módulo criptográfico (`crypto.ts`).
+  - [ ] **Seguridad (Input Sanitization & SSRF Prevention):** Validar y sanitizar el nombre de usuario de GitHub recibido en el input para evitar inyecciones de cabeceras HTTP o SSRF. Solo permitir caracteres alfanuméricos y guiones (`/^[a-zA-Z0-9\-]+$/`).
+  - [ ] **Seguridad (Rate Limiting):** Proteger el endpoint aplicando el limitador de Upstash Redis por ID de usuario.
   - [ ] Definir el Zod Schema para la respuesta estructurada de la IA sobre el perfil GitHub.
   - [ ] Persistir los análisis técnicos y las estadísticas de lenguajes en la tabla `GithubAnalysis` de Prisma.
 - **Rama Git:** `feature/github-analyzer-backend`
@@ -389,20 +395,23 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ---
 
-## 🔑 Módulo 8: Autenticación Novedosa (parcial — Magic Links)
+## 🔑 Módulo 8: Autenticación Novedosa (parcial — Credenciales Seguras)
 
-### 🎴 Tarjeta 8.2: Magic Links de Email sin Contraseña con Resend
+### 🎴 Tarjeta 8.2: Autenticación Tradicional por Email y Contraseña con Hashing Seguro (Bcrypt) + Recuperación de Cuenta
 
 - **Estado:** `[ ] Pendiente`
-- **Prioridad:** Media 🟡
+- **Prioridad:** Alta 🔴
 - **Descripción:**
-  Configurar el inicio de sesión sin contraseñas enviando un enlace mágico temporal al correo electrónico del usuario (Magic Link) utilizando el proveedor de correo de Auth.js v5 y la API de **Resend**.
+  Configurar el inicio de sesión tradicional y seguro con credenciales de Email y Contraseña utilizando el Credentials Provider de Auth.js v5. Para proteger los datos del usuario, las contraseñas se almacenarán en Neon Postgres cifradas mediante hashing criptográfico con salt (usando `bcryptjs` para compatibilidad serverless/edge).
 - **Criterios de Aceptación:**
-  - [ ] Crear una cuenta gratuita en [Resend](https://resend.com) y generar una API Key.
-  - [ ] Importar y configurar el `ResendProvider` en `src/lib/auth.config.ts` (o `auth.ts`).
-  - [ ] Registrar `AUTH_RESEND_KEY` en tus variables de entorno locales y de Vercel.
-  - [ ] Verificar que al ingresar un correo en el formulario de inicio de sesión, se despache un correo con el token y, al hacer clic, redirija correctamente e inicie sesión en la base de datos Neon.
-- **Rama Git:** `feature/auth-magic-links`
+  - [ ] Instalar `bcryptjs` y `@types/bcryptjs` en el proyecto.
+  - [ ] Diseñar el formulario de Registro e Inicio de sesión en `/login` solicitando Email y Contraseña.
+  - [ ] Validar los inputs tanto en frontend como en backend usando Zod (contraseña mínimo 8 caracteres, al menos una letra mayúscula, una minúscula y un número).
+  - [ ] En la Server Action de registro, cifrar la contraseña usando `bcrypt.hash(password, 10)` antes de guardarla en la tabla `User` de Neon.
+  - [ ] En el Credentials Provider de Auth.js v5, comparar la contraseña ingresada con el hash de la base de datos usando `bcrypt.compare`.
+  - [ ] Proteger el endpoint de login aplicando el rate limiter de Upstash Redis (máximo 5 intentos fallidos en 15 minutos por IP/email) para mitigar ataques de fuerza bruta.
+  - [ ] Opcional: Integrar flujo de recuperación de contraseña ("Olvidé mi contraseña") enviando un token seguro y temporal (15 min) al correo del usuario vía **Resend**.
+- **Rama Git:** `feature/auth-secure-credentials`
 
 ---
 
@@ -482,6 +491,7 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 - **Criterios de Aceptación:**
   - [ ] Diseñar el formulario en la vista de reclutador para ingresar el mensaje/pitch de contacto.
   - [ ] Implementar la Server Action `createContactRequestAction` que valide el rol `"recruiter"` y cree la fila en la tabla `ContactRequest` con estado `"pending"`.
+  - [ ] **Seguridad (Sanitización XSS):** Validar y sanitizar el texto del mensaje/pitch del reclutador en la Server Action para impedir inyecciones de código malicioso antes de guardarlo en la base de datos y antes de renderizarlo en el panel del desarrollador.
   - [ ] Crear la vista de "Peticiones de Contacto Recibidas" en el dashboard del Desarrollador (`/dashboard/requests` o sección de notificaciones) cargando las solicitudes donde `developerId === currentUser.id`.
   - [ ] Implementar las Server Actions `acceptContactRequestAction` (cambia el estado a `"accepted"`) y `declineContactRequestAction` (cambia el estado a `"declined"`).
   - [ ] Configurar el control de privacidad estricto del lado del servidor (Server-Only DTOs): si el estado no es `"accepted"`, la Server Action o API del Recruiter omite por completo los campos `name`, `email`, `githubUsername` e `image` en la consulta de base de datos. De esta forma, el payload JSON jamás viaja al navegador si el contacto está pendiente.

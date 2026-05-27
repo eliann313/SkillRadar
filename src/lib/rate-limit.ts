@@ -18,7 +18,27 @@ class InMemorySlidingWindow {
   constructor(
     private limit: number,
     private windowMs: number,
-  ) {}
+  ) {
+    // Rutina de limpieza autónoma para evitar fugas de memoria (DoS)
+    // Revisa y elimina del mapa las llaves cuya ventana de tiempo haya expirado por completo
+    if (typeof window === "undefined") {
+      setInterval(
+        () => {
+          const now = Date.now();
+          const cutoff = now - this.windowMs;
+          for (const [key, timestamps] of this.history.entries()) {
+            const activeTimestamps = timestamps.filter((time) => time > cutoff);
+            if (activeTimestamps.length === 0) {
+              this.history.delete(key);
+            } else {
+              this.history.set(key, activeTimestamps);
+            }
+          }
+        },
+        60 * 60 * 1000,
+      ).unref(); // Corre cada hora y permite apagar el proceso limpiamente
+    }
+  }
 
   async limitRequest(key: string): Promise<RateLimitResult> {
     const now = Date.now();
@@ -121,13 +141,18 @@ if (!jobMatchLimiter) {
 export async function getClientIp(): Promise<string> {
   try {
     const headersList = await headers();
+
+    // 1. Priorizar cabeceras de IP verificadas y sanitizadas por el proxy de confianza (Vercel / Cloudflare)
+    const realIp =
+      headersList.get("x-real-ip") || headersList.get("x-vercel-forwarded-for");
+    if (realIp) return realIp.trim();
+
+    // 2. Si no están, caer en la cadena estándar de X-Forwarded-For
     const forwardedFor = headersList.get("x-forwarded-for");
     if (forwardedFor) {
       const ip = forwardedFor.split(",")[0].trim();
       if (ip) return ip;
     }
-    const realIp = headersList.get("x-real-ip");
-    if (realIp) return realIp;
   } catch (e) {
     console.warn(
       "⚠️ [RateLimit] No se pudieron leer las cabeceras HTTP de Next.js, cayendo en localhost:",

@@ -67,7 +67,8 @@ export function MockInterviewChat({
     const aiMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: "assistant",
-      content: aiResponses[Math.floor(Math.random() * aiResponses.length)],
+      content:
+        aiResponses.at(Math.floor(Math.random() * aiResponses.length)) || "",
       timestamp: new Date(),
     };
 

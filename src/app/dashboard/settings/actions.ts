@@ -41,31 +41,51 @@ export async function saveUserApiKeysAction(input: ApiKeysInput) {
       return { success: false, error: "Usuario no encontrado." };
     }
 
-    const updateData: Record<string, string | null> = {};
+    const updateData: {
+      geminiApiKey?: string | null;
+      groqApiKey?: string | null;
+      openrouterApiKey?: string | null;
+      openaiApiKey?: string | null;
+      anthropicApiKey?: string | null;
+    } = {};
 
-    const keysToProcess: { field: keyof ApiKeysInput; dbField: string }[] = [
-      { field: "geminiApiKey", dbField: "geminiApiKey" },
-      { field: "groqApiKey", dbField: "groqApiKey" },
-      { field: "openrouterApiKey", dbField: "openrouterApiKey" },
-      { field: "openaiApiKey", dbField: "openaiApiKey" },
-      { field: "anthropicApiKey", dbField: "anthropicApiKey" },
-    ];
-
-    for (const { field, dbField } of keysToProcess) {
-      const val = input[field];
-      if (val === undefined) {
-        continue;
+    if (input.geminiApiKey !== undefined) {
+      if (input.geminiApiKey === "") {
+        updateData.geminiApiKey = null;
+      } else if (input.geminiApiKey !== PRESET_PLACEHOLDER) {
+        updateData.geminiApiKey = encrypt(input.geminiApiKey);
       }
+    }
 
-      if (val === "") {
-        // Borrar explícitamente la clave
-        updateData[dbField] = null;
-      } else if (val === PRESET_PLACEHOLDER) {
-        // Ignorar placeholder (mantener la clave anterior en DB)
-        continue;
-      } else {
-        // Cifrar la nueva clave de API
-        updateData[dbField] = encrypt(val);
+    if (input.groqApiKey !== undefined) {
+      if (input.groqApiKey === "") {
+        updateData.groqApiKey = null;
+      } else if (input.groqApiKey !== PRESET_PLACEHOLDER) {
+        updateData.groqApiKey = encrypt(input.groqApiKey);
+      }
+    }
+
+    if (input.openrouterApiKey !== undefined) {
+      if (input.openrouterApiKey === "") {
+        updateData.openrouterApiKey = null;
+      } else if (input.openrouterApiKey !== PRESET_PLACEHOLDER) {
+        updateData.openrouterApiKey = encrypt(input.openrouterApiKey);
+      }
+    }
+
+    if (input.openaiApiKey !== undefined) {
+      if (input.openaiApiKey === "") {
+        updateData.openaiApiKey = null;
+      } else if (input.openaiApiKey !== PRESET_PLACEHOLDER) {
+        updateData.openaiApiKey = encrypt(input.openaiApiKey);
+      }
+    }
+
+    if (input.anthropicApiKey !== undefined) {
+      if (input.anthropicApiKey === "") {
+        updateData.anthropicApiKey = null;
+      } else if (input.anthropicApiKey !== PRESET_PLACEHOLDER) {
+        updateData.anthropicApiKey = encrypt(input.anthropicApiKey);
       }
     }
 

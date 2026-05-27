@@ -108,6 +108,37 @@ export function CVUploadForm({
     disabled: isLoading || isUploading,
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rootProps = getRootProps() as any;
+  const {
+    ref: rootRef,
+    role: rootRole,
+    tabIndex: rootTabIndex,
+    onClick: rootOnClick,
+    onKeyDown: rootOnKeyDown,
+    onFocus: rootOnFocus,
+    onBlur: rootOnBlur,
+    onDragStart: rootOnDragStart,
+    onDragEnter: rootOnDragEnter,
+    onDragOver: rootOnDragOver,
+    onDragLeave: rootOnDragLeave,
+    onDrop: rootOnDrop,
+  } = rootProps;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const inputProps = getInputProps() as any;
+  const {
+    ref: inputRef,
+    type: inputType,
+    style: inputStyle,
+    accept: inputAccept,
+    multiple: inputMultiple,
+    onChange: inputOnChange,
+    onClick: inputOnClick,
+    tabIndex: inputTabIndex,
+    autoComplete: inputAutoComplete,
+  } = inputProps;
+
   const handleRemoveFile = () => {
     setFile(null);
   };
@@ -147,7 +178,18 @@ export function CVUploadForm({
         {/* Dropzone */}
         {!file ? (
           <div
-            {...getRootProps()}
+            ref={rootRef}
+            role={rootRole}
+            tabIndex={rootTabIndex}
+            onClick={rootOnClick}
+            onKeyDown={rootOnKeyDown}
+            onFocus={rootOnFocus}
+            onBlur={rootOnBlur}
+            onDragStart={rootOnDragStart}
+            onDragEnter={rootOnDragEnter}
+            onDragOver={rootOnDragOver}
+            onDragLeave={rootOnDragLeave}
+            onDrop={rootOnDrop}
             className={cn(
               "flex min-h-[200px] cursor-pointer flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed transition-colors",
               isDragActive
@@ -156,7 +198,17 @@ export function CVUploadForm({
               isLoading && "pointer-events-none opacity-50",
             )}
           >
-            <input {...getInputProps()} />
+            <input
+              ref={inputRef}
+              type={inputType}
+              style={inputStyle}
+              accept={inputAccept}
+              multiple={inputMultiple}
+              onChange={inputOnChange}
+              onClick={inputOnClick}
+              tabIndex={inputTabIndex}
+              autoComplete={inputAutoComplete}
+            />
             <div className="flex size-16 items-center justify-center rounded-full bg-muted">
               <Upload className="size-7 text-muted-foreground" />
             </div>

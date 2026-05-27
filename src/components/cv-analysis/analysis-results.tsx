@@ -24,6 +24,22 @@ const seniorityColors: Record<string, string> = {
   lead: "bg-warning/10 text-warning border-warning/20",
 };
 
+export function getSeniorityColor(level: string) {
+  const normalized = String(level).toLowerCase();
+  switch (normalized) {
+    case "junior":
+      return seniorityColors.junior;
+    case "mid":
+      return seniorityColors.mid;
+    case "senior":
+      return seniorityColors.senior;
+    case "lead":
+      return seniorityColors.lead;
+    default:
+      return "";
+  }
+}
+
 export function AnalysisResults({ analysis }: AnalysisResultsProps) {
   return (
     <div className="flex flex-col gap-6">
@@ -67,7 +83,7 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
               <p className="text-sm text-muted-foreground">Estimated Level</p>
               <Badge
                 variant="outline"
-                className={`mt-1 text-sm font-semibold capitalize ${seniorityColors[analysis.estimatedSeniority]}`}
+                className={`mt-1 text-sm font-semibold capitalize ${getSeniorityColor(analysis.estimatedSeniority)}`}
               >
                 {analysis.estimatedSeniority}
               </Badge>

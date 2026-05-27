@@ -2,10 +2,20 @@ import crypto from "crypto";
 
 // Clave secreta de encriptación derivada
 const getEncryptionKey = (): Buffer => {
-  const secret =
-    process.env.ENCRYPTION_KEY ||
-    process.env.AUTH_SECRET ||
-    "skillradar-fallback-development-secret-key-32";
+  const isProd = process.env.NODE_ENV === "production";
+  const secret = process.env.ENCRYPTION_KEY || process.env.AUTH_SECRET;
+
+  if (!secret) {
+    if (isProd) {
+      throw new Error(
+        "❌ [CRITICAL] ENCRYPTION_KEY o AUTH_SECRET no están definidas. Apagando servidor de forma segura en producción para evitar fuga de credenciales.",
+      );
+    }
+    // En desarrollo, permitir fallback temporal para no bloquear a nuevos devs
+    const devFallback = "skillradar-fallback-development-secret-key-32";
+    return crypto.createHash("sha256").update(devFallback).digest();
+  }
+
   // Generar un hash SHA-256 del secreto para obtener exactamente 32 bytes (256 bits)
   return crypto.createHash("sha256").update(secret).digest();
 };

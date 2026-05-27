@@ -117,6 +117,23 @@ const PROVIDER_MODELS: Record<string, { id: string; name: string }[]> = {
   ],
 };
 
+export function getProviderModels(prov: string) {
+  switch (prov) {
+    case "gemini":
+      return PROVIDER_MODELS.gemini;
+    case "openai":
+      return PROVIDER_MODELS.openai;
+    case "anthropic":
+      return PROVIDER_MODELS.anthropic;
+    case "groq":
+      return PROVIDER_MODELS.groq;
+    case "openrouter":
+      return PROVIDER_MODELS.openrouter;
+    default:
+      return [];
+  }
+}
+
 export default function SettingsPage() {
   const { data: session, status } = useSession();
 
@@ -186,7 +203,7 @@ export default function SettingsPage() {
 
         // Validar si el modelo guardado es predefinido o personalizado
         const modelId = d.defaultAiModel || "gemini-2.5-flash";
-        const predefinedModels = PROVIDER_MODELS[prov] || [];
+        const predefinedModels = getProviderModels(prov);
         const isPredefined = predefinedModels.some((m) => m.id === modelId);
 
         if (isPredefined) {
@@ -240,7 +257,7 @@ export default function SettingsPage() {
   // Manejador del cambio de proveedor preferido
   const handleProviderChange = (prov: string) => {
     setPreferredProvider(prov);
-    const models = PROVIDER_MODELS[prov] || [];
+    const models = getProviderModels(prov);
     // Resetear al primer modelo predefinido del nuevo proveedor
     if (models.length > 0) {
       setPreferredModel(models[0].id);
@@ -328,7 +345,22 @@ export default function SettingsPage() {
   };
 
   const toggleKeyVisibility = (provider: string) => {
-    setShowKeys((prev) => ({ ...prev, [provider]: !prev[provider] }));
+    setShowKeys((prev) => {
+      switch (provider) {
+        case "gemini":
+          return { ...prev, gemini: !prev.gemini };
+        case "groq":
+          return { ...prev, groq: !prev.groq };
+        case "openrouter":
+          return { ...prev, openrouter: !prev.openrouter };
+        case "openai":
+          return { ...prev, openai: !prev.openai };
+        case "anthropic":
+          return { ...prev, anthropic: !prev.anthropic };
+        default:
+          return prev;
+      }
+    });
   };
 
   return (
@@ -888,7 +920,7 @@ export default function SettingsPage() {
                       onChange={(e) => handleModelChange(e.target.value)}
                       className="flex h-9 w-full rounded-md border border-border/60 bg-background/50 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {(PROVIDER_MODELS[preferredProvider] || []).map((m) => (
+                      {getProviderModels(preferredProvider).map((m) => (
                         <option key={m.id} value={m.id}>
                           {m.name}
                         </option>

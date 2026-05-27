@@ -77,6 +77,22 @@ const seniorityColors: Record<string, string> = {
   lead: "bg-warning/10 text-warning border-warning/20",
 };
 
+export function getSeniorityColor(level: string) {
+  const normalized = String(level).toLowerCase();
+  switch (normalized) {
+    case "junior":
+      return seniorityColors.junior;
+    case "mid":
+      return seniorityColors.mid;
+    case "senior":
+      return seniorityColors.senior;
+    case "lead":
+      return seniorityColors.lead;
+    default:
+      return "";
+  }
+}
+
 const getScoreColor = (score: number) => {
   if (score >= 90) return "text-emerald";
   if (score >= 75) return "text-primary";
@@ -177,7 +193,7 @@ export function TalentDashboard({
                       variant="outline"
                       className={cn(
                         "mt-2 capitalize",
-                        seniorityColors[talent.estimatedSeniority],
+                        getSeniorityColor(talent.estimatedSeniority),
                       )}
                     >
                       <Award className="mr-1 size-3" />

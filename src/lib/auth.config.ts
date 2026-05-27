@@ -3,6 +3,9 @@ import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 
+const isDev = process.env.NODE_ENV === "development";
+const enableGuestLogin = process.env.ENABLE_GUEST_LOGIN === "true" || isDev;
+
 const providers: NextAuthConfig["providers"] = [
   GitHub({
     clientId: process.env.GITHUB_CLIENT_ID,
@@ -12,26 +15,30 @@ const providers: NextAuthConfig["providers"] = [
     clientId: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   }),
-  Credentials({
-    id: "credentials",
-    name: "Guest Session",
-    credentials: {
-      role: { label: "Role", type: "text" },
-    },
-    async authorize(credentials) {
-      const isRecruiter = credentials?.role === "recruiter";
-      return {
-        id: isRecruiter ? "guest-recruiter-id" : "guest-developer-id",
-        name: isRecruiter ? "Demo Recruiter" : "Demo Developer",
-        email: isRecruiter
-          ? "recruiter-guest@skillradar.dev"
-          : "developer-guest@skillradar.dev",
-        image: null,
-        role: isRecruiter ? "recruiter" : "developer",
-        isGuest: true,
-      };
-    },
-  }),
+  ...(enableGuestLogin
+    ? [
+        Credentials({
+          id: "credentials",
+          name: "Guest Session",
+          credentials: {
+            role: { label: "Role", type: "text" },
+          },
+          async authorize(credentials) {
+            const isRecruiter = credentials?.role === "recruiter";
+            return {
+              id: isRecruiter ? "guest-recruiter-id" : "guest-developer-id",
+              name: isRecruiter ? "Demo Recruiter" : "Demo Developer",
+              email: isRecruiter
+                ? "recruiter-guest@skillradar.dev"
+                : "developer-guest@skillradar.dev",
+              image: null,
+              role: isRecruiter ? "recruiter" : "developer",
+              isGuest: true,
+            };
+          },
+        }),
+      ]
+    : []),
 ];
 
 export const authConfig = {
