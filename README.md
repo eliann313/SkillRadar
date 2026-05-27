@@ -41,17 +41,17 @@ cp .env.example .env
 SkillRadar supports three AI providers with highly generous free tiers:
 
 - **Google Gemini (Primary)**:
-  1.  Go to [Google AI Studio](https://aistudio.google.com/).
-  2.  Click **"Get API Key"** and generate a free key.
-  3.  Copy and paste it into your local `.env` as `GEMINI_API_KEY`.
+    1.  Go to [Google AI Studio](https://aistudio.google.com/).
+    2.  Click **"Get API Key"** and generate a free key.
+    3.  Copy and paste it into your local `.env` as `GEMINI_API_KEY`.
 - **OpenRouter (Alternative/Fallback)**:
-  1.  Create an account at [OpenRouter](https://openrouter.ai/).
-  2.  Create an API Key. You can consume models marked as `:free` without providing any credit card information.
-  3.  Paste the key into your local `.env` as `OPENROUTER_API_KEY`.
+    1.  Create an account at [OpenRouter](https://openrouter.ai/).
+    2.  Create an API Key. You can consume models marked as `:free` without providing any credit card information.
+    3.  Paste the key into your local `.env` as `OPENROUTER_API_KEY`.
 - **Groq (Ultra-fast Inference)**:
-  1.  Register at [Groq Console](https://console.groq.com/).
-  2.  Generate a free API Key instantly.
-  3.  Paste the key into your local `.env` as `GROQ_API_KEY`.
+    1.  Register at [Groq Console](https://console.groq.com/).
+    2.  Generate a free API Key instantly.
+    3.  Paste the key into your local `.env` as `GROQ_API_KEY`.
 
 ### 3. Sincronize the Database
 

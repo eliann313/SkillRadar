@@ -41,17 +41,17 @@ cp .env.example .env
 La plataforma soporta tres proveedores de IA con niveles de acceso gratuitos:
 
 - **Google Gemini (Primario)**:
-  1.  Ingresa a [Google AI Studio](https://aistudio.google.com/).
-  2.  Haz clic en **"Get API Key"** y genérala de forma 100% gratuita.
-  3.  Copia y pega la clave en tu `.env` bajo `GEMINI_API_KEY`.
+    1.  Ingresa a [Google AI Studio](https://aistudio.google.com/).
+    2.  Haz clic en **"Get API Key"** y genérala de forma 100% gratuita.
+    3.  Copia y pega la clave en tu `.env` bajo `GEMINI_API_KEY`.
 - **OpenRouter (Fallback/Alternativo)**:
-  1.  Crea una cuenta en [OpenRouter](https://openrouter.ai/).
-  2.  Genera una API Key gratuita en la sección de Keys. Puedes usar modelos marcados como `:free` sin necesidad de tarjeta de crédito.
-  3.  Copia la clave en tu `.env` bajo `OPENROUTER_API_KEY`.
+    1.  Crea una cuenta en [OpenRouter](https://openrouter.ai/).
+    2.  Genera una API Key gratuita en la sección de Keys. Puedes usar modelos marcados como `:free` sin necesidad de tarjeta de crédito.
+    3.  Copia la clave en tu `.env` bajo `OPENROUTER_API_KEY`.
 - **Groq (Baja Latencia)**:
-  1.  Regístrate en [Groq Console](https://console.groq.com/).
-  2.  Crea una API Key gratuita de inmediato. Cuenta con límites rotativos muy generosos.
-  3.  Copia la clave en tu `.env` bajo `GROQ_API_KEY`.
+    1.  Regístrate en [Groq Console](https://console.groq.com/).
+    2.  Crea una API Key gratuita de inmediato. Cuenta con límites rotativos muy generosos.
+    3.  Copia la clave en tu `.env` bajo `GROQ_API_KEY`.
 
 ### 3. Sincronizar la Base de Datos
 

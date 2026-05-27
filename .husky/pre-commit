@@ -1,1 +1,10 @@
 npx lint-staged
+
+# Intentar ejecutar Semgrep local si está instalado en el PATH o en node_modules
+if command -v semgrep >/dev/null 2>&1 || npx semgrep --version >/dev/null 2>&1; then
+  echo "🛡️ [Husky] Detectado Semgrep CLI. Corriendo análisis estático local..."
+  npm run security:scan
+else
+  echo "⚠️ [Husky] Semgrep CLI no está instalado en este sistema. Omitiendo escaneo rápido pre-commit."
+  echo "   (Despreocúpate: el pipeline de GitHub con CodeQL auditará la seguridad al subir el código)."
+fi

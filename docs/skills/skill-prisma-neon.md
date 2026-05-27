@@ -30,7 +30,7 @@ Cada vez que necesites alterar la base de datos o añadir un campo al schema:
 
 1. **Modificar el Schema:** Editar `prisma/schema.prisma` agregando o actualizando modelos/campos.
 2. **Sincronizar DB en Desarrollo:** Ejecutar `npx.cmd prisma db push`.
-   - _Nota:_ Prisma utilizará automáticamente la conexión sin pooling `DATABASE_URL_UNPOOLED` gracias a `prisma.config.ts`.
+    - _Nota:_ Prisma utilizará automáticamente la conexión sin pooling `DATABASE_URL_UNPOOLED` gracias a `prisma.config.ts`.
 3. **Regenerar Cliente:** Ejecutar `npx.cmd prisma generate` para sincronizar los tipos de TypeScript de `@prisma/client`.
 4. **Verificar el Build:** Ejecutar `npm run build` para garantizar que la modificación no ha roto componentes existentes en la app.
 

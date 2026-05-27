@@ -1,0 +1,59 @@
+---
+description: Reglas de seguridad criptográfica, autenticación segura, prevención de SSRF/XSS y privacidad de datos en SkillRadar
+globs: src/**/*
+---
+# Reglas de Seguridad y Gobernanza Criptográfica de SkillRadar (v1.0)
+
+Este archivo establece las políticas de seguridad obligatorias y convenciones de codificación que deben aplicarse automáticamente por el asistente de IA y los desarrolladores al modificar código en `src/`.
+
+---
+
+## 🔒 1. CIFRADO DE SECRETOS (API KEYS DE LLMS)
+*   **Algoritmo:** Cifrado Simétrico Autenticado **AES-256-GCM** (especificado en `src/lib/crypto.ts`).
+*   **Manejo en Base de Datos:**
+    *   Formato obligatorio: `ivHex:authTagHex:encryptedTextHex`.
+    *   Cada operación de cifrado debe generar un Vector de Inicialización (`IV`) aleatorio único de 12 bytes (`crypto.randomBytes(12)`) y una etiqueta de autenticación (`Auth Tag`) de 16 bytes.
+*   **Seguridad del Cliente:**
+    *   **Prohibido** enviar el ciphertext real o el IV al lado cliente. Las acciones del servidor y APIs solo deben retornar indicadores booleanos (`hasKey`).
+    *   La desencriptación de claves debe realizarse únicamente en memoria del servidor justo antes de llamar al proveedor de IA.
+
+---
+
+## 🔑 2. AUTENTICACIÓN HÍBRIDA PREMIUM
+*   **Estructura del Login:**
+    *   **Login Directo:** Permitir Google/GitHub OAuth y la combinación tradicional de **Email y Contraseña**.
+    *   **Passkeys (WebAuthn):** Integración nativa a futuro para accesos rápidos biométricos (FaceID, TouchID, Windows Hello).
+    *   **2FA (Verificación en 2 pasos):** Códigos dinámicos TOTP (Google Authenticator) como segundo factor opcional para el flujo tradicional de Email/Contraseña.
+    *   **Recuperación de Cuenta (Magic Links):** El concepto de enlace mágico seguro y temporal se reserva **exclusivamente para restablecer contraseñas ("Forgot Password")** vía Resend, eliminándolo como botón de login redundante en la landing.
+*   **Hashing de Contraseñas (Bcrypt):**
+    *   Utilizar `bcryptjs` para hashear las contraseñas antes de guardarlas en Neon Postgres.
+    *   Configurar un factor de coste mínimo de **10 o 12 salt rounds**.
+    *   **Zod Schema:** Contraseña mínima de 8 caracteres con al menos una mayúscula, una minúscula y un número.
+*   **Protección de Fuerza Bruta:**
+    *   El endpoint de login de credenciales debe estar protegido por el rate limiter de Upstash Redis (máximo 5 intentos fallidos en 15 minutos por IP/email).
+
+---
+
+## 📂 3. PRIVACIDAD DE ARCHIVOS (CVS)
+*   **Acceso Seguro:**
+    *   Todos los endpoints de subida (`uploadthing`) deben validar la sesión de usuario mediante `auth()` y rechazar peticiones anónimas.
+    *   No exponer la URL pública estática de UploadThing en el cliente de forma permanente. Utilizar la Server Action `getSignedFileUrlAction` para generar **URLs firmadas de corta duración (máximo 1 hora)**.
+*   **Protección SSRF:**
+    *   Cualquier descarga en el servidor vía `fetch` de URLs externas (ej. descargas de archivos de UploadThing) debe aplicar el **filtro de reconstrucción estática**:
+        1. Validar la URL con una regex estricta de hostnames permitidos (`utfs.io`, `ufs.sh`).
+        2. Extraer el `fileKey` y sanitizarlo con la regex `/^[a-zA-Z0-9\-_.]+$/` para prevenir inyecciones de *Path Traversal*.
+        3. Reconstruir la URL de destino final con strings estáticos en el servidor (ej. `https://utfs.io/f/${fileKey}`). **Nunca usar el host proveído por el usuario.**
+
+---
+
+## 🕶️ 4. PLATAFORMA RECRUITER & DOBLE CIEGO
+*   **Server-Only DTOs:**
+    *   Para perfiles en estado "Doble Ciego" donde el contacto no ha sido aceptado (`status !== "accepted"`), la Server Action debe realizar una consulta selectiva en la base de datos que excluya explícitamente los campos de información personal identificable (`PII`): `name`, `email`, `githubUsername` e `image`.
+    *   **Prohibido** enviar los datos de contacto al navegador y simplemente ocultarlos en la UI.
+*   **Sanitización XSS:**
+    *   Sanitizar los textos de JDs o mensajes personalizados (pitch de reclutamiento) tanto en frontend como backend para evitar inyecciones XSS dirigidas al panel del desarrollador.
+
+---
+
+## 🧠 5. EVITAR INYECCIONES DE PROMPTS EN IA
+*   En todos los prompts de IA (`CV Analysis`, `Job Match`, `Mock Interview`), encapsular los inputs del usuario en delimitadores claros (`=== INICIO ===`) e inyectar instrucciones imperativas en el prompt de sistema para que la IA trate las entradas puramente como datos pasivos, ignorando jailbreaks o redefiniciones de roles.
