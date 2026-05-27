@@ -2,70 +2,70 @@
 # See: https://github.com/actions/labeler
 
 "area: devops":
-  - any:
-      - changed-files:
-          - any-glob-to-any-file:
-              - ".github/**/*"
-              - ".vscode/**/*"
-              - ".gitignore"
-              - "package.json"
-              - "package-lock.json"
-              - "tsconfig.json"
-              - "eslint.config.mjs"
-              - "vitest.config.ts"
-              - "postcss.config.mjs"
+    - any:
+          - changed-files:
+                - any-glob-to-any-file:
+                      - ".github/**/*"
+                      - ".vscode/**/*"
+                      - ".gitignore"
+                      - "package.json"
+                      - "package-lock.json"
+                      - "tsconfig.json"
+                      - "eslint.config.mjs"
+                      - "vitest.config.ts"
+                      - "postcss.config.mjs"
 
 "area: database":
-  - any:
-      - changed-files:
-          - any-glob-to-any-file:
-              - "prisma/**/*"
-              - "db/**/*"
-              - "src/lib/db.ts"
+    - any:
+          - changed-files:
+                - any-glob-to-any-file:
+                      - "prisma/**/*"
+                      - "db/**/*"
+                      - "src/lib/db.ts"
 
 "area: frontend":
-  - any:
-      - changed-files:
-          - any-glob-to-any-file:
-              - "src/app/**/*"
-              - "src/components/**/*"
-              - "src/styles/**/*"
-              - "public/**/*"
-  - all:
-      - changed-files:
-          - any-glob-to-all-files:
-              - "!src/app/api/**/*"
-              - "!**/*.test.*"
-              - "!**/*.spec.*"
+    - any:
+          - changed-files:
+                - any-glob-to-any-file:
+                      - "src/app/**/*"
+                      - "src/components/**/*"
+                      - "src/styles/**/*"
+                      - "public/**/*"
+    - all:
+          - changed-files:
+                - any-glob-to-all-files:
+                      - "!src/app/api/**/*"
+                      - "!**/*.test.*"
+                      - "!**/*.spec.*"
 
 "area: backend":
-  - any:
-      - changed-files:
-          - any-glob-to-any-file:
-              - "src/app/api/**/*"
-              - "src/lib/**/*"
-              - "src/services/**/*"
-              - "src/actions/**/*"
-  - all:
-      - changed-files:
-          - any-glob-to-all-files:
-              - "!src/lib/db.ts"
-              - "!**/*.test.*"
-              - "!**/*.spec.*"
+    - any:
+          - changed-files:
+                - any-glob-to-any-file:
+                      - "src/app/api/**/*"
+                      - "src/lib/**/*"
+                      - "src/services/**/*"
+                      - "src/actions/**/*"
+    - all:
+          - changed-files:
+                - any-glob-to-all-files:
+                      - "!src/lib/db.ts"
+                      - "!**/*.test.*"
+                      - "!**/*.spec.*"
 
 "area: testing":
-  - any:
-      - changed-files:
-          - any-glob-to-any-file:
-              - "src/**/*.test.ts"
-              - "src/**/*.test.tsx"
-              - "src/**/*.spec.ts"
-              - "src/**/*.spec.tsx"
-              - "src/__tests__/**/*"
+    - any:
+          - changed-files:
+                - any-glob-to-any-file:
+                      - "src/**/*.test.ts"
+                      - "src/**/*.test.tsx"
+                      - "src/**/*.spec.ts"
+                      - "src/**/*.spec.tsx"
+                      - "src/__tests__/**/*"
 
 "documentation":
-  - any:
-      - changed-files:
-          - any-glob-to-any-file:
-              - "**/*.md"
-              - "docs/**/*"
+    - any:
+          - changed-files:
+                - any-glob-to-any-file:
+                      - "**/*.md"
+                      - "docs/**/*"
