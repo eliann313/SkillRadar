@@ -14,6 +14,7 @@ model User {
   emailVerified DateTime?
   image         String?
   role          String    @default("developer")
+  passwordHash  String?   @db.Text
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

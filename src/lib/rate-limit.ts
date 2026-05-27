@@ -76,10 +76,13 @@ class InMemorySlidingWindow {
 // Inicializar limitadores de Upstash o InMemory dependientes de la configuración
 let cvLimiter: Ratelimit | InMemorySlidingWindow | null = null;
 let jobMatchLimiter: Ratelimit | InMemorySlidingWindow | null = null;
+let loginLimiter: Ratelimit | InMemorySlidingWindow | null = null;
 
 const CV_LIMIT = 5; // 5 análisis de CV por día
 const JOB_MATCH_LIMIT = 10; // 10 Job Matches por día
+const LOGIN_LIMIT = 5; // 5 intentos de login por 15 min
 const WINDOW_DURATION_MS = 24 * 60 * 60 * 1000; // 24 horas
+const LOGIN_WINDOW_MS = 15 * 60 * 1000; // 15 minutos
 
 const hasUpstashConfig = !!(
   env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
@@ -104,6 +107,13 @@ if (hasUpstashConfig) {
       limiter: Ratelimit.slidingWindow(JOB_MATCH_LIMIT, "24 h"),
       analytics: true,
       prefix: "ratelimit:job-match",
+    });
+
+    loginLimiter = new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(LOGIN_LIMIT, "15 m"),
+      analytics: true,
+      prefix: "ratelimit:login",
     });
 
     console.warn(
@@ -133,6 +143,13 @@ if (!jobMatchLimiter) {
     JOB_MATCH_LIMIT,
     WINDOW_DURATION_MS,
   );
+}
+
+if (!loginLimiter) {
+  console.warn(
+    "⚠️ [RateLimit] Usando limitador en memoria para login (Límite: 5/15min).",
+  );
+  loginLimiter = new InMemorySlidingWindow(LOGIN_LIMIT, LOGIN_WINDOW_MS);
 }
 
 /**
@@ -263,5 +280,26 @@ export async function checkJobMatchRateLimit(
     };
   } else {
     return await jobMatchLimiter!.limitRequest(sanitizedIdentifier);
+  }
+}
+
+/**
+ * Verifica el límite de intentos de login para un identificador (IP).
+ */
+export async function checkLoginRateLimit(
+  identifier: string,
+): Promise<RateLimitResult> {
+  const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
+
+  if (loginLimiter instanceof Ratelimit) {
+    const result = await loginLimiter.limit(sanitizedIdentifier);
+    return {
+      success: result.success,
+      limit: result.limit,
+      remaining: result.remaining,
+      reset: result.reset,
+    };
+  } else {
+    return await loginLimiter!.limitRequest(sanitizedIdentifier);
   }
 }

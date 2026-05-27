@@ -18,7 +18,7 @@ const providers: NextAuthConfig["providers"] = [
   ...(enableGuestLogin
     ? [
         Credentials({
-          id: "credentials",
+          id: "guest",
           name: "Guest Session",
           credentials: {
             role: { label: "Role", type: "text" },

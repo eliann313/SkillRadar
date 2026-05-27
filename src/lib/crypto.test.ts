@@ -127,6 +127,7 @@ describe("Criptosistema AES-256-GCM (Tarjeta 7.3)", () => {
         name: "Mock Crypto User",
         emailVerified: null,
         image: null,
+        passwordHash: null,
         geminiApiKey: encryptedKey,
         groqApiKey: null,
         openrouterApiKey: null,
