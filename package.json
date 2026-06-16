@@ -70,7 +70,7 @@
         "semgrep": "^0.0.1",
         "tailwindcss": "4.3.0",
         "typescript": "5.9.3",
-        "vitest": "4.1.8"
+        "vitest": "4.1.9"
     },
     "overrides": {
         "postcss": "8.5.10",
