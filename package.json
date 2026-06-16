@@ -32,7 +32,7 @@
         "@upstash/redis": "1.38.0",
         "@vercel/analytics": "2.0.1",
         "@vercel/speed-insights": "2.0.0",
-        "ai": "6.0.191",
+        "ai": "6.0.206",
         "bcryptjs": "^3.0.3",
         "class-variance-authority": "0.7.1",
         "clsx": "2.1.1",
