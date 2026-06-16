@@ -18,7 +18,7 @@
         "prepare": "husky"
     },
     "dependencies": {
-        "@ai-sdk/anthropic": "3.0.80",
+        "@ai-sdk/anthropic": "3.0.84",
         "@ai-sdk/google": "3.0.80",
         "@ai-sdk/openai": "3.0.67",
         "@auth/prisma-adapter": "2.11.2",
