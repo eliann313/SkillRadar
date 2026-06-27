@@ -34,6 +34,11 @@ export interface CVAnalysis {
     estimatedSeniority: "junior" | "mid" | "senior" | "lead";
     suggestions: string[];
     createdAt: Date;
+    explainability?: {
+        justification: string;
+        evidenceFound: string[];
+        missingEvidence: string[];
+    };
 }
 
 export interface JobMatch {
@@ -46,6 +51,15 @@ export interface JobMatch {
     missingSkills: string[];
     createdAt: Date;
     recommendations?: string[];
+    explainability?: {
+        justification: string;
+        evidenceFound: string[];
+        missingEvidence: string[];
+    };
+    actionPlan?: Array<{
+        skill: string;
+        steps: string[];
+    }>;
 }
 
 export interface TalentCard {
@@ -56,6 +70,13 @@ export interface TalentCard {
     topSkills: string[];
     languages: string[];
     lastActive: Date;
+    name?: string | null;
+    email?: string | null;
+    githubUsername?: string | null;
+    image?: string | null;
+    contactStatus?: "none" | "pending" | "accepted" | "declined";
+    requestId?: string;
+    justification?: string;
 }
 
 export interface ChatMessage {

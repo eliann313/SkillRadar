@@ -88,6 +88,8 @@ export default function JobMatchPage() {
                     missingSkills: missing,
                     createdAt: new Date(dbJobMatch.createdAt),
                     recommendations: dbAnalysis?.recommendations || [],
+                    explainability: dbAnalysis?.explainability,
+                    actionPlan: dbAnalysis?.actionPlan,
                 };
 
                 setMatch(mappedMatch);

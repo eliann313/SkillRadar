@@ -8,6 +8,13 @@ export const atsAnalysisSchema = z.object({
     strengths: z.array(z.string()),
     improvements: z.array(z.string()),
     estimatedSeniority: z.enum(["junior", "semi-senior", "senior"]),
+    explainability: z
+        .object({
+            justification: z.string(),
+            evidenceFound: z.array(z.string()),
+            missingEvidence: z.array(z.string()),
+        })
+        .optional(),
 });
 
 export type ATSAnalysis = z.infer<typeof atsAnalysisSchema>;

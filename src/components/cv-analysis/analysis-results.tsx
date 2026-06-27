@@ -1,11 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { RadialProgress } from "@/components/dashboard/radial-progress";
 import type { CVAnalysis } from "@/lib/types";
-import { Check, AlertTriangle, Lightbulb, Award } from "lucide-react";
+import { Check, AlertTriangle, Lightbulb, Award, Eye } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ExplainabilityPanel } from "@/components/explainability-panel";
 
 interface AnalysisResultsProps {
     analysis: CVAnalysis;
@@ -35,6 +38,8 @@ export function getSeniorityColor(level: string) {
 }
 
 export function AnalysisResults({ analysis }: AnalysisResultsProps) {
+    const [isPanelOpen, setIsPanelOpen] = useState(false);
+
     return (
         <div className="flex flex-col gap-6">
             {/* Score and Seniority Header */}
@@ -48,15 +53,26 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
                                 <span className="text-xs text-muted-foreground">ATS Score</span>
                             </div>
                         </RadialProgress>
-                        <p className="text-sm text-muted-foreground">
-                            {analysis.atsScore >= 80
-                                ? "Excellent"
-                                : analysis.atsScore >= 60
-                                  ? "Good"
-                                  : analysis.atsScore >= 40
-                                    ? "Needs Work"
-                                    : "Poor"}
-                        </p>
+                        <div className="flex flex-col items-center gap-1">
+                            <p className="text-sm font-semibold text-muted-foreground">
+                                {analysis.atsScore >= 80
+                                    ? "Excellent"
+                                    : analysis.atsScore >= 60
+                                      ? "Good"
+                                      : analysis.atsScore >= 40
+                                        ? "Needs Work"
+                                        : "Poor"}
+                            </p>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setIsPanelOpen(true)}
+                                className="h-7 px-2 gap-1 text-xs text-primary hover:bg-primary/10 hover:text-primary"
+                            >
+                                <Eye className="size-3" />
+                                Ver Razonamiento
+                            </Button>
+                        </div>
                     </div>
 
                     <Separator orientation="vertical" className="hidden h-24 sm:block" />
@@ -145,6 +161,16 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
                     </ul>
                 </CardContent>
             </Card>
+
+            <ExplainabilityPanel
+                isOpen={isPanelOpen}
+                onOpenChange={setIsPanelOpen}
+                title="Explicabilidad del Score ATS"
+                score={analysis.atsScore}
+                justification={analysis.explainability?.justification}
+                evidenceFound={analysis.explainability?.evidenceFound}
+                missingEvidence={analysis.explainability?.missingEvidence}
+            />
         </div>
     );
 }
