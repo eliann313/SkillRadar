@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +12,7 @@ import { Upload, FileText, ChevronDown, X, Loader2, Sparkles } from "lucide-reac
 import { useUploadThing } from "@/lib/uploadthing-client";
 import { toast } from "sonner";
 import { getSignedFileUrlAction } from "@/app/actions/cv-actions";
+import { useSession } from "next-auth/react";
 
 interface CVUploadFormProps {
     onAnalyze: (content: string, fileName?: string) => void;
@@ -21,11 +22,34 @@ interface CVUploadFormProps {
 const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
 
 export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps) {
+    const { data: session } = useSession();
+    const isGuest = session?.user?.isGuest === true;
     const [file, setFile] = useState<File | null>(null);
     const [textContent, setTextContent] = useState("");
     const [isTextOpen, setIsTextOpen] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
+    const [hasUploadError, setHasUploadError] = useState(false);
+
+    useEffect(() => {
+        const handlePdfNotReadable = () => {
+            setIsTextOpen(true);
+            setFile(null); // Limpiar el archivo erróneo
+            setHasUploadError(true);
+            // Timeout para esperar que la animación del Collapsible se complete y enfocar el Textarea
+            setTimeout(() => {
+                const textarea = document.getElementById("cv-text");
+                if (textarea) {
+                    textarea.focus();
+                }
+            }, 200);
+        };
+
+        window.addEventListener("cv-pdf-not-readable", handlePdfNotReadable);
+        return () => {
+            window.removeEventListener("cv-pdf-not-readable", handlePdfNotReadable);
+        };
+    }, []);
 
     const { startUpload } = useUploadThing("resumeUploader", {
         onClientUploadComplete: async (res) => {
@@ -121,6 +145,21 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
     const handleAnalyze = async () => {
         if (file) {
             setIsUploading(true);
+
+            if (isGuest) {
+                // Simulación local de progreso de subida para el modo Demo/Guest
+                // Esto evita el error 500 de UploadThing si no hay claves configuradas
+                for (let progress = 10; progress <= 100; progress += 30) {
+                    setUploadProgress(progress);
+                    await new Promise((resolve) => setTimeout(resolve, 1500 / 4));
+                }
+                setIsUploading(false);
+                setUploadProgress(0);
+                toast.success(`Archivo "${file.name}" subido de forma segura (Modo Demo).`);
+                onAnalyze("https://utfs.io/f/demo-resume.pdf", file.name);
+                return;
+            }
+
             try {
                 const uploadResult = await startUpload([file]);
                 if (!uploadResult) {
@@ -253,9 +292,17 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
                                 value={textContent}
                                 onChange={(e) => {
                                     setTextContent(e.target.value);
-                                    if (e.target.value) setFile(null);
+                                    if (e.target.value) {
+                                        setFile(null);
+                                        setHasUploadError(false); // Limpiar el error visual al editar
+                                    }
                                 }}
-                                className="min-h-[200px] resize-none"
+                                className={cn(
+                                    "min-h-[200px] resize-none transition-all duration-300",
+                                    hasUploadError
+                                        ? "border-amber-500/80 ring-1 ring-amber-500/50 bg-amber-500/5 focus-visible:ring-amber-500/80"
+                                        : "focus-visible:ring-primary",
+                                )}
                                 disabled={isLoading || isUploading}
                             />
                         </div>

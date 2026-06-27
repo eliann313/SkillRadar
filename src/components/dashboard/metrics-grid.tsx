@@ -4,23 +4,45 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { RadialProgress } from "./radial-progress";
-import { useSession } from "next-auth/react";
 import { FileText, Briefcase, MessageSquare, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { Button, buttonVariants } from "@/components/ui/button";
 
-const defaultLimits = {
-    cvAnalysis: { used: 2, limit: 5 },
-    jobMatch: { used: 1, limit: 3 },
-    mockInterview: { used: 0, limit: 2 },
-};
+interface MetricsGridProps {
+    latestResume: {
+        id: string;
+        fileName: string;
+        atsScore: number | null;
+        createdAt: Date | string;
+    } | null;
+    latestJobMatch: {
+        id: string;
+        matchScore: number | null;
+        createdAt: Date | string;
+        analysis: unknown;
+    } | null;
+    limits: {
+        cvAnalysis: { used: number; limit: number };
+        jobMatch: { used: number; limit: number };
+        mockInterview: { used: number; limit: number };
+    };
+}
 
-export function MetricsGrid() {
-    const { data: session } = useSession();
-    const user = session?.user;
-    const accountLimits = defaultLimits;
+export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGridProps) {
+    const atsScore = latestResume?.atsScore ?? 0;
+    const matchScore = latestJobMatch?.matchScore ?? 0;
 
-    const atsScore = user?.role === "developer" ? 78 : 0;
+    // Procesar habilidades del match
+    interface JobAnalysisData {
+        requiredSkills?: string[];
+        missingSkills?: string[];
+        seniority?: string;
+    }
+    const jobAnalysis = latestJobMatch?.analysis as JobAnalysisData | null;
+    const requiredSkills: string[] = jobAnalysis?.requiredSkills || [];
+    const missingSkills: string[] = jobAnalysis?.missingSkills || [];
+    const alignedSkills = requiredSkills.filter((s) => !missingSkills.includes(s));
+    const seniority = jobAnalysis?.seniority || "N/A";
 
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -30,10 +52,12 @@ export function MetricsGrid() {
                     <div className="flex items-center justify-between">
                         <CardTitle className="text-base font-medium">ATS Score</CardTitle>
                         <Badge variant="secondary" className="text-xs">
-                            Last analysis
+                            {latestResume ? "Last analysis" : "No CV"}
                         </Badge>
                     </div>
-                    <CardDescription>Your CV optimization score</CardDescription>
+                    <CardDescription>
+                        {latestResume ? latestResume.fileName : "Your CV optimization score"}
+                    </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center gap-4 pt-4">
                     <RadialProgress value={atsScore} size={140} strokeWidth={10}>
@@ -42,12 +66,14 @@ export function MetricsGrid() {
                             <span className="text-xs text-muted-foreground">out of 100</span>
                         </div>
                     </RadialProgress>
-                    <div className="flex items-center gap-2 text-sm">
-                        <TrendingUp className="size-4 text-emerald" />
-                        <span className="text-muted-foreground">
-                            <span className="font-medium text-emerald">+5</span> from last week
-                        </span>
-                    </div>
+                    {latestResume && (
+                        <div className="flex items-center gap-2 text-sm">
+                            <TrendingUp className="size-4 text-emerald" />
+                            <span className="text-muted-foreground text-xs">
+                                Subido el {new Date(latestResume.createdAt).toLocaleDateString()}
+                            </span>
+                        </div>
+                    )}
                     <Link
                         href="/dashboard/cv-analysis"
                         className={buttonVariants({
@@ -56,7 +82,7 @@ export function MetricsGrid() {
                             className: "w-full",
                         })}
                     >
-                        Improve Score
+                        {latestResume ? "Improve Score" : "Upload CV"}
                     </Link>
                 </CardContent>
             </Card>
@@ -67,25 +93,43 @@ export function MetricsGrid() {
                     <div className="flex items-center justify-between">
                         <CardTitle className="text-base font-medium">Job Match</CardTitle>
                         <Badge variant="secondary" className="text-xs">
-                            Latest
+                            {latestJobMatch ? "Latest Match" : "No matches"}
                         </Badge>
                     </div>
-                    <CardDescription>Recent offer compatibility</CardDescription>
+                    <CardDescription>
+                        {latestJobMatch ? `Match para ${seniority.toUpperCase()}` : "Recent offer compatibility"}
+                    </CardDescription>
                 </CardHeader>
-                <CardContent className="flex flex-col gap-4 pt-4">
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm text-muted-foreground">Senior Frontend Dev</span>
-                            <span className="text-2xl font-bold text-foreground">85%</span>
+                <CardContent className="flex flex-col gap-4 pt-4 justify-between h-[210px]">
+                    {latestJobMatch ? (
+                        <>
+                            <div className="flex flex-col gap-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-muted-foreground truncate max-w-[180px]">
+                                        Afinidad de Perfil
+                                    </span>
+                                    <span className="text-2xl font-bold text-foreground">{matchScore}%</span>
+                                </div>
+                                <Progress value={matchScore} className="h-2" />
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 max-h-[70px] overflow-y-auto">
+                                {alignedSkills.slice(0, 3).map((skill, i) => (
+                                    <Badge key={i} className="bg-emerald/10 text-emerald hover:bg-emerald/20 text-xs">
+                                        {skill}
+                                    </Badge>
+                                ))}
+                                {missingSkills.length > 0 && (
+                                    <Badge className="bg-warning/10 text-warning hover:bg-warning/20 text-xs">
+                                        +{missingSkills.length} gaps
+                                    </Badge>
+                                )}
+                            </div>
+                        </>
+                    ) : (
+                        <div className="text-center py-6 text-xs text-muted-foreground flex flex-col items-center justify-center flex-1">
+                            Compara tu CV con ofertas reales para medir afinidad técnica.
                         </div>
-                        <Progress value={85} className="h-2" />
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                        <Badge className="bg-emerald/10 text-emerald hover:bg-emerald/20 text-xs">React</Badge>
-                        <Badge className="bg-emerald/10 text-emerald hover:bg-emerald/20 text-xs">TypeScript</Badge>
-                        <Badge className="bg-emerald/10 text-emerald hover:bg-emerald/20 text-xs">Next.js</Badge>
-                        <Badge className="bg-warning/10 text-warning hover:bg-warning/20 text-xs">+2 gaps</Badge>
-                    </div>
+                    )}
                     <Link
                         href="/dashboard/job-match"
                         className={buttonVariants({
@@ -94,7 +138,7 @@ export function MetricsGrid() {
                             className: "w-full",
                         })}
                     >
-                        New Match
+                        {latestJobMatch ? "New Match" : "Analyze Match"}
                     </Link>
                 </CardContent>
             </Card>
@@ -119,13 +163,10 @@ export function MetricsGrid() {
                                 <span className="text-muted-foreground">CV Analysis</span>
                             </div>
                             <span className="font-medium">
-                                {accountLimits.cvAnalysis.used}/{accountLimits.cvAnalysis.limit}
+                                {limits.cvAnalysis.used}/{limits.cvAnalysis.limit}
                             </span>
                         </div>
-                        <Progress
-                            value={(accountLimits.cvAnalysis.used / accountLimits.cvAnalysis.limit) * 100}
-                            className="h-1.5"
-                        />
+                        <Progress value={(limits.cvAnalysis.used / limits.cvAnalysis.limit) * 100} className="h-1.5" />
                     </div>
 
                     {/* Job Match */}
@@ -136,13 +177,10 @@ export function MetricsGrid() {
                                 <span className="text-muted-foreground">Job Match</span>
                             </div>
                             <span className="font-medium">
-                                {accountLimits.jobMatch.used}/{accountLimits.jobMatch.limit}
+                                {limits.jobMatch.used}/{limits.jobMatch.limit}
                             </span>
                         </div>
-                        <Progress
-                            value={(accountLimits.jobMatch.used / accountLimits.jobMatch.limit) * 100}
-                            className="h-1.5"
-                        />
+                        <Progress value={(limits.jobMatch.used / limits.jobMatch.limit) * 100} className="h-1.5" />
                     </div>
 
                     {/* Mock Interview */}
@@ -153,17 +191,17 @@ export function MetricsGrid() {
                                 <span className="text-muted-foreground">Mock Interview</span>
                             </div>
                             <span className="font-medium">
-                                {accountLimits.mockInterview.used}/{accountLimits.mockInterview.limit}
+                                {limits.mockInterview.used}/{limits.mockInterview.limit}
                             </span>
                         </div>
                         <Progress
-                            value={(accountLimits.mockInterview.used / accountLimits.mockInterview.limit) * 100}
+                            value={(limits.mockInterview.used / limits.mockInterview.limit) * 100}
                             className="h-1.5"
                         />
                     </div>
 
-                    <Button variant="default" size="sm" className="mt-2 w-full">
-                        Upgrade to Pro
+                    <Button variant="default" size="sm" className="mt-2 w-full" disabled>
+                        Free Tier Active
                     </Button>
                 </CardContent>
             </Card>

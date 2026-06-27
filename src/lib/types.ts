@@ -45,6 +45,7 @@ export interface JobMatch {
     alignedSkills: string[];
     missingSkills: string[];
     createdAt: Date;
+    recommendations?: string[];
 }
 
 export interface TalentCard {

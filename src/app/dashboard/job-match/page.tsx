@@ -1,27 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { JobOfferInput, MatchScoreCard } from "@/components/job-match";
 import type { JobMatch } from "@/lib/types";
 import { redirect } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const mockMatch: JobMatch = {
-    id: "1",
-    userId: "user-1",
-    jobTitle: "Senior Frontend Developer",
-    company: "TechCorp Inc.",
-    matchScore: 85,
-    alignedSkills: ["React", "TypeScript", "Next.js", "REST APIs", "Git", "Agile", "JavaScript", "Responsive Design"],
-    missingSkills: ["GraphQL", "AWS", "Cypress", "Figma"],
-    createdAt: new Date(),
-};
+import { MatchSkeleton } from "@/components/ui/loading-skeletons";
+import { getUserResumesAction } from "@/features/cv-analysis/actions";
+import { createJobMatchAction } from "@/features/job-match/actions";
+import { toast } from "sonner";
+import type { JobMatchAnalysis } from "@/features/job-match/types";
 
 export default function JobMatchPage() {
     const { data: session, status } = useSession();
     const [match, setMatch] = useState<JobMatch | null>(null);
+    const [resumes, setResumes] = useState<{ id: string; fileName: string; createdAt: Date }[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+
+    // Cargar historial de CVs del desarrollador
+    useEffect(() => {
+        if (status === "authenticated" && session?.user?.id) {
+            const loadResumes = async () => {
+                try {
+                    const result = await getUserResumesAction();
+                    if (result.success && result.data) {
+                        setResumes(
+                            result.data.map((r) => ({
+                                id: r.id,
+                                fileName: r.fileName,
+                                createdAt: new Date(r.createdAt),
+                            })),
+                        );
+                    }
+                } catch (error) {
+                    console.error("Error al cargar historial de CVs:", error);
+                }
+            };
+            void loadResumes();
+        }
+    }, [status, session]);
 
     if (status === "loading") {
         return (
@@ -44,12 +62,45 @@ export default function JobMatchPage() {
         redirect("/dashboard");
     }
 
-    const handleMatch = async (_offer: string) => {
+    const handleMatch = async (resumeId: string, offerText: string) => {
         setIsLoading(true);
-        // Simulate AI matching
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        setMatch(mockMatch);
-        setIsLoading(false);
+        setMatch(null); // Ocultar match anterior al empezar una nueva carga
+        try {
+            const result = await createJobMatchAction({
+                resumeId,
+                jobOfferText: offerText,
+            });
+
+            if (result.success) {
+                const dbJobMatch = result.data;
+                const dbAnalysis = dbJobMatch.analysis as unknown as JobMatchAnalysis;
+                const required = dbAnalysis?.requiredSkills || [];
+                const missing = dbAnalysis?.missingSkills || [];
+                const aligned = required.filter((s: string) => !missing.includes(s));
+
+                const mappedMatch: JobMatch = {
+                    id: dbJobMatch.id,
+                    userId: dbJobMatch.userId,
+                    jobTitle: `Match para ${dbAnalysis?.seniority ? dbAnalysis.seniority.toUpperCase() : "Perfil"}`,
+                    company: "Oferta de Empleo Analizada",
+                    matchScore: dbJobMatch.matchScore || 0,
+                    alignedSkills: aligned,
+                    missingSkills: missing,
+                    createdAt: new Date(dbJobMatch.createdAt),
+                    recommendations: dbAnalysis?.recommendations || [],
+                };
+
+                setMatch(mappedMatch);
+                toast.success("¡Análisis de Job Match completado con éxito!");
+            } else {
+                toast.error(result.error);
+            }
+        } catch (error) {
+            console.error("Error al calcular matching:", error);
+            toast.error("Ocurrió un error inesperado al analizar el matching.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -63,13 +114,14 @@ export default function JobMatchPage() {
 
             <div className="grid gap-6 lg:grid-cols-2">
                 <JobOfferInput
-                    onMatch={(offer) => {
-                        void handleMatch(offer);
+                    resumes={resumes}
+                    onMatch={(resumeId, offer) => {
+                        void handleMatch(resumeId, offer);
                     }}
                     isLoading={isLoading}
                 />
 
-                {match && <MatchScoreCard match={match} />}
+                {isLoading ? <MatchSkeleton /> : match ? <MatchScoreCard match={match} /> : null}
             </div>
         </>
     );

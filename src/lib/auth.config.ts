@@ -42,7 +42,7 @@ const providers: NextAuthConfig["providers"] = [
 export const authConfig = {
     providers,
     pages: {
-        signIn: "/",
+        signIn: "/login",
     },
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
@@ -50,19 +50,19 @@ export const authConfig = {
             const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
 
             // Guard against infinitely nested callbackUrl parameters.
-            // This can happen when the signIn page is "/" and NextAuth appends
+            // This can happen when the signIn page is "/login" and NextAuth appends
             // the current URL (which already has ?callbackUrl=...) as the new callbackUrl.
             const rawCallback = nextUrl.searchParams.get("callbackUrl");
             if (rawCallback) {
                 try {
                     const decoded = decodeURIComponent(rawCallback);
                     if (decoded.includes("callbackUrl")) {
-                        // Strip the nested callbackUrl and redirect to a clean root URL
-                        return Response.redirect(new URL("/", nextUrl.origin));
+                        // Strip the nested callbackUrl and redirect to a clean login URL
+                        return Response.redirect(new URL("/login", nextUrl.origin));
                     }
                 } catch {
-                    // If the callbackUrl is malformed, redirect to root as a safe fallback
-                    return Response.redirect(new URL("/", nextUrl.origin));
+                    // If the callbackUrl is malformed, redirect to login as a safe fallback
+                    return Response.redirect(new URL("/login", nextUrl.origin));
                 }
             }
 

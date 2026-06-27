@@ -20,15 +20,15 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 | 6   | 7.3 ✅  | M7     | Auditoría y Verificación del Criptosistema  | 🔴 Bloqueante |
 | 7   | 8.1 ✅  | M8     | Google OAuth Provider                       | 🔴 Bloqueante |
 | 8   | 2.1 ✅  | M2     | CV Upload con UploadThing                   | Core MVP      |
-| 9   | 2.2     | M2     | CV Parse con Gemini Real                    | Core MVP      |
-| 10  | 2.3     | M2     | Textarea Fallback (OCR/Canva)               | Core MVP      |
-| 11  | 3.1     | M3     | Job Match Backend                           | Core MVP      |
-| 12  | 3.2     | M3     | Job Match AI Service                        | Core MVP      |
-| 13  | 3.3     | M3     | Job Match Frontend                          | Core MVP      |
-| 14  | 10.1    | M10    | Dashboard con Datos Reales                  | Core MVP      |
-| 15  | 10.2    | M10    | Context Pipeline CV→Match                   | Core MVP      |
-| 16  | 4.1     | M4     | Landing Page Comercial                      | Core MVP      |
-| 17  | 4.2     | M4     | Skeletons + Toasts (UX Polish)              | Core MVP      |
+| 9   | 2.2 ✅  | M2     | CV Parse con Gemini Real                    | Core MVP      |
+| 10  | 2.3 ✅  | M2     | Textarea Fallback (OCR/Canva)               | Core MVP      |
+| 11  | 3.1 ✅  | M3     | Job Match Backend                           | Core MVP      |
+| 12  | 3.2 ✅  | M3     | Job Match AI Service                        | Core MVP      |
+| 13  | 3.3 ✅  | M3     | Job Match Frontend                          | Core MVP      |
+| 14  | 10.1 ✅ | M10    | Dashboard con Datos Reales                  | Core MVP      |
+| 15  | 10.2 ✅ | M10    | Context Pipeline CV→Match                   | Core MVP      |
+| 16  | 4.1 ✅  | M4     | Landing Page Comercial                      | Core MVP      |
+| 17  | 4.2 ✅  | M4     | Skeletons + Toasts (UX Polish)              | Core MVP      |
 | 18  | 6.1     | M6     | Mock Interview con AI real                  | Diferenciador |
 | 19  | 5.1     | M5     | GitHub Analyzer Backend                     | Diferenciador |
 | 20  | 5.2     | M5     | GitHub Dashboard Frontend                   | Diferenciador |
@@ -212,30 +212,30 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 2.2: Enlazar Formulario de CV con Server Action y Gemini Real
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Reemplazar el análisis simulado de 2.5 segundos en la página de carga de CV y conectar la interfaz con la Server Action del backend `uploadAndParseCVAction` para que ejecute el análisis estructurado de Gemini con Zod en Neon Postgres.
 - **Criterios de Aceptación:**
-    - [ ] Reemplazar la constante estática `mockAnalysis` en `src/app/dashboard/cv-analysis/page.tsx` por datos reales.
-    - [ ] Invocar a `uploadAndParseCVAction` pasándole la URL de UploadThing obtenida tras subir el archivo y el nombre del PDF.
-    - [ ] En la Server Action, verificar estrictamente que la sesión de usuario sea válida y aplicar el validador de SSRF y Regex de la URL de UploadThing antes de descargar el archivo.
-    - [ ] Mantener las barreras de prompt del sistema en `CVAnalysisAIService.ts` que marcan el CV como datos pasivos de entrada para neutralizar inyecciones de prompt.
-    - [ ] Renderizar en los componentes `ATSScoreCard` y `AnalysisResults` la información real proveniente del objeto de base de datos Neon.
-    - [ ] Comprobar que la base de datos de Neon almacena correctamente el JSON del análisis estructurado bajo la fila de la tabla `Resume`.
+    - [x] Reemplazar la constante estática `mockAnalysis` en `src/app/dashboard/cv-analysis/page.tsx` por datos reales.
+    - [x] Invocar a `uploadAndParseCVAction` pasándole la URL de UploadThing obtenida tras subir el archivo y el nombre del PDF.
+    - [x] En la Server Action, verificar estrictamente que la sesión de usuario sea válida y aplicar el validador de SSRF y Regex de la URL de UploadThing antes de descargar el archivo.
+    - [x] Mantener las barreras de prompt del sistema en `CVAnalysisAIService.ts` que marcan el CV como datos pasivos de entrada para neutralizar inyecciones de prompt.
+    - [x] Renderizar en los componentes `ATSScoreCard` y `AnalysisResults` la información real proveniente del objeto de base de datos Neon.
+    - [x] Comprobar que la base de datos de Neon almacena correctamente el JSON del análisis estructurado bajo la fila de la tabla `Resume`.
 - **💡 Arquitectura de IA:** Conectar esta acción a la abstracción multi-modelo desarrollada en la **Tarjeta 7.1** para permitir la conmutación por error (fallback a Groq/OpenRouter) sin acoplar la llamada a Google de forma rígida.
 - **Rama Git:** `feature/cv-actions-neon-integration`
 
 ### 🎴 Tarjeta 2.3: Integrar Textarea Fallback para CVs no Legibles (OCR/Canva)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Si el parseador de PDF devuelve un texto crudo vacío (debido a PDFs escaneados o imágenes complejas sin OCR), mostrar un textarea alternativo para que el desarrollador pegue su CV en texto plano y no interrumpir su flujo.
 - **Criterios de Aceptación:**
-    - [ ] Detectar si el texto extraído en el servicio es nulo o excesivamente corto.
-    - [ ] Desplegar en la UI de forma condicional un aviso advirtiendo la limitación y habilitar el campo `Textarea` para pegar texto crudo.
-    - [ ] Implementar la conexión de este texto directo a la Server Action de análisis y persistir el resultado.
+    - [x] Detectar si el texto extraído en el servicio es nulo o excesivamente corto.
+    - [x] Desplegar en la UI de forma condicional un aviso advirtiendo la limitación y habilitar el campo `Textarea` para pegar texto crudo.
+    - [x] Implementar la conexión de este texto directo a la Server Action de análisis y persistir el resultado.
 - **Rama Git:** `feature/cv-text-fallback`
 
 ---
@@ -244,39 +244,39 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 3.1: Crear Capa de Negocio y Estructura Backend de Job Match
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Actualmente no existe la feature `job-match` en el backend. Debemos extraer la lógica del servidor en la carpeta `src/features/job-match/` definiendo sus actions, service, repository y tipaciones para Gemini y Prisma.
 - **Criterios de Aceptación:**
-    - [ ] Crear el directorio `src/features/job-match/`.
-    - [ ] Definir el Zod Schema para la evaluación estructurada del cruzado de datos (seniority match, alignedSkills, missingSkills, matchScore y recomendaciones).
-    - [ ] Implementar la query Prisma en `repository.ts` para crear y guardar las comparaciones en la tabla `JobMatch`.
-    - [ ] **Seguridad (IDOR / Scope Guard):** Validar en la acción del servidor que el `resumeId` consultado pertenezca estrictamente al `userId` autenticado de la sesión. Bloquear e impedir cualquier consulta sobre CVs ajenos.
+    - [x] Crear el directorio `src/features/job-match/`.
+    - [x] Definir el Zod Schema para la evaluación estructurada del cruzado de datos (seniority match, alignedSkills, missingSkills, matchScore y recomendaciones).
+    - [x] Implementar la query Prisma en `repository.ts` para crear y guardar las comparaciones en la tabla `JobMatch`.
+    - [x] **Seguridad (IDOR / Scope Guard):** Validar en la acción del servidor que el `resumeId` consultado pertenezca estrictamente al `userId` autenticado de la sesión. Bloquear e impedir cualquier consulta sobre CVs ajenos.
 - **Rama Git:** `feature/job-match-backend`
 
 ### 🎴 Tarjeta 3.2: Diseñar Prompt e Inferencia de Match en Servidor con IA
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Desarrollar la lógica en `service.ts` para extraer los requisitos principales de la oferta laboral e invocar a Gemini con Structured Outputs (o Groq Llama 3 en su defecto) para compararla contra el texto crudo del currículum que el usuario elija de su historial.
 - **Criterios de Aceptación:**
-    - [ ] Diseñar el prompt sistemático y estructurado en `src/features/job-match/service.ts`.
-    - [ ] Utilizar el cliente de la **Tarjeta 7.1** para invocar la llamada estructurada con el schema Zod correspondiente.
-    - [ ] Escribir tests unitarios con Vitest para corroborar el cálculo y formateo del score de coincidencia.
+    - [x] Diseñar el prompt sistemático y estructurado en `src/features/job-match/service.ts`.
+    - [x] Utilizar el cliente de la **Tarjeta 7.1** para invocar la llamada estructurada con el schema Zod correspondiente.
+    - [x] Escribir tests unitarios con Vitest para corroborar el cálculo y formateo del score de coincidencia.
 - **Rama Git:** `feature/job-match-ai-evaluation`
 
 ### 🎴 Tarjeta 3.3: Conectar Frontend de Job Match con Server Actions
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Modificar la maqueta estática `/dashboard/job-match` de v0. Permitir al usuario seleccionar mediante un `Select` qué currículum de su historial quiere comparar, pegar la oferta de trabajo y gatillar la Server Action real de comparación.
 - **Criterios de Aceptación:**
-    - [ ] Eliminar `mockMatch` en `src/app/dashboard/job-match/page.tsx`.
-    - [ ] Agregar un menú desplegable (`Select` de shadcn/ui) para cargar los CVs previamente subidos y guardados del desarrollador desde la base de datos Neon.
-    - [ ] Invocar a la Server Action de comparación y renderizar en los componentes `MatchScoreCard` e `GapAnalysis` los datos vivos de la DB.
+    - [x] Eliminar `mockMatch` en `src/app/dashboard/job-match/page.tsx`.
+    - [x] Agregar un menú desplegable (`Select` de shadcn/ui) para cargar los CVs previamente subidos y guardados del desarrollador desde la base de datos Neon.
+    - [x] Invocar a la Server Action de comparación y renderizar en los componentes `MatchScoreCard` e `GapAnalysis` los datos vivos de la DB.
 - **Rama Git:** `feature/job-match-frontend`
 
 ---
@@ -285,28 +285,28 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 10.1: Dashboard con Datos Reales y "Next Action"
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   El Dashboard muestra métricas vivas de Neon (último score, uso de base de datos). Agregar "Next Action Cards" dinámicas basadas en la progresión del usuario (ej: "Sube tu CV para empezar", "Toma una Mock Interview").
 - **Criterios de Aceptación:**
-    - [ ] Reemplazar todos los datos estáticos del overview del Dashboard con queries reales de Prisma que consulten los últimos scores de `Resume`, `JobMatch` y `GithubAnalysis`.
-    - [ ] Implementar un componente dinámico "Next Action" que evalúe el estado del usuario en la DB y renderice una tarjeta interactiva con un llamado a la acción (ej: si no tiene CV, muestra "Subir CV"; si tiene CV pero no matches, muestra "Comparar Oferta").
-    - [ ] Agregar un gráfico pequeño de progreso histórico del Score ATS utilizando Recharts o componentes Tailwind.
-- **Rama Git:** `feature/dashboard-live-data`
+    - [x] Reemplazar todos los datos estáticos del overview del Dashboard con queries reales de Prisma que consulten los últimos scores de `Resume`, `JobMatch` y `GithubAnalysis`.
+    - [x] Implementar un componente dinámico "Next Action" que evalúe el estado del usuario en la DB y renderice una tarjeta interactiva con un llamado a la acción (ej: si no tiene CV, muestra "Subir CV"; si tiene CV pero no matches, muestra "Comparar Oferta").
+    - [x] Agregar un gráfico pequeño de progreso histórico del Score ATS utilizando Recharts o componentes Tailwind.
+- **Rama Git:** `feature/dashboard-landing-polish-pipeline`
 
 ### 🎴 Tarjeta 10.2: Context Pipeline - Conectar CV Real al Match
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Al iniciar un Job Match, el sistema debe precargar los skills extraídos del Resume del usuario desde la DB, no usar mocks genéricos. El dev solo pega la Oferta, la IA cruza Oferta vs CV real.
 - **Criterios de Aceptación:**
-    - [ ] Modificar la query del servicio de Job Match para recibir el `resumeId` seleccionado por el desarrollador.
-    - [ ] Extraer el JSON estructurado de habilidades y experiencia de la tabla `Resume` en Postgres.
-    - [ ] Enviar al prompt de Gemini/Llama el texto estructurado del currículum real recuperado de la base de datos junto con el texto de la nueva Job Offer.
-    - [ ] Validar que los resultados del Match se guarden correctamente en la tabla `JobMatch` con su respectiva relación de clave foránea a la tabla `Resume`.
-- **Rama Git:** `feature/job-match-context-pipeline`
+    - [x] Modificar la query del servicio de Job Match para recibir el `resumeId` seleccionado por el desarrollador.
+    - [x] Extraer el JSON estructurado de habilidades y experiencia de la tabla `Resume` en Postgres.
+    - [x] Enviar al prompt de Gemini/Llama el texto estructurado del currículum real recuperado de la base de datos junto con el texto de la nueva Job Offer.
+    - [x] Validar que los resultados del Match se guarden correctamente en la tabla `JobMatch` con su respectiva relación de clave foránea a la tabla `Resume`.
+- **Rama Git:** `feature/dashboard-landing-polish-pipeline`
 
 ---
 
@@ -314,28 +314,28 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 4.1: Diseñar Landing Page Comercial de Marketing en `/`
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Actualmente, al ingresar a la raíz de la web `/`, se le muestra al usuario anónimo directamente el formulario de inicio de sesión. Vamos a crear una landing page comercial, moderna y descriptiva para captar a usuarios de marketing antes de iniciar sesión.
 - **Criterios de Aceptación:**
-    - [ ] Modificar `src/app/page.tsx` para mostrar la landing de presentación del producto si no hay sesión activa.
-    - [ ] Diseñar un Hero premium con gradientes de fondo, micro-animaciones en Tailwind v4 y CTA atractivos de registro con GitHub.
-    - [ ] Trasladar el formulario de inicio de sesión `LoginForm` a una ruta dedicada `/login` (creando `src/app/login/page.tsx`).
-    - [ ] Garantizar SEO óptimo (meta tags, open graph, y headings estructurados semánticamente).
-- **Rama Git:** `feature/marketing-landing-page`
+    - [x] Modificar `src/app/page.tsx` para mostrar la landing de presentación del producto si no hay sesión activa.
+    - [x] Diseñar un Hero premium con gradientes de fondo, micro-animaciones en Tailwind v4 y CTA atractivos de registro con GitHub.
+    - [x] Trasladar el formulario de inicio de sesión `LoginForm` a una ruta dedicada `/login` (creando `src/app/login/page.tsx`).
+    - [x] Garantizar SEO óptimo (meta tags, open graph, y headings estructurados semánticamente).
+- **Rama Git:** `feature/dashboard-landing-polish-pipeline`
 
 ### 🎴 Tarjeta 4.2: Polishing de Interfaz (Skeletons de Carga & Toasts)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Añadir transiciones fluidas y estados visuales elegantes mediante Skeletons durante las peticiones a la IA y notificaciones dinámicas tipo Toast usando `sonner`.
 - **Criterios de Aceptación:**
-    - [ ] Instalar y registrar el Toast Provider de `sonner` en el root layout.
-    - [ ] Crear loaders visuales de tipo `Skeleton` para los scores y listas de habilidades.
-    - [ ] Desplegar avisos flotantes interactivos de éxito o error tras subidas de archivos o ejecuciones de la IA.
-- **Rama Git:** `feature/ux-polish-skeletons`
+    - [x] Instalar y registrar el Toast Provider de `sonner` en el root layout.
+    - [x] Crear loaders visuales de tipo `Skeleton` para los scores y listas de habilidades.
+    - [x] Desplegar avisos flotantes interactivos de éxito o error tras subidas de archivos o ejecuciones de la IA.
+- **Rama Git:** `feature/dashboard-landing-polish-pipeline`
 
 ---
 

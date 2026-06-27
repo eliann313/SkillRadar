@@ -123,20 +123,24 @@ if (hasUpstashConfig) {
     }
 }
 
+const cvMemoryFallback = new InMemorySlidingWindow(CV_LIMIT, WINDOW_DURATION_MS);
+const jobMatchMemoryFallback = new InMemorySlidingWindow(JOB_MATCH_LIMIT, WINDOW_DURATION_MS);
+const loginMemoryFallback = new InMemorySlidingWindow(LOGIN_LIMIT, LOGIN_WINDOW_MS);
+
 // Inicializar limitadores de memoria si Upstash no está disponible o falló
 if (!cvLimiter) {
     console.warn("⚠️ [RateLimit] Usando limitador en memoria para análisis de CV (Límite: 5/día).");
-    cvLimiter = new InMemorySlidingWindow(CV_LIMIT, WINDOW_DURATION_MS);
+    cvLimiter = cvMemoryFallback;
 }
 
 if (!jobMatchLimiter) {
     console.warn("⚠️ [RateLimit] Usando limitador en memoria para Job Match (Límite: 10/día).");
-    jobMatchLimiter = new InMemorySlidingWindow(JOB_MATCH_LIMIT, WINDOW_DURATION_MS);
+    jobMatchLimiter = jobMatchMemoryFallback;
 }
 
 if (!loginLimiter) {
     console.warn("⚠️ [RateLimit] Usando limitador en memoria para login (Límite: 5/15min).");
-    loginLimiter = new InMemorySlidingWindow(LOGIN_LIMIT, LOGIN_WINDOW_MS);
+    loginLimiter = loginMemoryFallback;
 }
 
 /**
@@ -218,13 +222,21 @@ export async function checkCVRateLimit(identifier: string): Promise<RateLimitRes
     const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
 
     if (cvLimiter instanceof Ratelimit) {
-        const result = await cvLimiter.limit(sanitizedIdentifier);
-        return {
-            success: result.success,
-            limit: result.limit,
-            remaining: result.remaining,
-            reset: result.reset,
-        };
+        try {
+            const result = await cvLimiter.limit(sanitizedIdentifier);
+            return {
+                success: result.success,
+                limit: result.limit,
+                remaining: result.remaining,
+                reset: result.reset,
+            };
+        } catch (error) {
+            console.warn(
+                "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para CV, cayendo en fallback en memoria:",
+                error,
+            );
+            return await cvMemoryFallback.limitRequest(sanitizedIdentifier);
+        }
     } else {
         return await cvLimiter!.limitRequest(sanitizedIdentifier);
     }
@@ -247,13 +259,21 @@ export async function checkJobMatchRateLimit(identifier: string): Promise<RateLi
     const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
 
     if (jobMatchLimiter instanceof Ratelimit) {
-        const result = await jobMatchLimiter.limit(sanitizedIdentifier);
-        return {
-            success: result.success,
-            limit: result.limit,
-            remaining: result.remaining,
-            reset: result.reset,
-        };
+        try {
+            const result = await jobMatchLimiter.limit(sanitizedIdentifier);
+            return {
+                success: result.success,
+                limit: result.limit,
+                remaining: result.remaining,
+                reset: result.reset,
+            };
+        } catch (error) {
+            console.warn(
+                "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para Job Match, cayendo en fallback en memoria:",
+                error,
+            );
+            return await jobMatchMemoryFallback.limitRequest(sanitizedIdentifier);
+        }
     } else {
         return await jobMatchLimiter!.limitRequest(sanitizedIdentifier);
     }
@@ -266,13 +286,21 @@ export async function checkLoginRateLimit(identifier: string): Promise<RateLimit
     const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
 
     if (loginLimiter instanceof Ratelimit) {
-        const result = await loginLimiter.limit(sanitizedIdentifier);
-        return {
-            success: result.success,
-            limit: result.limit,
-            remaining: result.remaining,
-            reset: result.reset,
-        };
+        try {
+            const result = await loginLimiter.limit(sanitizedIdentifier);
+            return {
+                success: result.success,
+                limit: result.limit,
+                remaining: result.remaining,
+                reset: result.reset,
+            };
+        } catch (error) {
+            console.warn(
+                "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para Login, cayendo en fallback en memoria:",
+                error,
+            );
+            return await loginMemoryFallback.limitRequest(sanitizedIdentifier);
+        }
     } else {
         return await loginLimiter!.limitRequest(sanitizedIdentifier);
     }
