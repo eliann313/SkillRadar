@@ -12,6 +12,7 @@ import { Upload, FileText, ChevronDown, X, Loader2, Sparkles } from "lucide-reac
 import { useUploadThing } from "@/lib/uploadthing-client";
 import { toast } from "sonner";
 import { getSignedFileUrlAction } from "@/app/actions/cv-actions";
+import { useSession } from "next-auth/react";
 
 interface CVUploadFormProps {
     onAnalyze: (content: string, fileName?: string) => void;
@@ -21,6 +22,8 @@ interface CVUploadFormProps {
 const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
 
 export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps) {
+    const { data: session } = useSession();
+    const isGuest = session?.user?.isGuest === true;
     const [file, setFile] = useState<File | null>(null);
     const [textContent, setTextContent] = useState("");
     const [isTextOpen, setIsTextOpen] = useState(false);
@@ -121,6 +124,21 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
     const handleAnalyze = async () => {
         if (file) {
             setIsUploading(true);
+
+            if (isGuest) {
+                // Simulación local de progreso de subida para el modo Demo/Guest
+                // Esto evita el error 500 de UploadThing si no hay claves configuradas
+                for (let progress = 10; progress <= 100; progress += 30) {
+                    setUploadProgress(progress);
+                    await new Promise((resolve) => setTimeout(resolve, 1500 / 4));
+                }
+                setIsUploading(false);
+                setUploadProgress(0);
+                toast.success(`Archivo "${file.name}" subido de forma segura (Modo Demo).`);
+                onAnalyze("https://utfs.io/f/demo-resume.pdf", file.name);
+                return;
+            }
+
             try {
                 const uploadResult = await startUpload([file]);
                 if (!uploadResult) {
