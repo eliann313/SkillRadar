@@ -161,7 +161,7 @@ ${jdSanitized}`,
                         userSettings,
                     });
                 } catch (aiError) {
-                    console.error(`[RecruiterService] Error en matching IA para candidato ${candidate.id}:`, aiError);
+                    console.error("[RecruiterService] Error en matching IA para candidato", candidate.id, aiError);
                     matchResult = this.generateSimulatedPoolMatch(activeResume.rawText || "", jdSanitized);
                 }
             }
