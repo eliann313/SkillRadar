@@ -1,4 +1,5 @@
 ---
+trigger: always_on
 description: Reglas globales de arquitectura y codificación de SkillRadar (Next.js 16, Tailwind 4, Base UI v1)
 globs: *
 ---

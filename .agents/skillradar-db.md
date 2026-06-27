@@ -1,4 +1,5 @@
 ---
+trigger: always_on
 description: Reglas y mejores prácticas para el acceso a base de datos con Prisma y Neon PostgreSQL
 globs: prisma/**/*, src/**/repository.ts, src/lib/db.ts
 ---

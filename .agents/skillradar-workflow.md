@@ -1,6 +1,13 @@
 ---
+trigger: always_on
+---
+
+---
+
 description: Reglas del ciclo de vida y flujo de trabajo colaborativo de desarrollo de SkillRadar (Análisis, Git, Husky, Commits, PRs)
-globs: *
+globs: \*
+always: true
+
 ---
 
 # Flujo de Trabajo y Ciclo de Vida de Desarrollo de SkillRadar
@@ -14,7 +21,7 @@ Este documento establece el flujo de trabajo estandarizado que todo desarrollado
 ### 1. 📋 Fase de Análisis (Backlog)
 
 - **Acción obligatoria:** Antes de escribir una sola línea de código, debes leer la definición, los criterios de aceptación y la rama Git sugerida para la tarjeta correspondiente en [trello-backlog.md](file:///c:/Users/Usuario/Desktop/Proyectos%20de%20Desarrollo/skill-radar/docs/trello-backlog.md).
-- **Alineación con el Stack:** Analiza el stack actual (Next.js 16.2.6, Tailwind 4, Prisma, Auth.js v5) y las dependencias ya instaladas en `package.json` para evitar duplicación de librerías o parches innecesarios.
+- **Alineación con el Stack:** Analiza el stack actual (Next.js 16.2.9, Tailwind 4, Prisma, Auth.js v5) y las dependencias ya instaladas en `package.json` para evitar duplicación de librerías o parches innecesarios.
 
 ### 2. 🔀 Fase de Sincronización y Ramificación (Git)
 

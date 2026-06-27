@@ -1,4 +1,5 @@
 ---
+trigger: always_on
 description: Reglas de integración con modelos de lenguaje (LLM) usando Vercel AI SDK y Gemini API
 globs: src/lib/ai/**/*, src/features/**/*service.ts, src/features/**/*ai-service.ts
 ---

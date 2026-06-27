@@ -1,6 +1,13 @@
 ---
+trigger: always_on
+---
+
+---
+
 description: Reglas de seguridad criptográfica, autenticación segura, prevención de SSRF/XSS y privacidad de datos en SkillRadar
-globs: src/**/*
+globs: src/\*_/_
+always: true
+
 ---
 
 # Reglas de Seguridad y Gobernanza Criptográfica de SkillRadar (v1.0)
