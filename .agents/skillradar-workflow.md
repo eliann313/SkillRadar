@@ -1,0 +1,58 @@
+---
+description: Reglas del ciclo de vida y flujo de trabajo colaborativo de desarrollo de SkillRadar (Análisis, Git, Husky, Commits, PRs)
+globs: *
+---
+
+# Flujo de Trabajo y Ciclo de Vida de Desarrollo de SkillRadar
+
+Este documento establece el flujo de trabajo estandarizado que todo desarrollador o agente de IA debe seguir obligatoriamente en este repositorio. Este proceso garantiza la calidad del código, el correcto funcionamiento de las integraciones y una trazabilidad excelente del proyecto.
+
+---
+
+## 🏛️ El Ciclo de Desarrollo en 6 Fases
+
+### 1. 📋 Fase de Análisis (Backlog)
+
+- **Acción obligatoria:** Antes de escribir una sola línea de código, debes leer la definición, los criterios de aceptación y la rama Git sugerida para la tarjeta correspondiente en [trello-backlog.md](file:///c:/Users/Usuario/Desktop/Proyectos%20de%20Desarrollo/skill-radar/docs/trello-backlog.md).
+- **Alineación con el Stack:** Analiza el stack actual (Next.js 16.2.6, Tailwind 4, Prisma, Auth.js v5) y las dependencias ya instaladas en `package.json` para evitar duplicación de librerías o parches innecesarios.
+
+### 2. 🔀 Fase de Sincronización y Ramificación (Git)
+
+- **Sincronizar:** Cambiar a la rama base solicitada por el usuario (normalmente `develop`) y traer los últimos cambios remotos:
+  `git checkout develop && git pull origin develop`
+- **Crear Rama Atómica:** Crear una nueva rama atómica a partir de la base utilizando el prefijo y nombre indicados en la tarjeta (ej. `feature/cv-actions-neon-integration`):
+  `git checkout -b <nombre-de-rama-trello>`
+  _(Nota: Las Pull Requests hacia la rama `main` siempre se hacen desde la rama `develop`, nunca directamente)._
+
+### 3. 💻 Fase de Desarrollo (Codificación Premium)
+
+- **Mejores Prácticas:**
+    - Codificación limpia, legible, sin marcadores de posición (`placeholders`).
+    - Cumplir estrictamente las directrices del stack (Zero `any`, uso de `render={}` en lugar de `asChild` para Base UI v1, patrón de retorno `ActionResult<T>` en Server Actions, llamadas a `auth()` de seguridad en el servidor).
+
+### 4. 🧪 Fase de Verificación de Calidad y Tipado (Pre-Push)
+
+Para garantizar la estabilidad del proyecto en producción y evitar fallos en el pipeline de CI/CD (Vercel):
+
+- **Husky y Automatización Pre-Commit:**
+    - **No hace falta correr Prettier o ESLint de forma manual en cada archivo** antes de commitear. El hook `pre-commit` de Husky intercepta la acción y ejecuta `eslint --fix` y `prettier --write` automáticamente sobre los archivos agregados en el commit.
+- **Chequeo de Tipos y Compilación Obligatorios (Nivel Desarrollador/Agente):**
+    - **¿Quién corre `npm run type-check`? Nos corresponde a nosotros de forma manual** antes de subir la rama o abrir la PR. Husky no ejecuta type-checking en el commit porque validar todos los tipos de TypeScript de la base de código entera ralentiza demasiado los commits rápidos diarios y no es óptimo.
+    - **Comandos Estándar en Windows (CMD Bypass):** Para evitar bloqueos de ejecución de scripts en Powershell, utilizar **siempre** la llamada segura a través de `cmd /c` en lugar de rutas internas de `node_modules`:
+        - **Verificación de Tipado Rápida**: `cmd /c "npm run type-check"`
+        - **Test de Regresión**: `cmd /c "npm run test"` (corre Vitest de forma instantánea en menos de 1 segundo)
+        - **Validación del Build Final**: `cmd /c "npm run build"` (compila el proyecto en producción y ejecuta `type-check` internamente).
+
+### 5. 📦 Fase de Guardado y Envío (Commit & Push)
+
+- **Husky Hooks:** El proyecto tiene Husky y `lint-staged` configurados. Al ejecutar `git commit`, se ejecutarán automáticamente Prettier y ESLint a nivel de commit.
+- **Comandos:**
+    - Añadir cambios: `git add .`
+    - Confirmación descriptiva: `git commit -m "feat(<modulo>): <descripción concisa de la tarjeta>"`
+    - Subida de rama: `git push origin <rama-atomica>`
+
+### 6. 🚀 Fase de Integración Continua (Pull Request)
+
+- **Crear PR:** Una vez subida la rama, arma una Pull Request hacia la rama `develop`.
+- **PR Template obligatorio:** Rellena y respeta estrictamente la plantilla de Pull Requests definida en [.github/pull-request-template.md](file:///c:/Users/Usuario/Desktop/Proyectos%20de%20Desarrollo/skill-radar/.github/pull-request-template.md).
+- **Rigor:** Asegura que los checkboxes de lint, prettier y type-check estén verdaderamente cumplidos y probados localmente antes de solicitar revisión humana.
