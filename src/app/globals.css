@@ -57,8 +57,76 @@
     --color-success-foreground: var(--success-foreground);
 }
 
-/* SkillRadar Dark Theme - Developer Aesthetic */
+/* SkillRadar Light Theme - Clean Developer Aesthetic */
 :root {
+    /* Base - Light theme */
+    --background: oklch(0.98 0.005 285);
+    --foreground: oklch(0.15 0.01 285);
+
+    /* Cards with subtle elevation */
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.15 0.01 285);
+
+    /* Popovers */
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.15 0.01 285);
+
+    /* Primary - Emerald accent */
+    --primary: oklch(0.48 0.14 160);
+    --primary-foreground: oklch(0.98 0.01 285);
+
+    /* Secondary - Light gray */
+    --secondary: oklch(0.94 0.005 285);
+    --secondary-foreground: oklch(0.2 0.01 285);
+
+    /* Muted */
+    --muted: oklch(0.96 0.005 285);
+    --muted-foreground: oklch(0.5 0.01 285);
+
+    /* Accent - Indigo */
+    --accent: oklch(0.45 0.18 270);
+    --accent-foreground: oklch(0.98 0.01 285);
+
+    /* Destructive */
+    --destructive: oklch(0.55 0.18 25);
+
+    /* Borders and inputs */
+    --border: oklch(0.9 0.005 285);
+    --input: oklch(0.92 0.005 285);
+    --ring: oklch(0.48 0.14 160);
+
+    /* Charts */
+    --chart-1: oklch(0.48 0.14 160);
+    --chart-2: oklch(0.45 0.18 270);
+    --chart-3: oklch(0.55 0.12 200);
+    --chart-4: oklch(0.65 0.08 285);
+    --chart-5: oklch(0.75 0.04 285);
+
+    --radius: 0.75rem;
+
+    /* Sidebar */
+    --sidebar: oklch(0.98 0.005 285);
+    --sidebar-foreground: oklch(0.2 0.01 285);
+    --sidebar-primary: oklch(0.48 0.14 160);
+    --sidebar-primary-foreground: oklch(0.98 0.01 285);
+    --sidebar-accent: oklch(0.94 0.005 285);
+    --sidebar-accent-foreground: oklch(0.2 0.01 285);
+    --sidebar-border: oklch(0.9 0.005 285);
+    --sidebar-ring: oklch(0.48 0.14 160);
+
+    /* SkillRadar custom colors */
+    --emerald: oklch(0.48 0.14 160);
+    --emerald-foreground: oklch(0.98 0.01 285);
+    --indigo: oklch(0.45 0.18 270);
+    --indigo-foreground: oklch(0.98 0.01 285);
+    --warning: oklch(0.65 0.15 85);
+    --warning-foreground: oklch(0.15 0.01 85);
+    --success: oklch(0.48 0.14 160);
+    --success-foreground: oklch(0.98 0.01 285);
+}
+
+/* SkillRadar Dark Theme - Developer Aesthetic */
+.dark {
     /* Base - Zinc-950 based dark theme */
     --background: oklch(0.09 0.005 285);
     --foreground: oklch(0.95 0.01 285);

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ThemeToggle } from "./theme-toggle";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -29,6 +30,7 @@ import {
     ChevronRight,
     Menu,
 } from "lucide-react";
+import { GitHubLogoIcon } from "@radix-ui/react-icons";
 
 const developerNavItems = [
     { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -38,6 +40,11 @@ const developerNavItems = [
         href: "/dashboard/interview",
         label: "Mock Interview",
         icon: MessageSquare,
+    },
+    {
+        href: "/dashboard/github",
+        label: "GitHub Analysis",
+        icon: GitHubLogoIcon,
     },
 ];
 
@@ -269,35 +276,40 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             </Sheet>
 
             {/* Main content */}
-            <div className="flex flex-1 flex-col">
-                {/* Mobile header */}
-                <header className="flex h-16 items-center gap-4 border-b border-border bg-background px-4 lg:hidden">
-                    <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-                        <SheetTrigger
-                            render={
-                                <Button variant="ghost" size="icon">
-                                    <Menu />
-                                    <span className="sr-only">Toggle menu</span>
-                                </Button>
-                            }
-                        />
-                    </Sheet>
-                    <Link href="/dashboard" className="flex items-center gap-2">
-                        <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                className="size-4 text-primary"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                            >
-                                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                                <path d="M2 17l10 5 10-5" />
-                                <path d="M2 12l10 5 10-5" />
-                            </svg>
-                        </div>
-                        <span className="font-semibold">SkillRadar</span>
-                    </Link>
+            <div className="flex flex-1 flex-col bg-background">
+                {/* Top header */}
+                <header className="flex h-16 items-center justify-between border-b border-border bg-background px-4 md:px-6 sticky top-0 z-30">
+                    <div className="flex items-center gap-4">
+                        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+                            <SheetTrigger
+                                render={
+                                    <Button variant="ghost" size="icon" className="lg:hidden">
+                                        <Menu />
+                                        <span className="sr-only">Toggle menu</span>
+                                    </Button>
+                                }
+                            />
+                        </Sheet>
+                        <Link href="/dashboard" className="flex items-center gap-2 lg:hidden">
+                            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    className="size-4 text-primary"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                >
+                                    <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                                    <path d="M2 17l10 5 10-5" />
+                                    <path d="M2 12l10 5 10-5" />
+                                </svg>
+                            </div>
+                            <span className="font-semibold text-foreground">SkillRadar</span>
+                        </Link>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <ThemeToggle />
+                    </div>
                 </header>
 
                 {/* Page content */}

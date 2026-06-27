@@ -1,124 +1,280 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useChat } from "@ai-sdk/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { ChatMessage } from "@/lib/types";
+import { startInterviewAction, saveInterviewMessagesAction, finishInterviewAction } from "@/features/interview/actions";
 import { cn } from "@/lib/utils";
-import { Send, Bot, User, Sparkles } from "lucide-react";
+import { Send, Bot, User, Sparkles, CheckCircle2, Zap, Award as Trophy, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
-interface MockInterviewChatProps {
-    initialMessages?: ChatMessage[];
-}
+export function MockInterviewChat() {
+    const [sessionId, setSessionId] = useState<string | null>(null);
+    const [isStarting, setIsStarting] = useState(false);
+    const [isFinishing, setIsFinishing] = useState(false);
+    const [debrief, setDebrief] = useState<{
+        score: number;
+        communicationScore: number;
+        technicalScore: number;
+        architectureScore: number;
+        feedback: string;
+        strengths: string[];
+        improvements: string[];
+    } | null>(null);
 
-export function MockInterviewChat({ initialMessages = [] }: MockInterviewChatProps) {
-    const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
-    const [input, setInput] = useState("");
-    const [isTyping, setIsTyping] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
 
-    // Auto-scroll to bottom when new messages arrive
+    const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages } = useChat({
+        api: "/api/chat/interview",
+        body: {
+            sessionId,
+        },
+        onFinish: (message: { role: string; content: string }) => {
+            if (sessionId) {
+                void saveInterviewMessagesAction(sessionId, [...messages, message]);
+            }
+        },
+    });
+
+    // Auto-scroll al fondo
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
-    }, [messages, isTyping]);
+    }, [messages, isLoading]);
 
-    const handleSend = async () => {
-        if (!input.trim() || isTyping) return;
+    const startInterview = async () => {
+        setIsStarting(true);
+        try {
+            const res = await startInterviewAction();
+            if (res.success && res.data) {
+                setSessionId(res.data.id);
+                toast.success("Sesión de entrevista inicializada.");
+                // Primer mensaje de bienvenida automático
+                const initialMsg = {
+                    id: crypto.randomUUID(),
+                    role: "assistant" as const,
+                    content:
+                        "¡Hola! Bienvenido a tu simulación de entrevista técnica. Para empezar, cuéntame brevemente sobre tu experiencia general en desarrollo de software y qué tecnologías has dominado recientemente.",
+                    createdAt: new Date(),
+                };
+                setMessages([initialMsg]);
+                await saveInterviewMessagesAction(res.data.id, [initialMsg]);
+            } else {
+                toast.error(res.error || "No se pudo iniciar la entrevista.");
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error("Ocurrió un error inesperado al iniciar.");
+        } finally {
+            setIsStarting(false);
+        }
+    };
 
-        const userMessage: ChatMessage = {
-            id: crypto.randomUUID(),
-            role: "user",
-            content: input.trim(),
-            timestamp: new Date(),
-        };
+    const handleFinish = async () => {
+        if (!sessionId) return;
+        setIsFinishing(true);
 
-        setMessages((prev) => [...prev, userMessage]);
-        setInput("");
-        setIsTyping(true);
+        const promise = finishInterviewAction(sessionId);
 
-        // Simulate AI response
-        await new Promise((resolve) => setTimeout(resolve, 1500 + Math.random() * 1000));
-
-        const aiResponses = [
-            "That's a great point. Can you tell me more about a challenging project you worked on recently?",
-            "Interesting approach. How would you handle this if you had limited resources or time constraints?",
-            "I see. What technologies or frameworks would you use to implement this solution?",
-            "Good answer. Can you walk me through your thought process when debugging complex issues?",
-            "That makes sense. How do you stay updated with the latest developments in your field?",
-        ];
-
-        const aiMessage: ChatMessage = {
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: aiResponses.at(Math.floor(Math.random() * aiResponses.length)) || "",
-            timestamp: new Date(),
-        };
-
-        setMessages((prev) => [...prev, aiMessage]);
-        setIsTyping(false);
+        toast.promise(promise, {
+            loading: "Generando tu reporte cualitativo y calificaciones...",
+            success: (res: {
+                success: boolean;
+                data?: {
+                    score: number;
+                    communicationScore: number;
+                    technicalScore: number;
+                    architectureScore: number;
+                    feedback: string;
+                    strengths: string[];
+                    improvements: string[];
+                };
+                error?: string;
+            }) => {
+                if (res.success && res.data) {
+                    setDebrief(res.data);
+                    setIsFinishing(false);
+                    return "¡Reporte compilado con éxito!";
+                } else {
+                    setIsFinishing(false);
+                    throw new Error(res.error || "No se pudo compilar el debrief.");
+                }
+            },
+            error: (err: Error) => {
+                setIsFinishing(false);
+                return err.message;
+            },
+        });
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
-            void handleSend();
+            // Ejecutar el submit del hook useChat
+            const form = e.currentTarget.closest("form");
+            if (form) form.requestSubmit();
         }
     };
 
-    const startInterview = () => {
-        setIsTyping(true);
-        void setTimeout(() => {
-            const welcomeMessage: ChatMessage = {
-                id: crypto.randomUUID(),
-                role: "assistant",
-                content:
-                    "Hello! I'm your AI interviewer today. Let's start with a simple question: Can you tell me about yourself and your experience as a developer?",
-                timestamp: new Date(),
-            };
-            setMessages([welcomeMessage]);
-            setIsTyping(false);
-        }, 1000);
-    };
+    // Renderizado del Debrief (Reporte Final)
+    if (debrief) {
+        return (
+            <div className="space-y-6 animate-fade-in">
+                <Card className="border-border/50 bg-card/40 backdrop-blur-sm shadow-xl p-6">
+                    <CardHeader className="text-center pb-4">
+                        <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-xl bg-primary/10 glow-emerald">
+                            <Trophy className="size-8 text-primary" />
+                        </div>
+                        <CardTitle className="text-2xl font-black">Resultado de la Entrevista</CardTitle>
+                        <CardDescription>Calificaciones estructuradas por el motor de IA de SkillRadar</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-8">
+                        {/* Scores Grid */}
+                        <div className="grid gap-4 sm:grid-cols-4">
+                            <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 text-center">
+                                <p className="text-xs font-semibold text-muted-foreground uppercase">Score Global</p>
+                                <p className="text-3xl font-black text-primary mt-1">{debrief.score}%</p>
+                            </div>
+                            <div className="p-4 rounded-xl border border-border/50 bg-card/30 text-center">
+                                <p className="text-xs font-semibold text-muted-foreground uppercase">
+                                    Conocimiento Técnico
+                                </p>
+                                <p className="text-3xl font-black text-foreground mt-1">{debrief.technicalScore}%</p>
+                            </div>
+                            <div className="p-4 rounded-xl border border-border/50 bg-card/30 text-center">
+                                <p className="text-xs font-semibold text-muted-foreground uppercase">Comunicación</p>
+                                <p className="text-3xl font-black text-foreground mt-1">
+                                    {debrief.communicationScore}%
+                                </p>
+                            </div>
+                            <div className="p-4 rounded-xl border border-border/50 bg-card/30 text-center">
+                                <p className="text-xs font-semibold text-muted-foreground uppercase">
+                                    Arquitectura & Test
+                                </p>
+                                <p className="text-3xl font-black text-foreground mt-1">{debrief.architectureScore}%</p>
+                            </div>
+                        </div>
+
+                        {/* Feedback Cualitativo */}
+                        <div className="p-4 rounded-xl bg-muted/30 border border-border/40">
+                            <h4 className="font-bold text-sm text-foreground flex items-center gap-2 mb-2">
+                                <Zap className="size-4 text-primary" />
+                                Evaluación General
+                            </h4>
+                            <p className="text-xs text-muted-foreground leading-relaxed">{debrief.feedback}</p>
+                        </div>
+
+                        {/* Fortalezas y Puntos de Mejora */}
+                        <div className="grid gap-6 md:grid-cols-2">
+                            <div>
+                                <h4 className="font-bold text-sm text-emerald-500 mb-2 flex items-center gap-2">
+                                    <CheckCircle2 className="size-4" />
+                                    Fortalezas
+                                </h4>
+                                <ul className="space-y-1.5">
+                                    {debrief.strengths.map((str, idx) => (
+                                        <li
+                                            key={idx}
+                                            className="text-xs text-muted-foreground leading-relaxed flex gap-2"
+                                        >
+                                            <span className="text-emerald-500">•</span>
+                                            <span>{str}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-sm text-primary mb-2 flex items-center gap-2">
+                                    <Sparkles className="size-4" />
+                                    Puntos de Mejora
+                                </h4>
+                                <ul className="space-y-1.5">
+                                    {debrief.improvements.map((imp, idx) => (
+                                        <li
+                                            key={idx}
+                                            className="text-xs text-muted-foreground leading-relaxed flex gap-2"
+                                        >
+                                            <span className="text-primary">•</span>
+                                            <span>{imp}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div className="text-center pt-2">
+                            <Button
+                                onClick={() => {
+                                    setDebrief(null);
+                                    setSessionId(null);
+                                    setMessages([]);
+                                }}
+                                className="gap-2"
+                            >
+                                Realizar Nueva Entrevista
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     return (
-        <Card className="flex h-[600px] flex-col border-border/50 bg-card/50 backdrop-blur-sm">
-            <CardHeader className="shrink-0 border-b border-border">
-                <CardTitle className="flex items-center gap-2">
-                    <Bot className="size-5 text-primary" />
-                    Mock Interview
-                </CardTitle>
-                <CardDescription>Practice your interview skills with our AI interviewer</CardDescription>
+        <Card className="flex h-[600px] flex-col border-border/50 bg-card/50 backdrop-blur-sm shadow-xl">
+            <CardHeader className="shrink-0 border-b border-border flex flex-row items-center justify-between py-4">
+                <div>
+                    <CardTitle className="flex items-center gap-2">
+                        <Bot className="size-5 text-primary" />
+                        Simulador de Entrevista
+                    </CardTitle>
+                    <CardDescription>Práctica interactiva adaptada a tu perfil y CV</CardDescription>
+                </div>
+                {sessionId && !isFinishing && (
+                    <Button variant="destructive" size="sm" onClick={() => void handleFinish()}>
+                        Finalizar Entrevista
+                    </Button>
+                )}
             </CardHeader>
 
             <CardContent className="flex flex-1 flex-col gap-4 overflow-hidden p-0">
-                {/* Messages area */}
+                {/* Scroll Area */}
                 <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-                    {messages.length === 0 ? (
-                        <div className="flex h-full flex-col items-center justify-center gap-4 py-12">
+                    {!sessionId ? (
+                        <div className="flex h-full flex-col items-center justify-center gap-4 py-24">
                             <div className="flex size-16 items-center justify-center rounded-full bg-primary/10">
-                                <Sparkles className="size-8 text-primary" />
+                                <Sparkles className="size-8 text-primary animate-pulse" />
                             </div>
                             <div className="text-center">
-                                <h3 className="font-medium text-foreground">Ready to practice?</h3>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    Start a mock interview session with AI
+                                <h3 className="font-semibold text-foreground">¿Listo para practicar?</h3>
+                                <p className="mt-1 text-sm text-muted-foreground max-w-xs">
+                                    Inicia una simulación de entrevista adaptada al CV y ofertas asociadas a tu cuenta.
                                 </p>
                             </div>
-                            <Button onClick={startInterview} className="gap-2">
-                                <Bot data-icon="inline-start" />
-                                Start Interview
+                            <Button onClick={() => void startInterview()} className="gap-2" disabled={isStarting}>
+                                {isStarting ? (
+                                    <>
+                                        <Loader2 className="size-4 animate-spin" />
+                                        Iniciando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Bot className="size-4" />
+                                        Comenzar Entrevista
+                                    </>
+                                )}
                             </Button>
                         </div>
                     ) : (
                         <div className="flex flex-col gap-4">
-                            {messages.map((message) => (
+                            {messages.map((message: { id: string; role: string; content: string }) => (
                                 <div
                                     key={message.id}
                                     className={cn("flex gap-3", message.role === "user" && "flex-row-reverse")}
@@ -142,30 +298,17 @@ export function MockInterviewChat({ initialMessages = [] }: MockInterviewChatPro
                                         className={cn(
                                             "max-w-[80%] rounded-2xl px-4 py-3",
                                             message.role === "assistant"
-                                                ? "rounded-tl-sm bg-muted"
-                                                : "rounded-tr-sm bg-primary text-primary-foreground",
+                                                ? "rounded-tl-sm bg-muted text-sm text-foreground"
+                                                : "rounded-tr-sm bg-primary text-primary-foreground text-sm",
                                         )}
                                     >
-                                        <p className="text-sm leading-relaxed">{message.content}</p>
-                                        <p
-                                            className={cn(
-                                                "mt-1 text-xs",
-                                                message.role === "assistant"
-                                                    ? "text-muted-foreground"
-                                                    : "text-primary-foreground/70",
-                                            )}
-                                        >
-                                            {message.timestamp.toLocaleTimeString([], {
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                            })}
-                                        </p>
+                                        <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
                                     </div>
                                 </div>
                             ))}
 
-                            {/* Typing indicator */}
-                            {isTyping && (
+                            {/* Loader de IA */}
+                            {isLoading && (
                                 <div className="flex gap-3">
                                     <Avatar className="size-8 shrink-0">
                                         <AvatarFallback className="bg-primary/10 text-primary">
@@ -173,9 +316,9 @@ export function MockInterviewChat({ initialMessages = [] }: MockInterviewChatPro
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="flex items-center gap-2 rounded-2xl rounded-tl-sm bg-muted px-4 py-3">
-                                        <Skeleton className="size-2 rounded-full" />
-                                        <Skeleton className="size-2 rounded-full" />
-                                        <Skeleton className="size-2 rounded-full" />
+                                        <Skeleton className="size-2 rounded-full animate-bounce" />
+                                        <Skeleton className="size-2 rounded-full animate-bounce [animation-delay:0.2s]" />
+                                        <Skeleton className="size-2 rounded-full animate-bounce [animation-delay:0.4s]" />
                                     </div>
                                 </div>
                             )}
@@ -183,29 +326,29 @@ export function MockInterviewChat({ initialMessages = [] }: MockInterviewChatPro
                     )}
                 </ScrollArea>
 
-                {/* Input area */}
-                {messages.length > 0 && (
-                    <div className="shrink-0 border-t border-border p-4">
+                {/* Input Form */}
+                {sessionId && (
+                    <form onSubmit={handleSubmit} className="shrink-0 border-t border-border p-4">
                         <div className="flex gap-3">
                             <Textarea
                                 ref={inputRef}
-                                placeholder="Type your response..."
+                                placeholder="Escribe tu respuesta..."
                                 value={input}
-                                onChange={(e) => setInput(e.target.value)}
+                                onChange={handleInputChange}
                                 onKeyDown={handleKeyDown}
-                                disabled={isTyping}
+                                disabled={isLoading || isFinishing}
                                 className="min-h-[44px] max-h-32 resize-none"
                                 rows={1}
                             />
-                            <Button size="icon" onClick={() => void handleSend()} disabled={!input.trim() || isTyping}>
-                                <Send />
-                                <span className="sr-only">Send message</span>
+                            <Button size="icon" type="submit" disabled={!input.trim() || isLoading || isFinishing}>
+                                <Send className="size-4" />
+                                <span className="sr-only">Enviar mensaje</span>
                             </Button>
                         </div>
                         <p className="mt-2 text-xs text-muted-foreground">
-                            Press Enter to send, Shift+Enter for new line
+                            Presiona Enter para enviar, Shift+Enter para salto de línea
                         </p>
-                    </div>
+                    </form>
                 )}
             </CardContent>
         </Card>

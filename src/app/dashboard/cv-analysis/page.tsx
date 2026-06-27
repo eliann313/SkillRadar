@@ -6,6 +6,7 @@ import { CVUploadForm, AnalysisResults } from "@/components/cv-analysis";
 import type { CVAnalysis } from "@/lib/types";
 import { redirect } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AnalysisSkeleton } from "@/components/ui/loading-skeletons";
 import { uploadAndParseCVAction } from "@/features/cv-analysis/actions";
 import { toast } from "sonner";
 import type { ATSAnalysis } from "@/features/cv-analysis/types";
@@ -38,6 +39,7 @@ export default function CVAnalysisPage() {
 
     const handleAnalyze = async (content: string, fileName?: string) => {
         setIsLoading(true);
+        setAnalysis(null); // Ocultar el anterior al empezar una nueva carga
         try {
             const isUrl = content.startsWith("http://") || content.startsWith("https://");
 
@@ -71,6 +73,7 @@ export default function CVAnalysisPage() {
                     estimatedSeniority: mappedSeniority,
                     suggestions: [...(dbAnalysis?.improvements || []), ...(dbAnalysis?.formatIssues || [])],
                     createdAt: new Date(dbResume.createdAt),
+                    explainability: dbAnalysis?.explainability,
                 };
 
                 setAnalysis(mappedAnalysis);
@@ -111,11 +114,13 @@ export default function CVAnalysisPage() {
                     isLoading={isLoading}
                 />
 
-                {analysis && (
+                {isLoading ? (
+                    <AnalysisSkeleton />
+                ) : analysis ? (
                     <div className="lg:col-span-2">
                         <AnalysisResults analysis={analysis} />
                     </div>
-                )}
+                ) : null}
             </div>
         </>
     );

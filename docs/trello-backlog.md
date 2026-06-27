@@ -25,10 +25,10 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 | 11  | 3.1 ✅  | M3     | Job Match Backend                           | Core MVP      |
 | 12  | 3.2 ✅  | M3     | Job Match AI Service                        | Core MVP      |
 | 13  | 3.3 ✅  | M3     | Job Match Frontend                          | Core MVP      |
-| 14  | 10.1    | M10    | Dashboard con Datos Reales                  | Core MVP      |
-| 15  | 10.2    | M10    | Context Pipeline CV→Match                   | Core MVP      |
-| 16  | 4.1     | M4     | Landing Page Comercial                      | Core MVP      |
-| 17  | 4.2     | M4     | Skeletons + Toasts (UX Polish)              | Core MVP      |
+| 14  | 10.1 ✅ | M10    | Dashboard con Datos Reales                  | Core MVP      |
+| 15  | 10.2 ✅ | M10    | Context Pipeline CV→Match                   | Core MVP      |
+| 16  | 4.1 ✅  | M4     | Landing Page Comercial                      | Core MVP      |
+| 17  | 4.2 ✅  | M4     | Skeletons + Toasts (UX Polish)              | Core MVP      |
 | 18  | 6.1     | M6     | Mock Interview con AI real                  | Diferenciador |
 | 19  | 5.1     | M5     | GitHub Analyzer Backend                     | Diferenciador |
 | 20  | 5.2     | M5     | GitHub Dashboard Frontend                   | Diferenciador |
@@ -285,28 +285,28 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 10.1: Dashboard con Datos Reales y "Next Action"
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   El Dashboard muestra métricas vivas de Neon (último score, uso de base de datos). Agregar "Next Action Cards" dinámicas basadas en la progresión del usuario (ej: "Sube tu CV para empezar", "Toma una Mock Interview").
 - **Criterios de Aceptación:**
-    - [ ] Reemplazar todos los datos estáticos del overview del Dashboard con queries reales de Prisma que consulten los últimos scores de `Resume`, `JobMatch` y `GithubAnalysis`.
-    - [ ] Implementar un componente dinámico "Next Action" que evalúe el estado del usuario en la DB y renderice una tarjeta interactiva con un llamado a la acción (ej: si no tiene CV, muestra "Subir CV"; si tiene CV pero no matches, muestra "Comparar Oferta").
-    - [ ] Agregar un gráfico pequeño de progreso histórico del Score ATS utilizando Recharts o componentes Tailwind.
-- **Rama Git:** `feature/dashboard-live-data`
+    - [x] Reemplazar todos los datos estáticos del overview del Dashboard con queries reales de Prisma que consulten los últimos scores de `Resume`, `JobMatch` y `GithubAnalysis`.
+    - [x] Implementar un componente dinámico "Next Action" que evalúe el estado del usuario en la DB y renderice una tarjeta interactiva con un llamado a la acción (ej: si no tiene CV, muestra "Subir CV"; si tiene CV pero no matches, muestra "Comparar Oferta").
+    - [x] Agregar un gráfico pequeño de progreso histórico del Score ATS utilizando Recharts o componentes Tailwind.
+- **Rama Git:** `feature/dashboard-landing-polish-pipeline`
 
 ### 🎴 Tarjeta 10.2: Context Pipeline - Conectar CV Real al Match
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Al iniciar un Job Match, el sistema debe precargar los skills extraídos del Resume del usuario desde la DB, no usar mocks genéricos. El dev solo pega la Oferta, la IA cruza Oferta vs CV real.
 - **Criterios de Aceptación:**
-    - [ ] Modificar la query del servicio de Job Match para recibir el `resumeId` seleccionado por el desarrollador.
-    - [ ] Extraer el JSON estructurado de habilidades y experiencia de la tabla `Resume` en Postgres.
-    - [ ] Enviar al prompt de Gemini/Llama el texto estructurado del currículum real recuperado de la base de datos junto con el texto de la nueva Job Offer.
-    - [ ] Validar que los resultados del Match se guarden correctamente en la tabla `JobMatch` con su respectiva relación de clave foránea a la tabla `Resume`.
-- **Rama Git:** `feature/job-match-context-pipeline`
+    - [x] Modificar la query del servicio de Job Match para recibir el `resumeId` seleccionado por el desarrollador.
+    - [x] Extraer el JSON estructurado de habilidades y experiencia de la tabla `Resume` en Postgres.
+    - [x] Enviar al prompt de Gemini/Llama el texto estructurado del currículum real recuperado de la base de datos junto con el texto de la nueva Job Offer.
+    - [x] Validar que los resultados del Match se guarden correctamente en la tabla `JobMatch` con su respectiva relación de clave foránea a la tabla `Resume`.
+- **Rama Git:** `feature/dashboard-landing-polish-pipeline`
 
 ---
 
@@ -314,28 +314,28 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 4.1: Diseñar Landing Page Comercial de Marketing en `/`
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Actualmente, al ingresar a la raíz de la web `/`, se le muestra al usuario anónimo directamente el formulario de inicio de sesión. Vamos a crear una landing page comercial, moderna y descriptiva para captar a usuarios de marketing antes de iniciar sesión.
 - **Criterios de Aceptación:**
-    - [ ] Modificar `src/app/page.tsx` para mostrar la landing de presentación del producto si no hay sesión activa.
-    - [ ] Diseñar un Hero premium con gradientes de fondo, micro-animaciones en Tailwind v4 y CTA atractivos de registro con GitHub.
-    - [ ] Trasladar el formulario de inicio de sesión `LoginForm` a una ruta dedicada `/login` (creando `src/app/login/page.tsx`).
-    - [ ] Garantizar SEO óptimo (meta tags, open graph, y headings estructurados semánticamente).
-- **Rama Git:** `feature/marketing-landing-page`
+    - [x] Modificar `src/app/page.tsx` para mostrar la landing de presentación del producto si no hay sesión activa.
+    - [x] Diseñar un Hero premium con gradientes de fondo, micro-animaciones en Tailwind v4 y CTA atractivos de registro con GitHub.
+    - [x] Trasladar el formulario de inicio de sesión `LoginForm` a una ruta dedicada `/login` (creando `src/app/login/page.tsx`).
+    - [x] Garantizar SEO óptimo (meta tags, open graph, y headings estructurados semánticamente).
+- **Rama Git:** `feature/dashboard-landing-polish-pipeline`
 
 ### 🎴 Tarjeta 4.2: Polishing de Interfaz (Skeletons de Carga & Toasts)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Añadir transiciones fluidas y estados visuales elegantes mediante Skeletons durante las peticiones a la IA y notificaciones dinámicas tipo Toast usando `sonner`.
 - **Criterios de Aceptación:**
-    - [ ] Instalar y registrar el Toast Provider de `sonner` en el root layout.
-    - [ ] Crear loaders visuales de tipo `Skeleton` para los scores y listas de habilidades.
-    - [ ] Desplegar avisos flotantes interactivos de éxito o error tras subidas de archivos o ejecuciones de la IA.
-- **Rama Git:** `feature/ux-polish-skeletons`
+    - [x] Instalar y registrar el Toast Provider de `sonner` en el root layout.
+    - [x] Crear loaders visuales de tipo `Skeleton` para los scores y listas de habilidades.
+    - [x] Desplegar avisos flotantes interactivos de éxito o error tras subidas de archivos o ejecuciones de la IA.
+- **Rama Git:** `feature/dashboard-landing-polish-pipeline`
 
 ---
 
@@ -349,49 +349,49 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 6.1: Conectar Chat de Mock Interview con Vercel AI SDK y Gemini
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡 (¡Subido desde Baja / Fase 2!)
 - **Descripción:**
   Actualmente, el chat interactivo en `/dashboard/interview` responde preguntas aleatorias en base a un array plano en el cliente. Vamos a conectar esta UI con el Vercel AI SDK e implementar una Server Action real para simular una entrevista técnica en vivo adaptada al CV y habilidades del desarrollador, persistiendo el resultado en la base de datos.
 - **Criterios de Aceptación:**
-    - [ ] Integrar el hook de chat dinámico en `src/components/interview/mock-interview-chat.tsx` utilizando `useChat` o Server Actions en streaming.
-    - [ ] Implementar la Server Action que inyecte el CV seleccionado y los gaps del Job Match al prompt del LLM (Gemini 2.5 Flash / Groq) como contexto de entrevista técnica estructurada.
-    - [ ] Escribir la lógica del disparador "Finalizar Entrevista": el chat termina, y el sistema invoca una llamada de LLM separada asíncrona para compilar el **Debrief JSON** estructurado con calificaciones por área (ej. comunicación técnica, arquitectura, testing).
-    - [ ] Guardar los datos de la entrevista en el nuevo modelo `InterviewSession` de Prisma (relacionando `userId`, `debrief`, `score` de match y el array serializado de `messages`).
-    - [ ] Validar que la UI del dashboard renderice adecuadamente los scores históricos de estas entrevistas para el "Score Progression Timeline".
-- **Rama Git:** `feature/mock-interview-ai-real`
+    - [x] Integrar el hook de chat dinámico en `src/components/interview/mock-interview-chat.tsx` utilizando `useChat` o Server Actions en streaming.
+    - [x] Implementar la Server Action que inyecte el CV seleccionado y los gaps del Job Match al prompt del LLM (Gemini 2.5 Flash / Groq) como contexto de entrevista técnica estructurada.
+    - [x] Escribir la lógica del disparador "Finalizar Entrevista": el chat termina, y el sistema invoca una llamada de LLM separada asíncrona para compilar el **Debrief JSON** estructurado con calificaciones por área (ej. comunicación técnica, arquitectura, testing).
+    - [x] Guardar los datos de la entrevista en el nuevo modelo `InterviewSession` de Prisma (relacionando `userId`, `debrief`, `score` de match y el array serializado de `messages`).
+    - [x] Validar que la UI del dashboard renderice adecuadamente los scores históricos de estas entrevistas para el "Score Progression Timeline".
+- **Rama Git:** `feature/mvp-tier3-integration-bundle`
 
 ---
 
 ## 🔌 Módulo 5: GitHub Signal Translation
 
-### 🎴 Tarjeta 5.1: Implementar Route Handler `/api/github/analyze` y API Connector
+### 🎴 Tarjeta 5.1: Implementar Route Handler `/api/github/analyze` and API Connector
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Baja 🟢
 - **Descripción:**
   Crear la conexión con la API de GitHub usando el access token de GitHub OAuth del usuario, extraer datos de repos públicos y procesar con Gemini un reporte técnico sobre la calidad del código, READMEs y commits.
 - **Criterios de Aceptación:**
-    - [ ] Crear el conector en `src/lib/github.ts` que consulte la API de GitHub.
-    - [ ] Crear el Route Handler `/src/app/api/github/analyze/route.ts`.
-    - [ ] **Seguridad (Cifrado de Tokens):** Encriptar los access tokens de GitHub OAuth si son guardados o expuestos de forma intermedia, utilizando el módulo criptográfico (`crypto.ts`).
-    - [ ] **Seguridad (Input Sanitization & SSRF Prevention):** Validar y sanitizar el nombre de usuario de GitHub recibido en el input para evitar inyecciones de cabeceras HTTP o SSRF. Solo permitir caracteres alfanuméricos y guiones (`/^[a-zA-Z0-9\-]+$/`).
-    - [ ] **Seguridad (Rate Limiting):** Proteger el endpoint aplicando el limitador de Upstash Redis por ID de usuario.
-    - [ ] Definir el Zod Schema para la respuesta estructurada de la IA sobre el perfil GitHub.
-    - [ ] Persistir los análisis técnicos y las estadísticas de lenguajes en la tabla `GithubAnalysis` de Prisma.
-- **Rama Git:** `feature/github-analyzer-backend`
+    - [x] Crear el conector en `src/lib/github.ts` que consulte la API de GitHub.
+    - [x] Crear el Route Handler `/src/app/api/github/analyze/route.ts`.
+    - [x] **Seguridad (Cifrado de Tokens):** Encriptar los access tokens de GitHub OAuth si son guardados o expuestos de forma intermedia, utilizando el módulo criptográfico (`crypto.ts`).
+    - [x] **Seguridad (Input Sanitization & SSRF Prevention):** Validar y sanitizar el nombre de usuario de GitHub recibido en el input para evitar inyecciones de cabeceras HTTP o SSRF. Solo permitir caracteres alfanuméricos y guiones (`/^[a-zA-Z0-9\-]+$/`).
+    - [x] **Seguridad (Rate Limiting):** Proteger el endpoint aplicando el limitador de Upstash Redis por ID de usuario.
+    - [x] Definir el Zod Schema para la respuesta estructurada de la IA sobre el perfil GitHub.
+    - [x] Persistir los análisis técnicos y las estadísticas de lenguajes en la tabla `GithubAnalysis` de Prisma.
+- **Rama Git:** `feature/mvp-tier3-integration-bundle`
 
 ### 🎴 Tarjeta 5.2: Crear Vista Dashboard de Análisis GitHub
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Baja 🟢
 - **Descripción:**
   Agregar la ruta `/dashboard/github` y crear la UI interactiva que muestre gráficos de distribución de lenguajes (bytes), frecuencias de commits e informes cualitativos generados por la IA.
 - **Criterios de Aceptación:**
-    - [ ] Crear la página `src/app/dashboard/github/page.tsx` en el dashboard.
-    - [ ] Diseñar los componentes UI necesarios (LanguageChart, RepoList, StrengthsWeaknessesCard).
-    - [ ] Conectar los componentes a los datos reales de base de datos e implementar un botón de actualización de perfil en tiempo real.
-- **Rama Git:** `feature/github-dashboard-frontend`
+    - [x] Crear la página `src/app/dashboard/github/page.tsx` en el dashboard.
+    - [x] Diseñar los componentes UI necesarios (LanguageChart, RepoList, StrengthsWeaknessesCard).
+    - [x] Conectar los componentes a los datos reales de base de datos e implementar un botón de actualización de perfil en tiempo real.
+- **Rama Git:** `feature/mvp-tier3-integration-bundle`
 
 ---
 
@@ -399,19 +399,19 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 8.2: Autenticación Tradicional por Email y Contraseña con Hashing Seguro (Bcrypt) + Recuperación de Cuenta
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Configurar el inicio de sesión tradicional y seguro con credenciales de Email y Contraseña utilizando el Credentials Provider de Auth.js v5. Para proteger los datos del usuario, las contraseñas se almacenarán en Neon Postgres cifradas mediante hashing criptográfico con salt (usando `bcryptjs` para compatibilidad serverless/edge).
 - **Criterios de Aceptación:**
-    - [ ] Instalar `bcryptjs` y `@types/bcryptjs` en el proyecto.
-    - [ ] Diseñar el formulario de Registro e Inicio de sesión en `/login` solicitando Email y Contraseña.
-    - [ ] Validar los inputs tanto en frontend como en backend usando Zod (contraseña mínimo 8 caracteres, al menos una letra mayúscula, una minúscula y un número).
-    - [ ] En la Server Action de registro, cifrar la contraseña usando `bcrypt.hash(password, 10)` antes de guardarla en la tabla `User` de Neon.
-    - [ ] En el Credentials Provider de Auth.js v5, comparar la contraseña ingresada con el hash de la base de datos usando `bcrypt.compare`.
-    - [ ] Proteger el endpoint de login aplicando el rate limiter de Upstash Redis (máximo 5 intentos fallidos en 15 minutos por IP/email) para mitigar ataques de fuerza bruta.
-    - [ ] Opcional: Integrar flujo de recuperación de contraseña ("Olvidé mi contraseña") enviando un token seguro y temporal (15 min) al correo del usuario vía **Resend**.
-- **Rama Git:** `feature/auth-secure-credentials`
+    - [x] Instalar `bcryptjs` y `@types/bcryptjs` en el proyecto.
+    - [x] Diseñar el formulario de Registro e Inicio de sesión en `/login` solicitando Email y Contraseña.
+    - [x] Validar los inputs tanto en frontend como en backend usando Zod (contraseña mínimo 8 caracteres, al menos una letra mayúscula, una minúscula y un número).
+    - [x] En la Server Action de registro, cifrar la contraseña usando `bcrypt.hash(password, 10)` antes de guardarla en la tabla `User` de Neon.
+    - [x] En el Credentials Provider de Auth.js v5, comparar la contraseña ingresada con el hash de la base de datos usando `bcrypt.compare`.
+    - [x] Proteger el endpoint de login aplicando el rate limiter de Upstash Redis (máximo 5 intentos fallidos en 15 minutos por IP/email) para mitigar ataques de fuerza bruta.
+    - [x] Opcional: Integrar flujo de recuperación de contraseña ("Olvidé mi contraseña") enviando un token seguro y temporal (15 min) al correo del usuario vía **Resend**.
+- **Rama Git:** `feature/mvp-tier3-integration-bundle`
 
 ---
 
@@ -419,16 +419,16 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 1.2: Implementar Dark & Light Theme con next-themes
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Instalar y configurar `next-themes` para dar soporte dinámico de color en el frontend y añadir un selector visual de temas en la barra superior del dashboard.
 - **Criterios de Aceptación:**
-    - [ ] Instalar la librería `next-themes` en el proyecto.
-    - [ ] Configurar el provider de temas en `src/app/layout.tsx`.
-    - [ ] Crear un componente selector `ThemeToggle` usando shadcn/ui.
-    - [ ] Comprobar que los estilos de Tailwind CSS v4 respondan adecuadamente al cambiar de modo en todas las vistas principales.
-- **Rama Git:** `feature/theme-switcher-implementation`
+    - [x] Instalar la librería `next-themes` en el proyecto.
+    - [x] Configurar el provider de temas en `src/app/layout.tsx`.
+    - [x] Crear un componente selector `ThemeToggle` usando shadcn/ui.
+    - [x] Comprobar que los estilos de Tailwind CSS v4 respondan adecuadamente al cambiar de modo en todas las vistas principales.
+- **Rama Git:** `feature/combined-matching-theme-explainability`
 
 ---
 
@@ -442,41 +442,41 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 11.1: Reverse Job-Matching (Recruiter)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   El recruiter pega una JD y la IA rankea a todo el Talent Pool anónimo mostrando un % de match y una justificación breve para cada desarrollador.
 - **Criterios de Aceptación:**
-    - [ ] Crear la interfaz del Recruiter con un campo de texto para pegar la Job Description (JD).
-    - [ ] Implementar una Server Action que consulte todos los perfiles de desarrolladores activos en la base de datos Postgres (de forma anónima).
-    - [ ] Procesar con la IA la JD en comparación con los perfiles del pool de talento y devolver un listado ordenado por el porcentaje de encaje.
-    - [ ] Renderizar una lista interactiva de candidatos ordenada por afinidad con información oculta (Doble Ciego) mostrando solo el matching % y el extracto de encaje.
-- **Rama Git:** `feature/recruiter-reverse-matching`
+    - [x] Crear la interfaz del Recruiter con un campo de texto para pegar la Job Description (JD).
+    - [x] Implementar una Server Action que consulte todos los perfiles de desarrolladores activos en la base de datos Postgres (de forma anónima).
+    - [x] Procesar con la IA la JD en comparación con los perfiles del pool de talento y devolver un listado ordenado por el porcentaje de encaje.
+    - [x] Renderizar una lista interactiva de candidatos ordenada por afinidad con información oculta (Doble Ciego) mostrando solo el matching % y el extracto de encaje.
+- **Rama Git:** `feature/combined-matching-theme-explainability`
 
 ### 🎴 Tarjeta 11.2: Skill Gap Action Plan & Upskilling Roadmap
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Después de un Job Match, si se detectan gaps, generar un mini-roadmap de 3 pasos de recursos para que el dev sepa cómo cubrirlos.
 - **Criterios de Aceptación:**
-    - [ ] En el JSON retornado por la IA en el análisis de Job Match, inyectar un array estructurado de "Action Steps" para las habilidades faltantes (missingSkills).
-    - [ ] Generar para cada brecha un consejo práctico de estudio (ej: proyectos sugeridos, documentación oficial, conceptos clave a aprender).
-    - [ ] Renderizar de forma visual e interactiva este plan en una sección del dashboard llamada "Tu Ruta de Crecimiento" o "Action Plan".
-- **Rama Git:** `feature/skill-gap-roadmap`
+    - [x] En el JSON retornado por la IA en el análisis de Job Match, inyectar un array estructurado de "Action Steps" para las habilidades faltantes (missingSkills).
+    - [x] Generar para cada brecha un consejo práctico de estudio (ej: proyectos sugeridos, documentación oficial, conceptos clave a aprender).
+    - [x] Renderizar de forma visual e interactiva este plan en una sección del dashboard llamada "Tu Ruta de Crecimiento" o "Action Plan".
+- **Rama Git:** `feature/combined-matching-theme-explainability`
 
 ### 🎴 Tarjeta 11.3: Explainability Layer (Capa de Explicabilidad)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   En la UI, cada vez que haya un Score (ATS o Match), incluir un botón/tooltip que desglose el razonamiento de la IA (Fortalezas detectadas, Evidencia faltante).
 - **Criterios de Aceptación:**
-    - [ ] Crear un componente reutilizable de tipo Modal/Drawer de shadcn/ui llamado `ExplainabilityPanel`.
-    - [ ] Configurar el prompt del parser para extraer el razonamiento cualitativo de la IA detrás de los scores otorgados.
-    - [ ] Habilitar un botón interactivo (ej: icono de ojo o "Ver Razonamiento") junto a cada puntaje que abra este panel con las justificaciones, la evidencia encontrada y los puntos débiles detectados de forma clara.
-    - [ ] Implementar una política de seguridad estricta para las claves de API (OpenAI/Gemini/Anthropic): todas las llamadas se realizarán únicamente desde Server Actions, utilizando variables de entorno en Vercel con encriptación en reposo y sin exponer jamás las claves al lado cliente.
-- **Rama Git:** `feature/explainability-layer`
+    - [x] Crear un componente reutilizable de tipo Modal/Drawer de shadcn/ui llamado `ExplainabilityPanel`.
+    - [x] Configurar el prompt del parser para extraer el razonamiento cualitativo de la IA detrás de los scores otorgados.
+    - [x] Habilitar un botón interactivo (ej: icono de ojo o "Ver Razonamiento") junto a cada puntaje que abra este panel con las justificaciones, la evidencia encontrada y los puntos débiles detectados de forma clara.
+    - [x] Implementar una política de seguridad estricta para las claves de API (OpenAI/Gemini/Anthropic): todas las llamadas se realizarán únicamente desde Server Actions, utilizando variables de entorno en Vercel con encriptación en reposo y sin exponer jamás las claves al lado cliente.
+- **Rama Git:** `feature/combined-matching-theme-explainability`
 
 ---
 
@@ -484,18 +484,18 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 12.1: Opt-In de Doble Ciego (Contact Request Flow)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Baja 🟢
 - **Descripción:**
   Implementar el flujo asíncrono y seguro donde el reclutador pulsa "Solicitar Contacto" (enviando un "Pitch" anónimo) sobre un perfil del Talent Pool. El desarrollador recibe la propuesta anónima en su dashboard y puede aceptarla (revelando sus datos personales de contacto) o declinarla de forma silenciosa.
 - **Criterios de Aceptación:**
-    - [ ] Diseñar el formulario en la vista de reclutador para ingresar el mensaje/pitch de contacto.
-    - [ ] Implementar la Server Action `createContactRequestAction` que valide el rol `"recruiter"` y cree la fila en la tabla `ContactRequest` con estado `"pending"`.
-    - [ ] **Seguridad (Sanitización XSS):** Validar y sanitizar el texto del mensaje/pitch del reclutador en la Server Action para impedir inyecciones de código malicioso antes de guardarlo en la base de datos y antes de renderizarlo en el panel del desarrollador.
-    - [ ] Crear la vista de "Peticiones de Contacto Recibidas" en el dashboard del Desarrollador (`/dashboard/requests` o sección de notificaciones) cargando las solicitudes donde `developerId === currentUser.id`.
-    - [ ] Implementar las Server Actions `acceptContactRequestAction` (cambia el estado a `"accepted"`) y `declineContactRequestAction` (cambia el estado a `"declined"`).
-    - [ ] Configurar el control de privacidad estricto del lado del servidor (Server-Only DTOs): si el estado no es `"accepted"`, la Server Action o API del Recruiter omite por completo los campos `name`, `email`, `githubUsername` e `image` en la consulta de base de datos. De esta forma, el payload JSON jamás viaja al navegador si el contacto está pendiente.
-- **Rama Git:** `feature/double-blind-contact`
+    - [x] Diseñar el formulario en la vista de reclutador para ingresar el mensaje/pitch de contacto.
+    - [x] Implementar la Server Action `createContactRequestAction` que valide el rol `"recruiter"` y cree la fila en la tabla `ContactRequest` con estado `"pending"`.
+    - [x] **Seguridad (Sanitización XSS):** Validar y sanitizar el texto del mensaje/pitch del reclutador en la Server Action para impedir inyecciones de código malicioso antes de guardarlo en la base de datos y antes de renderizarlo en el panel del desarrollador.
+    - [x] Crear la vista de "Peticiones de Contacto Recibidas" en el dashboard del Desarrollador (`/dashboard/requests` o sección de notificaciones) cargando las solicitudes donde `developerId === currentUser.id`.
+    - [x] Implementar las Server Actions `acceptContactRequestAction` (cambia el estado a `"accepted"`) y `declineContactRequestAction` (cambia el estado a `"declined"`).
+    - [x] Configurar el control de privacidad estricto del lado del servidor (Server-Only DTOs): si el estado no es `"accepted"`, la Server Action o API del Recruiter omite por completo los campos `name`, `email`, `githubUsername` e `image` en la consulta de base de datos. De esta forma, el payload JSON jamás viaja al navegador si el contacto está pendiente.
+- **Rama Git:** `feature/combined-matching-theme-explainability`
 
 ### 🎴 Tarjeta 12.2: Smart Shortlist y Alertas de Recruiter
 

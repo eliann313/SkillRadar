@@ -76,10 +76,12 @@ class InMemorySlidingWindow {
 // Inicializar limitadores de Upstash o InMemory dependientes de la configuración
 let cvLimiter: Ratelimit | InMemorySlidingWindow | null = null;
 let jobMatchLimiter: Ratelimit | InMemorySlidingWindow | null = null;
+let githubLimiter: Ratelimit | InMemorySlidingWindow | null = null;
 let loginLimiter: Ratelimit | InMemorySlidingWindow | null = null;
 
 const CV_LIMIT = 5; // 5 análisis de CV por día
 const JOB_MATCH_LIMIT = 10; // 10 Job Matches por día
+const GITHUB_LIMIT = 10; // 10 análisis de GitHub por día
 const LOGIN_LIMIT = 5; // 5 intentos de login por 15 min
 const WINDOW_DURATION_MS = 24 * 60 * 60 * 1000; // 24 horas
 const LOGIN_WINDOW_MS = 15 * 60 * 1000; // 15 minutos
@@ -107,6 +109,13 @@ if (hasUpstashConfig) {
             prefix: "ratelimit:job-match",
         });
 
+        githubLimiter = new Ratelimit({
+            redis,
+            limiter: Ratelimit.slidingWindow(GITHUB_LIMIT, "24 h"),
+            analytics: true,
+            prefix: "ratelimit:github",
+        });
+
         loginLimiter = new Ratelimit({
             redis,
             limiter: Ratelimit.slidingWindow(LOGIN_LIMIT, "15 m"),
@@ -125,6 +134,7 @@ if (hasUpstashConfig) {
 
 const cvMemoryFallback = new InMemorySlidingWindow(CV_LIMIT, WINDOW_DURATION_MS);
 const jobMatchMemoryFallback = new InMemorySlidingWindow(JOB_MATCH_LIMIT, WINDOW_DURATION_MS);
+const githubMemoryFallback = new InMemorySlidingWindow(GITHUB_LIMIT, WINDOW_DURATION_MS);
 const loginMemoryFallback = new InMemorySlidingWindow(LOGIN_LIMIT, LOGIN_WINDOW_MS);
 
 // Inicializar limitadores de memoria si Upstash no está disponible o falló
@@ -136,6 +146,11 @@ if (!cvLimiter) {
 if (!jobMatchLimiter) {
     console.warn("⚠️ [RateLimit] Usando limitador en memoria para Job Match (Límite: 10/día).");
     jobMatchLimiter = jobMatchMemoryFallback;
+}
+
+if (!githubLimiter) {
+    console.warn("⚠️ [RateLimit] Usando limitador en memoria para GitHub (Límite: 10/día).");
+    githubLimiter = githubMemoryFallback;
 }
 
 if (!loginLimiter) {
@@ -303,5 +318,42 @@ export async function checkLoginRateLimit(identifier: string): Promise<RateLimit
         }
     } else {
         return await loginLimiter!.limitRequest(sanitizedIdentifier);
+    }
+}
+
+/**
+ * Verifica el límite de análisis de GitHub para un identificador (UserId o IP).
+ */
+export async function checkGithubRateLimit(identifier: string): Promise<RateLimitResult> {
+    // Primero verificar el bypass de llaves personales de usuario
+    if (await checkUserHasApiKeyBypass(identifier)) {
+        return {
+            success: true,
+            limit: 999,
+            remaining: 999,
+            reset: Date.now() + WINDOW_DURATION_MS,
+        };
+    }
+
+    const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
+
+    if (githubLimiter instanceof Ratelimit) {
+        try {
+            const result = await githubLimiter.limit(sanitizedIdentifier);
+            return {
+                success: result.success,
+                limit: result.limit,
+                remaining: result.remaining,
+                reset: result.reset,
+            };
+        } catch (error) {
+            console.warn(
+                "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para GitHub, cayendo en fallback en memoria:",
+                error,
+            );
+            return await githubMemoryFallback.limitRequest(sanitizedIdentifier);
+        }
+    } else {
+        return await githubLimiter!.limitRequest(sanitizedIdentifier);
     }
 }
