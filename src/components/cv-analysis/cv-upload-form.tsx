@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,6 +29,27 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
     const [isTextOpen, setIsTextOpen] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
+    const [hasUploadError, setHasUploadError] = useState(false);
+
+    useEffect(() => {
+        const handlePdfNotReadable = () => {
+            setIsTextOpen(true);
+            setFile(null); // Limpiar el archivo erróneo
+            setHasUploadError(true);
+            // Timeout para esperar que la animación del Collapsible se complete y enfocar el Textarea
+            setTimeout(() => {
+                const textarea = document.getElementById("cv-text");
+                if (textarea) {
+                    textarea.focus();
+                }
+            }, 200);
+        };
+
+        window.addEventListener("cv-pdf-not-readable", handlePdfNotReadable);
+        return () => {
+            window.removeEventListener("cv-pdf-not-readable", handlePdfNotReadable);
+        };
+    }, []);
 
     const { startUpload } = useUploadThing("resumeUploader", {
         onClientUploadComplete: async (res) => {
@@ -271,9 +292,17 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
                                 value={textContent}
                                 onChange={(e) => {
                                     setTextContent(e.target.value);
-                                    if (e.target.value) setFile(null);
+                                    if (e.target.value) {
+                                        setFile(null);
+                                        setHasUploadError(false); // Limpiar el error visual al editar
+                                    }
                                 }}
-                                className="min-h-[200px] resize-none"
+                                className={cn(
+                                    "min-h-[200px] resize-none transition-all duration-300",
+                                    hasUploadError
+                                        ? "border-amber-500/80 ring-1 ring-amber-500/50 bg-amber-500/5 focus-visible:ring-amber-500/80"
+                                        : "focus-visible:ring-primary",
+                                )}
                                 disabled={isLoading || isUploading}
                             />
                         </div>

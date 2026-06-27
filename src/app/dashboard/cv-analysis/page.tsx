@@ -41,40 +41,50 @@ export default function CVAnalysisPage() {
         try {
             const isUrl = content.startsWith("http://") || content.startsWith("https://");
 
+            let result;
             if (isUrl) {
-                const result = await uploadAndParseCVAction({
+                result = await uploadAndParseCVAction({
                     fileUrl: content,
                     fileName: fileName || "curriculum.pdf",
                 });
+            } else {
+                result = await uploadAndParseCVAction({
+                    rawText: content,
+                    fileName: fileName || "curriculum_texto.txt",
+                });
+            }
 
-                if (result.success) {
-                    const dbResume = result.data;
-                    const dbAnalysis = dbResume.analysis as ATSAnalysis | null;
+            if (result.success) {
+                const dbResume = result.data;
+                const dbAnalysis = dbResume.analysis as ATSAnalysis | null;
 
-                    const rawSeniority = dbAnalysis?.estimatedSeniority || "mid";
-                    const mappedSeniority: "junior" | "mid" | "senior" | "lead" =
-                        rawSeniority === "semi-senior" ? "mid" : (rawSeniority as "junior" | "mid" | "senior" | "lead");
+                const rawSeniority = dbAnalysis?.estimatedSeniority || "mid";
+                const mappedSeniority: "junior" | "mid" | "senior" | "lead" =
+                    rawSeniority === "semi-senior" ? "mid" : (rawSeniority as "junior" | "mid" | "senior" | "lead");
 
-                    const mappedAnalysis: CVAnalysis = {
-                        id: dbResume.id,
-                        userId: session.user.id,
-                        atsScore: dbResume.atsScore ?? (dbAnalysis?.atsScore || 0),
-                        detectedKeywords: dbAnalysis?.keywords || [],
-                        missingKeywords: dbAnalysis?.missingKeywords || [],
-                        estimatedSeniority: mappedSeniority,
-                        suggestions: [...(dbAnalysis?.improvements || []), ...(dbAnalysis?.formatIssues || [])],
-                        createdAt: new Date(dbResume.createdAt),
-                    };
+                const mappedAnalysis: CVAnalysis = {
+                    id: dbResume.id,
+                    userId: session.user.id,
+                    atsScore: dbResume.atsScore ?? (dbAnalysis?.atsScore || 0),
+                    detectedKeywords: dbAnalysis?.keywords || [],
+                    missingKeywords: dbAnalysis?.missingKeywords || [],
+                    estimatedSeniority: mappedSeniority,
+                    suggestions: [...(dbAnalysis?.improvements || []), ...(dbAnalysis?.formatIssues || [])],
+                    createdAt: new Date(dbResume.createdAt),
+                };
 
-                    setAnalysis(mappedAnalysis);
-                    toast.success("¡Análisis de CV completado con éxito!");
+                setAnalysis(mappedAnalysis);
+                toast.success("¡Análisis de CV completado con éxito!");
+            } else {
+                if (result.error === "PDF_NOT_READABLE") {
+                    toast.error(
+                        "El PDF subido no contiene texto legible (posiblemente sea una imagen escaneada). Por favor, usa la sección de abajo para pegar el texto crudo de tu CV directamente.",
+                        { duration: 8000 },
+                    );
+                    window.dispatchEvent(new CustomEvent("cv-pdf-not-readable"));
                 } else {
                     toast.error(result.error || "Ocurrió un error al procesar el archivo.");
                 }
-            } else {
-                toast.error(
-                    "El análisis mediante texto pegado estará disponible próximamente. Por favor sube un archivo PDF.",
-                );
             }
         } catch (error) {
             console.error("Error al analizar el CV:", error);

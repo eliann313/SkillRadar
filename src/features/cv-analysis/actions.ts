@@ -7,8 +7,9 @@ import { revalidatePath } from "next/cache";
 import { checkCVRateLimit, getClientIp } from "@/lib/rate-limit";
 
 interface ParseCVInput {
-    fileUrl: string;
+    fileUrl?: string;
     fileName: string;
+    rawText?: string;
 }
 interface ParseCVResult {
     id: string;
@@ -47,11 +48,16 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
             };
         }
 
-        const { fileUrl, fileName } = input;
-        if (!fileUrl || !fileName) {
+        const { fileUrl, fileName, rawText } = input;
+        if (!fileName) {
+            return { success: false, error: "Nombre de archivo inválido." };
+        }
+
+        if (!fileUrl && !rawText) {
             return { success: false, error: "Datos de archivo inválidos." };
         }
 
+        // 3. Manejo de Modo Demo/Guest
         if (isGuest) {
             // Simular retraso de análisis de IA para realismo
             await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -60,13 +66,15 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
                 data: {
                     id: "demo-resume-id",
                     fileName: fileName || "curriculum_demo.pdf",
-                    fileUrl: fileUrl || "https://utfs.io/f/demo",
+                    fileUrl: fileUrl || "text://raw-input",
                     atsScore: 82,
                     analysis: {
                         atsScore: 82,
                         keywords: ["React", "TypeScript", "Next.js", "Node.js", "Tailwind CSS", "Git"],
                         missingKeywords: ["CI/CD", "Docker", "AWS", "Testing (Jest/Vitest)"],
-                        formatIssues: ["Falta de enlaces profesionales directos (LinkedIn/GitHub)"],
+                        formatIssues: rawText
+                            ? ["Entrada directa por texto (sin issues de formato PDF)"]
+                            : ["Falta de enlaces profesionales directos (LinkedIn/GitHub)"],
                         strengths: [
                             "Fuerte dominio técnico en el ecosistema moderno de React y TypeScript.",
                             "Estructura clara y secciones bien organizadas que facilitan el parseo por ATS.",
@@ -82,10 +90,34 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
             };
         }
 
+        // 4. Manejo de entrada por Texto Plano (Fallback / Canva OCR)
+        if (rawText) {
+            const resume = await CVAnalysisService.saveTextCV({
+                userId: session.user.id,
+                fileName,
+                rawText,
+            });
+
+            revalidatePath("/dashboard");
+
+            return {
+                success: true,
+                data: {
+                    id: resume.id,
+                    fileName: resume.fileName,
+                    fileUrl: resume.fileUrl,
+                    atsScore: resume.atsScore,
+                    analysis: resume.analysis,
+                    createdAt: resume.createdAt,
+                },
+            };
+        }
+
+        // 5. Manejo de PDF mediante URL de UploadThing
         // SSRF Prevention: Validate that the fileUrl belongs to UploadThing's trusted domains using a strict regex barrier guard.
         // This is natively recognized by CodeQL static analyzer as a sanitization barrier for SSRF.
         const UPLOADTHING_URL_REGEX = /^https:\/\/([a-zA-Z0-9-]+\.)?(utfs\.io|ufs\.sh)\/f\/.+/;
-        if (!UPLOADTHING_URL_REGEX.test(fileUrl)) {
+        if (!UPLOADTHING_URL_REGEX.test(fileUrl!)) {
             return {
                 success: false,
                 error: "URL de archivo no permitida por razones de seguridad.",
@@ -96,7 +128,7 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
         // This physically blocks any host-level manipulation (SSRF) and terminates CodeQL's taint propagation.
         let validatedUrl: string;
         try {
-            const parsedUrl = new URL(fileUrl);
+            const parsedUrl = new URL(fileUrl!);
 
             // Only allow HTTPS URLs
             if (parsedUrl.protocol !== "https:") {
@@ -145,7 +177,7 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
             };
         }
 
-        // 2. Descargar el archivo desde la URL de UploadThing para poder parsearlo
+        // Descargar el archivo desde la URL de UploadThing para poder parsearlo
         const response = await fetch(validatedUrl);
         if (!response.ok) {
             return {
@@ -157,15 +189,15 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
         const arrayBuffer = await response.arrayBuffer();
         const fileBuffer = Buffer.from(arrayBuffer);
 
-        // 3. Procesar y guardar el CV en base de datos
+        // Procesar y guardar el CV en base de datos
         const resume = await CVAnalysisService.saveParsedCV({
             userId: session.user.id,
             fileName,
-            fileUrl,
+            fileUrl: fileUrl!,
             fileBuffer,
         });
 
-        // 4. Revalidar la vista del dashboard
+        // Revalidar la vista del dashboard
         revalidatePath("/dashboard");
 
         return {
@@ -181,6 +213,15 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
         };
     } catch (error: unknown) {
         console.error("[uploadAndParseCVAction] Error general:", error);
+
+        // Manejar el caso de que el PDF no contenga texto legible
+        if (error instanceof Error && error.message === "PDF_NOT_READABLE") {
+            return {
+                success: false,
+                error: "PDF_NOT_READABLE",
+            };
+        }
+
         const errorMessage =
             error instanceof Error ? error.message : "Ocurrió un error inesperado al procesar el archivo.";
         return {

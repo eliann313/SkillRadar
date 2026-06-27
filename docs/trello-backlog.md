@@ -20,7 +20,7 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 | 6   | 7.3 ✅  | M7     | Auditoría y Verificación del Criptosistema  | 🔴 Bloqueante |
 | 7   | 8.1 ✅  | M8     | Google OAuth Provider                       | 🔴 Bloqueante |
 | 8   | 2.1 ✅  | M2     | CV Upload con UploadThing                   | Core MVP      |
-| 9   | 2.2     | M2     | CV Parse con Gemini Real                    | Core MVP      |
+| 9   | 2.2 ✅  | M2     | CV Parse con Gemini Real                    | Core MVP      |
 | 10  | 2.3     | M2     | Textarea Fallback (OCR/Canva)               | Core MVP      |
 | 11  | 3.1     | M3     | Job Match Backend                           | Core MVP      |
 | 12  | 3.2     | M3     | Job Match AI Service                        | Core MVP      |
@@ -212,17 +212,17 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 2.2: Enlazar Formulario de CV con Server Action y Gemini Real
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Reemplazar el análisis simulado de 2.5 segundos en la página de carga de CV y conectar la interfaz con la Server Action del backend `uploadAndParseCVAction` para que ejecute el análisis estructurado de Gemini con Zod en Neon Postgres.
 - **Criterios de Aceptación:**
-    - [ ] Reemplazar la constante estática `mockAnalysis` en `src/app/dashboard/cv-analysis/page.tsx` por datos reales.
-    - [ ] Invocar a `uploadAndParseCVAction` pasándole la URL de UploadThing obtenida tras subir el archivo y el nombre del PDF.
-    - [ ] En la Server Action, verificar estrictamente que la sesión de usuario sea válida y aplicar el validador de SSRF y Regex de la URL de UploadThing antes de descargar el archivo.
-    - [ ] Mantener las barreras de prompt del sistema en `CVAnalysisAIService.ts` que marcan el CV como datos pasivos de entrada para neutralizar inyecciones de prompt.
-    - [ ] Renderizar en los componentes `ATSScoreCard` y `AnalysisResults` la información real proveniente del objeto de base de datos Neon.
-    - [ ] Comprobar que la base de datos de Neon almacena correctamente el JSON del análisis estructurado bajo la fila de la tabla `Resume`.
+    - [x] Reemplazar la constante estática `mockAnalysis` en `src/app/dashboard/cv-analysis/page.tsx` por datos reales.
+    - [x] Invocar a `uploadAndParseCVAction` pasándole la URL de UploadThing obtenida tras subir el archivo y el nombre del PDF.
+    - [x] En la Server Action, verificar estrictamente que la sesión de usuario sea válida y aplicar el validador de SSRF y Regex de la URL de UploadThing antes de descargar el archivo.
+    - [x] Mantener las barreras de prompt del sistema en `CVAnalysisAIService.ts` que marcan el CV como datos pasivos de entrada para neutralizar inyecciones de prompt.
+    - [x] Renderizar en los componentes `ATSScoreCard` y `AnalysisResults` la información real proveniente del objeto de base de datos Neon.
+    - [x] Comprobar que la base de datos de Neon almacena correctamente el JSON del análisis estructurado bajo la fila de la tabla `Resume`.
 - **💡 Arquitectura de IA:** Conectar esta acción a la abstracción multi-modelo desarrollada en la **Tarjeta 7.1** para permitir la conmutación por error (fallback a Groq/OpenRouter) sin acoplar la llamada a Google de forma rígida.
 - **Rama Git:** `feature/cv-actions-neon-integration`
 
