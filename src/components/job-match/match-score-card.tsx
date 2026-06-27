@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { JobMatch } from "@/lib/types";
-import { Check, X, Target, TrendingUp, AlertCircle } from "lucide-react";
+import { Check, X, Target, TrendingUp, AlertCircle, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MatchScoreCardProps {
@@ -147,6 +147,24 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                         </>
                     )}
                 </div>
+
+                {/* AI Recommendations */}
+                {match.recommendations && match.recommendations.length > 0 && (
+                    <>
+                        <Separator />
+                        <div className="flex flex-col gap-3">
+                            <div className="flex items-center gap-2">
+                                <Sparkles className="size-5 text-primary animate-pulse" />
+                                <p className="font-semibold text-foreground">AI Action Steps</p>
+                            </div>
+                            <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted-foreground">
+                                {match.recommendations.map((rec, idx) => (
+                                    <li key={idx}>{rec}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    </>
+                )}
             </CardContent>
         </Card>
     );

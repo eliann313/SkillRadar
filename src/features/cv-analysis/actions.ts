@@ -2,6 +2,8 @@
 
 import { auth } from "@/lib/auth";
 import { CVAnalysisService } from "./service";
+import { ResumeRepository } from "./repository";
+import type { Resume } from "@prisma/client";
 import type { ActionResult } from "./types";
 import { revalidatePath } from "next/cache";
 import { checkCVRateLimit, getClientIp } from "@/lib/rate-limit";
@@ -228,5 +230,23 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
             success: false,
             error: errorMessage,
         };
+    }
+}
+
+export async function getUserResumesAction(): Promise<ActionResult<Resume[]>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado." };
+        }
+
+        const resumes = await ResumeRepository.findByUserId(session.user.id);
+        return {
+            success: true,
+            data: resumes,
+        };
+    } catch (error) {
+        console.error("[getUserResumesAction] Error recuperando currículums:", error);
+        return { success: false, error: "Error al recuperar tus currículums." };
     }
 }

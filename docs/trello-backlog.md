@@ -24,7 +24,7 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 | 10  | 2.3 ✅  | M2     | Textarea Fallback (OCR/Canva)               | Core MVP      |
 | 11  | 3.1 ✅  | M3     | Job Match Backend                           | Core MVP      |
 | 12  | 3.2 ✅  | M3     | Job Match AI Service                        | Core MVP      |
-| 13  | 3.3     | M3     | Job Match Frontend                          | Core MVP      |
+| 13  | 3.3 ✅  | M3     | Job Match Frontend                          | Core MVP      |
 | 14  | 10.1    | M10    | Dashboard con Datos Reales                  | Core MVP      |
 | 15  | 10.2    | M10    | Context Pipeline CV→Match                   | Core MVP      |
 | 16  | 4.1     | M4     | Landing Page Comercial                      | Core MVP      |
@@ -269,14 +269,14 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 3.3: Conectar Frontend de Job Match con Server Actions
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Modificar la maqueta estática `/dashboard/job-match` de v0. Permitir al usuario seleccionar mediante un `Select` qué currículum de su historial quiere comparar, pegar la oferta de trabajo y gatillar la Server Action real de comparación.
 - **Criterios de Aceptación:**
-    - [ ] Eliminar `mockMatch` en `src/app/dashboard/job-match/page.tsx`.
-    - [ ] Agregar un menú desplegable (`Select` de shadcn/ui) para cargar los CVs previamente subidos y guardados del desarrollador desde la base de datos Neon.
-    - [ ] Invocar a la Server Action de comparación y renderizar en los componentes `MatchScoreCard` e `GapAnalysis` los datos vivos de la DB.
+    - [x] Eliminar `mockMatch` en `src/app/dashboard/job-match/page.tsx`.
+    - [x] Agregar un menú desplegable (`Select` de shadcn/ui) para cargar los CVs previamente subidos y guardados del desarrollador desde la base de datos Neon.
+    - [x] Invocar a la Server Action de comparación y renderizar en los componentes `MatchScoreCard` e `GapAnalysis` los datos vivos de la DB.
 - **Rama Git:** `feature/job-match-frontend`
 
 ---
