@@ -1,5 +1,4 @@
 ---
-trigger: always_on
 description: Reglas y mejores prácticas para Server Actions en Next.js (Mutaciones, Seguridad y Flujo)
 globs: src/features/**/actions.ts, src/lib/auth-actions.ts
 ---

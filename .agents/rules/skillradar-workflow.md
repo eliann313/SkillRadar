@@ -1,13 +1,6 @@
 ---
-trigger: always_on
----
-
----
-
 description: Reglas del ciclo de vida y flujo de trabajo colaborativo de desarrollo de SkillRadar (Análisis, Git, Husky, Commits, PRs)
-globs: \*
-always: true
-
+globs: src/**/*
 ---
 
 # Flujo de Trabajo y Ciclo de Vida de Desarrollo de SkillRadar

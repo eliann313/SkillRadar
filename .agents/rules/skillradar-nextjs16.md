@@ -1,13 +1,6 @@
 ---
-trigger: always_on
----
-
----
-
 description: Guía de cambios de API y convenciones específicas de Next.js 16 (App Router)
-globs: src/app/\*_/_, src/proxy.ts
-always: true
-
+globs: src/app/**/*, src/proxy.ts
 ---
 
 # Guía Next.js 16 (App Router) para SkillRadar
