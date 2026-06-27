@@ -12,6 +12,7 @@ import { Mail, Loader2, Bot, Users, Lock, User, Eye, EyeOff, Sparkles } from "lu
 import { RoleSelector } from "./role-selector";
 import { registerUserAction } from "@/lib/auth-actions";
 import { toast } from "sonner";
+import Link from "next/link";
 
 export function LoginForm() {
     const [isRegister, setIsRegister] = useState(false);
@@ -269,18 +270,9 @@ export function LoginForm() {
                                 <div className="flex items-center justify-between">
                                     <Label htmlFor="password">Contraseña</Label>
                                     {!isRegister && (
-                                        <a
-                                            href="#"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                toast.info(
-                                                    "La recuperación de contraseña se implementará vía email en una fase futura.",
-                                                );
-                                            }}
-                                            className="text-xs text-primary hover:underline"
-                                        >
+                                        <Link href="/forgot-password" className="text-xs text-primary hover:underline">
                                             ¿Olvidaste tu contraseña?
-                                        </a>
+                                        </Link>
                                     )}
                                 </div>
                                 <div className="relative">

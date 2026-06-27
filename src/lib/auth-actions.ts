@@ -86,3 +86,107 @@ export async function registerUserAction(input: {
         };
     }
 }
+
+const resetPasswordSchema = z.object({
+    token: z.string(),
+    password: z
+        .string()
+        .min(8, "La contraseña debe tener al menos 8 caracteres")
+        .regex(/[a-z]/, "Debe contener al menos una letra minúscula")
+        .regex(/[A-Z]/, "Debe contener al menos una letra mayúscula")
+        .regex(/[0-9]/, "Debe contener al menos un número"),
+});
+
+export async function requestPasswordResetAction(email: string) {
+    if (!email) return { success: false, error: "El correo es requerido." };
+    const sanitizedEmail = email.toLowerCase().trim();
+
+    try {
+        const user = await db.user.findUnique({
+            where: { email: sanitizedEmail },
+        });
+
+        if (!user) {
+            return { success: true, message: "Si el correo está registrado, se enviarán las instrucciones." };
+        }
+
+        const token = crypto.randomUUID();
+        const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+
+        await db.user.update({
+            where: { id: user.id },
+            data: {
+                passwordResetToken: token,
+                passwordResetExpires: expires,
+            },
+        });
+
+        const resetLink = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/reset-password?token=${token}`;
+
+        const resendApiKey = process.env.RESEND_API_KEY;
+        if (resendApiKey) {
+            try {
+                await fetch("https://api.resend.com/emails", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${resendApiKey}`,
+                    },
+                    body: JSON.stringify({
+                        from: "SkillRadar <onboarding@resend.dev>",
+                        to: sanitizedEmail,
+                        subject: "Restablece tu contraseña - SkillRadar",
+                        html: `<p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace para restablecerla (expira en 15 minutos):</p><p><a href="${resetLink}">${resetLink}</a></p>`,
+                    }),
+                });
+                console.warn(`✉️ [Resend] Correo enviado a ${sanitizedEmail}`);
+            } catch (mailError) {
+                console.error("❌ Error al enviar email con Resend:", mailError);
+            }
+        } else {
+            console.warn(
+                `\n🔑 [Reset Password Simulation] Link de restablecimiento para ${sanitizedEmail}:\n🔗 ${resetLink}\n`,
+            );
+        }
+
+        return { success: true, message: "Si el correo está registrado, se enviarán las instrucciones." };
+    } catch (error: unknown) {
+        console.error("[requestPasswordResetAction] Error:", error);
+        return { success: false, error: "Error al solicitar el restablecimiento." };
+    }
+}
+
+export async function resetPasswordAction(input: z.infer<typeof resetPasswordSchema>) {
+    const result = resetPasswordSchema.safeParse(input);
+    if (!result.success) {
+        return { success: false, error: result.error.issues[0]?.message || "Datos inválidos." };
+    }
+
+    const { token, password } = result.data;
+
+    try {
+        const user = await db.user.findFirst({
+            where: { passwordResetToken: token },
+        });
+
+        if (!user || !user.passwordResetExpires || user.passwordResetExpires < new Date()) {
+            return { success: false, error: "El token de restablecimiento es inválido o ha expirado." };
+        }
+
+        const passwordHash = await bcrypt.hash(password, 12);
+
+        await db.user.update({
+            where: { id: user.id },
+            data: {
+                passwordHash,
+                passwordResetToken: null,
+                passwordResetExpires: null,
+            },
+        });
+
+        return { success: true, message: "Tu contraseña ha sido restablecida con éxito." };
+    } catch (error: unknown) {
+        console.error("[resetPasswordAction] Error:", error);
+        return { success: false, error: "Error al restablecer la contraseña." };
+    }
+}
