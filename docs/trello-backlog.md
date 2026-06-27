@@ -21,8 +21,8 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 | 7   | 8.1 ✅  | M8     | Google OAuth Provider                       | 🔴 Bloqueante |
 | 8   | 2.1 ✅  | M2     | CV Upload con UploadThing                   | Core MVP      |
 | 9   | 2.2 ✅  | M2     | CV Parse con Gemini Real                    | Core MVP      |
-| 10  | 2.3     | M2     | Textarea Fallback (OCR/Canva)               | Core MVP      |
-| 11  | 3.1     | M3     | Job Match Backend                           | Core MVP      |
+| 10  | 2.3 ✅  | M2     | Textarea Fallback (OCR/Canva)               | Core MVP      |
+| 11  | 3.1 ✅  | M3     | Job Match Backend                           | Core MVP      |
 | 12  | 3.2     | M3     | Job Match AI Service                        | Core MVP      |
 | 13  | 3.3     | M3     | Job Match Frontend                          | Core MVP      |
 | 14  | 10.1    | M10    | Dashboard con Datos Reales                  | Core MVP      |
@@ -228,14 +228,14 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 2.3: Integrar Textarea Fallback para CVs no Legibles (OCR/Canva)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Si el parseador de PDF devuelve un texto crudo vacío (debido a PDFs escaneados o imágenes complejas sin OCR), mostrar un textarea alternativo para que el desarrollador pegue su CV en texto plano y no interrumpir su flujo.
 - **Criterios de Aceptación:**
-    - [ ] Detectar si el texto extraído en el servicio es nulo o excesivamente corto.
-    - [ ] Desplegar en la UI de forma condicional un aviso advirtiendo la limitación y habilitar el campo `Textarea` para pegar texto crudo.
-    - [ ] Implementar la conexión de este texto directo a la Server Action de análisis y persistir el resultado.
+    - [x] Detectar si el texto extraído en el servicio es nulo o excesivamente corto.
+    - [x] Desplegar en la UI de forma condicional un aviso advirtiendo la limitación y habilitar el campo `Textarea` para pegar texto crudo.
+    - [x] Implementar la conexión de este texto directo a la Server Action de análisis y persistir el resultado.
 - **Rama Git:** `feature/cv-text-fallback`
 
 ---
@@ -244,15 +244,15 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 3.1: Crear Capa de Negocio y Estructura Backend de Job Match
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Actualmente no existe la feature `job-match` en el backend. Debemos extraer la lógica del servidor en la carpeta `src/features/job-match/` definiendo sus actions, service, repository y tipaciones para Gemini y Prisma.
 - **Criterios de Aceptación:**
-    - [ ] Crear el directorio `src/features/job-match/`.
-    - [ ] Definir el Zod Schema para la evaluación estructurada del cruzado de datos (seniority match, alignedSkills, missingSkills, matchScore y recomendaciones).
-    - [ ] Implementar la query Prisma en `repository.ts` para crear y guardar las comparaciones en la tabla `JobMatch`.
-    - [ ] **Seguridad (IDOR / Scope Guard):** Validar en la acción del servidor que el `resumeId` consultado pertenezca estrictamente al `userId` autenticado de la sesión. Bloquear e impedir cualquier consulta sobre CVs ajenos.
+    - [x] Crear el directorio `src/features/job-match/`.
+    - [x] Definir el Zod Schema para la evaluación estructurada del cruzado de datos (seniority match, alignedSkills, missingSkills, matchScore y recomendaciones).
+    - [x] Implementar la query Prisma en `repository.ts` para crear y guardar las comparaciones en la tabla `JobMatch`.
+    - [x] **Seguridad (IDOR / Scope Guard):** Validar en la acción del servidor que el `resumeId` consultado pertenezca estrictamente al `userId` autenticado de la sesión. Bloquear e impedir cualquier consulta sobre CVs ajenos.
 - **Rama Git:** `feature/job-match-backend`
 
 ### 🎴 Tarjeta 3.2: Diseñar Prompt e Inferencia de Match en Servidor con IA
