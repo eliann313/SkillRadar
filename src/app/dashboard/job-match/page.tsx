@@ -6,6 +6,7 @@ import { JobOfferInput, MatchScoreCard } from "@/components/job-match";
 import type { JobMatch } from "@/lib/types";
 import { redirect } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MatchSkeleton } from "@/components/ui/loading-skeletons";
 import { getUserResumesAction } from "@/features/cv-analysis/actions";
 import { createJobMatchAction } from "@/features/job-match/actions";
 import { toast } from "sonner";
@@ -63,6 +64,7 @@ export default function JobMatchPage() {
 
     const handleMatch = async (resumeId: string, offerText: string) => {
         setIsLoading(true);
+        setMatch(null); // Ocultar match anterior al empezar una nueva carga
         try {
             const result = await createJobMatchAction({
                 resumeId,
@@ -119,7 +121,7 @@ export default function JobMatchPage() {
                     isLoading={isLoading}
                 />
 
-                {match && <MatchScoreCard match={match} />}
+                {isLoading ? <MatchSkeleton /> : match ? <MatchScoreCard match={match} /> : null}
             </div>
         </>
     );

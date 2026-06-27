@@ -25,10 +25,10 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 | 11  | 3.1 ✅  | M3     | Job Match Backend                           | Core MVP      |
 | 12  | 3.2 ✅  | M3     | Job Match AI Service                        | Core MVP      |
 | 13  | 3.3 ✅  | M3     | Job Match Frontend                          | Core MVP      |
-| 14  | 10.1    | M10    | Dashboard con Datos Reales                  | Core MVP      |
-| 15  | 10.2    | M10    | Context Pipeline CV→Match                   | Core MVP      |
-| 16  | 4.1     | M4     | Landing Page Comercial                      | Core MVP      |
-| 17  | 4.2     | M4     | Skeletons + Toasts (UX Polish)              | Core MVP      |
+| 14  | 10.1 ✅ | M10    | Dashboard con Datos Reales                  | Core MVP      |
+| 15  | 10.2 ✅ | M10    | Context Pipeline CV→Match                   | Core MVP      |
+| 16  | 4.1 ✅  | M4     | Landing Page Comercial                      | Core MVP      |
+| 17  | 4.2 ✅  | M4     | Skeletons + Toasts (UX Polish)              | Core MVP      |
 | 18  | 6.1     | M6     | Mock Interview con AI real                  | Diferenciador |
 | 19  | 5.1     | M5     | GitHub Analyzer Backend                     | Diferenciador |
 | 20  | 5.2     | M5     | GitHub Dashboard Frontend                   | Diferenciador |
@@ -285,28 +285,28 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 10.1: Dashboard con Datos Reales y "Next Action"
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   El Dashboard muestra métricas vivas de Neon (último score, uso de base de datos). Agregar "Next Action Cards" dinámicas basadas en la progresión del usuario (ej: "Sube tu CV para empezar", "Toma una Mock Interview").
 - **Criterios de Aceptación:**
-    - [ ] Reemplazar todos los datos estáticos del overview del Dashboard con queries reales de Prisma que consulten los últimos scores de `Resume`, `JobMatch` y `GithubAnalysis`.
-    - [ ] Implementar un componente dinámico "Next Action" que evalúe el estado del usuario en la DB y renderice una tarjeta interactiva con un llamado a la acción (ej: si no tiene CV, muestra "Subir CV"; si tiene CV pero no matches, muestra "Comparar Oferta").
-    - [ ] Agregar un gráfico pequeño de progreso histórico del Score ATS utilizando Recharts o componentes Tailwind.
-- **Rama Git:** `feature/dashboard-live-data`
+    - [x] Reemplazar todos los datos estáticos del overview del Dashboard con queries reales de Prisma que consulten los últimos scores de `Resume`, `JobMatch` y `GithubAnalysis`.
+    - [x] Implementar un componente dinámico "Next Action" que evalúe el estado del usuario en la DB y renderice una tarjeta interactiva con un llamado a la acción (ej: si no tiene CV, muestra "Subir CV"; si tiene CV pero no matches, muestra "Comparar Oferta").
+    - [x] Agregar un gráfico pequeño de progreso histórico del Score ATS utilizando Recharts o componentes Tailwind.
+- **Rama Git:** `feature/dashboard-landing-polish-pipeline`
 
 ### 🎴 Tarjeta 10.2: Context Pipeline - Conectar CV Real al Match
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Al iniciar un Job Match, el sistema debe precargar los skills extraídos del Resume del usuario desde la DB, no usar mocks genéricos. El dev solo pega la Oferta, la IA cruza Oferta vs CV real.
 - **Criterios de Aceptación:**
-    - [ ] Modificar la query del servicio de Job Match para recibir el `resumeId` seleccionado por el desarrollador.
-    - [ ] Extraer el JSON estructurado de habilidades y experiencia de la tabla `Resume` en Postgres.
-    - [ ] Enviar al prompt de Gemini/Llama el texto estructurado del currículum real recuperado de la base de datos junto con el texto de la nueva Job Offer.
-    - [ ] Validar que los resultados del Match se guarden correctamente en la tabla `JobMatch` con su respectiva relación de clave foránea a la tabla `Resume`.
-- **Rama Git:** `feature/job-match-context-pipeline`
+    - [x] Modificar la query del servicio de Job Match para recibir el `resumeId` seleccionado por el desarrollador.
+    - [x] Extraer el JSON estructurado de habilidades y experiencia de la tabla `Resume` en Postgres.
+    - [x] Enviar al prompt de Gemini/Llama el texto estructurado del currículum real recuperado de la base de datos junto con el texto de la nueva Job Offer.
+    - [x] Validar que los resultados del Match se guarden correctamente en la tabla `JobMatch` con su respectiva relación de clave foránea a la tabla `Resume`.
+- **Rama Git:** `feature/dashboard-landing-polish-pipeline`
 
 ---
 
@@ -314,28 +314,28 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 4.1: Diseñar Landing Page Comercial de Marketing en `/`
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Actualmente, al ingresar a la raíz de la web `/`, se le muestra al usuario anónimo directamente el formulario de inicio de sesión. Vamos a crear una landing page comercial, moderna y descriptiva para captar a usuarios de marketing antes de iniciar sesión.
 - **Criterios de Aceptación:**
-    - [ ] Modificar `src/app/page.tsx` para mostrar la landing de presentación del producto si no hay sesión activa.
-    - [ ] Diseñar un Hero premium con gradientes de fondo, micro-animaciones en Tailwind v4 y CTA atractivos de registro con GitHub.
-    - [ ] Trasladar el formulario de inicio de sesión `LoginForm` a una ruta dedicada `/login` (creando `src/app/login/page.tsx`).
-    - [ ] Garantizar SEO óptimo (meta tags, open graph, y headings estructurados semánticamente).
-- **Rama Git:** `feature/marketing-landing-page`
+    - [x] Modificar `src/app/page.tsx` para mostrar la landing de presentación del producto si no hay sesión activa.
+    - [x] Diseñar un Hero premium con gradientes de fondo, micro-animaciones en Tailwind v4 y CTA atractivos de registro con GitHub.
+    - [x] Trasladar el formulario de inicio de sesión `LoginForm` a una ruta dedicada `/login` (creando `src/app/login/page.tsx`).
+    - [x] Garantizar SEO óptimo (meta tags, open graph, y headings estructurados semánticamente).
+- **Rama Git:** `feature/dashboard-landing-polish-pipeline`
 
 ### 🎴 Tarjeta 4.2: Polishing de Interfaz (Skeletons de Carga & Toasts)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Añadir transiciones fluidas y estados visuales elegantes mediante Skeletons durante las peticiones a la IA y notificaciones dinámicas tipo Toast usando `sonner`.
 - **Criterios de Aceptación:**
-    - [ ] Instalar y registrar el Toast Provider de `sonner` en el root layout.
-    - [ ] Crear loaders visuales de tipo `Skeleton` para los scores y listas de habilidades.
-    - [ ] Desplegar avisos flotantes interactivos de éxito o error tras subidas de archivos o ejecuciones de la IA.
-- **Rama Git:** `feature/ux-polish-skeletons`
+    - [x] Instalar y registrar el Toast Provider de `sonner` en el root layout.
+    - [x] Crear loaders visuales de tipo `Skeleton` para los scores y listas de habilidades.
+    - [x] Desplegar avisos flotantes interactivos de éxito o error tras subidas de archivos o ejecuciones de la IA.
+- **Rama Git:** `feature/dashboard-landing-polish-pipeline`
 
 ---
 
