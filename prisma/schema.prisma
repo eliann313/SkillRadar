@@ -15,6 +15,8 @@ model User {
   image         String?
   role          String    @default("developer")
   passwordHash  String?   @db.Text
+  passwordResetToken   String?   @unique
+  passwordResetExpires DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

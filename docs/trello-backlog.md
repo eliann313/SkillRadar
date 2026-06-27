@@ -349,49 +349,49 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 6.1: Conectar Chat de Mock Interview con Vercel AI SDK y Gemini
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡 (¡Subido desde Baja / Fase 2!)
 - **Descripción:**
   Actualmente, el chat interactivo en `/dashboard/interview` responde preguntas aleatorias en base a un array plano en el cliente. Vamos a conectar esta UI con el Vercel AI SDK e implementar una Server Action real para simular una entrevista técnica en vivo adaptada al CV y habilidades del desarrollador, persistiendo el resultado en la base de datos.
 - **Criterios de Aceptación:**
-    - [ ] Integrar el hook de chat dinámico en `src/components/interview/mock-interview-chat.tsx` utilizando `useChat` o Server Actions en streaming.
-    - [ ] Implementar la Server Action que inyecte el CV seleccionado y los gaps del Job Match al prompt del LLM (Gemini 2.5 Flash / Groq) como contexto de entrevista técnica estructurada.
-    - [ ] Escribir la lógica del disparador "Finalizar Entrevista": el chat termina, y el sistema invoca una llamada de LLM separada asíncrona para compilar el **Debrief JSON** estructurado con calificaciones por área (ej. comunicación técnica, arquitectura, testing).
-    - [ ] Guardar los datos de la entrevista en el nuevo modelo `InterviewSession` de Prisma (relacionando `userId`, `debrief`, `score` de match y el array serializado de `messages`).
-    - [ ] Validar que la UI del dashboard renderice adecuadamente los scores históricos de estas entrevistas para el "Score Progression Timeline".
-- **Rama Git:** `feature/mock-interview-ai-real`
+    - [x] Integrar el hook de chat dinámico en `src/components/interview/mock-interview-chat.tsx` utilizando `useChat` o Server Actions en streaming.
+    - [x] Implementar la Server Action que inyecte el CV seleccionado y los gaps del Job Match al prompt del LLM (Gemini 2.5 Flash / Groq) como contexto de entrevista técnica estructurada.
+    - [x] Escribir la lógica del disparador "Finalizar Entrevista": el chat termina, y el sistema invoca una llamada de LLM separada asíncrona para compilar el **Debrief JSON** estructurado con calificaciones por área (ej. comunicación técnica, arquitectura, testing).
+    - [x] Guardar los datos de la entrevista en el nuevo modelo `InterviewSession` de Prisma (relacionando `userId`, `debrief`, `score` de match y el array serializado de `messages`).
+    - [x] Validar que la UI del dashboard renderice adecuadamente los scores históricos de estas entrevistas para el "Score Progression Timeline".
+- **Rama Git:** `feature/mvp-tier3-integration-bundle`
 
 ---
 
 ## 🔌 Módulo 5: GitHub Signal Translation
 
-### 🎴 Tarjeta 5.1: Implementar Route Handler `/api/github/analyze` y API Connector
+### 🎴 Tarjeta 5.1: Implementar Route Handler `/api/github/analyze` and API Connector
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Baja 🟢
 - **Descripción:**
   Crear la conexión con la API de GitHub usando el access token de GitHub OAuth del usuario, extraer datos de repos públicos y procesar con Gemini un reporte técnico sobre la calidad del código, READMEs y commits.
 - **Criterios de Aceptación:**
-    - [ ] Crear el conector en `src/lib/github.ts` que consulte la API de GitHub.
-    - [ ] Crear el Route Handler `/src/app/api/github/analyze/route.ts`.
-    - [ ] **Seguridad (Cifrado de Tokens):** Encriptar los access tokens de GitHub OAuth si son guardados o expuestos de forma intermedia, utilizando el módulo criptográfico (`crypto.ts`).
-    - [ ] **Seguridad (Input Sanitization & SSRF Prevention):** Validar y sanitizar el nombre de usuario de GitHub recibido en el input para evitar inyecciones de cabeceras HTTP o SSRF. Solo permitir caracteres alfanuméricos y guiones (`/^[a-zA-Z0-9\-]+$/`).
-    - [ ] **Seguridad (Rate Limiting):** Proteger el endpoint aplicando el limitador de Upstash Redis por ID de usuario.
-    - [ ] Definir el Zod Schema para la respuesta estructurada de la IA sobre el perfil GitHub.
-    - [ ] Persistir los análisis técnicos y las estadísticas de lenguajes en la tabla `GithubAnalysis` de Prisma.
-- **Rama Git:** `feature/github-analyzer-backend`
+    - [x] Crear el conector en `src/lib/github.ts` que consulte la API de GitHub.
+    - [x] Crear el Route Handler `/src/app/api/github/analyze/route.ts`.
+    - [x] **Seguridad (Cifrado de Tokens):** Encriptar los access tokens de GitHub OAuth si son guardados o expuestos de forma intermedia, utilizando el módulo criptográfico (`crypto.ts`).
+    - [x] **Seguridad (Input Sanitization & SSRF Prevention):** Validar y sanitizar el nombre de usuario de GitHub recibido en el input para evitar inyecciones de cabeceras HTTP o SSRF. Solo permitir caracteres alfanuméricos y guiones (`/^[a-zA-Z0-9\-]+$/`).
+    - [x] **Seguridad (Rate Limiting):** Proteger el endpoint aplicando el limitador de Upstash Redis por ID de usuario.
+    - [x] Definir el Zod Schema para la respuesta estructurada de la IA sobre el perfil GitHub.
+    - [x] Persistir los análisis técnicos y las estadísticas de lenguajes en la tabla `GithubAnalysis` de Prisma.
+- **Rama Git:** `feature/mvp-tier3-integration-bundle`
 
 ### 🎴 Tarjeta 5.2: Crear Vista Dashboard de Análisis GitHub
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Baja 🟢
 - **Descripción:**
   Agregar la ruta `/dashboard/github` y crear la UI interactiva que muestre gráficos de distribución de lenguajes (bytes), frecuencias de commits e informes cualitativos generados por la IA.
 - **Criterios de Aceptación:**
-    - [ ] Crear la página `src/app/dashboard/github/page.tsx` en el dashboard.
-    - [ ] Diseñar los componentes UI necesarios (LanguageChart, RepoList, StrengthsWeaknessesCard).
-    - [ ] Conectar los componentes a los datos reales de base de datos e implementar un botón de actualización de perfil en tiempo real.
-- **Rama Git:** `feature/github-dashboard-frontend`
+    - [x] Crear la página `src/app/dashboard/github/page.tsx` en el dashboard.
+    - [x] Diseñar los componentes UI necesarios (LanguageChart, RepoList, StrengthsWeaknessesCard).
+    - [x] Conectar los componentes a los datos reales de base de datos e implementar un botón de actualización de perfil en tiempo real.
+- **Rama Git:** `feature/mvp-tier3-integration-bundle`
 
 ---
 
@@ -399,19 +399,19 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 8.2: Autenticación Tradicional por Email y Contraseña con Hashing Seguro (Bcrypt) + Recuperación de Cuenta
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Configurar el inicio de sesión tradicional y seguro con credenciales de Email y Contraseña utilizando el Credentials Provider de Auth.js v5. Para proteger los datos del usuario, las contraseñas se almacenarán en Neon Postgres cifradas mediante hashing criptográfico con salt (usando `bcryptjs` para compatibilidad serverless/edge).
 - **Criterios de Aceptación:**
-    - [ ] Instalar `bcryptjs` y `@types/bcryptjs` en el proyecto.
-    - [ ] Diseñar el formulario de Registro e Inicio de sesión en `/login` solicitando Email y Contraseña.
-    - [ ] Validar los inputs tanto en frontend como en backend usando Zod (contraseña mínimo 8 caracteres, al menos una letra mayúscula, una minúscula y un número).
-    - [ ] En la Server Action de registro, cifrar la contraseña usando `bcrypt.hash(password, 10)` antes de guardarla en la tabla `User` de Neon.
-    - [ ] En el Credentials Provider de Auth.js v5, comparar la contraseña ingresada con el hash de la base de datos usando `bcrypt.compare`.
-    - [ ] Proteger el endpoint de login aplicando el rate limiter de Upstash Redis (máximo 5 intentos fallidos en 15 minutos por IP/email) para mitigar ataques de fuerza bruta.
-    - [ ] Opcional: Integrar flujo de recuperación de contraseña ("Olvidé mi contraseña") enviando un token seguro y temporal (15 min) al correo del usuario vía **Resend**.
-- **Rama Git:** `feature/auth-secure-credentials`
+    - [x] Instalar `bcryptjs` y `@types/bcryptjs` en el proyecto.
+    - [x] Diseñar el formulario de Registro e Inicio de sesión en `/login` solicitando Email y Contraseña.
+    - [x] Validar los inputs tanto en frontend como en backend usando Zod (contraseña mínimo 8 caracteres, al menos una letra mayúscula, una minúscula y un número).
+    - [x] En la Server Action de registro, cifrar la contraseña usando `bcrypt.hash(password, 10)` antes de guardarla en la tabla `User` de Neon.
+    - [x] En el Credentials Provider de Auth.js v5, comparar la contraseña ingresada con el hash de la base de datos usando `bcrypt.compare`.
+    - [x] Proteger el endpoint de login aplicando el rate limiter de Upstash Redis (máximo 5 intentos fallidos en 15 minutos por IP/email) para mitigar ataques de fuerza bruta.
+    - [x] Opcional: Integrar flujo de recuperación de contraseña ("Olvidé mi contraseña") enviando un token seguro y temporal (15 min) al correo del usuario vía **Resend**.
+- **Rama Git:** `feature/mvp-tier3-integration-bundle`
 
 ---
 

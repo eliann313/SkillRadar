@@ -29,6 +29,7 @@ import {
     ChevronRight,
     Menu,
 } from "lucide-react";
+import { GitHubLogoIcon } from "@radix-ui/react-icons";
 
 const developerNavItems = [
     { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -38,6 +39,11 @@ const developerNavItems = [
         href: "/dashboard/interview",
         label: "Mock Interview",
         icon: MessageSquare,
+    },
+    {
+        href: "/dashboard/github",
+        label: "GitHub Analysis",
+        icon: GitHubLogoIcon,
     },
 ];
 
