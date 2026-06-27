@@ -40,6 +40,7 @@ describe("JobMatchService", () => {
                 recommendations: [
                     "Enriquece tu experiencia laboral agregando proyectos donde hayas implementado contenedores Docker.",
                 ],
+                matchScore: 75,
             },
             createdAt: new Date(),
         };

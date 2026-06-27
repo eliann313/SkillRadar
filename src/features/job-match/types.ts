@@ -5,6 +5,7 @@ export const jobMatchAnalysisSchema = z.object({
     missingSkills: z.array(z.string()),
     seniority: z.enum(["junior", "mid", "senior", "lead"]),
     recommendations: z.array(z.string()),
+    matchScore: z.number().min(0).max(100),
 });
 
 export type JobMatchAnalysis = z.infer<typeof jobMatchAnalysisSchema>;

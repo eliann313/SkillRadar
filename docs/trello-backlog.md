@@ -23,7 +23,7 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 | 9   | 2.2 ✅  | M2     | CV Parse con Gemini Real                    | Core MVP      |
 | 10  | 2.3 ✅  | M2     | Textarea Fallback (OCR/Canva)               | Core MVP      |
 | 11  | 3.1 ✅  | M3     | Job Match Backend                           | Core MVP      |
-| 12  | 3.2     | M3     | Job Match AI Service                        | Core MVP      |
+| 12  | 3.2 ✅  | M3     | Job Match AI Service                        | Core MVP      |
 | 13  | 3.3     | M3     | Job Match Frontend                          | Core MVP      |
 | 14  | 10.1    | M10    | Dashboard con Datos Reales                  | Core MVP      |
 | 15  | 10.2    | M10    | Context Pipeline CV→Match                   | Core MVP      |
@@ -257,14 +257,14 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 3.2: Diseñar Prompt e Inferencia de Match en Servidor con IA
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Desarrollar la lógica en `service.ts` para extraer los requisitos principales de la oferta laboral e invocar a Gemini con Structured Outputs (o Groq Llama 3 en su defecto) para compararla contra el texto crudo del currículum que el usuario elija de su historial.
 - **Criterios de Aceptación:**
-    - [ ] Diseñar el prompt sistemático y estructurado en `src/features/job-match/service.ts`.
-    - [ ] Utilizar el cliente de la **Tarjeta 7.1** para invocar la llamada estructurada con el schema Zod correspondiente.
-    - [ ] Escribir tests unitarios con Vitest para corroborar el cálculo y formateo del score de coincidencia.
+    - [x] Diseñar el prompt sistemático y estructurado en `src/features/job-match/service.ts`.
+    - [x] Utilizar el cliente de la **Tarjeta 7.1** para invocar la llamada estructurada con el schema Zod correspondiente.
+    - [x] Escribir tests unitarios con Vitest para corroborar el cálculo y formateo del score de coincidencia.
 - **Rama Git:** `feature/job-match-ai-evaluation`
 
 ### 🎴 Tarjeta 3.3: Conectar Frontend de Job Match con Server Actions

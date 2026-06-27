@@ -10,7 +10,7 @@ export class JobMatchRepository {
                 resumeId: data.resumeId || null,
                 jobOfferText: data.jobOfferText,
                 matchScore: data.matchScore ?? null,
-                analysis: data.analysis ? (data.analysis as Prisma.InputJsonValue) : null,
+                analysis: data.analysis ? (data.analysis as Prisma.InputJsonValue) : undefined,
             },
         });
     }
