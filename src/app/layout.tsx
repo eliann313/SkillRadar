@@ -5,6 +5,7 @@ import { SessionProvider } from "next-auth/react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/layout/theme-provider";
 import "./globals.css";
 
 const inter = Inter({
@@ -36,12 +37,18 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased bg-background`}>
-            <body className="min-h-full flex flex-col bg-background">
-                <SessionProvider>
-                    <TooltipProvider delay={300}>{children}</TooltipProvider>
-                </SessionProvider>
-                <Toaster theme="dark" richColors position="top-right" />
+        <html
+            lang="en"
+            className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+            suppressHydrationWarning
+        >
+            <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-300">
+                <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+                    <SessionProvider>
+                        <TooltipProvider delay={300}>{children}</TooltipProvider>
+                    </SessionProvider>
+                    <Toaster richColors position="top-right" />
+                </ThemeProvider>
                 <Analytics />
                 <SpeedInsights />
             </body>

@@ -1,17 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { JobMatch } from "@/lib/types";
-import { Check, X, Target, TrendingUp, AlertCircle, Sparkles } from "lucide-react";
+import { Check, X, Target, TrendingUp, AlertCircle, Sparkles, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { ExplainabilityPanel } from "@/components/explainability-panel";
 
 interface MatchScoreCardProps {
     match: JobMatch;
 }
 
 export function MatchScoreCard({ match }: MatchScoreCardProps) {
+    const [isPanelOpen, setIsPanelOpen] = useState(false);
+
     const getScoreColor = (score: number) => {
         if (score >= 80) return "text-emerald";
         if (score >= 60) return "text-primary";
@@ -47,11 +52,20 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                             {match.company && ` at ${match.company}`}
                         </CardDescription>
                     </div>
-                    <div className="text-right">
+                    <div className="flex flex-col items-end gap-1">
                         <span className={cn("text-4xl font-bold", getScoreColor(match.matchScore))}>
                             {match.matchScore}%
                         </span>
-                        <p className="text-sm text-muted-foreground">{getScoreLabel(match.matchScore)}</p>
+                        <p className="text-xs text-muted-foreground">{getScoreLabel(match.matchScore)}</p>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setIsPanelOpen(true)}
+                            className="h-7 px-2 mt-1 gap-1 text-[11px] text-primary hover:bg-primary/10 hover:text-primary"
+                        >
+                            <Eye className="size-3" />
+                            Ver Razonamiento
+                        </Button>
                     </div>
                 </div>
             </CardHeader>
@@ -165,7 +179,49 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                         </div>
                     </>
                 )}
+
+                {/* Tu Ruta de Crecimiento / Action Plan (Tarea 11.2) */}
+                {match.actionPlan && match.actionPlan.length > 0 && (
+                    <>
+                        <Separator />
+                        <div className="flex flex-col gap-4">
+                            <div className="flex items-center gap-2">
+                                <TrendingUp className="size-5 text-emerald" />
+                                <h3 className="font-semibold text-foreground">Tu Ruta de Crecimiento (Action Plan)</h3>
+                            </div>
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                {match.actionPlan.map((plan, idx) => (
+                                    <div key={idx} className="rounded-lg border border-border/80 bg-muted/20 p-4">
+                                        <Badge className="mb-2 bg-indigo/10 text-indigo hover:bg-indigo/20">
+                                            {plan.skill}
+                                        </Badge>
+                                        <ol className="flex flex-col gap-2 mt-2">
+                                            {plan.steps.map((step, sIdx) => (
+                                                <li key={sIdx} className="flex gap-2 text-xs text-muted-foreground">
+                                                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                                                        {sIdx + 1}
+                                                    </span>
+                                                    <span className="leading-5">{step}</span>
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                )}
             </CardContent>
+
+            <ExplainabilityPanel
+                isOpen={isPanelOpen}
+                onOpenChange={setIsPanelOpen}
+                title="Explicabilidad de Job Match"
+                score={match.matchScore}
+                justification={match.explainability?.justification}
+                evidenceFound={match.explainability?.evidenceFound}
+                missingEvidence={match.explainability?.missingEvidence}
+            />
         </Card>
     );
 }

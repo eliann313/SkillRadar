@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import { DashboardHeader, MetricsGrid, NextAction, HistoricalChart } from "@/components/dashboard";
+import { DashboardHeader, MetricsGrid, NextAction, HistoricalChart, ContactRequestsList } from "@/components/dashboard";
 import { TalentDashboard } from "@/components/recruiter";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
@@ -19,7 +19,63 @@ export default async function DashboardPage() {
 
     // Recruiter dashboard
     if (session.user.role === "recruiter") {
-        return <TalentDashboard />;
+        const developers = await db.user.findMany({
+            where: { role: "developer" },
+            include: {
+                resumes: {
+                    orderBy: { createdAt: "desc" },
+                    take: 1,
+                },
+                receivedRequests: {
+                    where: { recruiterId: session.user.id },
+                },
+            },
+        });
+
+        const pool = developers
+            .filter((dev) => dev.resumes.length > 0)
+            .map((dev) => {
+                const resume = dev.resumes[0];
+                const request = dev.receivedRequests[0];
+                const contactStatus = (request?.status || "none") as "none" | "pending" | "accepted" | "declined";
+
+                let parsedAnalysis: {
+                    keywords?: string[];
+                    estimatedSeniority?: "junior" | "mid" | "senior" | "lead";
+                } | null = null;
+                if (resume.analysis) {
+                    parsedAnalysis = (
+                        typeof resume.analysis === "string" ? JSON.parse(resume.analysis) : resume.analysis
+                    ) as { keywords?: string[]; estimatedSeniority?: "junior" | "mid" | "senior" | "lead" };
+                }
+
+                return {
+                    id: dev.id,
+                    anonymousId: `DEV-${dev.id.slice(-4).toUpperCase()}`,
+                    name: contactStatus === "accepted" ? dev.name : null,
+                    email: contactStatus === "accepted" ? dev.email : null,
+                    githubUsername:
+                        contactStatus === "accepted"
+                            ? dev.image?.includes("githubusercontent")
+                                ? "GitHub Revelado"
+                                : "github_user"
+                            : null,
+                    image: contactStatus === "accepted" ? dev.image : null,
+                    estimatedSeniority: (parsedAnalysis?.estimatedSeniority || "mid") as
+                        | "junior"
+                        | "mid"
+                        | "senior"
+                        | "lead",
+                    averageScore: resume.atsScore || 0,
+                    topSkills: parsedAnalysis?.keywords || [],
+                    languages: [],
+                    lastActive: new Date(resume.createdAt),
+                    contactStatus,
+                    requestId: request?.id,
+                };
+            });
+
+        return <TalentDashboard talents={pool} />;
     }
 
     const userId = session.user.id;
@@ -135,9 +191,27 @@ export default async function DashboardPage() {
         mockInterview: { used: interviewMonthCount, limit: DEFAULT_LIMITS.mockInterview },
     };
 
+    // Consultar solicitudes de contacto pendientes (Doble Ciego)
+    const contactRequests = await db.contactRequest.findMany({
+        where: {
+            developerId: userId,
+            status: "pending",
+        },
+        include: {
+            recruiter: {
+                select: {
+                    name: true,
+                    email: true,
+                },
+            },
+        },
+        orderBy: { createdAt: "desc" },
+    });
+
     return (
         <div className="flex flex-col gap-6">
             <DashboardHeader />
+            {contactRequests.length > 0 && <ContactRequestsList requests={contactRequests} />}
             <NextAction {...nextAction} />
             <MetricsGrid latestResume={latestResume} latestJobMatch={latestJobMatch} limits={limits} />
             <HistoricalChart scores={historicalScores} />
