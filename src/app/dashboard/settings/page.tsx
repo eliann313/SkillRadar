@@ -469,7 +469,7 @@ export default function SettingsPage() {
         setExportingData(true);
         try {
             const res = await exportUserDataAction();
-            if (res.success && res.data) {
+            if (res.success) {
                 const dataStr = JSON.stringify(res.data, null, 2);
                 const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
                 const exportFileDefaultName = `skillradar_user_${session?.user?.name || "data"}_gdpr.json`;
