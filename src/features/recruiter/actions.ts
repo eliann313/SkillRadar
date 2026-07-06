@@ -150,3 +150,43 @@ export async function getMarketIntelligenceSkillsAction(): Promise<ActionResult<
         };
     }
 }
+
+/**
+ * Genera de 3 a 5 preguntas de entrevista técnica y respuestas esperadas.
+ */
+export async function generateInterviewQuestionsAction(
+    developerId: string,
+    jobDescription: string,
+): Promise<ActionResult<{ question: string; expectedResponse: string }[]>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado. Inicie sesión nuevamente." };
+        }
+
+        if (session.user.role !== "recruiter") {
+            return { success: false, error: "Acceso denegado. Se requiere el rol de reclutador." };
+        }
+
+        if (!developerId || !jobDescription.trim()) {
+            return { success: false, error: "Parámetros de entrada inválidos." };
+        }
+
+        const questions = await RecruiterService.generateInterviewQuestions({
+            developerId,
+            recruiterId: session.user.id,
+            jobDescription,
+        });
+
+        return {
+            success: true,
+            data: questions,
+        };
+    } catch (error: unknown) {
+        console.error("[generateInterviewQuestionsAction] Error:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Error al generar la guía de preguntas de entrevista.",
+        };
+    }
+}

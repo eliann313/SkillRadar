@@ -568,27 +568,27 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 14.1: Job Tracker (Kanban Board)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Crear un CRM personal para el desarrollador con vista Kanban (To Apply, Applied, Interviewing, Offer). Permitirle arrastrar las ofertas laborales que le interesan y centralizar el estado de su búsqueda de empleo dentro de SkillRadar.
 - **Criterios de Aceptación:**
-    - [ ] Crear el modelo `JobApplication` en Prisma para almacenar las postulaciones creadas por el usuario, asociando el cargo, la empresa, la URL de la oferta y su columna/estado.
-    - [ ] Implementar un tablero Kanban visual utilizando la librería `@hello-pangea/dnd` o un sistema de drag-and-drop nativo de React compatible con Server Actions.
-    - [ ] Sincronizar instantáneamente en la base de datos de Neon el cambio de estado cuando una tarjeta se arrastra a otra columna.
-- **Rama Git:** `feature/job-tracker-kanban`
+    - [x] Crear el modelo `JobApplication` en Prisma para almacenar las postulaciones creadas por el usuario, asociando el cargo, la empresa, la URL de la oferta y su columna/estado.
+    - [x] Implementar un tablero Kanban visual utilizando la librería `@hello-pangea/dnd` o un sistema de drag-and-drop nativo de React compatible con Server Actions.
+    - [x] Sincronizar instantáneamente en la base de datos de Neon el cambio de estado cuando una tarjeta se arrastra a otra columna.
+- **Rama Git:** `feature/modules-14-15-implementation`
 
 ### 🎴 Tarjeta 14.2: Smart Pitch / Auto-Cover Letter
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   A partir del Job Match, generar automáticamente un "Pitch de Valor" estructurado. El mensaje debe tener un tono humilde y profesional enfocado en: 1) Cómo el dev agrega valor inmediato a la empresa y 2) Reconocimiento honesto de sus brechas (gaps) y su plan de acción para resolverlas.
 - **Criterios de Aceptación:**
-    - [ ] Implementar una Server Action que combine los datos de `Resume` y la oferta de `JobMatch` procesados.
-    - [ ] Consumir la IA para redactar un pitch de contacto en primera persona con un tono profesional, honesto y empático (máximo 3 párrafos).
-    - [ ] Habilitar un botón "Copiar al Portapapeles" e integrar una sección de edición manual para que el dev pueda hacer pequeños ajustes antes de enviarlo.
-- **Rama Git:** `feature/smart-pitch-generator`
+    - [x] Implementar una Server Action que combine los datos de `Resume` y la oferta de `JobMatch` procesados.
+    - [x] Consumir la IA para redactar un pitch de contacto en primera persona con un tono profesional, honesto y empático (máximo 3 párrafos).
+    - [x] Habilitar un botón "Copiar al Portapapeles" e integrar una sección de edición manual para que el dev pueda hacer pequeños ajustes antes de enviarlo.
+- **Rama Git:** `feature/modules-14-15-implementation`
 
 ---
 
@@ -596,27 +596,27 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 15.1: Observaciones Técnicas Estructuradas (Áreas de Oportunidad)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Durante el Reverse Job-Matching, reemplazar el concepto punitivo de "Red Flags" por "Observaciones Técnicas". La IA detectará inconsistencias de carrera o brechas en el stack y las presentará al reclutador de manera constructiva como puntos a investigar.
 - **Criterios de Aceptación:**
-    - [ ] Configurar el prompt del servicio B2B para que categorice los puntos de cuidado en "Puntos a verificar" o "Áreas de exploración técnica" en lugar de "Red Flags".
-    - [ ] Retornar y renderizar estas observaciones en una lista de tipo acordeón en el perfil anónimo que ve el reclutador.
-    - [ ] Asegurarse de que el lenguaje de la IA sea 100% descriptivo, analítico y libre de juicios de valor destructivos.
-- **Rama Git:** `feature/technical-observations`
+    - [x] Configurar el prompt del servicio B2B para que categorice los puntos de cuidado en "Puntos a verificar" o "Áreas de exploración técnica" en lugar de "Red Flags".
+    - [x] Retornar y renderizar estas observaciones en una lista de tipo acordeón en el perfil anónimo que ve el reclutador.
+    - [x] Asegurarse de que el lenguaje de la IA sea 100% descriptivo, analítico y libre de juicios de valor destructivos.
+- **Rama Git:** `feature/modules-14-15-implementation`
 
 ### 🎴 Tarjeta 15.2: Generador de Preguntas de Entrevista Asistidas
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Cuando un reclutador selecciona a un candidato de la Shortlist, la IA debe generar un PDF o panel con 3-5 preguntas técnicas altamente específicas basadas en las debilidades o tecnologías clave del desarrollador. Esto empodera a reclutadores (incluso no técnicos) a conducir entrevistas iniciales profundas y precisas.
 - **Criterios de Aceptación:**
-    - [ ] Crear un servicio que tome el `resumeId` de un candidato y la descripción de cargo asociada a la vacante.
-    - [ ] Invocar a la IA para estructurar preguntas de entrevista específicas ("Pregúntale sobre su experiencia con Docker en X...") junto con la **respuesta clave esperada** para guiar al entrevistador no técnico.
-    - [ ] Implementar un botón en la UI del Recruiter para "Descargar Guía de Entrevista en PDF".
-- **Rama Git:** `feature/recruiter-interview-questions`
+    - [x] Crear un servicio que tome el `resumeId` de un candidato y la descripción de cargo asociada a la vacante.
+    - [x] Invocar a la IA para estructurar preguntas de entrevista específicas ("Pregúntale sobre su experiencia con Docker en X...") junto con la **respuesta clave esperada** para guiar al entrevistador no técnico.
+    - [x] Implementar un botón en la UI del Recruiter para "Descargar Guía de Entrevista en PDF".
+- **Rama Git:** `feature/modules-14-15-implementation`
 
 ---
 
