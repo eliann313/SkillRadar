@@ -70,10 +70,7 @@ export default async function DashboardPage() {
                             : null,
                     image: contactStatus === "accepted" ? dev.image : null,
                     estimatedSeniority: (parsedAnalysis?.estimatedSeniority || "mid") as
-                        | "junior"
-                        | "mid"
-                        | "senior"
-                        | "lead",
+                        "junior" | "mid" | "senior" | "lead",
                     averageScore: resume.atsScore || 0,
                     topSkills: parsedAnalysis?.keywords || [],
                     languages: [],
