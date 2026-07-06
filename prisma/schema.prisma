@@ -30,6 +30,9 @@ model User {
   interviewSessions InterviewSession[]
   receivedRequests  ContactRequest[]   @relation("DeveloperRequests")
   sentRequests      ContactRequest[]   @relation("RecruiterRequests")
+  shortlists        Shortlist[]        @relation("RecruiterShortlists")
+  shortlistedBy     Shortlist[]        @relation("DeveloperShortlists")
+  jobApplications   JobApplication[]
 
   // Claves de API Personales (Cifradas con AES-256-GCM)
   geminiApiKey       String?   @db.Text
@@ -41,6 +44,13 @@ model User {
   // Preferencias de Inferencia
   defaultAiProvider  String    @default("gemini") // "gemini" | "groq" | "openrouter" | "openai" | "anthropic"
   defaultAiModel     String    @default("gemini-2.5-flash")
+
+  // Perfil Público Compartible
+  isPublicProfile    Boolean   @default(false)
+  publicUsername     String?   @unique
+  showSkills         Boolean   @default(true)
+  showGithub         Boolean   @default(true)
+  showSeniority      Boolean   @default(true)
 }
 
 model Account {
@@ -149,4 +159,29 @@ model ContactRequest {
 
   recruiter   User     @relation("RecruiterRequests", fields: [recruiterId], references: [id], onDelete: Cascade)
   developer   User     @relation("DeveloperRequests", fields: [developerId], references: [id], onDelete: Cascade)
+}
+
+model Shortlist {
+  id          String   @id @default(cuid())
+  recruiterId String
+  developerId String
+  createdAt   DateTime @default(now())
+
+  recruiter   User     @relation("RecruiterShortlists", fields: [recruiterId], references: [id], onDelete: Cascade)
+  developer   User     @relation("DeveloperShortlists", fields: [developerId], references: [id], onDelete: Cascade)
+
+  @@unique([recruiterId, developerId])
+}
+
+model JobApplication {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  company   String
+  url       String?
+  status    String   @default("to_apply") // "to_apply" | "applied" | "interviewing" | "offer"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

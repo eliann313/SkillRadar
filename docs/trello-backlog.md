@@ -38,18 +38,18 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 | 24  | 11.2    | M11    | Skill Gap Action Plan                       | Recruiter     |
 | 25  | 11.3    | M11    | Explainability Layer                        | Recruiter     |
 | 26  | 12.1    | M12    | Doble Ciego (Contact Request)               | Recruiter     |
-| 27  | 12.2    | M12    | Smart Shortlist                             | Recruiter     |
-| 28  | 12.3    | M12    | Market Intelligence Heatmaps                | Recruiter     |
-| 29  | 13.1    | M13    | AI Resume Builder                           | Recruiter     |
-| 30  | 13.2    | M13    | Impact Verb Analyzer                        | Recruiter     |
-| 31  | 13.3    | M13    | LinkedIn Profile Audit                      | Recruiter     |
+| 27  | 12.2 ✅ | M12    | Smart Shortlist                             | Recruiter     |
+| 28  | 12.3 ✅ | M12    | Market Intelligence Heatmaps                | Recruiter     |
+| 29  | 13.1 ✅ | M13    | AI Resume Builder                           | Recruiter     |
+| 30  | 13.2 ✅ | M13    | Impact Verb Analyzer                        | Recruiter     |
+| 31  | 13.3 ✅ | M13    | LinkedIn Profile Audit                      | Recruiter     |
 | 32  | 14.1    | M14    | Job Tracker Kanban                          | Recruiter     |
 | 33  | 14.2    | M14    | Smart Pitch / Cover Letter                  | Recruiter     |
 | 34  | 15.1    | M15    | Observaciones Técnicas                      | Recruiter     |
 | 35  | 15.2    | M15    | Generador de Preguntas de Entrevista        | Recruiter     |
-| 36  | 17.1    | M17    | Score Progression Analytics                 | Growth        |
-| 37  | 17.2    | M17    | Perfil Público Compartible                  | Growth        |
-| 38  | 17.3    | M17    | Badge Embebible para GitHub README          | Growth        |
+| 36  | 17.1 ✅ | M17    | Score Progression Analytics                 | Growth        |
+| 37  | 17.2 ✅ | M17    | Perfil Público Compartible                  | Growth        |
+| 38  | 17.3 ✅ | M17    | Badge Embebible para GitHub README          | Growth        |
 | 39  | 7.2     | M7     | Career Copilot Widget                       | Growth        |
 | 40  | 18.1    | M18    | GitHub Schema Extendido (Seniority Signals) | Intelligence  |
 | 41  | 18.2    | M18    | Modos de Entrevista Avanzados               | Intelligence  |
@@ -499,27 +499,27 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 12.2: Smart Shortlist y Alertas de Recruiter
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Baja 🟢
 - **Descripción:**
   El recruiter puede guardar búsquedas y marcar perfiles en shortlists. Notificaciones automáticas cuando un nuevo dev entra al pool y matchea su búsqueda guardada.
 - **Criterios de Aceptación:**
-    - [ ] Crear el modelo `Shortlist` en Prisma relacionado con el `User` (Recruiter) y los `User` (Developer) agregados.
-    - [ ] Implementar un botón "Guardar en Favoritos/Shortlist" en la vista del Recruiter.
-    - [ ] Crear una sección "Mis Candidatos Guardados" en el panel del Recruiter para visualizar de forma centralizada sus perfiles seleccionados.
-- **Rama Git:** `feature/recruiter-saved-searches`
+    - [x] Crear el modelo `Shortlist` en Prisma relacionado con el `User` (Recruiter) y los `User` (Developer) agregados.
+    - [x] Implementar un botón "Guardar en Favoritos/Shortlist" en la vista del Recruiter.
+    - [x] Crear una sección "Mis Candidatos Guardados" en el panel del Recruiter para visualizar de forma centralizada sus perfiles seleccionados.
+- **Rama Git:** `feature/modules-12-13-implementation`
 
 ### 🎴 Tarjeta 12.3: Market Intelligence (Pool Heatmaps)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Baja 🟢
 - **Descripción:**
   Dashboard de estadísticas para el recruiter. Mostrar mapas de calor con los skills más escasos vs más abundantes del talent pool.
 - **Criterios de Aceptación:**
-    - [ ] Crear un servicio de agregación en Prisma que recopile y agrupe por frecuencia todas las habilidades técnicas (`skills`) almacenadas en los currículums del Talent Pool.
-    - [ ] Integrar un gráfico de tipo Treemap, Nube de Palabras o Barras Horizontales con Recharts en la sección de Recruiter.
-    - [ ] Mostrar visualmente los "Skills Más Demandados vs. Más Abundantes" para dar una perspectiva del mercado de candidatos al reclutador.
-- **Rama Git:** `feature/recruiter-market-intelligence`
+    - [x] Crear un servicio de agregación en Prisma que recopile y agrupe por frecuencia todas las habilidades técnicas (`skills`) almacenadas en los currículums del Talent Pool.
+    - [x] Integrar un gráfico de tipo Treemap, Nube de Palabras o Barras Horizontales con Recharts en la sección de Recruiter.
+    - [x] Mostrar visualmente los "Skills Más Demandados vs. Más Abundantes" para dar una perspectiva del mercado de candidatos al reclutador.
+- **Rama Git:** `feature/modules-12-13-implementation`
 
 ---
 
@@ -527,40 +527,40 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 13.1: AI Resume Builder (Editor en Vivo)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Permitir al usuario no solo analizar un PDF, sino editar y construir su CV directamente en la plataforma. La interfaz debe permitir crear secciones (Experiencia, Educación, Skills) y aplicar las sugerencias de la IA en tiempo real antes de exportar el PDF optimizado.
 - **Criterios de Aceptación:**
-    - [ ] Diseñar una interfaz interactiva de edición por secciones (Formularios y campos enriquecidos de texto).
-    - [ ] Conectar la IA para que evalúe y sugiera mejoras de redacción mientras el usuario escribe en los campos de experiencia.
-    - [ ] Implementar un generador de PDF del lado del servidor (usando una librería liviana como `@react-pdf/renderer` o un flujo similar) para permitir la descarga directa del currículum en formato compatible con ATS.
-- **Rama Git:** `feature/resume-builder-ui`
+    - [x] Diseñar una interfaz interactiva de edición por secciones (Formularios y campos enriquecidos de texto).
+    - [x] Conectar la IA para que evalúe y sugiera mejoras de redacción mientras el usuario escribe en los campos de experiencia.
+    - [x] Implementar un generador de PDF del lado del servidor (usando una librería liviana como `@react-pdf/renderer` o un flujo similar) para permitir la descarga directa del currículum en formato compatible con ATS.
+- **Rama Git:** `feature/modules-12-13-implementation`
 
 ### 🎴 Tarjeta 13.2: Impact Verb Analyzer (Analizador de Impacto)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Baja 🟢
 - **Descripción:**
   Integrar una evaluación específica en el parsing del CV que detecte la calidad de los verbos utilizados en las viñetas de experiencia. Promover el uso de lenguaje de impacto ("Arquitecté", "Optimizé") frente a lenguaje pasivo ("Ayudé a", "Fui parte de"), dando un "Action Score".
 - **Criterios de Aceptación:**
-    - [ ] Definir una lista de control semántica o prompt específico para que la IA escanee la redacción de las responsabilidades del CV.
-    - [ ] Clasificar el uso de verbos pasivos y sugerir alternativas activas y orientadas a resultados.
-    - [ ] Renderizar un "Impact Score" y una lista de "Antes / Después" con ejemplos de cómo reescribir sus viñetas.
-- **Rama Git:** `feature/impact-verb-analyzer`
+    - [x] Definir una lista de control semántica o prompt específico para que la IA escanee la redacción de las responsabilidades del CV.
+    - [x] Clasificar el uso de verbos pasivos y sugerir alternativas activas y orientadas a resultados.
+    - [x] Renderizar un "Impact Score" y una lista de "Antes / Después" con ejemplos de cómo reescribir sus viñetas.
+- **Rama Git:** `feature/modules-12-13-implementation`
 
 ### 🎴 Tarjeta 13.3: Auditoría de Perfil de LinkedIn con IA
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Implementar una auditoría SEO para el perfil de LinkedIn del usuario libre de riesgos legales y sin costos de APIs de scraping externas. El sistema permitirá al usuario pegar directamente su extracto/experiencia o subir el PDF generado por su perfil de LinkedIn (`Ctrl + P` -> Guardar como PDF), reutilizando la infraestructura de parseo. La IA analizará el Titular, la sección 'Acerca de' y la densidad de palabras clave para optimizar su posicionamiento.
 - **Criterios de Aceptación:**
-    - [ ] Crear una interfaz que permita subir el perfil de LinkedIn exportado en PDF o pegar directamente el texto copiado de su perfil.
-    - [ ] Integrar el lector de PDFs del Módulo 2 para extraer el texto estructurado del PDF de LinkedIn.
-    - [ ] Configurar un prompt especializado en posicionamiento orgánico en búsquedas de reclutadores de LinkedIn (SEO técnico).
-    - [ ] Retornar y mostrar una calificación del perfil con consejos específicos de mejora para el titular, el "Acerca de" y la descripción de responsabilidades.
-- **Rama Git:** `feature/linkedin-profile-audit`
+    - [x] Crear una interfaz que permita subir el perfil de LinkedIn exportado en PDF o pegar directamente el texto copiado de su perfil.
+    - [x] Integrar el lector de PDFs del Módulo 2 para extraer el texto estructurado del PDF de LinkedIn.
+    - [x] Configurar un prompt especializado en posicionamiento orgánico en búsquedas de reclutadores de LinkedIn (SEO técnico).
+    - [x] Retornar y mostrar una calificación del perfil con consejos específicos de mejora para el titular, el "Acerca de" y la descripción de responsabilidades.
+- **Rama Git:** `feature/modules-12-13-implementation`
 
 ---
 
@@ -568,27 +568,27 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 14.1: Job Tracker (Kanban Board)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Crear un CRM personal para el desarrollador con vista Kanban (To Apply, Applied, Interviewing, Offer). Permitirle arrastrar las ofertas laborales que le interesan y centralizar el estado de su búsqueda de empleo dentro de SkillRadar.
 - **Criterios de Aceptación:**
-    - [ ] Crear el modelo `JobApplication` en Prisma para almacenar las postulaciones creadas por el usuario, asociando el cargo, la empresa, la URL de la oferta y su columna/estado.
-    - [ ] Implementar un tablero Kanban visual utilizando la librería `@hello-pangea/dnd` o un sistema de drag-and-drop nativo de React compatible con Server Actions.
-    - [ ] Sincronizar instantáneamente en la base de datos de Neon el cambio de estado cuando una tarjeta se arrastra a otra columna.
-- **Rama Git:** `feature/job-tracker-kanban`
+    - [x] Crear el modelo `JobApplication` en Prisma para almacenar las postulaciones creadas por el usuario, asociando el cargo, la empresa, la URL de la oferta y su columna/estado.
+    - [x] Implementar un tablero Kanban visual utilizando la librería `@hello-pangea/dnd` o un sistema de drag-and-drop nativo de React compatible con Server Actions.
+    - [x] Sincronizar instantáneamente en la base de datos de Neon el cambio de estado cuando una tarjeta se arrastra a otra columna.
+- **Rama Git:** `feature/modules-14-15-implementation`
 
 ### 🎴 Tarjeta 14.2: Smart Pitch / Auto-Cover Letter
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   A partir del Job Match, generar automáticamente un "Pitch de Valor" estructurado. El mensaje debe tener un tono humilde y profesional enfocado en: 1) Cómo el dev agrega valor inmediato a la empresa y 2) Reconocimiento honesto de sus brechas (gaps) y su plan de acción para resolverlas.
 - **Criterios de Aceptación:**
-    - [ ] Implementar una Server Action que combine los datos de `Resume` y la oferta de `JobMatch` procesados.
-    - [ ] Consumir la IA para redactar un pitch de contacto en primera persona con un tono profesional, honesto y empático (máximo 3 párrafos).
-    - [ ] Habilitar un botón "Copiar al Portapapeles" e integrar una sección de edición manual para que el dev pueda hacer pequeños ajustes antes de enviarlo.
-- **Rama Git:** `feature/smart-pitch-generator`
+    - [x] Implementar una Server Action que combine los datos de `Resume` y la oferta de `JobMatch` procesados.
+    - [x] Consumir la IA para redactar un pitch de contacto en primera persona con un tono profesional, honesto y empático (máximo 3 párrafos).
+    - [x] Habilitar un botón "Copiar al Portapapeles" e integrar una sección de edición manual para que el dev pueda hacer pequeños ajustes antes de enviarlo.
+- **Rama Git:** `feature/modules-14-15-implementation`
 
 ---
 
@@ -596,27 +596,27 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 15.1: Observaciones Técnicas Estructuradas (Áreas de Oportunidad)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Durante el Reverse Job-Matching, reemplazar el concepto punitivo de "Red Flags" por "Observaciones Técnicas". La IA detectará inconsistencias de carrera o brechas en el stack y las presentará al reclutador de manera constructiva como puntos a investigar.
 - **Criterios de Aceptación:**
-    - [ ] Configurar el prompt del servicio B2B para que categorice los puntos de cuidado en "Puntos a verificar" o "Áreas de exploración técnica" en lugar de "Red Flags".
-    - [ ] Retornar y renderizar estas observaciones en una lista de tipo acordeón en el perfil anónimo que ve el reclutador.
-    - [ ] Asegurarse de que el lenguaje de la IA sea 100% descriptivo, analítico y libre de juicios de valor destructivos.
-- **Rama Git:** `feature/technical-observations`
+    - [x] Configurar el prompt del servicio B2B para que categorice los puntos de cuidado en "Puntos a verificar" o "Áreas de exploración técnica" en lugar de "Red Flags".
+    - [x] Retornar y renderizar estas observaciones en una lista de tipo acordeón en el perfil anónimo que ve el reclutador.
+    - [x] Asegurarse de que el lenguaje de la IA sea 100% descriptivo, analítico y libre de juicios de valor destructivos.
+- **Rama Git:** `feature/modules-14-15-implementation`
 
 ### 🎴 Tarjeta 15.2: Generador de Preguntas de Entrevista Asistidas
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Cuando un reclutador selecciona a un candidato de la Shortlist, la IA debe generar un PDF o panel con 3-5 preguntas técnicas altamente específicas basadas en las debilidades o tecnologías clave del desarrollador. Esto empodera a reclutadores (incluso no técnicos) a conducir entrevistas iniciales profundas y precisas.
 - **Criterios de Aceptación:**
-    - [ ] Crear un servicio que tome el `resumeId` de un candidato y la descripción de cargo asociada a la vacante.
-    - [ ] Invocar a la IA para estructurar preguntas de entrevista específicas ("Pregúntale sobre su experiencia con Docker en X...") junto con la **respuesta clave esperada** para guiar al entrevistador no técnico.
-    - [ ] Implementar un botón en la UI del Recruiter para "Descargar Guía de Entrevista en PDF".
-- **Rama Git:** `feature/recruiter-interview-questions`
+    - [x] Crear un servicio que tome el `resumeId` de un candidato y la descripción de cargo asociada a la vacante.
+    - [x] Invocar a la IA para estructurar preguntas de entrevista específicas ("Pregúntale sobre su experiencia con Docker en X...") junto con la **respuesta clave esperada** para guiar al entrevistador no técnico.
+    - [x] Implementar un botón en la UI del Recruiter para "Descargar Guía de Entrevista en PDF".
+- **Rama Git:** `feature/modules-14-15-implementation`
 
 ---
 
@@ -630,48 +630,48 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 17.1: Score Progression Analytics
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Alta 🔴 — **Driver principal de retención de usuarios**
 - **Descripción:**
   La Tarjeta 10.1 menciona un "gráfico pequeño de progreso histórico" como un bullet point dentro de sus criterios, pero esta feature merece su propia página dedicada. Una vista `/dashboard/progress` que muestre la evolución temporal del ATS score por CV, el número de Job Matches realizados, y los skills que el usuario cerró a lo largo del tiempo. Es el principal motor de retención: el usuario vuelve a la plataforma para verificar si mejoró.
 - **Criterios de Aceptación:**
-    - [ ] Crear la página `src/app/dashboard/progress/page.tsx`.
-    - [ ] Implementar una query Prisma que recupere el historial de scores de la tabla `Resume` ordenados por `createdAt` para el usuario autenticado.
-    - [ ] Diseñar un gráfico de área con Recharts mostrando la evolución del `atsScore` a lo largo del tiempo (eje X: fecha, eje Y: score 0-100).
-    - [ ] Agregar una sección de "Skills Cerrados": listar skills que aparecían como `missingSkills` en el primer Job Match del usuario pero ya no aparecen en el último, a modo de logros tangibles.
-    - [ ] Agregar métricas secundarias: número total de Job Matches realizados y score promedio de los últimos 5 matches.
-    - [ ] Agregar el ítem "Progreso" en el sidebar del dashboard con un ícono apropiado de Lucide.
-    - [ ] Mostrar un estado vacío con CTA ("Subí tu primer CV para empezar a trackear tu progreso") si el usuario no tiene historial aún.
+    - [x] Crear la página `src/app/dashboard/progress/page.tsx`.
+    - [x] Implementar una query Prisma que recupere el historial de scores de la tabla `Resume` ordenados por `createdAt` para el usuario autenticado.
+    - [x] Diseñar un gráfico de área con Recharts mostrando la evolución del `atsScore` a lo largo del tiempo (eje X: fecha, eje Y: score 0-100).
+    - [x] Agregar una sección de "Skills Cerrados": listar skills que aparecían como `missingSkills` en el primer Job Match del usuario pero ya no aparecen en el último, a modo de logros tangibles.
+    - [x] Agregar métricas secundarias: número total de Job Matches realizados y score promedio de los últimos 5 matches.
+    - [x] Agregar el ítem "Progreso" en el sidebar del dashboard con un ícono apropiado de Lucide.
+    - [x] Mostrar un estado vacío con CTA ("Subí tu primer CV para empezar a trackear tu progreso") si el usuario no tiene historial aún.
 - **Rama Git:** `feature/score-progression-analytics`
 
 ### 🎴 Tarjeta 17.2: Perfil Público Compartible (`/u/[username]`)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Media 🟡 — **Growth loop viral**
 - **Descripción:**
   Una URL pública `skillradar.app/u/[username]` que el developer puede compartir con recruiters. Muestra un resumen visual de su perfil: skill radar chart (con los ejes del producto: Frontend, Backend, DevOps, Architecture, Testing), seniority estimado, top skills extraídos y distribución de lenguajes de GitHub. El developer controla qué información es visible mediante toggles en Settings. Este feature crea el principal loop viral: un recruiter que recibe el link cae en la app y se registra. **Nota:** mostrar el skill radar chart en lugar del ATS score crudo para que el contexto sea más claro e interpretable para recruiters no técnicos.
 - **Criterios de Aceptación:**
-    - [ ] Agregar los campos `isPublicProfile: Boolean @default(false)` y `publicUsername: String? @unique` al modelo `User` en Prisma y migrar.
-    - [ ] Crear la ruta pública `src/app/u/[username]/page.tsx` (sin requerir autenticación para GET).
-    - [ ] Implementar la query de servidor que cargue solo los datos públicos del perfil: top 10 skills, distribución de lenguajes, seniority label, y fecha de último análisis.
-    - [ ] Diseñar la UI del perfil público con el skill radar chart (usando Recharts `RadarChart`), badges de skills y score de seniority.
-    - [ ] Crear en `src/app/dashboard/settings/page.tsx` una sección "Perfil Público" con toggles individuales para cada dato visible (skills, GitHub, seniority).
-    - [ ] Agregar un botón "Compartir perfil" en el dashboard con copia al portapapeles de la URL pública.
-    - [ ] Implementar meta tags Open Graph y Twitter Card en la página pública para previews enriquecidos al compartir en LinkedIn o X.
+    - [x] Agregar los campos `isPublicProfile: Boolean @default(false)` y `publicUsername: String? @unique` al modelo `User` en Prisma y migrar.
+    - [x] Crear la ruta pública `src/app/u/[username]/page.tsx` (sin requerir autenticación para GET).
+    - [x] Implementar la query de servidor que cargue solo los datos públicos del perfil: top 10 skills, distribución de lenguajes, seniority label, y fecha de último análisis.
+    - [x] Diseñar la UI del perfil público con el skill radar chart (usando Recharts `RadarChart`), badges de skills y score de seniority.
+    - [x] Crear en `src/app/dashboard/settings/page.tsx` una sección "Perfil Público" con toggles individuales para cada dato visible (skills, GitHub, seniority).
+    - [x] Agregar un botón "Compartir perfil" en el dashboard con copia al portapapeles de la URL pública.
+    - [x] Implementar meta tags Open Graph y Twitter Card en la página pública para previews enriquecidos al compartir en LinkedIn o X.
 - **Rama Git:** `feature/public-profile-shareable`
 
 ### 🎴 Tarjeta 17.3: Badge Embebible para GitHub README
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Baja 🟢 — **Distribución orgánica / Adquisición viral**
 - **Descripción:**
   Un endpoint que genera un SVG dinámico con el resumen del perfil SkillRadar del developer, diseñado para ser embebido en el README de GitHub del usuario con una sola línea de Markdown. Al hacer click en el badge, el recruiter llega al perfil público del dev en SkillRadar. El SVG se genera server-side con template literals (sin Canvas, sin React — compatible con el renderer de imágenes de GitHub). Se actualiza automáticamente con los últimos datos del usuario. **Depende de la Tarjeta 17.2** (Perfil Público).
 - **Criterios de Aceptación:**
-    - [ ] Crear el Route Handler `src/app/api/badge/[username]/route.ts` que devuelva `Content-Type: image/svg+xml`.
-    - [ ] Diseñar el template SVG del badge: nombre, seniority label (ej: "Mid-level Developer"), top 3 skills como píldoras de texto, y logo de SkillRadar. Dimensiones estándar de badge (ej: 540×180px).
-    - [ ] Configurar `Cache-Control: public, max-age=3600` para que GitHub pueda cachear el SVG sin saturar el endpoint.
-    - [ ] Mostrar el badge solo si el usuario tiene `isPublicProfile: true`; retornar 404 si el perfil es privado.
-    - [ ] Agregar en el panel de Perfil Público de Settings la instrucción de cómo embeber el badge, con el snippet de Markdown listo para copiar: `[![SkillRadar](https://skillradar.app/api/badge/[username])](https://skillradar.app/u/[username])`.
+    - [x] Crear the Route Handler `src/app/api/badge/[username]/route.ts` que devuelva `Content-Type: image/svg+xml`.
+    - [x] Diseñar el template SVG del badge: nombre, seniority label (ej: "Mid-level Developer"), top 3 skills como píldoras de texto, y logo de SkillRadar. Dimensiones estándar de badge (ej: 540×180px).
+    - [x] Configurar `Cache-Control: public, max-age=3600` para que GitHub pueda cachear el SVG sin saturar el endpoint.
+    - [x] Mostrar el badge solo si el usuario tiene `isPublicProfile: true`; retornar 404 si el perfil es privado.
+    - [x] Agregar en el panel de Perfil Público de Settings la instrucción de cómo embeber el badge, con el snippet de Markdown listo para copiar: `[![SkillRadar](https://skillradar.app/api/badge/[username])](https://skillradar.app/u/[username])`.
 - **Rama Git:** `feature/embeddable-badge`
 
 ---

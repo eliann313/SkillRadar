@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useChat } from "@ai-sdk/react";
+import { useChat, type UIMessage } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -12,6 +13,22 @@ import { startInterviewAction, saveInterviewMessagesAction, finishInterviewActio
 import { cn } from "@/lib/utils";
 import { Send, Bot, User, Sparkles, CheckCircle2, Zap, Award as Trophy, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+
+function serializeMessages(msgs: UIMessage[]): Array<{ role: string; content: string }> {
+    return msgs.map((msg) => {
+        let contentStr = "";
+        if (msg.parts) {
+            contentStr = msg.parts
+                .filter((part) => part.type === "text")
+                .map((part) => (part as { text: string }).text)
+                .join("");
+        }
+        return {
+            role: msg.role,
+            content: contentStr,
+        };
+    });
+}
 
 export function MockInterviewChat() {
     const [sessionId, setSessionId] = useState<string | null>(null);
@@ -29,18 +46,24 @@ export function MockInterviewChat() {
 
     const scrollRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
+    const [input, setInput] = useState("");
 
-    const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages } = useChat({
-        api: "/api/chat/interview",
-        body: {
-            sessionId,
-        },
-        onFinish: (message: { role: string; content: string }) => {
+    const { messages, sendMessage, status, setMessages } = useChat({
+        transport: new DefaultChatTransport({
+            api: "/api/chat/interview",
+            body: {
+                sessionId,
+            },
+        }),
+        onFinish: ({ message }) => {
             if (sessionId) {
-                void saveInterviewMessagesAction(sessionId, [...messages, message]);
+                const serialized = serializeMessages([...messages, message]);
+                void saveInterviewMessagesAction(sessionId, serialized);
             }
         },
     });
+
+    const isLoading = status === "streaming" || status === "submitted";
 
     // Auto-scroll al fondo
     useEffect(() => {
@@ -57,15 +80,24 @@ export function MockInterviewChat() {
                 setSessionId(res.data.id);
                 toast.success("Sesión de entrevista inicializada.");
                 // Primer mensaje de bienvenida automático
-                const initialMsg = {
+                const initialMsg: UIMessage = {
                     id: crypto.randomUUID(),
                     role: "assistant" as const,
-                    content:
-                        "¡Hola! Bienvenido a tu simulación de entrevista técnica. Para empezar, cuéntame brevemente sobre tu experiencia general en desarrollo de software y qué tecnologías has dominado recientemente.",
-                    createdAt: new Date(),
+                    parts: [
+                        {
+                            type: "text" as const,
+                            text: "¡Hola! Bienvenido a tu simulación de entrevista técnica. Para empezar, cuéntame brevemente sobre tu experiencia general en desarrollo de software y qué tecnologías has dominado recientemente.",
+                        },
+                    ],
                 };
                 setMessages([initialMsg]);
-                await saveInterviewMessagesAction(res.data.id, [initialMsg]);
+                await saveInterviewMessagesAction(res.data.id, [
+                    {
+                        role: initialMsg.role,
+                        content:
+                            "¡Hola! Bienvenido a tu simulación de entrevista técnica. Para empezar, cuéntame brevemente sobre tu experiencia general en desarrollo de software y qué tecnologías has dominado recientemente.",
+                    },
+                ]);
             } else {
                 toast.error(res.error || "No se pudo iniciar la entrevista.");
             }
@@ -274,38 +306,46 @@ export function MockInterviewChat() {
                         </div>
                     ) : (
                         <div className="flex flex-col gap-4">
-                            {messages.map((message: { id: string; role: string; content: string }) => (
-                                <div
-                                    key={message.id}
-                                    className={cn("flex gap-3", message.role === "user" && "flex-row-reverse")}
-                                >
-                                    <Avatar className="size-8 shrink-0">
-                                        <AvatarFallback
+                            {messages.map((message: UIMessage) => {
+                                const textContent = message.parts
+                                    ? message.parts
+                                          .filter((part) => part.type === "text")
+                                          .map((part) => (part as { text: string }).text)
+                                          .join("")
+                                    : "";
+                                return (
+                                    <div
+                                        key={message.id}
+                                        className={cn("flex gap-3", message.role === "user" && "flex-row-reverse")}
+                                    >
+                                        <Avatar className="size-8 shrink-0">
+                                            <AvatarFallback
+                                                className={cn(
+                                                    message.role === "assistant"
+                                                        ? "bg-primary/10 text-primary"
+                                                        : "bg-indigo/10 text-indigo",
+                                                )}
+                                            >
+                                                {message.role === "assistant" ? (
+                                                    <Bot className="size-4" />
+                                                ) : (
+                                                    <User className="size-4" />
+                                                )}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div
                                             className={cn(
+                                                "max-w-[80%] rounded-2xl px-4 py-3",
                                                 message.role === "assistant"
-                                                    ? "bg-primary/10 text-primary"
-                                                    : "bg-indigo/10 text-indigo",
+                                                    ? "rounded-tl-sm bg-muted text-sm text-foreground"
+                                                    : "rounded-tr-sm bg-primary text-primary-foreground text-sm",
                                             )}
                                         >
-                                            {message.role === "assistant" ? (
-                                                <Bot className="size-4" />
-                                            ) : (
-                                                <User className="size-4" />
-                                            )}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <div
-                                        className={cn(
-                                            "max-w-[80%] rounded-2xl px-4 py-3",
-                                            message.role === "assistant"
-                                                ? "rounded-tl-sm bg-muted text-sm text-foreground"
-                                                : "rounded-tr-sm bg-primary text-primary-foreground text-sm",
-                                        )}
-                                    >
-                                        <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                                            <p className="leading-relaxed whitespace-pre-wrap">{textContent}</p>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
 
                             {/* Loader de IA */}
                             {isLoading && (
@@ -328,13 +368,21 @@ export function MockInterviewChat() {
 
                 {/* Input Form */}
                 {sessionId && (
-                    <form onSubmit={handleSubmit} className="shrink-0 border-t border-border p-4">
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            if (!input.trim() || isLoading || isFinishing) return;
+                            void sendMessage({ text: input });
+                            setInput("");
+                        }}
+                        className="shrink-0 border-t border-border p-4"
+                    >
                         <div className="flex gap-3">
                             <Textarea
                                 ref={inputRef}
                                 placeholder="Escribe tu respuesta..."
                                 value={input}
-                                onChange={handleInputChange}
+                                onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={handleKeyDown}
                                 disabled={isLoading || isFinishing}
                                 className="min-h-[44px] max-h-32 resize-none"

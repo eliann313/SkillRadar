@@ -83,3 +83,110 @@ export async function createContactRequestAction(
         };
     }
 }
+
+/**
+ * Alterna el estado de favoritos (shortlist) de un reclutador sobre un desarrollador.
+ */
+export async function toggleShortlistAction(developerId: string): Promise<ActionResult<boolean>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado. Inicie sesión nuevamente." };
+        }
+
+        if (session.user.role !== "recruiter") {
+            return { success: false, error: "Acceso denegado. Se requiere el rol de reclutador." };
+        }
+
+        if (!developerId) {
+            return { success: false, error: "ID de desarrollador inválido." };
+        }
+
+        const isShortlisted = await RecruiterService.toggleShortlist({
+            recruiterId: session.user.id,
+            developerId,
+        });
+
+        revalidatePath("/dashboard");
+
+        return {
+            success: true,
+            data: isShortlisted,
+        };
+    } catch (error: unknown) {
+        console.error("[toggleShortlistAction] Error:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Error al actualizar la shortlist.",
+        };
+    }
+}
+
+/**
+ * Obtiene el listado de habilidades agregadas para Market Intelligence.
+ */
+export async function getMarketIntelligenceSkillsAction(): Promise<ActionResult<{ name: string; value: number }[]>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado." };
+        }
+
+        if (session.user.role !== "recruiter") {
+            return { success: false, error: "Acceso denegado." };
+        }
+
+        const skills = await RecruiterService.getMarketIntelligenceSkills();
+
+        return {
+            success: true,
+            data: skills,
+        };
+    } catch (error: unknown) {
+        console.error("[getMarketIntelligenceSkillsAction] Error:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Error al obtener Market Intelligence.",
+        };
+    }
+}
+
+/**
+ * Genera de 3 a 5 preguntas de entrevista técnica y respuestas esperadas.
+ */
+export async function generateInterviewQuestionsAction(
+    developerId: string,
+    jobDescription: string,
+): Promise<ActionResult<{ question: string; expectedResponse: string }[]>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado. Inicie sesión nuevamente." };
+        }
+
+        if (session.user.role !== "recruiter") {
+            return { success: false, error: "Acceso denegado. Se requiere el rol de reclutador." };
+        }
+
+        if (!developerId || !jobDescription.trim()) {
+            return { success: false, error: "Parámetros de entrada inválidos." };
+        }
+
+        const questions = await RecruiterService.generateInterviewQuestions({
+            developerId,
+            recruiterId: session.user.id,
+            jobDescription,
+        });
+
+        return {
+            success: true,
+            data: questions,
+        };
+    } catch (error: unknown) {
+        console.error("[generateInterviewQuestionsAction] Error:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Error al generar la guía de preguntas de entrevista.",
+        };
+    }
+}
