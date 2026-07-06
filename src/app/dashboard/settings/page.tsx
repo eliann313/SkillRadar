@@ -9,10 +9,30 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { redirect } from "next/navigation";
-import { User as UserIcon, Building, Bell, Shield, Sparkles, Eye, EyeOff, CheckCircle2, Key, Info } from "lucide-react";
+import {
+    User as UserIcon,
+    Building,
+    Bell,
+    Shield,
+    Sparkles,
+    Eye,
+    EyeOff,
+    CheckCircle2,
+    Key,
+    Info,
+    Globe,
+    Share2,
+    Copy,
+} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { getUserApiKeysStatusAction, saveUserApiKeysAction, saveUserInferencePreferencesAction } from "./actions";
+import {
+    getUserApiKeysStatusAction,
+    saveUserApiKeysAction,
+    saveUserInferencePreferencesAction,
+    getUserPublicProfileSettingsAction,
+    updateUserPublicProfileSettingsAction,
+} from "./actions";
 
 const PRESET_PLACEHOLDER = "__API_KEY_PRESET__";
 
@@ -153,6 +173,28 @@ export default function SettingsPage() {
     const [customModelId, setCustomModelId] = useState("");
     const [isCustomModelSelected, setIsCustomModelSelected] = useState(false);
 
+    // Estados de Perfil Público
+    const [publicSettings, setPublicSettings] = useState({
+        isPublicProfile: false,
+        publicUsername: "",
+        showSkills: true,
+        showGithub: true,
+        showSeniority: true,
+    });
+    const [savingPublicSettings, setSavingPublicSettings] = useState(false);
+    const [publicProfileOrigin, setPublicProfileOrigin] = useState(() =>
+        typeof window !== "undefined" ? window.location.origin : "",
+    );
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (typeof window !== "undefined") {
+                setPublicProfileOrigin(window.location.origin);
+            }
+        }, 0);
+        return () => clearTimeout(timer);
+    }, []);
+
     const fetchKeysAndPrefs = async () => {
         try {
             const res = await getUserApiKeysStatusAction();
@@ -197,9 +239,21 @@ export default function SettingsPage() {
             } else {
                 toast.error(res.error || "No se pudieron obtener los datos de configuración.");
             }
+
+            // Cargar configuración de perfil público
+            const publicRes = await getUserPublicProfileSettingsAction();
+            if (publicRes.success && publicRes.data) {
+                setPublicSettings({
+                    isPublicProfile: publicRes.data.isPublicProfile,
+                    publicUsername: publicRes.data.publicUsername || "",
+                    showSkills: publicRes.data.showSkills,
+                    showGithub: publicRes.data.showGithub,
+                    showSeniority: publicRes.data.showSeniority,
+                });
+            }
         } catch (e) {
             console.error(e);
-            toast.error("Ocurrió un error de red al cargar la configuración de IA.");
+            toast.error("Ocurrió un error de red al cargar la configuración.");
         } finally {
             setLoadingConfig(false);
         }
@@ -312,6 +366,44 @@ export default function SettingsPage() {
             toast.error(errMsg);
         } finally {
             setSavingPrefs(false);
+        }
+    };
+
+    // Guardar la configuración del perfil público
+    const handleSavePublicSettings = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSavingPublicSettings(true);
+
+        try {
+            const res = await updateUserPublicProfileSettingsAction({
+                isPublicProfile: publicSettings.isPublicProfile,
+                publicUsername: publicSettings.publicUsername,
+                showSkills: publicSettings.showSkills,
+                showGithub: publicSettings.showGithub,
+                showSeniority: publicSettings.showSeniority,
+            });
+
+            if (res.success) {
+                toast.success(res.message || "Configuración del perfil público actualizada.");
+                // Recargar
+                const publicRes = await getUserPublicProfileSettingsAction();
+                if (publicRes.success && publicRes.data) {
+                    setPublicSettings({
+                        isPublicProfile: publicRes.data.isPublicProfile,
+                        publicUsername: publicRes.data.publicUsername || "",
+                        showSkills: publicRes.data.showSkills,
+                        showGithub: publicRes.data.showGithub,
+                        showSeniority: publicRes.data.showSeniority,
+                    });
+                }
+            } else {
+                toast.error(res.error || "Ocurrió un error al guardar la configuración.");
+            }
+        } catch (err: unknown) {
+            const errMsg = err instanceof Error ? err.message : "Error al guardar perfil público.";
+            toast.error(errMsg);
+        } finally {
+            setSavingPublicSettings(false);
         }
     };
 
@@ -915,6 +1007,246 @@ export default function SettingsPage() {
                                 </form>
                             </div>
                         )}
+                    </CardContent>
+                </Card>
+
+                {/* Perfil Público Compartible (Growth & Viral Loop) */}
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Globe className="size-5 text-primary" />
+                            Perfil Público
+                        </CardTitle>
+                        <CardDescription>
+                            Configura tu perfil público para que recruiters puedan visualizar tus habilidades sin
+                            necesidad de iniciar sesión.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                void handleSavePublicSettings(e);
+                            }}
+                            className="flex flex-col gap-6"
+                        >
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-lg border border-border/60 bg-background/30 p-4">
+                                <div className="space-y-0.5">
+                                    <Label className="text-sm font-semibold flex items-center gap-2">
+                                        Activar Perfil Público
+                                    </Label>
+                                    <p className="text-xs text-muted-foreground">
+                                        Permite que cualquier persona que tenga tu link acceda a tu skill radar chart y
+                                        datos profesionales.
+                                    </p>
+                                </div>
+                                <div className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        id="isPublicProfile"
+                                        checked={publicSettings.isPublicProfile}
+                                        onChange={(e) =>
+                                            setPublicSettings((prev) => ({
+                                                ...prev,
+                                                isPublicProfile: e.target.checked,
+                                            }))
+                                        }
+                                        className="size-5 rounded border-border/60 text-primary focus:ring-primary cursor-pointer"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <Label htmlFor="publicUsername" className="text-xs font-semibold">
+                                    Nombre de usuario público (Username)
+                                </Label>
+                                <div className="flex gap-2">
+                                    <span className="flex items-center h-9 rounded-md border border-border/60 bg-muted/30 px-3 text-sm text-muted-foreground select-none">
+                                        {publicProfileOrigin
+                                            ? `${publicProfileOrigin.replace(/^https?:\/\//, "")}/u/`
+                                            : "skillradar.app/u/"}
+                                    </span>
+                                    <Input
+                                        id="publicUsername"
+                                        value={publicSettings.publicUsername}
+                                        onChange={(e) =>
+                                            setPublicSettings((prev) => ({ ...prev, publicUsername: e.target.value }))
+                                        }
+                                        placeholder="tu-nombre-de-usuario"
+                                        className="max-w-xs border-border/60 bg-background/50 focus:border-primary/50 text-sm"
+                                        required={publicSettings.isPublicProfile}
+                                    />
+                                </div>
+                                <p className="text-[10px] text-muted-foreground mt-0.5 leading-normal">
+                                    Solo letras minúsculas, números, guiones y guiones bajos (mínimo 3 caracteres).
+                                </p>
+                            </div>
+
+                            {publicSettings.isPublicProfile && (
+                                <div className="flex flex-col gap-4 border-t border-border/50 pt-4 animate-in fade-in duration-300">
+                                    <h3 className="font-semibold text-xs text-foreground/90 uppercase tracking-wider">
+                                        Datos Visibles en tu Perfil Público
+                                    </h3>
+
+                                    <div className="grid gap-3 sm:grid-cols-3">
+                                        <label className="flex items-center gap-3 rounded-lg border border-border/45 bg-background/20 p-3 hover:bg-background/40 transition-colors cursor-pointer select-none">
+                                            <input
+                                                type="checkbox"
+                                                checked={publicSettings.showSkills}
+                                                onChange={(e) =>
+                                                    setPublicSettings((prev) => ({
+                                                        ...prev,
+                                                        showSkills: e.target.checked,
+                                                    }))
+                                                }
+                                                className="size-4 rounded border-border/60 text-primary focus:ring-primary"
+                                            />
+                                            <div className="flex flex-col">
+                                                <span className="text-xs font-medium">Mostrar Skills</span>
+                                                <span className="text-[10px] text-muted-foreground">
+                                                    Listado de top habilidades
+                                                </span>
+                                            </div>
+                                        </label>
+
+                                        <label className="flex items-center gap-3 rounded-lg border border-border/45 bg-background/20 p-3 hover:bg-background/40 transition-colors cursor-pointer select-none">
+                                            <input
+                                                type="checkbox"
+                                                checked={publicSettings.showGithub}
+                                                onChange={(e) =>
+                                                    setPublicSettings((prev) => ({
+                                                        ...prev,
+                                                        showGithub: e.target.checked,
+                                                    }))
+                                                }
+                                                className="size-4 rounded border-border/60 text-primary focus:ring-primary"
+                                            />
+                                            <div className="flex flex-col">
+                                                <span className="text-xs font-medium">Mostrar GitHub</span>
+                                                <span className="text-[10px] text-muted-foreground">
+                                                    Lenguajes de programación
+                                                </span>
+                                            </div>
+                                        </label>
+
+                                        <label className="flex items-center gap-3 rounded-lg border border-border/45 bg-background/20 p-3 hover:bg-background/40 transition-colors cursor-pointer select-none">
+                                            <input
+                                                type="checkbox"
+                                                checked={publicSettings.showSeniority}
+                                                onChange={(e) =>
+                                                    setPublicSettings((prev) => ({
+                                                        ...prev,
+                                                        showSeniority: e.target.checked,
+                                                    }))
+                                                }
+                                                className="size-4 rounded border-border/60 text-primary focus:ring-primary"
+                                            />
+                                            <div className="flex flex-col">
+                                                <span className="text-xs font-medium">Mostrar Seniority</span>
+                                                <span className="text-[10px] text-muted-foreground">
+                                                    Estimación de seniority
+                                                </span>
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    {publicSettings.publicUsername && (
+                                        <div className="flex flex-col gap-4 border-t border-border/50 pt-4">
+                                            <div className="flex flex-col gap-1.5">
+                                                <Label className="text-xs font-semibold flex items-center gap-1.5 text-primary">
+                                                    <Share2 className="size-3.5" /> Enlace de tu Perfil Público
+                                                </Label>
+                                                <div className="flex gap-2">
+                                                    <Input
+                                                        readOnly
+                                                        value={`${publicProfileOrigin}/u/${publicSettings.publicUsername}`}
+                                                        className="bg-muted/50 border-border/60 text-sm select-all cursor-default"
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            void navigator.clipboard.writeText(
+                                                                `${publicProfileOrigin}/u/${publicSettings.publicUsername}`,
+                                                            );
+                                                            toast.success("Enlace copiado al portapapeles.");
+                                                        }}
+                                                        className="flex items-center gap-1.5 px-3"
+                                                    >
+                                                        <Copy className="size-3.5" />
+                                                        Copiar
+                                                    </Button>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col gap-1.5">
+                                                <Label className="text-xs font-semibold flex items-center gap-1.5 text-primary">
+                                                    <Sparkles className="size-3.5" /> Badge Embebible para tu GitHub
+                                                    README
+                                                </Label>
+                                                <div className="flex gap-2">
+                                                    <Input
+                                                        readOnly
+                                                        value={`[![SkillRadar](${publicProfileOrigin}/api/badge/${publicSettings.publicUsername})](${publicProfileOrigin}/u/${publicSettings.publicUsername})`}
+                                                        className="bg-muted/50 border-border/60 text-sm select-all cursor-default font-mono text-xs"
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            void navigator.clipboard.writeText(
+                                                                `[![SkillRadar](${publicProfileOrigin}/api/badge/${publicSettings.publicUsername})](${publicProfileOrigin}/u/${publicSettings.publicUsername})`,
+                                                            );
+                                                            toast.success("Snippet de Markdown copiado.");
+                                                        }}
+                                                        className="flex items-center gap-1.5 px-3"
+                                                    >
+                                                        <Copy className="size-3.5" />
+                                                        Copiar
+                                                    </Button>
+                                                </div>
+                                                <p className="text-[10px] text-muted-foreground mt-0.5">
+                                                    Copia este Markdown y pégalo en tu <code>README.md</code> de GitHub
+                                                    para mostrar un badge visual interactivo.
+                                                </p>
+
+                                                {/* Previsualización del Badge */}
+                                                <div className="mt-3 p-3 rounded-lg border border-border/40 bg-background/25 flex flex-col items-center gap-2">
+                                                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+                                                        Previsualización del Badge:
+                                                    </span>
+                                                    <div className="max-w-full overflow-x-auto p-1 bg-white dark:bg-card border border-border/20 rounded-md">
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img
+                                                            src={`${publicProfileOrigin}/api/badge/${publicSettings.publicUsername}`}
+                                                            alt="SkillRadar Badge Preview"
+                                                            className="max-h-24 h-auto"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            <Button
+                                type="submit"
+                                disabled={savingPublicSettings}
+                                className="w-fit relative overflow-hidden transition-all duration-300 active:scale-95"
+                            >
+                                {savingPublicSettings ? (
+                                    <>
+                                        <span className="size-4 border-2 border-background border-t-transparent rounded-full animate-spin mr-2" />
+                                        Guardando Perfil...
+                                    </>
+                                ) : (
+                                    "Guardar Configuración de Perfil"
+                                )}
+                            </Button>
+                        </form>
                     </CardContent>
                 </Card>
 

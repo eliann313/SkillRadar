@@ -199,3 +199,112 @@ export async function getUserApiKeysStatusAction() {
         };
     }
 }
+
+export interface PublicProfileSettingsInput {
+    isPublicProfile: boolean;
+    publicUsername?: string | null;
+    showSkills: boolean;
+    showGithub: boolean;
+    showSeniority: boolean;
+}
+
+/**
+ * Obtiene la configuración del perfil público del usuario.
+ */
+export async function getUserPublicProfileSettingsAction() {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado." };
+        }
+
+        const userId = session.user.id;
+
+        const user = await db.user.findUnique({
+            where: { id: userId },
+            select: {
+                isPublicProfile: true,
+                publicUsername: true,
+                showSkills: true,
+                showGithub: true,
+                showSeniority: true,
+            },
+        });
+
+        if (!user) {
+            return { success: false, error: "Usuario no encontrado." };
+        }
+
+        return {
+            success: true,
+            data: user,
+        };
+    } catch (error: unknown) {
+        const errMessage = error instanceof Error ? error.message : "Error al obtener perfil público.";
+        console.error("[getUserPublicProfileSettingsAction] Error:", errMessage);
+        return { success: false, error: errMessage };
+    }
+}
+
+/**
+ * Actualiza la configuración del perfil público del usuario.
+ */
+export async function updateUserPublicProfileSettingsAction(input: PublicProfileSettingsInput) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado." };
+        }
+
+        const userId = session.user.id;
+
+        // Si se define un username, validar que sea único en la base de datos
+        if (input.publicUsername) {
+            // Limpiar el username: minúsculas, números, guiones
+            const cleanedUsername = input.publicUsername
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9_-]/g, "");
+            if (cleanedUsername.length < 3) {
+                return {
+                    success: false,
+                    error: "El nombre de usuario debe tener al menos 3 caracteres alfanuméricos.",
+                };
+            }
+
+            const existingUser = await db.user.findUnique({
+                where: { publicUsername: cleanedUsername },
+                select: { id: true },
+            });
+
+            if (existingUser && existingUser.id !== userId) {
+                return { success: false, error: "El nombre de usuario ya está en uso." };
+            }
+            input.publicUsername = cleanedUsername;
+        } else if (input.isPublicProfile) {
+            return { success: false, error: "Debes configurar un nombre de usuario público para activar el perfil." };
+        }
+
+        await db.user.update({
+            where: { id: userId },
+            data: {
+                isPublicProfile: input.isPublicProfile,
+                publicUsername: input.publicUsername || null,
+                showSkills: input.showSkills,
+                showGithub: input.showGithub,
+                showSeniority: input.showSeniority,
+            },
+        });
+
+        revalidatePath("/dashboard/settings");
+
+        return {
+            success: true,
+            message: "Configuración de perfil público actualizada correctamente.",
+        };
+    } catch (error: unknown) {
+        const errMessage = error instanceof Error ? error.message : "Error al actualizar perfil público.";
+        console.error("[updateUserPublicProfileSettingsAction] Error:", errMessage);
+        return { success: false, error: errMessage };
+    }
+}

@@ -47,9 +47,9 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 | 33  | 14.2    | M14    | Smart Pitch / Cover Letter                  | Recruiter     |
 | 34  | 15.1    | M15    | Observaciones Técnicas                      | Recruiter     |
 | 35  | 15.2    | M15    | Generador de Preguntas de Entrevista        | Recruiter     |
-| 36  | 17.1    | M17    | Score Progression Analytics                 | Growth        |
-| 37  | 17.2    | M17    | Perfil Público Compartible                  | Growth        |
-| 38  | 17.3    | M17    | Badge Embebible para GitHub README          | Growth        |
+| 36  | 17.1 ✅ | M17    | Score Progression Analytics                 | Growth        |
+| 37  | 17.2 ✅ | M17    | Perfil Público Compartible                  | Growth        |
+| 38  | 17.3 ✅ | M17    | Badge Embebible para GitHub README          | Growth        |
 | 39  | 7.2     | M7     | Career Copilot Widget                       | Growth        |
 | 40  | 18.1    | M18    | GitHub Schema Extendido (Seniority Signals) | Intelligence  |
 | 41  | 18.2    | M18    | Modos de Entrevista Avanzados               | Intelligence  |
@@ -630,48 +630,48 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 17.1: Score Progression Analytics
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Alta 🔴 — **Driver principal de retención de usuarios**
 - **Descripción:**
   La Tarjeta 10.1 menciona un "gráfico pequeño de progreso histórico" como un bullet point dentro de sus criterios, pero esta feature merece su propia página dedicada. Una vista `/dashboard/progress` que muestre la evolución temporal del ATS score por CV, el número de Job Matches realizados, y los skills que el usuario cerró a lo largo del tiempo. Es el principal motor de retención: el usuario vuelve a la plataforma para verificar si mejoró.
 - **Criterios de Aceptación:**
-    - [ ] Crear la página `src/app/dashboard/progress/page.tsx`.
-    - [ ] Implementar una query Prisma que recupere el historial de scores de la tabla `Resume` ordenados por `createdAt` para el usuario autenticado.
-    - [ ] Diseñar un gráfico de área con Recharts mostrando la evolución del `atsScore` a lo largo del tiempo (eje X: fecha, eje Y: score 0-100).
-    - [ ] Agregar una sección de "Skills Cerrados": listar skills que aparecían como `missingSkills` en el primer Job Match del usuario pero ya no aparecen en el último, a modo de logros tangibles.
-    - [ ] Agregar métricas secundarias: número total de Job Matches realizados y score promedio de los últimos 5 matches.
-    - [ ] Agregar el ítem "Progreso" en el sidebar del dashboard con un ícono apropiado de Lucide.
-    - [ ] Mostrar un estado vacío con CTA ("Subí tu primer CV para empezar a trackear tu progreso") si el usuario no tiene historial aún.
+    - [x] Crear la página `src/app/dashboard/progress/page.tsx`.
+    - [x] Implementar una query Prisma que recupere el historial de scores de la tabla `Resume` ordenados por `createdAt` para el usuario autenticado.
+    - [x] Diseñar un gráfico de área con Recharts mostrando la evolución del `atsScore` a lo largo del tiempo (eje X: fecha, eje Y: score 0-100).
+    - [x] Agregar una sección de "Skills Cerrados": listar skills que aparecían como `missingSkills` en el primer Job Match del usuario pero ya no aparecen en el último, a modo de logros tangibles.
+    - [x] Agregar métricas secundarias: número total de Job Matches realizados y score promedio de los últimos 5 matches.
+    - [x] Agregar el ítem "Progreso" en el sidebar del dashboard con un ícono apropiado de Lucide.
+    - [x] Mostrar un estado vacío con CTA ("Subí tu primer CV para empezar a trackear tu progreso") si el usuario no tiene historial aún.
 - **Rama Git:** `feature/score-progression-analytics`
 
 ### 🎴 Tarjeta 17.2: Perfil Público Compartible (`/u/[username]`)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Media 🟡 — **Growth loop viral**
 - **Descripción:**
   Una URL pública `skillradar.app/u/[username]` que el developer puede compartir con recruiters. Muestra un resumen visual de su perfil: skill radar chart (con los ejes del producto: Frontend, Backend, DevOps, Architecture, Testing), seniority estimado, top skills extraídos y distribución de lenguajes de GitHub. El developer controla qué información es visible mediante toggles en Settings. Este feature crea el principal loop viral: un recruiter que recibe el link cae en la app y se registra. **Nota:** mostrar el skill radar chart en lugar del ATS score crudo para que el contexto sea más claro e interpretable para recruiters no técnicos.
 - **Criterios de Aceptación:**
-    - [ ] Agregar los campos `isPublicProfile: Boolean @default(false)` y `publicUsername: String? @unique` al modelo `User` en Prisma y migrar.
-    - [ ] Crear la ruta pública `src/app/u/[username]/page.tsx` (sin requerir autenticación para GET).
-    - [ ] Implementar la query de servidor que cargue solo los datos públicos del perfil: top 10 skills, distribución de lenguajes, seniority label, y fecha de último análisis.
-    - [ ] Diseñar la UI del perfil público con el skill radar chart (usando Recharts `RadarChart`), badges de skills y score de seniority.
-    - [ ] Crear en `src/app/dashboard/settings/page.tsx` una sección "Perfil Público" con toggles individuales para cada dato visible (skills, GitHub, seniority).
-    - [ ] Agregar un botón "Compartir perfil" en el dashboard con copia al portapapeles de la URL pública.
-    - [ ] Implementar meta tags Open Graph y Twitter Card en la página pública para previews enriquecidos al compartir en LinkedIn o X.
+    - [x] Agregar los campos `isPublicProfile: Boolean @default(false)` y `publicUsername: String? @unique` al modelo `User` en Prisma y migrar.
+    - [x] Crear la ruta pública `src/app/u/[username]/page.tsx` (sin requerir autenticación para GET).
+    - [x] Implementar la query de servidor que cargue solo los datos públicos del perfil: top 10 skills, distribución de lenguajes, seniority label, y fecha de último análisis.
+    - [x] Diseñar la UI del perfil público con el skill radar chart (usando Recharts `RadarChart`), badges de skills y score de seniority.
+    - [x] Crear en `src/app/dashboard/settings/page.tsx` una sección "Perfil Público" con toggles individuales para cada dato visible (skills, GitHub, seniority).
+    - [x] Agregar un botón "Compartir perfil" en el dashboard con copia al portapapeles de la URL pública.
+    - [x] Implementar meta tags Open Graph y Twitter Card en la página pública para previews enriquecidos al compartir en LinkedIn o X.
 - **Rama Git:** `feature/public-profile-shareable`
 
 ### 🎴 Tarjeta 17.3: Badge Embebible para GitHub README
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Baja 🟢 — **Distribución orgánica / Adquisición viral**
 - **Descripción:**
   Un endpoint que genera un SVG dinámico con el resumen del perfil SkillRadar del developer, diseñado para ser embebido en el README de GitHub del usuario con una sola línea de Markdown. Al hacer click en el badge, el recruiter llega al perfil público del dev en SkillRadar. El SVG se genera server-side con template literals (sin Canvas, sin React — compatible con el renderer de imágenes de GitHub). Se actualiza automáticamente con los últimos datos del usuario. **Depende de la Tarjeta 17.2** (Perfil Público).
 - **Criterios de Aceptación:**
-    - [ ] Crear el Route Handler `src/app/api/badge/[username]/route.ts` que devuelva `Content-Type: image/svg+xml`.
-    - [ ] Diseñar el template SVG del badge: nombre, seniority label (ej: "Mid-level Developer"), top 3 skills como píldoras de texto, y logo de SkillRadar. Dimensiones estándar de badge (ej: 540×180px).
-    - [ ] Configurar `Cache-Control: public, max-age=3600` para que GitHub pueda cachear el SVG sin saturar el endpoint.
-    - [ ] Mostrar el badge solo si el usuario tiene `isPublicProfile: true`; retornar 404 si el perfil es privado.
-    - [ ] Agregar en el panel de Perfil Público de Settings la instrucción de cómo embeber el badge, con el snippet de Markdown listo para copiar: `[![SkillRadar](https://skillradar.app/api/badge/[username])](https://skillradar.app/u/[username])`.
+    - [x] Crear the Route Handler `src/app/api/badge/[username]/route.ts` que devuelva `Content-Type: image/svg+xml`.
+    - [x] Diseñar el template SVG del badge: nombre, seniority label (ej: "Mid-level Developer"), top 3 skills como píldoras de texto, y logo de SkillRadar. Dimensiones estándar de badge (ej: 540×180px).
+    - [x] Configurar `Cache-Control: public, max-age=3600` para que GitHub pueda cachear el SVG sin saturar el endpoint.
+    - [x] Mostrar el badge solo si el usuario tiene `isPublicProfile: true`; retornar 404 si el perfil es privado.
+    - [x] Agregar en el panel de Perfil Público de Settings la instrucción de cómo embeber el badge, con el snippet de Markdown listo para copiar: `[![SkillRadar](https://skillradar.app/api/badge/[username])](https://skillradar.app/u/[username])`.
 - **Rama Git:** `feature/embeddable-badge`
 
 ---

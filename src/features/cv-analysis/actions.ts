@@ -7,6 +7,7 @@ import type { Resume } from "@prisma/client";
 import type { ActionResult } from "./types";
 import { revalidatePath } from "next/cache";
 import { checkCVRateLimit, getClientIp } from "@/lib/rate-limit";
+import { db } from "@/lib/db";
 
 interface ParseCVInput {
     fileUrl?: string;
@@ -248,5 +249,104 @@ export async function getUserResumesAction(): Promise<ActionResult<Resume[]>> {
     } catch (error) {
         console.error("[getUserResumesAction] Error recuperando currículums:", error);
         return { success: false, error: "Error al recuperar tus currículums." };
+    }
+}
+
+export async function getProgressDataAction() {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado." };
+        }
+
+        const userId = session.user.id;
+        const isGuest = session.user.isGuest === true;
+
+        if (isGuest) {
+            // Datos demo realistas
+            const demoResumes = [
+                { id: "1", fileName: "cv_2025_v1.pdf", atsScore: 45, createdAt: new Date("2026-01-10T12:00:00.000Z") },
+                { id: "2", fileName: "cv_2025_v2.pdf", atsScore: 65, createdAt: new Date("2026-03-15T12:00:00.000Z") },
+                {
+                    id: "3",
+                    fileName: "cv_2025_final.pdf",
+                    atsScore: 82,
+                    createdAt: new Date("2026-05-20T12:00:00.000Z"),
+                },
+            ];
+            const closedSkills = ["Docker", "AWS", "CI/CD"];
+            return {
+                success: true,
+                data: {
+                    resumes: demoResumes,
+                    totalMatches: 8,
+                    averageScore: 78,
+                    closedSkills,
+                },
+            };
+        }
+
+        // Obtener resumes ordenados por fecha ascendente para el gráfico
+        const resumes = await db.resume.findMany({
+            where: { userId, atsScore: { not: null } },
+            orderBy: { createdAt: "asc" },
+            select: {
+                id: true,
+                fileName: true,
+                atsScore: true,
+                createdAt: true,
+            },
+        });
+
+        // Obtener job matches ordenados por fecha descendente para los cálculos
+        const matches = await db.jobMatch.findMany({
+            where: { userId },
+            orderBy: { createdAt: "desc" },
+            select: {
+                matchScore: true,
+                analysis: true,
+                createdAt: true,
+            },
+        });
+
+        const totalMatches = matches.length;
+
+        // Calcular promedio de los últimos 5 matches
+        const lastFive = matches.slice(0, 5);
+        const validScores = lastFive.filter((m) => m.matchScore !== null);
+        const averageScore =
+            validScores.length > 0
+                ? Math.round(validScores.reduce((acc, m) => acc + (m.matchScore || 0), 0) / validScores.length)
+                : 0;
+
+        // Calcular "Skills Cerrados"
+        let closedSkills: string[] = [];
+        if (totalMatches >= 1) {
+            const firstMatch = matches[matches.length - 1];
+            const lastMatch = matches[0];
+
+            const firstAnalysis = firstMatch.analysis as { missingSkills?: string[] } | null;
+            const lastAnalysis = lastMatch.analysis as { missingSkills?: string[] } | null;
+
+            const firstMissing = Array.isArray(firstAnalysis?.missingSkills) ? firstAnalysis.missingSkills : [];
+            const lastMissing = Array.isArray(lastAnalysis?.missingSkills) ? lastAnalysis.missingSkills : [];
+
+            // Cerrados = estaban en el primero pero ya no están en el último
+            closedSkills = firstMissing.filter((skill: string) => !lastMissing.includes(skill));
+        }
+
+        return {
+            success: true,
+            data: {
+                resumes,
+                totalMatches,
+                averageScore,
+                closedSkills,
+            },
+        };
+    } catch (error: unknown) {
+        const errMessage = error instanceof Error ? error.message : "Error al obtener datos de progreso.";
+        console.error("[getProgressDataAction] Error:", errMessage);
+        return { success: false, error: errMessage };
     }
 }

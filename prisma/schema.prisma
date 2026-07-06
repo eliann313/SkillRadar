@@ -44,6 +44,13 @@ model User {
   // Preferencias de Inferencia
   defaultAiProvider  String    @default("gemini") // "gemini" | "groq" | "openrouter" | "openai" | "anthropic"
   defaultAiModel     String    @default("gemini-2.5-flash")
+
+  // Perfil Público Compartible
+  isPublicProfile    Boolean   @default(false)
+  publicUsername     String?   @unique
+  showSkills         Boolean   @default(true)
+  showGithub         Boolean   @default(true)
+  showSeniority      Boolean   @default(true)
 }
 
 model Account {
