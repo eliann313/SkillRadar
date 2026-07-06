@@ -769,95 +769,95 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 19.1: Sistema de Notificaciones In-App (Infraestructura Base)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴 — Bloqueante de todo el Módulo 19
 - **Descripción:**
   No existe hoy un mecanismo genérico de notificaciones in-app en la plataforma (el flujo de Doble Ciego de la Tarjeta 12.1 solo carga solicitudes pendientes directamente de ContactRequest, sin un modelo propio). Crear un modelo Notification desacoplado y reutilizable en Prisma, junto con el ícono de campana en el header del dashboard, para soportar los avisos de nuevas ofertas, aplicaciones recibidas y cambios de estado que necesitan las tarjetas 19.5 y 19.6.
 - **Criterios de Aceptación:**
-    - [ ] Crear el modelo `Notification` en `prisma/schema.prisma`: id, userId, type (enum string: `"new_job_match"`, `"new_application"`, `"application_status_changed"`), title, message, link (URL relativa de destino), `read: Boolean @default(false)`, `metadata: Json?`, createdAt. Migrar contra Neon.
-    - [ ] Crear el helper de servidor `src/lib/notifications.ts` con una función `createNotification()` reutilizable, invocable desde cualquier Server Action del proyecto sin duplicar lógica.
-    - [ ] Crear el componente `NotificationBell.tsx` (shadcn/ui Popover o DropdownMenu) en el header del dashboard, con contador de no leídas (Badge).
-    - [ ] Implementar la Server Action `getNotificationsAction` (paginada, ordenada por `createdAt desc`) y `markAsReadAction`.
-    - [ ] Evaluar polling liviano (useSWR/refetchInterval cada 30-60s) en vez de WebSockets, dado que ya no hay presupuesto de infra adicional (evitar sumar otro servicio tipo Pusher/Ably).
+    - [x] Crear el modelo `Notification` en `prisma/schema.prisma`: id, userId, type (enum string: `"new_job_match"`, `"new_application"`, `"application_status_changed"`), title, message, link (URL relativa de destino), `read: Boolean @default(false)`, `metadata: Json?`, createdAt. Migrar contra Neon.
+    - [x] Crear el helper de servidor `src/lib/notifications.ts` con una función `createNotification()` reutilizable, invocable desde cualquier Server Action del proyecto sin duplicar lógica.
+    - [x] Crear el componente `NotificationBell.tsx` (shadcn/ui Popover o DropdownMenu) en el header del dashboard, con contador de no leídas (Badge).
+    - [x] Implementar la Server Action `getNotificationsAction` (paginada, ordenada por `createdAt desc`) y `markAsReadAction`.
+    - [x] Evaluar polling liviano (useSWR/refetchInterval cada 30-60s) en vez de WebSockets, dado que ya no hay presupuesto de infra adicional (evitar sumar otro servicio tipo Pusher/Ably).
 - **Rama Git:** `feature/notification-system-core`
 
 ---
 
 ### 🎴 Tarjeta 19.2: Modelo de Datos y Backend de Ofertas Laborales (JobPosting)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Crear el modelo de datos y las Server Actions de backend que permitan a un recruiter crear, editar, publicar/despublicar y eliminar ofertas laborales internas dentro de la plataforma. Es la base de datos sobre la que se apoyan el Job Board del developer (19.3) y el flujo de aplicación (19.4).
 - **Criterios de Aceptación:**
-    - [ ] Crear el modelo `JobPosting` en Prisma: id, recruiterId, title, company, location, `remoteType ("remote" | "hybrid" | "onsite")`, description (Text), `requiredSkills: Json` (array de strings), seniorityLevel, `status ("draft" | "published" | "closed")`, createdAt, updatedAt. Relacionar con User (recruiterId).
-    - [ ] Implementar las Server Actions `createJobPostingAction`, `updateJobPostingAction`, `publishJobPostingAction` y `closeJobPostingAction`, validando en cada una que `session.user.role === "recruiter"`.
-    - [ ] Validar el payload con Zod (title, description y company obligatorios; requiredSkills como array no vacío).
-    - [ ] **Seguridad (Sanitización XSS):** Sanitizar description y title antes de persistir, siguiendo el mismo patrón aplicado en la Tarjeta 12.1 para el mensaje de ContactRequest.
-    - [ ] Aplicar el rate limiter de Upstash sobre `createJobPostingAction` (ej: máximo 10 ofertas nuevas por recruiter por día) para prevenir spam de postings.
+    - [x] Crear el modelo `JobPosting` en Prisma: id, recruiterId, title, company, location, `remoteType ("remote" | "hybrid" | "onsite")`, description (Text), `requiredSkills: Json` (array de strings), seniorityLevel, `status ("draft" | "published" | "closed")`, createdAt, updatedAt. Relacionar con User (recruiterId).
+    - [x] Implementar las Server Actions `createJobPostingAction`, `updateJobPostingAction`, `publishJobPostingAction` and `closeJobPostingAction`, validando en cada una que `session.user.role === "recruiter"`.
+    - [x] Validar el payload con Zod (title, description y company obligatorios; requiredSkills como array no vacío).
+    - [x] **Seguridad (Sanitización XSS):** Sanitizar description y title antes de persistir, siguiendo el mismo patrón aplicado en la Tarjeta 12.1 para el mensaje de ContactRequest.
+    - [x] Aplicar el rate limiter de Upstash sobre `createJobPostingAction` (ej: máximo 10 ofertas nuevas por recruiter por día) para prevenir spam de postings.
 - **Rama Git:** `feature/job-posting-backend`
 
 ---
 
 ### 🎴 Tarjeta 19.3: UI del Recruiter — Publicar y Gestionar Ofertas
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Interfaz del lado del recruiter para crear ofertas mediante un formulario estructurado y administrar el ciclo de vida de las publicaciones activas (a diferencia del Reverse Matching de la 11.1, que trabaja con JD pegada como texto libre y no persiste una oferta reutilizable).
 - **Criterios de Aceptación:**
-    - [ ] Crear la ruta `/dashboard/recruiter/postings` con un formulario (shadcn/ui Form + react-hook-form + Zod) para los campos de JobPosting.
-    - [ ] Diseñar un selector de skills requeridos tipo tags/combobox (reutilizar el catálogo de skills ya usado en el parsing de CV si existe, para mantener consistencia de vocabulario con el matching).
-    - [ ] Crear la vista "Mis Ofertas" listando las publicaciones del recruiter con su status (badge de color) y contador de aplicaciones recibidas por oferta.
-    - [ ] Habilitar acciones inline: Editar, Publicar/Despublicar, Cerrar oferta.
-    - [ ] Mostrar toast de confirmación (sonner) en cada acción, siguiendo el patrón de la Tarjeta 4.2.
+    - [x] Crear la ruta `/dashboard/recruiter/postings` con un formulario (shadcn/ui Form + react-hook-form + Zod) para los campos de JobPosting.
+    - [x] Diseñar un selector de skills requeridos tipo tags/combobox (reutilizar el catálogo de skills ya usado en el parsing de CV si existe, para mantener consistencia de vocabulario con el matching).
+    - [x] Crear la vista "Mis Ofertas" listando las publicaciones del recruiter con su status (badge de color) y contador de aplicaciones recibidas por oferta.
+    - [x] Habilitar acciones inline: Editar, Publicar/Despublicar, Cerrar oferta.
+    - [x] Mostrar toast de confirmación (sonner) en cada acción, siguiendo el patrón de la Tarjeta 4.2.
 - **Rama Git:** `feature/recruiter-posting-management-ui`
 
 ---
 
 ### 🎴 Tarjeta 19.4: Job Board — Listado de Ofertas para el Developer
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Vista pública del lado del developer donde puede explorar las ofertas publicadas (`status === "published"`) por los recruiters. Reutilizar el motor de IA de matching (7.1 / 3.2) para mostrar un % de afinidad entre el CV activo del dev y cada oferta, en lugar de una lista plana sin contexto.
 - **Criterios de Aceptación:**
-    - [ ] Crear la ruta `/dashboard/jobs` con el listado de ofertas publicadas, paginado o con scroll infinito.
-    - [ ] Agregar filtros por `remoteType`, `seniorityLevel` y búsqueda por texto en title/company.
-    - [ ] Calcular y mostrar un `matchScore` estimado por oferta contra el Resume activo del dev (reutilizando el servicio de IA de Job Match de la Tarjeta 3.2, sin duplicar el prompt).
-    - [ ] Cachear el cálculo de matchScore por par (resumeId, jobPostingId) para no re-invocar la IA en cada render de la lista (ej: tabla intermedia o columna calculada persistida al momento del cálculo).
-    - [ ] Diseñar la tarjeta de oferta (`JobPostingCard`) mostrando: empresa, título, ubicación/remote, skills requeridos como píldoras, y el badge de matchScore.
+    - [x] Crear la ruta `/dashboard/jobs` con el listado de ofertas publicadas, paginado o con scroll infinito.
+    - [x] Agregar filtros por `remoteType`, `seniorityLevel` y búsqueda por texto en title/company.
+    - [x] Calcular y mostrar un `matchScore` estimado por oferta contra el Resume activo del dev (reutilizando el servicio de IA de Job Match de la Tarjeta 3.2, sin duplicar el prompt).
+    - [x] Cachear el cálculo de matchScore por par (resumeId, jobPostingId) para no re-invocar la IA en cada render de la lista (ej: tabla intermedia o columna calculada persistida al momento del cálculo).
+    - [x] Diseñar la tarjeta de oferta (`JobPostingCard`) mostrando: empresa, título, ubicación/remote, skills requeridos como píldoras, y el badge de matchScore.
 - **Rama Git:** `feature/developer-job-board`
 
 ---
 
 ### 🎴 Tarjeta 19.5: Flujo de Postulación del Developer (Apply) + Notificación al Recruiter
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Permitir que el developer aplique formalmente a una oferta desde el Job Board. Cada aplicación dispara una notificación al recruiter dueño de la oferta (usando la infraestructura de la Tarjeta 19.1) y opcionalmente sincroniza con el Job Tracker personal del dev (Módulo 14) para centralizar su búsqueda laboral en un solo lugar.
 - **Criterios de Aceptación:**
-    - [ ] Crear el modelo `JobPostingApplication` en Prisma: id, jobPostingId, developerId, resumeId?, `status ("submitted" | "reviewed" | "rejected" | "shortlisted")`, createdAt. Constraint `@@unique([jobPostingId, developerId])` para evitar doble postulación.
-    - [ ] Implementar la Server Action `applyToJobPostingAction` que valide el rol `"developer"`, cree la fila y adjunte opcionalmente el resumeId seleccionado.
-    - [ ] Al aplicar, invocar `createNotification()` (Tarjeta 19.1) generando una notificación `"new_application"` para el recruiterId de la oferta, con link directo al detalle de la aplicación.
-    - [ ] Bonus / integración: al aplicar, crear automáticamente una card en JobApplication (Módulo 14, columna `"applied"`) para que la postulación interna aparezca también en el Kanban personal del dev.
-    - [ ] Deshabilitar visualmente el botón "Aplicar" si ya existe una JobPostingApplication previa para ese par oferta/developer.
+    - [x] Crear el modelo `JobPostingApplication` en Prisma: id, jobPostingId, developerId, resumeId?, `status ("submitted" | "reviewed" | "rejected" | "shortlisted")`, createdAt. Constraint `@@unique([jobPostingId, developerId])` para evitar doble postulación.
+    - [x] Implementar la Server Action `applyToJobPostingAction` que valide el rol `"developer"`, cree la fila y adjunte opcionalmente el resumeId seleccionado.
+    - [x] Al aplicar, invocar `createNotification()` (Tarjeta 19.1) generando una notificación `"new_application"` para el recruiterId de la oferta, con link directo al detalle de la aplicación.
+    - [x] Bonus / integración: al aplicar, crear automáticamente una card en JobApplication (Módulo 14, columna `"applied"`) para que la postulación interna aparezca también en el Kanban personal del dev.
+    - [x] Deshabilitar visualmente el botón "Aplicar" si ya existe una JobPostingApplication previa para ese par oferta/developer.
 - **Rama Git:** `feature/job-posting-apply-flow`
 
 ---
 
 ### 🎴 Tarjeta 19.6: Panel de Aplicaciones del Recruiter + Notificaciones de Matching para el Developer
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Cerrar el loop del módulo: el recruiter necesita ver y gestionar (cambiar estado de) las aplicaciones recibidas por oferta, y el developer debe recibir una notificación proactiva cuando el estado de su aplicación cambia, o cuando se publica una oferta nueva cuyos requiredSkills matchean fuertemente con su perfil.
 - **Criterios de Aceptación:**
-    - [ ] Crear la vista `/dashboard/recruiter/postings/[id]/applications` listando los JobPostingApplication de esa oferta, ordenados por matchScore descendente (reutilizando el cálculo de la 19.4).
-    - [ ] Implementar la Server Action `updateApplicationStatusAction` que dispare `createNotification()` tipo `"application_status_changed"` hacia el developer afectado.
-    - [ ] Implementar un job/trigger que, al publicarse una nueva oferta (Tarjeta 19.2), calcule el match contra los Resume más recientes del pool y notifique con `"new_job_match"` a los developers cuyo matchScore supere un umbral (ej: ≥ 75%), evitando espamear con matches irrelevantes.
-    - [ ] Permitir al recruiter, desde esa vista, abrir directamente el flujo de Doble Ciego (Tarjeta 12.1) sobre un candidato aplicado, en lugar de duplicar la lógica de revelado de contacto.
+    - [x] Crear la vista `/dashboard/recruiter/postings/[id]/applications` listando los JobPostingApplication de esa oferta, ordenados por matchScore descendente (reutilizando el cálculo de la 19.4).
+    - [x] Implementar la Server Action `updateApplicationStatusAction` que dispare `createNotification()` tipo `"application_status_changed"` hacia el developer afectado.
+    - [x] Implementar un job/trigger que, al publicarse una nueva oferta (Tarjeta 19.2), calcule el match contra los Resume más recientes del pool y notifique con `"new_job_match"` a los developers cuyo matchScore supere un umbral (ej: ≥ 75%), evitando espamear con matches irrelevantes.
+    - [x] Permitir al recruiter, desde esa vista, abrir directamente el flujo de Doble Ciego (Tarjeta 12.1) sobre un candidato aplicado, en lugar de duplicar la lógica de revelado de contacto.
 - **Rama Git:** `feature/recruiter-applications-panel`
 
 ---
