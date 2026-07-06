@@ -38,11 +38,11 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 | 24  | 11.2    | M11    | Skill Gap Action Plan                       | Recruiter     |
 | 25  | 11.3    | M11    | Explainability Layer                        | Recruiter     |
 | 26  | 12.1    | M12    | Doble Ciego (Contact Request)               | Recruiter     |
-| 27  | 12.2    | M12    | Smart Shortlist                             | Recruiter     |
-| 28  | 12.3    | M12    | Market Intelligence Heatmaps                | Recruiter     |
-| 29  | 13.1    | M13    | AI Resume Builder                           | Recruiter     |
-| 30  | 13.2    | M13    | Impact Verb Analyzer                        | Recruiter     |
-| 31  | 13.3    | M13    | LinkedIn Profile Audit                      | Recruiter     |
+| 27  | 12.2 ✅ | M12    | Smart Shortlist                             | Recruiter     |
+| 28  | 12.3 ✅ | M12    | Market Intelligence Heatmaps                | Recruiter     |
+| 29  | 13.1 ✅ | M13    | AI Resume Builder                           | Recruiter     |
+| 30  | 13.2 ✅ | M13    | Impact Verb Analyzer                        | Recruiter     |
+| 31  | 13.3 ✅ | M13    | LinkedIn Profile Audit                      | Recruiter     |
 | 32  | 14.1    | M14    | Job Tracker Kanban                          | Recruiter     |
 | 33  | 14.2    | M14    | Smart Pitch / Cover Letter                  | Recruiter     |
 | 34  | 15.1    | M15    | Observaciones Técnicas                      | Recruiter     |
@@ -499,27 +499,27 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 12.2: Smart Shortlist y Alertas de Recruiter
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Baja 🟢
 - **Descripción:**
   El recruiter puede guardar búsquedas y marcar perfiles en shortlists. Notificaciones automáticas cuando un nuevo dev entra al pool y matchea su búsqueda guardada.
 - **Criterios de Aceptación:**
-    - [ ] Crear el modelo `Shortlist` en Prisma relacionado con el `User` (Recruiter) y los `User` (Developer) agregados.
-    - [ ] Implementar un botón "Guardar en Favoritos/Shortlist" en la vista del Recruiter.
-    - [ ] Crear una sección "Mis Candidatos Guardados" en el panel del Recruiter para visualizar de forma centralizada sus perfiles seleccionados.
-- **Rama Git:** `feature/recruiter-saved-searches`
+    - [x] Crear el modelo `Shortlist` en Prisma relacionado con el `User` (Recruiter) y los `User` (Developer) agregados.
+    - [x] Implementar un botón "Guardar en Favoritos/Shortlist" en la vista del Recruiter.
+    - [x] Crear una sección "Mis Candidatos Guardados" en el panel del Recruiter para visualizar de forma centralizada sus perfiles seleccionados.
+- **Rama Git:** `feature/modules-12-13-implementation`
 
 ### 🎴 Tarjeta 12.3: Market Intelligence (Pool Heatmaps)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Baja 🟢
 - **Descripción:**
   Dashboard de estadísticas para el recruiter. Mostrar mapas de calor con los skills más escasos vs más abundantes del talent pool.
 - **Criterios de Aceptación:**
-    - [ ] Crear un servicio de agregación en Prisma que recopile y agrupe por frecuencia todas las habilidades técnicas (`skills`) almacenadas en los currículums del Talent Pool.
-    - [ ] Integrar un gráfico de tipo Treemap, Nube de Palabras o Barras Horizontales con Recharts en la sección de Recruiter.
-    - [ ] Mostrar visualmente los "Skills Más Demandados vs. Más Abundantes" para dar una perspectiva del mercado de candidatos al reclutador.
-- **Rama Git:** `feature/recruiter-market-intelligence`
+    - [x] Crear un servicio de agregación en Prisma que recopile y agrupe por frecuencia todas las habilidades técnicas (`skills`) almacenadas en los currículums del Talent Pool.
+    - [x] Integrar un gráfico de tipo Treemap, Nube de Palabras o Barras Horizontales con Recharts en la sección de Recruiter.
+    - [x] Mostrar visualmente los "Skills Más Demandados vs. Más Abundantes" para dar una perspectiva del mercado de candidatos al reclutador.
+- **Rama Git:** `feature/modules-12-13-implementation`
 
 ---
 
@@ -527,40 +527,40 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 13.1: AI Resume Builder (Editor en Vivo)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Permitir al usuario no solo analizar un PDF, sino editar y construir su CV directamente en la plataforma. La interfaz debe permitir crear secciones (Experiencia, Educación, Skills) y aplicar las sugerencias de la IA en tiempo real antes de exportar el PDF optimizado.
 - **Criterios de Aceptación:**
-    - [ ] Diseñar una interfaz interactiva de edición por secciones (Formularios y campos enriquecidos de texto).
-    - [ ] Conectar la IA para que evalúe y sugiera mejoras de redacción mientras el usuario escribe en los campos de experiencia.
-    - [ ] Implementar un generador de PDF del lado del servidor (usando una librería liviana como `@react-pdf/renderer` o un flujo similar) para permitir la descarga directa del currículum en formato compatible con ATS.
-- **Rama Git:** `feature/resume-builder-ui`
+    - [x] Diseñar una interfaz interactiva de edición por secciones (Formularios y campos enriquecidos de texto).
+    - [x] Conectar la IA para que evalúe y sugiera mejoras de redacción mientras el usuario escribe en los campos de experiencia.
+    - [x] Implementar un generador de PDF del lado del servidor (usando una librería liviana como `@react-pdf/renderer` o un flujo similar) para permitir la descarga directa del currículum en formato compatible con ATS.
+- **Rama Git:** `feature/modules-12-13-implementation`
 
 ### 🎴 Tarjeta 13.2: Impact Verb Analyzer (Analizador de Impacto)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Baja 🟢
 - **Descripción:**
   Integrar una evaluación específica en el parsing del CV que detecte la calidad de los verbos utilizados en las viñetas de experiencia. Promover el uso de lenguaje de impacto ("Arquitecté", "Optimizé") frente a lenguaje pasivo ("Ayudé a", "Fui parte de"), dando un "Action Score".
 - **Criterios de Aceptación:**
-    - [ ] Definir una lista de control semántica o prompt específico para que la IA escanee la redacción de las responsabilidades del CV.
-    - [ ] Clasificar el uso de verbos pasivos y sugerir alternativas activas y orientadas a resultados.
-    - [ ] Renderizar un "Impact Score" y una lista de "Antes / Después" con ejemplos de cómo reescribir sus viñetas.
-- **Rama Git:** `feature/impact-verb-analyzer`
+    - [x] Definir una lista de control semántica o prompt específico para que la IA escanee la redacción de las responsabilidades del CV.
+    - [x] Clasificar el uso de verbos pasivos y sugerir alternativas activas y orientadas a resultados.
+    - [x] Renderizar un "Impact Score" y una lista de "Antes / Después" con ejemplos de cómo reescribir sus viñetas.
+- **Rama Git:** `feature/modules-12-13-implementation`
 
 ### 🎴 Tarjeta 13.3: Auditoría de Perfil de LinkedIn con IA
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Implementar una auditoría SEO para el perfil de LinkedIn del usuario libre de riesgos legales y sin costos de APIs de scraping externas. El sistema permitirá al usuario pegar directamente su extracto/experiencia o subir el PDF generado por su perfil de LinkedIn (`Ctrl + P` -> Guardar como PDF), reutilizando la infraestructura de parseo. La IA analizará el Titular, la sección 'Acerca de' y la densidad de palabras clave para optimizar su posicionamiento.
 - **Criterios de Aceptación:**
-    - [ ] Crear una interfaz que permita subir el perfil de LinkedIn exportado en PDF o pegar directamente el texto copiado de su perfil.
-    - [ ] Integrar el lector de PDFs del Módulo 2 para extraer el texto estructurado del PDF de LinkedIn.
-    - [ ] Configurar un prompt especializado en posicionamiento orgánico en búsquedas de reclutadores de LinkedIn (SEO técnico).
-    - [ ] Retornar y mostrar una calificación del perfil con consejos específicos de mejora para el titular, el "Acerca de" y la descripción de responsabilidades.
-- **Rama Git:** `feature/linkedin-profile-audit`
+    - [x] Crear una interfaz que permita subir el perfil de LinkedIn exportado en PDF o pegar directamente el texto copiado de su perfil.
+    - [x] Integrar el lector de PDFs del Módulo 2 para extraer el texto estructurado del PDF de LinkedIn.
+    - [x] Configurar un prompt especializado en posicionamiento orgánico en búsquedas de reclutadores de LinkedIn (SEO técnico).
+    - [x] Retornar y mostrar una calificación del perfil con consejos específicos de mejora para el titular, el "Acerca de" y la descripción de responsabilidades.
+- **Rama Git:** `feature/modules-12-13-implementation`
 
 ---
 
