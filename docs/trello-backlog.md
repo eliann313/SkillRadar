@@ -680,16 +680,16 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 7.2: Implementar Chatbot Flotante (Career Copilot) con useChat
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada` ✅ — `feature/modules-18-7-implementation`
 - **Prioridad:** Baja 🟢
 - **Descripción:**
   Agregar un widget de chatbot flotante de asistencia interactiva (burbuja de chat) accesible en la esquina inferior del dashboard. El chatbot debe permitir al desarrollador hacer consultas sobre su currículum, consejos de carrera y cómo estudiar para los gaps técnicos detectados.
 - **Criterios de Aceptación:**
-    - [ ] Crear un Route Handler en `/api/chat` usando `streamText` del Vercel AI SDK conectando con el modelo rápido de **Groq** o **Gemini**.
-    - [ ] Diseñar el widget UI flotante interactivo en `src/components/dashboard/career-copilot.tsx` utilizando Lucide Icons y shadcn/ui.
-    - [ ] Integrar el hook reactivo `useChat` para gestionar el estado de los mensajes en tiempo real.
-    - [ ] Cargar de forma automática el CV parseado actual del usuario en las instrucciones del sistema (`system prompt`) para que el Copiloto tenga contexto real del desarrollador al responder.
-    - [ ] Añadir la burbuja del chat en el layout compartido del dashboard.
+    - [x] Crear un Route Handler en `/api/chat` usando `streamText` del Vercel AI SDK conectando con el modelo rápido de **Groq** o **Gemini**.
+    - [x] Diseñar el widget UI flotante interactivo en `src/components/dashboard/career-copilot.tsx` utilizando Lucide Icons y shadcn/ui.
+    - [x] Integrar el hook reactivo `useChat` para gestionar el estado de los mensajes en tiempo real.
+    - [x] Cargar de forma automática el CV parseado actual del usuario en las instrucciones del sistema (`system prompt`) para que el Copiloto tenga contexto real del desarrollador al responder.
+    - [x] Añadir la burbuja del chat en el layout compartido del dashboard.
 - **Rama Git:** `feature/career-copilot-widget`
 
 ---
@@ -700,12 +700,11 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 18.1: GitHub Schema Extendido con Seniority Signals
 
-- **Estado:** `[ ] Pendiente`
-- **Prioridad:** Media 🟡 — **Diferenciador único vs. competidores**
+- **Estado:** `[x] Completada` ✅ — `feature/modules-18-7-implementation`
 - **Descripción:**
   El schema actual de `GithubAnalysis` captura principalmente distribución de bytes por lenguaje. Extenderlo para capturar señales temporales y cualitativas que son mucho más relevantes para estimar seniority: frecuencia de commits, calidad de READMEs, patrones de arquitectura detectados por la IA (presencia de CI/CD, testing, RBAC, auth flows, queue systems, caching, observability tooling). Estas señales son exactamente lo que diferencia a un Senior de un Mid-level en el mundo real.
 - **Criterios de Aceptación:**
-    - [ ] Actualizar el Zod Schema de GitHub en `src/lib/validations/github.ts` agregando los nuevos campos:
+    - [x] Actualizar el Zod Schema de GitHub en `src/lib/validations/github.ts` agregando los nuevos campos:
         ```typescript
         commitFrequency: z.enum(['daily', 'weekly', 'sporadic', 'inactive']),
         readmeQualityScore: z.number().min(0).max(100),
@@ -721,24 +720,23 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
           hasObservability: z.boolean(),
         }),
         ```
-    - [ ] Migrar el modelo `GithubAnalysis` en Prisma para incluir los nuevos campos (o almacenarlos en el JSON de análisis existente).
-    - [ ] Actualizar el prompt de análisis de GitHub en el servicio para extraer estas señales explícitamente.
-    - [ ] Actualizar la vista `/dashboard/github` para mostrar el `detectedPatterns` como un checklist visual de señales de madurez técnica.
+    - [x] Migrar el modelo `GithubAnalysis` en Prisma para incluir los nuevos campos (o almacenarlos en el JSON de análisis existente).
+    - [x] Actualizar el prompt de análisis de GitHub en el servicio para extraer estas señales explícitamente.
+    - [x] Actualizar la vista `/dashboard/github` para mostrar el `detectedPatterns` como un checklist visual de señales de madurez técnica.
 - **Rama Git:** `feature/github-schema-extended`
 
 ### 🎴 Tarjeta 18.2: Modos de Entrevista Avanzados (Pressure & Recruiter Simulation)
 
-- **Estado:** `[ ] Pendiente`
-- **Prioridad:** Baja 🟢 — **Extensión del Mock Interview (M6)**
+- **Estado:** `[x] Completada` ✅ — `feature/modules-18-7-implementation`
 - **Descripción:**
   Extender el Mock Interview del Módulo 6 con dos modos adicionales más allá del modo conversacional estándar. El **Pressure Mode** simula presión real de entrevista: el entrevistador de IA interrumpe, hace preguntas con ambigüedad intencional, pone límites de tiempo implícitos y sigue con edge cases. El **Recruiter Simulation Mode** evalúa la claridad comunicacional del dev: cómo estructura sus respuestas, si puede explicar conceptos técnicos a una persona no técnica, y su metodología de debugging. **Depende de la Tarjeta 6.1** (Mock Interview base funcionando).
 - **Criterios de Aceptación:**
-    - [ ] Agregar un selector de modo (`Standard` / `Pressure` / `Recruiter Simulation`) en la pantalla de inicio de la entrevista en `/dashboard/interview`.
-    - [ ] Implementar variantes del system prompt para cada modo:
+    - [x] Agregar un selector de modo (`Standard` / `Pressure` / `Recruiter Simulation`) en la pantalla de inicio de la entrevista en `/dashboard/interview`.
+    - [x] Implementar variantes del system prompt para cada modo:
         - **Pressure:** interrupciones frecuentes, preguntas de follow-up agresivas, reformulación de la pregunta si la respuesta es vaga.
         - **Recruiter Simulation:** foco en comunicación clara, preguntas del estilo "explicame X como si no supiera programar", evaluación de pensamiento estructurado.
-    - [ ] Incluir en el **Debrief JSON** final los campos `communicationScore`, `structuredThinkingScore` y `pressureHandlingScore` además de los técnicos.
-    - [ ] Mostrar en los resultados del Debrief un resumen diferenciado por modo.
+    - [x] Incluir en el **Debrief JSON** final los campos `communicationScore`, `structuredThinkingScore` y `pressureHandlingScore` además de los técnicos.
+    - [x] Mostrar en los resultados del Debrief un resumen diferenciado por modo.
 - **Rama Git:** `feature/interview-advanced-modes`
 
 ---
@@ -764,3 +762,292 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
     - [ ] Configurar el enrutamiento y la redirección automática del idioma en el middleware/proxy de la aplicación.
     - [ ] Crear un componente selector de idioma (`LanguageSwitcher` con shadcn/ui) integrado en la barra superior o en el sidebar para alternar entre Español e Inglés con un clic.
 - **Rama Git:** `feature/i18n-next-intl-setup`
+
+## 🔔 Módulo 19: Job Board & Postulaciones Internas (Recruiter → Developer)
+
+---
+
+### 🎴 Tarjeta 19.1: Sistema de Notificaciones In-App (Infraestructura Base)
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Alta 🔴 — Bloqueante de todo el Módulo 19
+- **Descripción:**
+  No existe hoy un mecanismo genérico de notificaciones in-app en la plataforma (el flujo de Doble Ciego de la Tarjeta 12.1 solo carga solicitudes pendientes directamente de ContactRequest, sin un modelo propio). Crear un modelo Notification desacoplado y reutilizable en Prisma, junto con el ícono de campana en el header del dashboard, para soportar los avisos de nuevas ofertas, aplicaciones recibidas y cambios de estado que necesitan las tarjetas 19.5 y 19.6.
+- **Criterios de Aceptación:**
+    - [ ] Crear el modelo `Notification` en `prisma/schema.prisma`: id, userId, type (enum string: `"new_job_match"`, `"new_application"`, `"application_status_changed"`), title, message, link (URL relativa de destino), `read: Boolean @default(false)`, `metadata: Json?`, createdAt. Migrar contra Neon.
+    - [ ] Crear el helper de servidor `src/lib/notifications.ts` con una función `createNotification()` reutilizable, invocable desde cualquier Server Action del proyecto sin duplicar lógica.
+    - [ ] Crear el componente `NotificationBell.tsx` (shadcn/ui Popover o DropdownMenu) en el header del dashboard, con contador de no leídas (Badge).
+    - [ ] Implementar la Server Action `getNotificationsAction` (paginada, ordenada por `createdAt desc`) y `markAsReadAction`.
+    - [ ] Evaluar polling liviano (useSWR/refetchInterval cada 30-60s) en vez de WebSockets, dado que ya no hay presupuesto de infra adicional (evitar sumar otro servicio tipo Pusher/Ably).
+- **Rama Git:** `feature/notification-system-core`
+
+---
+
+### 🎴 Tarjeta 19.2: Modelo de Datos y Backend de Ofertas Laborales (JobPosting)
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Alta 🔴
+- **Descripción:**
+  Crear el modelo de datos y las Server Actions de backend que permitan a un recruiter crear, editar, publicar/despublicar y eliminar ofertas laborales internas dentro de la plataforma. Es la base de datos sobre la que se apoyan el Job Board del developer (19.3) y el flujo de aplicación (19.4).
+- **Criterios de Aceptación:**
+    - [ ] Crear el modelo `JobPosting` en Prisma: id, recruiterId, title, company, location, `remoteType ("remote" | "hybrid" | "onsite")`, description (Text), `requiredSkills: Json` (array de strings), seniorityLevel, `status ("draft" | "published" | "closed")`, createdAt, updatedAt. Relacionar con User (recruiterId).
+    - [ ] Implementar las Server Actions `createJobPostingAction`, `updateJobPostingAction`, `publishJobPostingAction` y `closeJobPostingAction`, validando en cada una que `session.user.role === "recruiter"`.
+    - [ ] Validar el payload con Zod (title, description y company obligatorios; requiredSkills como array no vacío).
+    - [ ] **Seguridad (Sanitización XSS):** Sanitizar description y title antes de persistir, siguiendo el mismo patrón aplicado en la Tarjeta 12.1 para el mensaje de ContactRequest.
+    - [ ] Aplicar el rate limiter de Upstash sobre `createJobPostingAction` (ej: máximo 10 ofertas nuevas por recruiter por día) para prevenir spam de postings.
+- **Rama Git:** `feature/job-posting-backend`
+
+---
+
+### 🎴 Tarjeta 19.3: UI del Recruiter — Publicar y Gestionar Ofertas
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Alta 🔴
+- **Descripción:**
+  Interfaz del lado del recruiter para crear ofertas mediante un formulario estructurado y administrar el ciclo de vida de las publicaciones activas (a diferencia del Reverse Matching de la 11.1, que trabaja con JD pegada como texto libre y no persiste una oferta reutilizable).
+- **Criterios de Aceptación:**
+    - [ ] Crear la ruta `/dashboard/recruiter/postings` con un formulario (shadcn/ui Form + react-hook-form + Zod) para los campos de JobPosting.
+    - [ ] Diseñar un selector de skills requeridos tipo tags/combobox (reutilizar el catálogo de skills ya usado en el parsing de CV si existe, para mantener consistencia de vocabulario con el matching).
+    - [ ] Crear la vista "Mis Ofertas" listando las publicaciones del recruiter con su status (badge de color) y contador de aplicaciones recibidas por oferta.
+    - [ ] Habilitar acciones inline: Editar, Publicar/Despublicar, Cerrar oferta.
+    - [ ] Mostrar toast de confirmación (sonner) en cada acción, siguiendo el patrón de la Tarjeta 4.2.
+- **Rama Git:** `feature/recruiter-posting-management-ui`
+
+---
+
+### 🎴 Tarjeta 19.4: Job Board — Listado de Ofertas para el Developer
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Alta 🔴
+- **Descripción:**
+  Vista pública del lado del developer donde puede explorar las ofertas publicadas (`status === "published"`) por los recruiters. Reutilizar el motor de IA de matching (7.1 / 3.2) para mostrar un % de afinidad entre el CV activo del dev y cada oferta, en lugar de una lista plana sin contexto.
+- **Criterios de Aceptación:**
+    - [ ] Crear la ruta `/dashboard/jobs` con el listado de ofertas publicadas, paginado o con scroll infinito.
+    - [ ] Agregar filtros por `remoteType`, `seniorityLevel` y búsqueda por texto en title/company.
+    - [ ] Calcular y mostrar un `matchScore` estimado por oferta contra el Resume activo del dev (reutilizando el servicio de IA de Job Match de la Tarjeta 3.2, sin duplicar el prompt).
+    - [ ] Cachear el cálculo de matchScore por par (resumeId, jobPostingId) para no re-invocar la IA en cada render de la lista (ej: tabla intermedia o columna calculada persistida al momento del cálculo).
+    - [ ] Diseñar la tarjeta de oferta (`JobPostingCard`) mostrando: empresa, título, ubicación/remote, skills requeridos como píldoras, y el badge de matchScore.
+- **Rama Git:** `feature/developer-job-board`
+
+---
+
+### 🎴 Tarjeta 19.5: Flujo de Postulación del Developer (Apply) + Notificación al Recruiter
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Alta 🔴
+- **Descripción:**
+  Permitir que el developer aplique formalmente a una oferta desde el Job Board. Cada aplicación dispara una notificación al recruiter dueño de la oferta (usando la infraestructura de la Tarjeta 19.1) y opcionalmente sincroniza con el Job Tracker personal del dev (Módulo 14) para centralizar su búsqueda laboral en un solo lugar.
+- **Criterios de Aceptación:**
+    - [ ] Crear el modelo `JobPostingApplication` en Prisma: id, jobPostingId, developerId, resumeId?, `status ("submitted" | "reviewed" | "rejected" | "shortlisted")`, createdAt. Constraint `@@unique([jobPostingId, developerId])` para evitar doble postulación.
+    - [ ] Implementar la Server Action `applyToJobPostingAction` que valide el rol `"developer"`, cree la fila y adjunte opcionalmente el resumeId seleccionado.
+    - [ ] Al aplicar, invocar `createNotification()` (Tarjeta 19.1) generando una notificación `"new_application"` para el recruiterId de la oferta, con link directo al detalle de la aplicación.
+    - [ ] Bonus / integración: al aplicar, crear automáticamente una card en JobApplication (Módulo 14, columna `"applied"`) para que la postulación interna aparezca también en el Kanban personal del dev.
+    - [ ] Deshabilitar visualmente el botón "Aplicar" si ya existe una JobPostingApplication previa para ese par oferta/developer.
+- **Rama Git:** `feature/job-posting-apply-flow`
+
+---
+
+### 🎴 Tarjeta 19.6: Panel de Aplicaciones del Recruiter + Notificaciones de Matching para el Developer
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Media 🟡
+- **Descripción:**
+  Cerrar el loop del módulo: el recruiter necesita ver y gestionar (cambiar estado de) las aplicaciones recibidas por oferta, y el developer debe recibir una notificación proactiva cuando el estado de su aplicación cambia, o cuando se publica una oferta nueva cuyos requiredSkills matchean fuertemente con su perfil.
+- **Criterios de Aceptación:**
+    - [ ] Crear la vista `/dashboard/recruiter/postings/[id]/applications` listando los JobPostingApplication de esa oferta, ordenados por matchScore descendente (reutilizando el cálculo de la 19.4).
+    - [ ] Implementar la Server Action `updateApplicationStatusAction` que dispare `createNotification()` tipo `"application_status_changed"` hacia el developer afectado.
+    - [ ] Implementar un job/trigger que, al publicarse una nueva oferta (Tarjeta 19.2), calcule el match contra los Resume más recientes del pool y notifique con `"new_job_match"` a los developers cuyo matchScore supere un umbral (ej: ≥ 75%), evitando espamear con matches irrelevantes.
+    - [ ] Permitir al recruiter, desde esa vista, abrir directamente el flujo de Doble Ciego (Tarjeta 12.1) sobre un candidato aplicado, en lugar de duplicar la lógica de revelado de contacto.
+- **Rama Git:** `feature/recruiter-applications-panel`
+
+---
+
+## 🛡️ Módulo 20: Seguridad & Hardening de Producción (extensión sobre M19)
+
+---
+
+### 🎴 Tarjeta 20.1: Auditoría IDOR sobre el Job Board (JobPosting / JobPostingApplication)
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Alta 🔴 — Bloqueante antes de exponer M19 en producción
+- **Descripción:**
+  Las Server Actions del Módulo 19 (19.5, 19.6) no especificaron control explícito de propiedad de recursos. Sin esta verificación, un developer autenticado podría, manipulando IDs en el cliente, leer aplicaciones de otros developers, y un recruiter podría ver o modificar aplicaciones de ofertas que no le pertenecen — el mismo patrón de riesgo IDOR ya mitigado en ContactRequest (12.1) pero no replicado acá.
+- **Criterios de Aceptación:**
+    - [ ] Auditar `applyToJobPostingAction`, `updateApplicationStatusAction` y la query de `/dashboard/recruiter/postings/[id]/applications`: verificar en cada una que `session.user.id` coincida con el recruiterId de la oferta (o developerId de la aplicación) antes de retornar/mutar datos.
+    - [ ] Escribir tests de integración (Vitest) que simulen a un recruiter A intentando acceder a las aplicaciones de una oferta del recruiter B y verifiquen respuesta 403/null, replicando la metodología de la Tarjeta 7.3.
+    - [ ] Aplicar el mismo criterio de DTOs server-only usado en 12.1: la query de listado de aplicaciones para el recruiter no debe incluir campos sensibles del developer si el estado del ContactRequest asociado no es `"accepted"`.
+    - [ ] Revisar que `getNotificationsAction` (19.1) filtre estrictamente por userId de la sesión y no acepte un userId como parámetro del cliente.
+- **Rama Git:** `feature/idor-audit-job-board`
+
+---
+
+### 🎴 Tarjeta 20.2: Rate Limiting & Prevención de Abuso sobre M19
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Alta 🔴
+- **Descripción:**
+  Extender la infraestructura de Upstash (16.1) a las nuevas Server Actions de aplicación y publicación de ofertas, hoy sin ningún límite. Sin esto, un bot puede aplicar a todas las ofertas del pool en segundos o floodear el board con JobPosting falsos.
+- **Criterios de Aceptación:**
+    - [ ] Aplicar el Ratelimit de `src/lib/rate-limit.ts` sobre `applyToJobPostingAction` (ej: máximo 20 postulaciones por developer por día).
+    - [ ] Aplicar límite sobre `createJobPostingAction` ya contemplado en 19.2, verificar que efectivamente esté cableado y no solo documentado.
+    - [ ] Aplicar límite sobre el trigger de cálculo de matchScore masivo de la Tarjeta 19.6 (notificación de nuevas ofertas), para no disparar N llamadas a la IA sin control cuando el pool de developers crece.
+    - [ ] Loggear (sin PII) los intentos bloqueados por rate limit para poder distinguir abuso real de falsos positivos.
+- **Rama Git:** `feature/rate-limiting-job-board`
+
+---
+
+### 🎴 Tarjeta 20.3: Sistema de Reporte y Moderación de Contenido
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Media 🟡
+- **Descripción:**
+  Ni JobPosting ni el pitch de ContactRequest tienen forma de ser reportados. Agregar un mecanismo simple para que developers marquen ofertas sospechosas/spam y recruiters marquen mensajes de contacto inapropiados, con un flag que oculte el contenido mientras se revisa (soft-moderation, sin necesidad todavía de un panel admin completo — eso es la Tarjeta 22.3).
+- **Criterios de Aceptación:**
+    - [ ] Crear el modelo `ContentReport` en Prisma: id, reporterId, `targetType ("job_posting" | "contact_request")`, targetId, reason, `status ("pending" | "reviewed" | "dismissed")`, createdAt.
+    - [ ] Agregar el botón "Reportar" en `JobPostingCard` (19.4) y en la vista de solicitudes de contacto recibidas (12.1).
+    - [ ] Implementar `createReportAction` con Zod validation y rate limit (máx. 5 reportes por usuario por día para evitar abuso del propio sistema de reporte).
+    - [ ] Ocultar automáticamente un JobPosting del Job Board (sin borrarlo) si acumula 3+ reportes de usuarios distintos, dejándolo en estado `status: "under_review"`.
+- **Rama Git:** `feature/content-reporting-system`
+
+---
+
+### 🎴 Tarjeta 20.4: Expiración Automática de Ofertas Laborales
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Media 🟡
+- **Descripción:**
+  JobPosting (19.2) no tiene fecha de expiración. Sin esto, el Job Board acumula ofertas viejas para siempre, degradando la calidad del matching de la Tarjeta 19.4 con el tiempo.
+- **Criterios de Aceptación:**
+    - [ ] Agregar el campo `expiresAt: DateTime?` al modelo JobPosting, default de 30 días desde `createdAt` al publicar.
+    - [ ] Crear un Vercel Cron Job (`vercel.json` con `crons`) que corra diariamente y actualice a `status: "closed"` toda oferta con `expiresAt < now()`.
+    - [ ] Mostrar en la UI del recruiter (19.3) el tiempo restante antes de la expiración y un botón "Extender 30 días más".
+    - [ ] Excluir explícitamente las ofertas `"closed"` de la query de matching (19.4/19.6) para que no se sigan notificando ni sumando en el conteo de aplicaciones activas.
+- **Rama Git:** `feature/job-posting-expiration-cron`
+
+---
+
+## 📜 Módulo 21: Compliance, Cuenta & Comunicación
+
+---
+
+### 🎴 Tarjeta 21.1: Eliminación de Cuenta y Exportación de Datos (Derecho al Olvido)
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Alta 🔴 — Requisito de manejo responsable de PII
+- **Descripción:**
+  La plataforma almacena PII sensible (CVs, texto de currículum, contacto de developers revelado vía Doble Ciego, tokens de GitHub cifrados). No existe hoy ninguna vía para que un usuario borre su cuenta o exporte sus datos, lo cual es tanto una buena práctica de producto como un requisito de cumplimiento tipo GDPR/derecho al olvido.
+- **Criterios de Aceptación:**
+    - [ ] Crear la Server Action `deleteAccountAction` en `/dashboard/settings` que elimine en cascada (aprovechando `onDelete: Cascade` ya definido en el schema) todos los registros del User: Resume, JobMatch, GithubAnalysis, InterviewSession, ContactRequest, Shortlist, JobApplication, JobPosting, JobPostingApplication, Notification.
+    - [ ] Requerir confirmación explícita (modal con texto tipo "escribí ELIMINAR para confirmar") para prevenir borrados accidentales.
+    - [ ] Implementar `exportUserDataAction` que compile un JSON con todos los datos personales del usuario y lo entregue como descarga directa (sin pasar por storage intermedio para minimizar superficie de exposición).
+    - [ ] Invalidar la sesión de Auth.js v5 inmediatamente después del borrado exitoso y redirigir a la landing.
+- **Rama Git:** `feature/account-deletion-gdpr`
+
+---
+
+### 🎴 Tarjeta 21.2: Notificaciones Críticas por Email (Digest con Resend)
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Media 🟡
+- **Descripción:**
+  El sistema de notificaciones de la Tarjeta 19.1 es exclusivamente in-app. Resend ya está integrado en el proyecto (usado en recuperación de contraseña, 8.2), por lo que conviene reutilizarlo para avisar por correo los eventos que realmente importan, sin depender de que el usuario tenga la app abierta.
+- **Criterios de Aceptación:**
+    - [ ] Extender `createNotification()` (19.1) para que, según el `type`, dispare opcionalmente un email vía Resend usando templates simples de React Email.
+    - [ ] Definir qué eventos son "críticos" para email inmediato (`new_application` para el recruiter, `application_status_changed` para el dev) vs. cuáles quedan solo in-app (`new_job_match`, para no saturar la bandeja).
+    - [ ] Agregar en `/dashboard/settings` una sección "Preferencias de Notificación" con toggles por tipo de evento y un opt-out general.
+    - [ ] Respetar el opt-out en `createNotification()` antes de invocar el envío de correo (chequeo server-side, no solo en el frontend).
+- **Rama Git:** `feature/email-notification-digest`
+
+---
+
+### 🎴 Tarjeta 21.3: Páginas Legales — Términos de Servicio y Política de Privacidad
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Media 🟡
+- **Descripción:**
+  Con PII de terceros circulando entre developers y recruiters (incluyendo revelado de contacto real vía Doble Ciego), la plataforma necesita páginas legales básicas que dejen claro qué datos se recolectan, cómo se usan y qué responsabilidad tiene cada rol de usuario al usar la información obtenida de otro.
+- **Criterios de Aceptación:**
+    - [ ] Crear las rutas estáticas `/legal/terms` y `/legal/privacy` con contenido base (puede redactarse con ayuda de IA pero debe revisarse manualmente, no es contenido a automatizar sin revisión humana).
+    - [ ] Agregar checkbox de aceptación de Términos en el flujo de registro (`/login`, Tarjeta 8.2), bloqueando el submit si no está marcado.
+    - [ ] Linkear ambas páginas en el footer de la landing (4.1) y en `/dashboard/settings`.
+    - [ ] Documentar explícitamente en la Política de Privacidad el uso de API keys de terceros (Gemini/Groq/OpenRouter/OpenAI/Anthropic) cuando el usuario configura las propias (7.1), aclarando que esos proveedores procesan el contenido enviado.
+- **Rama Git:** `feature/legal-pages`
+
+---
+
+### 🎴 Tarjeta 21.4: Retiro de Postulación (Withdraw Application)
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Baja 🟢
+- **Descripción:**
+  La Tarjeta 19.5 permite aplicar a una oferta pero no da al developer forma de retractarse. Completar el ciclo de vida de JobPostingApplication con la acción inversa.
+- **Criterios de Aceptación:**
+    - [ ] Agregar el estado `"withdrawn"` al enum de status de JobPostingApplication.
+    - [ ] Implementar `withdrawApplicationAction`, validando que el developerId coincida con la sesión activa (reforzando el patrón de la Tarjeta 20.1).
+    - [ ] Ocultar la aplicación retirada de la vista del recruiter (19.6) sin borrar el registro (preservar el historial para métricas).
+    - [ ] Habilitar nuevamente el botón "Aplicar" en el Job Board (19.4) si la aplicación previa fue retirada.
+- **Rama Git:** `feature/withdraw-application`
+
+---
+
+## 📊 Módulo 22: Calidad, Testing & Observabilidad de Producto
+
+---
+
+### 🎴 Tarjeta 22.1: Suite E2E con Playwright sobre Flujos Críticos
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Alta 🔴 — Único módulo con testing hoy es la Tarjeta 7.3 (crypto)
+- **Descripción:**
+  Con 19+ módulos interdependientes (ej: aplicar a una oferta dispara notificación Y crea card en el Kanban personal), una regresión manual ya no es viable. Instrumentar tests end-to-end sobre los flujos de negocio que más rompen si fallan silenciosamente.
+- **Criterios de Aceptación:**
+    - [ ] Instalar y configurar `@playwright/test` con un usuario de demo (reutilizando el modo Guest de la Tarjeta 9.0 para no depender de mocks de auth reales).
+    - [ ] Cubrir el flujo Developer: login demo → upload CV → job match → ver resultado con score.
+    - [ ] Cubrir el flujo Recruiter: login demo → crear JobPosting → publicar → ver en Job Board como developer → aplicar → recruiter ve la aplicación notificada.
+    - [ ] Integrar la corrida de Playwright como step en el pipeline de CI de GitHub Actions ya existente (el mismo que corre claude-review), fallando el PR si algún flujo crítico se rompe.
+- **Rama Git:** `feature/e2e-testing-playwright`
+
+---
+
+### 🎴 Tarjeta 22.2: Instrumentación de Analítica de Producto
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Media 🟡
+- **Descripción:**
+  Ningún módulo mide si las features de growth (17.2 Perfil Público, 17.3 Badge, el loop viral) realmente están funcionando. Sin datos, las decisiones de roadmap futuras (incluyendo priorizar features nuevas) son a ciegas.
+- **Criterios de Aceptación:**
+    - [ ] Integrar Vercel Analytics o PostHog (evaluar cuál respeta mejor el presupuesto de free tier ya que el resto del proyecto está optimizado por costo, 7.1).
+    - [ ] Instrumentar eventos clave: `cv_uploaded`, `job_match_completed`, `public_profile_viewed`, `contact_request_sent`, `job_posting_applied`.
+    - [ ] Crear un dashboard simple (interno, no visible al usuario final) que muestre conversión del funnel: registro → CV subido → primer match → primer contacto/aplicación.
+    - [ ] Asegurar que no se trackee PII en los eventos (solo IDs anonimizados, nunca email/nombre en el payload de analytics).
+- **Rama Git:** `feature/product-analytics`
+
+---
+
+### 🎴 Tarjeta 22.3: Rol Admin y Panel de Moderación
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Media 🟡
+- **Descripción:**
+  `User.role` hoy solo soporta `"developer"` | `"recruiter"`. No existe forma de banear una cuenta abusiva ni de revisar los ContentReport generados en la Tarjeta 20.3 más allá del auto-ocultamiento automático.
+- **Criterios de Aceptación:**
+    - [ ] Extender `role` para soportar `"admin"` (verificar en auth.ts que no rompa la lógica existente de gating por rol en Server Actions).
+    - [ ] Crear la ruta protegida `/dashboard/admin` (middleware que rechace con 404 si `role !== "admin"`, no solo un redirect, para no filtrar la existencia de la ruta).
+    - [ ] Listar los ContentReport pendientes con acciones "Descartar" / "Suspender cuenta reportada" (`User.isSuspended: Boolean`).
+    - [ ] Bloquear login y todas las Server Actions de escritura para usuarios con `isSuspended: true`, mostrando un mensaje claro en el intento de login.
+- **Rama Git:** `feature/admin-moderation-panel`
+
+---
+
+### 🎴 Tarjeta 22.4: Gestión de Versiones de Resume
+
+- **Estado:** `[ ] Pendiente`
+- **Prioridad:** Baja 🟢
+- **Descripción:**
+  El flujo actual permite subir y analizar CVs (Módulo 2) pero no hay una vista dedicada para administrar el historial: el usuario no puede ver todas sus versiones subidas ni borrar las obsoletas, acumulando registros de Resume sin control con el tiempo.
+- **Criterios de Aceptación:**
+    - [ ] Crear la sección "Mis CVs" en `/dashboard/settings` o como ruta propia, listando todos los Resume del usuario ordenados por fecha con su `atsScore`.
+    - [ ] Marcar visualmente cuál es el "CV activo" (el usado por default en Job Match, Tarjeta 10.2).
+    - [ ] Implementar `deleteResumeAction`, verificando ownership (userId) y advirtiendo si el CV a borrar tiene JobMatch o InterviewSession asociados (borrado en cascada ya definido en el schema, pero avisar antes de perder ese historial).
+    - [ ] Permitir marcar un Resume distinto como activo sin tener que resubir el archivo.
+- **Rama Git:** `feature/resume-version-management`

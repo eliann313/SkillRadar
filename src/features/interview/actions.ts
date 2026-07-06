@@ -35,14 +35,17 @@ export async function saveInterviewMessagesAction(id: string, messages: Array<{ 
     }
 }
 
-export async function finishInterviewAction(id: string) {
+export async function finishInterviewAction(
+    id: string,
+    mode: "standard" | "pressure" | "recruiter_simulation" = "standard",
+) {
     const session = await auth();
     if (!session?.user?.id) {
         return { success: false, error: "No autorizado." };
     }
 
     try {
-        const debrief = await InterviewService.finishAndDebrief(id, session.user.id);
+        const debrief = await InterviewService.finishAndDebrief(id, session.user.id, mode);
         revalidatePath("/dashboard"); // Revalidar historial y timelines
         return { success: true, data: debrief };
     } catch (error: unknown) {

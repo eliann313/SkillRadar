@@ -34,6 +34,7 @@ import {
     LineChart,
 } from "lucide-react";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
+import { CareerCopilot } from "@/components/dashboard/career-copilot";
 
 const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg viewBox="0 0 24 24" fill="currentColor" className="size-4" {...props}>
@@ -342,6 +343,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                     <div className="container mx-auto p-4 md:p-6 lg:p-8">{children}</div>
                 </main>
             </div>
+
+            {/* 7.2: Career Copilot floating widget */}
+            <CareerCopilot />
         </div>
     );
 }

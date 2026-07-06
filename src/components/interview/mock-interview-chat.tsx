@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { startInterviewAction, saveInterviewMessagesAction, finishInterviewAction } from "@/features/interview/actions";
 import { cn } from "@/lib/utils";
-import { Send, Bot, User, Sparkles, CheckCircle2, Zap, Award as Trophy, Loader2 } from "lucide-react";
+import { Send, Bot, User, Sparkles, CheckCircle2, Zap, Award as Trophy, Loader2, Flame, Users } from "lucide-react";
 import { toast } from "sonner";
 
 function serializeMessages(msgs: UIMessage[]): Array<{ role: string; content: string }> {
@@ -34,11 +34,16 @@ export function MockInterviewChat() {
     const [sessionId, setSessionId] = useState<string | null>(null);
     const [isStarting, setIsStarting] = useState(false);
     const [isFinishing, setIsFinishing] = useState(false);
+    // 18.2: Interview mode selection
+    type InterviewMode = "standard" | "pressure" | "recruiter_simulation";
+    const [interviewMode, setInterviewMode] = useState<InterviewMode>("standard");
     const [debrief, setDebrief] = useState<{
         score: number;
         communicationScore: number;
         technicalScore: number;
         architectureScore: number;
+        structuredThinkingScore?: number;
+        pressureHandlingScore?: number;
         feedback: string;
         strengths: string[];
         improvements: string[];
@@ -53,6 +58,7 @@ export function MockInterviewChat() {
             api: "/api/chat/interview",
             body: {
                 sessionId,
+                mode: interviewMode,
             },
         }),
         onFinish: ({ message }) => {
@@ -113,7 +119,7 @@ export function MockInterviewChat() {
         if (!sessionId) return;
         setIsFinishing(true);
 
-        const promise = finishInterviewAction(sessionId);
+        const promise = finishInterviewAction(sessionId, interviewMode);
 
         toast.promise(promise, {
             loading: "Generando tu reporte cualitativo y calificaciones...",
@@ -193,6 +199,32 @@ export function MockInterviewChat() {
                                 <p className="text-3xl font-black text-foreground mt-1">{debrief.architectureScore}%</p>
                             </div>
                         </div>
+
+                        {/* 18.2: Mode-specific scores */}
+                        {(debrief.structuredThinkingScore !== null || debrief.pressureHandlingScore !== null) && (
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                {debrief.structuredThinkingScore !== null && (
+                                    <div className="p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/5 text-center">
+                                        <p className="text-xs font-semibold text-muted-foreground uppercase">
+                                            🤝 Pensamiento Estructurado
+                                        </p>
+                                        <p className="text-2xl font-black text-indigo-500 mt-1">
+                                            {debrief.structuredThinkingScore}%
+                                        </p>
+                                    </div>
+                                )}
+                                {debrief.pressureHandlingScore !== null && (
+                                    <div className="p-4 rounded-xl border border-orange-500/20 bg-orange-500/5 text-center">
+                                        <p className="text-xs font-semibold text-muted-foreground uppercase">
+                                            ⚡ Manejo de Presión
+                                        </p>
+                                        <p className="text-2xl font-black text-orange-500 mt-1">
+                                            {debrief.pressureHandlingScore}%
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {/* Feedback Cualitativo */}
                         <div className="p-4 rounded-xl bg-muted/30 border border-border/40">
@@ -280,16 +312,65 @@ export function MockInterviewChat() {
                 {/* Scroll Area */}
                 <ScrollArea className="flex-1 p-4" ref={scrollRef}>
                     {!sessionId ? (
-                        <div className="flex h-full flex-col items-center justify-center gap-4 py-24">
+                        <div className="flex h-full flex-col items-center justify-center gap-5 py-16">
                             <div className="flex size-16 items-center justify-center rounded-full bg-primary/10">
                                 <Sparkles className="size-8 text-primary animate-pulse" />
                             </div>
                             <div className="text-center">
                                 <h3 className="font-semibold text-foreground">¿Listo para practicar?</h3>
                                 <p className="mt-1 text-sm text-muted-foreground max-w-xs">
-                                    Inicia una simulación de entrevista adaptada al CV y ofertas asociadas a tu cuenta.
+                                    Selecciona el modo y comenzá tu simulación de entrevista.
                                 </p>
                             </div>
+
+                            {/* 18.2: Mode Selector */}
+                            <div className="grid grid-cols-1 gap-3 w-full max-w-sm sm:grid-cols-3">
+                                {(
+                                    [
+                                        {
+                                            mode: "standard" as const,
+                                            label: "Standard",
+                                            description: "Entrevista técnica clásica",
+                                            icon: <Bot className="size-5 text-primary" />,
+                                            color: "border-primary/30 bg-primary/5",
+                                        },
+                                        {
+                                            mode: "pressure" as const,
+                                            label: "Pressure",
+                                            description: "Alta presión y follow-ups",
+                                            icon: <Flame className="size-5 text-orange-500" />,
+                                            color: "border-orange-500/30 bg-orange-500/5",
+                                        },
+                                        {
+                                            mode: "recruiter_simulation" as const,
+                                            label: "Recruiter",
+                                            description: "Foco en comunicación",
+                                            icon: <Users className="size-5 text-indigo-500" />,
+                                            color: "border-indigo-500/30 bg-indigo-500/5",
+                                        },
+                                    ] as const
+                                ).map(({ mode, label, description, icon, color }) => (
+                                    <button
+                                        key={mode}
+                                        id={`interview-mode-${mode}`}
+                                        onClick={() => setInterviewMode(mode)}
+                                        className={cn(
+                                            "flex flex-col items-center gap-2 rounded-xl border p-3 text-center transition-all",
+                                            color,
+                                            interviewMode === mode
+                                                ? "ring-2 ring-primary/50 ring-offset-1 ring-offset-background"
+                                                : "opacity-60 hover:opacity-100",
+                                        )}
+                                    >
+                                        {icon}
+                                        <span className="text-xs font-semibold text-foreground">{label}</span>
+                                        <span className="text-[10px] text-muted-foreground leading-tight">
+                                            {description}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+
                             <Button onClick={() => void startInterview()} className="gap-2" disabled={isStarting}>
                                 {isStarting ? (
                                     <>
