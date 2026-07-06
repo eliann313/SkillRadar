@@ -9,6 +9,16 @@ export class GithubAnalysisRepository {
             where: { userId, githubUser },
         });
 
+        // 18.1: Seniority signal fields to persist
+        const seniorityData = {
+            commitFrequency: data.commitFrequency ?? null,
+            readmeQualityScore: data.readmeQualityScore ?? null,
+            longestStreakDays: data.longestStreakDays ?? null,
+            topRepoTopics: (data.topRepoTopics ?? []) as Prisma.InputJsonValue,
+            senioritySignals: (data.senioritySignals ?? []) as Prisma.InputJsonValue,
+            detectedPatterns: data.detectedPatterns ? (data.detectedPatterns as Prisma.InputJsonValue) : undefined,
+        };
+
         if (existing) {
             return await db.githubAnalysis.update({
                 where: { id: existing.id },
@@ -18,6 +28,7 @@ export class GithubAnalysisRepository {
                     repos: data.repos as unknown as Prisma.InputJsonValue,
                     analysis: data.analysis as Prisma.InputJsonValue,
                     createdAt: new Date(), // Actualizar marca de tiempo
+                    ...seniorityData,
                 },
             });
         }
@@ -30,6 +41,7 @@ export class GithubAnalysisRepository {
                 languages: data.languages as Prisma.InputJsonValue,
                 repos: data.repos as unknown as Prisma.InputJsonValue,
                 analysis: data.analysis as Prisma.InputJsonValue,
+                ...seniorityData,
             },
         });
     }

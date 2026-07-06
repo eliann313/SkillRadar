@@ -34,6 +34,8 @@ import {
     LineChart,
 } from "lucide-react";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
+import { CareerCopilot } from "@/components/dashboard/career-copilot";
+import { NotificationBell } from "@/components/dashboard/notification-bell";
 
 const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg viewBox="0 0 24 24" fill="currentColor" className="size-4" {...props}>
@@ -44,6 +46,7 @@ const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
 const developerNavItems = [
     { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/cv-analysis", label: "CV Analysis", icon: FileText },
+    { href: "/dashboard/jobs", label: "Job Board", icon: Briefcase },
     { href: "/dashboard/job-match", label: "Job Match", icon: Briefcase },
     { href: "/dashboard/job-tracker", label: "Job Tracker", icon: Kanban },
     {
@@ -75,6 +78,7 @@ const developerNavItems = [
 
 const recruiterNavItems = [
     { href: "/dashboard", label: "Talent Pool", icon: Users },
+    { href: "/dashboard/recruiter/postings", label: "Job Postings", icon: Briefcase },
     { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
@@ -333,6 +337,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                         </Link>
                     </div>
                     <div className="flex items-center gap-4">
+                        <NotificationBell />
                         <ThemeToggle />
                     </div>
                 </header>
@@ -342,6 +347,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                     <div className="container mx-auto p-4 md:p-6 lg:p-8">{children}</div>
                 </main>
             </div>
+
+            {/* 7.2: Career Copilot floating widget */}
+            <CareerCopilot />
         </div>
     );
 }

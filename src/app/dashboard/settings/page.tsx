@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { redirect } from "next/navigation";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import {
     User as UserIcon,
     Building,
@@ -32,6 +40,9 @@ import {
     saveUserInferencePreferencesAction,
     getUserPublicProfileSettingsAction,
     updateUserPublicProfileSettingsAction,
+    deleteAccountAction,
+    exportUserDataAction,
+    saveUserNotificationPreferencesAction,
 } from "./actions";
 
 const PRESET_PLACEHOLDER = "__API_KEY_PRESET__";
@@ -186,6 +197,20 @@ export default function SettingsPage() {
         typeof window !== "undefined" ? window.location.origin : "",
     );
 
+    // Estados para Preferencias de Notificaciones por Email
+    const [emailNotifications, setEmailNotifications] = useState(true);
+    const [emailNewApplication, setEmailNewApplication] = useState(true);
+    const [emailApplicationStatusChanged, setEmailApplicationStatusChanged] = useState(true);
+    const [savingNotifications, setSavingNotifications] = useState(false);
+
+    // Estados para Eliminación de Cuenta
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deleteConfirmText, setDeleteConfirmText] = useState("");
+    const [deletingAccount, setDeletingAccount] = useState(false);
+
+    // Estado para Exportación de Datos
+    const [exportingData, setExportingData] = useState(false);
+
     useEffect(() => {
         const timer = setTimeout(() => {
             if (typeof window !== "undefined") {
@@ -236,6 +261,13 @@ export default function SettingsPage() {
                     setIsCustomModelSelected(true);
                     setCustomModelId(modelId);
                 }
+
+                // Setear preferencias de notificaciones
+                setEmailNotifications(d.emailNotifications !== undefined ? d.emailNotifications : true);
+                setEmailNewApplication(d.emailNewApplication !== undefined ? d.emailNewApplication : true);
+                setEmailApplicationStatusChanged(
+                    d.emailApplicationStatusChanged !== undefined ? d.emailApplicationStatusChanged : true,
+                );
             } else {
                 toast.error(res.error || "No se pudieron obtener los datos de configuración.");
             }
@@ -404,6 +436,83 @@ export default function SettingsPage() {
             toast.error(errMsg);
         } finally {
             setSavingPublicSettings(false);
+        }
+    };
+
+    // Guardar las preferencias de notificaciones
+    const handleSaveNotifications = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSavingNotifications(true);
+
+        try {
+            const res = await saveUserNotificationPreferencesAction({
+                emailNotifications,
+                emailNewApplication,
+                emailApplicationStatusChanged,
+            });
+
+            if (res.success) {
+                toast.success(res.message || "Preferencias de notificación guardadas.");
+            } else {
+                toast.error(res.error || "Error al guardar preferencias de notificación.");
+            }
+        } catch (err: unknown) {
+            const errMsg = err instanceof Error ? err.message : "Error al guardar notificaciones.";
+            toast.error(errMsg);
+        } finally {
+            setSavingNotifications(false);
+        }
+    };
+
+    // Exportar todos los datos personales del usuario (GDPR)
+    const handleExportUserData = async () => {
+        setExportingData(true);
+        try {
+            const res = await exportUserDataAction();
+            if (res.success) {
+                const dataStr = JSON.stringify(res.data, null, 2);
+                const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
+                const exportFileDefaultName = `skillradar_user_${session?.user?.name || "data"}_gdpr.json`;
+
+                const linkElement = document.createElement("a");
+                linkElement.setAttribute("href", dataUri);
+                linkElement.setAttribute("download", exportFileDefaultName);
+                linkElement.click();
+                toast.success("Tus datos personales han sido exportados correctamente.");
+            } else {
+                toast.error(res.error || "Error al exportar tus datos.");
+            }
+        } catch (err: unknown) {
+            const errMsg = err instanceof Error ? err.message : "Error de red al exportar datos.";
+            toast.error(errMsg);
+        } finally {
+            setExportingData(false);
+        }
+    };
+
+    // Eliminar la cuenta permanentemente
+    const handleDeleteAccount = async () => {
+        if (deleteConfirmText !== "ELIMINAR") {
+            toast.error("Por favor, escribe ELIMINAR para confirmar.");
+            return;
+        }
+
+        setDeletingAccount(true);
+        try {
+            const res = await deleteAccountAction();
+            if (res.success) {
+                toast.success("Tu cuenta ha sido eliminada. Redirigiendo...");
+                setIsDeleteModalOpen(false);
+                // Cerrar sesión y redirigir
+                await signOut({ callbackUrl: "/" });
+            } else {
+                toast.error(res.error || "Ocurrió un error al eliminar tu cuenta.");
+            }
+        } catch (err: unknown) {
+            const errMsg = err instanceof Error ? err.message : "Error al eliminar la cuenta.";
+            toast.error(errMsg);
+        } finally {
+            setDeletingAccount(false);
         }
     };
 
@@ -1277,70 +1386,212 @@ export default function SettingsPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Bell className="size-5 text-primary" />
-                            Notifications
+                            Preferencias de Notificaciones por Email
                         </CardTitle>
-                        <CardDescription>Configure how you receive notifications</CardDescription>
+                        <CardDescription>
+                            Configura cuándo deseas recibir correos electrónicos de SkillRadar
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form
+                            onSubmit={(e) => {
+                                void handleSaveNotifications(e);
+                            }}
+                            className="flex flex-col gap-4"
+                        >
+                            <div className="flex items-start gap-3 rounded-lg border border-border/60 bg-background/30 p-4">
+                                <input
+                                    type="checkbox"
+                                    id="emailNotifications"
+                                    checked={emailNotifications}
+                                    onChange={(e) => setEmailNotifications(e.target.checked)}
+                                    className="mt-1 size-5 rounded border-border/60 text-primary focus:ring-primary cursor-pointer"
+                                />
+                                <div className="space-y-0.5">
+                                    <Label
+                                        htmlFor="emailNotifications"
+                                        className="text-sm font-semibold cursor-pointer"
+                                    >
+                                        Activar Notificaciones por Email
+                                    </Label>
+                                    <p className="text-xs text-muted-foreground">
+                                        Permitir que SkillRadar te envíe correos electrónicos para eventos importantes.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {emailNotifications && (
+                                <div className="pl-6 space-y-4 border-l-2 border-border/60 ml-2.5 animate-in fade-in duration-200">
+                                    {user.role === "recruiter" && (
+                                        <div className="flex items-start gap-3">
+                                            <input
+                                                type="checkbox"
+                                                id="emailNewApplication"
+                                                checked={emailNewApplication}
+                                                onChange={(e) => setEmailNewApplication(e.target.checked)}
+                                                className="mt-0.5 size-4 rounded border-border/60 text-primary focus:ring-primary cursor-pointer"
+                                            />
+                                            <div className="space-y-0.5">
+                                                <Label
+                                                    htmlFor="emailNewApplication"
+                                                    className="text-xs font-semibold cursor-pointer"
+                                                >
+                                                    Nuevas Postulaciones Recibidas (Crítico)
+                                                </Label>
+                                                <p className="text-[10px] text-muted-foreground">
+                                                    Recibir un correo cada vez que un desarrollador se postule a tus
+                                                    ofertas publicadas.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {user.role === "developer" && (
+                                        <div className="flex items-start gap-3">
+                                            <input
+                                                type="checkbox"
+                                                id="emailApplicationStatusChanged"
+                                                checked={emailApplicationStatusChanged}
+                                                onChange={(e) => setEmailApplicationStatusChanged(e.target.checked)}
+                                                className="mt-0.5 size-4 rounded border-border/60 text-primary focus:ring-primary cursor-pointer"
+                                            />
+                                            <div className="space-y-0.5">
+                                                <Label
+                                                    htmlFor="emailApplicationStatusChanged"
+                                                    className="text-xs font-semibold cursor-pointer"
+                                                >
+                                                    Cambios de Estado en Postulaciones (Crítico)
+                                                </Label>
+                                                <p className="text-[10px] text-muted-foreground">
+                                                    Recibir un correo cuando un reclutador revise, acepte o actualice tu
+                                                    postulación.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            <Button
+                                type="submit"
+                                disabled={savingNotifications}
+                                className="w-fit relative overflow-hidden transition-all duration-300 active:scale-95"
+                            >
+                                {savingNotifications ? (
+                                    <>
+                                        <span className="size-4 border-2 border-background border-t-transparent rounded-full animate-spin mr-2" />
+                                        Guardando Preferencias...
+                                    </>
+                                ) : (
+                                    "Guardar Preferencias de Notificación"
+                                )}
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
+
+                {/* Security & Data Portability */}
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Shield className="size-5 text-primary" />
+                            Seguridad y Privacidad (GDPR)
+                        </CardTitle>
+                        <CardDescription>Gestiona tus datos personales y configuración de privacidad</CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-col gap-4">
+                        {/* GDPR Data Portability (Export) */}
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="font-medium text-foreground">Email Notifications</p>
+                                <p className="font-medium text-foreground">Portabilidad de Datos (Exportar Datos)</p>
                                 <p className="text-sm text-muted-foreground">
-                                    Receive updates about your analyses and matches
+                                    Descarga una copia completa de toda tu información personal almacenada en SkillRadar
+                                    en formato JSON.
                                 </p>
                             </div>
-                            <Button variant="outline" size="sm">
-                                Configure
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                    void handleExportUserData();
+                                }}
+                                disabled={exportingData}
+                            >
+                                {exportingData ? "Exportando..." : "Exportar Datos"}
                             </Button>
                         </div>
                         <Separator />
+                        {/* GDPR Right to be Forgotten (Delete) */}
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="font-medium text-foreground">Weekly Digest</p>
+                                <p className="font-medium text-foreground text-destructive">
+                                    Eliminar Cuenta (Derecho al Olvido)
+                                </p>
                                 <p className="text-sm text-muted-foreground">
-                                    Get a summary of your activity every week
+                                    Elimina permanentemente tu cuenta y todos tus datos (CVs, matches, historial de
+                                    entrevistas, postulaciones, etc.) de forma irreversible.
                                 </p>
                             </div>
-                            <Button variant="outline" size="sm">
-                                Configure
+                            <Button variant="destructive" size="sm" onClick={() => setIsDeleteModalOpen(true)}>
+                                Eliminar Cuenta
                             </Button>
                         </div>
                     </CardContent>
                 </Card>
 
-                {/* Security */}
-                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Shield className="size-5 text-primary" />
-                            Security
-                        </CardTitle>
-                        <CardDescription>Manage your security settings</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex flex-col gap-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="font-medium text-foreground">Connected Accounts</p>
-                                <p className="text-sm text-muted-foreground">Manage your linked social accounts</p>
+                {/* Modal de Confirmación de Eliminación de Cuenta */}
+                <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+                    <DialogContent className="max-w-md bg-popover text-popover-foreground">
+                        <DialogHeader>
+                            <DialogTitle className="text-destructive flex items-center gap-2 font-bold">
+                                <Shield className="size-5" />
+                                ¿Confirmas que deseas eliminar tu cuenta?
+                            </DialogTitle>
+                            <DialogDescription className="text-sm text-muted-foreground">
+                                Esta acción es <strong>definitiva e irreversible</strong>. Se eliminarán permanentemente
+                                todos tus archivos y registros del sistema (CVs, análisis, postulaciones).
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4 py-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="delete-confirm-input" className="text-xs font-semibold">
+                                    Escribe <span className="font-bold text-destructive">ELIMINAR</span> para confirmar
+                                    la eliminación permanente:
+                                </Label>
+                                <Input
+                                    id="delete-confirm-input"
+                                    placeholder="ELIMINAR"
+                                    value={deleteConfirmText}
+                                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                                    className="border-destructive/40 focus:border-destructive text-sm"
+                                />
                             </div>
-                            <Button variant="outline" size="sm">
-                                Manage
-                            </Button>
                         </div>
-                        <Separator />
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="font-medium text-foreground">Delete Account</p>
-                                <p className="text-sm text-muted-foreground">
-                                    Permanently delete your account and all data
-                                </p>
-                            </div>
-                            <Button variant="destructive" size="sm">
-                                Delete
+
+                        <DialogFooter className="pt-4">
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setIsDeleteModalOpen(false);
+                                    setDeleteConfirmText("");
+                                }}
+                                disabled={deletingAccount}
+                            >
+                                Cancelar
                             </Button>
-                        </div>
-                    </CardContent>
-                </Card>
+                            <Button
+                                variant="destructive"
+                                onClick={() => {
+                                    void handleDeleteAccount();
+                                }}
+                                disabled={deletingAccount || deleteConfirmText !== "ELIMINAR"}
+                            >
+                                {deletingAccount ? "Eliminando Cuenta..." : "Eliminar Cuenta Permanentemente"}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         </>
     );

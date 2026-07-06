@@ -33,6 +33,10 @@ model User {
   shortlists        Shortlist[]        @relation("RecruiterShortlists")
   shortlistedBy     Shortlist[]        @relation("DeveloperShortlists")
   jobApplications   JobApplication[]
+  notifications     Notification[]
+  jobPostings       JobPosting[]       @relation("RecruiterJobPostings")
+  jobPostingApplications JobPostingApplication[] @relation("DeveloperApplications")
+  reports           ContentReport[]    @relation("UserReports")
 
   // Claves de API Personales (Cifradas con AES-256-GCM)
   geminiApiKey       String?   @db.Text
@@ -51,6 +55,11 @@ model User {
   showSkills         Boolean   @default(true)
   showGithub         Boolean   @default(true)
   showSeniority      Boolean   @default(true)
+
+  // Preferencias de Notificaciones por Email
+  emailNotifications            Boolean   @default(true)
+  emailNewApplication           Boolean   @default(true)
+  emailApplicationStatusChanged Boolean   @default(true)
 }
 
 model Account {
@@ -105,6 +114,8 @@ model Resume {
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   jobMatches  JobMatch[]
+  jobPostingApplications JobPostingApplication[]
+  jobPostingMatches      JobPostingMatchCache[]
 }
 
 model JobMatch {
@@ -130,6 +141,14 @@ model GithubAnalysis {
   activity     Json?    // commits/week, streak, etc
   analysis     Json?    // { strengths: [], weaknesses: [], suggestions: [] }
   createdAt    DateTime @default(now())
+
+  // 18.1: Developer Intelligence Engine — Seniority Signals
+  commitFrequency    String?  // "daily" | "weekly" | "sporadic" | "inactive"
+  readmeQualityScore Int?     // 0-100
+  longestStreakDays  Int?
+  topRepoTopics      Json?    // string[]
+  senioritySignals   Json?    // string[] — qualitative evidence detected by AI
+  detectedPatterns   Json?    // { hasCI, hasTesting, hasDocker, hasAuthImplementation, hasCaching, hasObservability }
 
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -184,4 +203,84 @@ model JobApplication {
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // "new_job_match" | "new_application" | "application_status_changed"
+  title     String
+  message   String
+  link      String
+  read      Boolean  @default(false)
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model JobPosting {
+  id             String   @id @default(cuid())
+  recruiterId    String
+  title          String
+  company        String
+  location       String
+  remoteType     String   // "remote" | "hybrid" | "onsite"
+  description    String   @db.Text
+  requiredSkills Json     // array de strings
+  seniorityLevel String
+  status         String   @default("draft") // "draft" | "published" | "closed" | "under_review"
+  expiresAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  recruiter      User                    @relation("RecruiterJobPostings", fields: [recruiterId], references: [id], onDelete: Cascade)
+  applications   JobPostingApplication[]
+  matches        JobPostingMatchCache[]
+}
+
+model JobPostingApplication {
+  id           String   @id @default(cuid())
+  jobPostingId String
+  developerId  String
+  resumeId     String?
+  status       String   @default("submitted") // "submitted" | "reviewed" | "rejected" | "shortlisted"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  jobPosting  JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+  developer   User       @relation("DeveloperApplications", fields: [developerId], references: [id], onDelete: Cascade)
+  resume      Resume?    @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+
+  @@unique([jobPostingId, developerId])
+}
+
+model JobPostingMatchCache {
+  id           String   @id @default(cuid())
+  resumeId     String
+  jobPostingId String
+  matchScore   Int
+  analysis     Json     // Contenido idéntico a JobMatchAnalysis
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  resume       Resume     @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  jobPosting   JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+
+  @@unique([resumeId, jobPostingId])
+}
+
+model ContentReport {
+  id          String   @id @default(cuid())
+  reporterId  String
+  targetType  String   // "job_posting" | "contact_request"
+  targetId    String
+  reason      String
+  status      String   @default("pending") // "pending" | "reviewed" | "dismissed"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  reporter    User     @relation("UserReports", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([reporterId, targetType, targetId])
 }
