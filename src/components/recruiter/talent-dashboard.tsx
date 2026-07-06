@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -28,8 +28,15 @@ import {
     X,
     ShieldAlert,
     HelpCircle,
+    Star,
+    BarChart3,
 } from "lucide-react";
-import { rankTalentPoolAction, createContactRequestAction } from "@/features/recruiter/actions";
+import {
+    rankTalentPoolAction,
+    createContactRequestAction,
+    toggleShortlistAction,
+    getMarketIntelligenceSkillsAction,
+} from "@/features/recruiter/actions";
 import { toast } from "sonner";
 
 interface TalentDashboardProps {
@@ -84,6 +91,48 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
     const [isMatching, setIsMatching] = useState(false);
     const [isJdApplied, setIsJdApplied] = useState(false);
 
+    const [activeTab, setActiveTab] = useState<"pool" | "shortlist" | "market">("pool");
+    const [marketSkills, setMarketSkills] = useState<{ name: string; value: number }[]>([]);
+    const [isLoadingMarket, setIsLoadingMarket] = useState(false);
+
+    useEffect(() => {
+        if (activeTab === "market") {
+            const fetchMarketSkills = async () => {
+                setIsLoadingMarket(true);
+                try {
+                    const result = await getMarketIntelligenceSkillsAction();
+                    if (result.success) {
+                        setMarketSkills(result.data);
+                    } else {
+                        toast.error(result.error || "No se pudieron obtener las estadísticas de habilidades.");
+                    }
+                } catch (e) {
+                    console.error(e);
+                    toast.error("Error al conectar con el servidor.");
+                } finally {
+                    setIsLoadingMarket(false);
+                }
+            };
+            void fetchMarketSkills();
+        }
+    }, [activeTab]);
+
+    const handleToggleShortlist = async (developerId: string) => {
+        try {
+            const result = await toggleShortlistAction(developerId);
+            if (!result.success) {
+                toast.error(result.error || "No se pudo actualizar favoritos.");
+            } else {
+                const added = result.data;
+                toast.success(added ? "Candidato guardado en tu Shortlist." : "Candidato removido de tu Shortlist.");
+                setTalents((prev) => prev.map((t) => (t.id === developerId ? { ...t, isShortlisted: added } : t)));
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error("Error al procesar favoritos.");
+        }
+    };
+
     // Estado para enviar contacto
     const [selectedTalent, setSelectedTalent] = useState<TalentCard | null>(null);
     const [pitchMessage, setPitchMessage] = useState(
@@ -102,6 +151,13 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
             talent.anonymousId.toLowerCase().includes(query) ||
             (talent.name && talent.name.toLowerCase().includes(query))
         );
+    });
+
+    const displayedTalents = filteredTalents.filter((talent) => {
+        if (activeTab === "shortlist") {
+            return talent.isShortlisted === true;
+        }
+        return true;
     });
 
     // Ejecutar Reverse Matching
@@ -209,260 +265,473 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                 </div>
             </div>
 
-            {/* AI Reverse Matching Card (11.1) */}
-            <Card className="border-primary/20 bg-primary/5 dark:bg-primary/5 backdrop-blur-xs glow-emerald">
-                <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base text-foreground font-semibold">
-                        <Sparkles className="size-5 text-primary" />
-                        AI Reverse Job-Matching
-                    </CardTitle>
-                    <CardDescription>
-                        Paste a Job Description. Gemini will analyze the active Talent Pool and rank developers by
-                        affinity.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-4">
-                    <Textarea
-                        placeholder="Paste Job Description here..."
-                        value={jdText}
-                        onChange={(e) => setJdText(e.target.value)}
-                        className="min-h-[100px] bg-background border-border"
-                        disabled={isMatching}
-                    />
-                    <div className="flex gap-2 justify-end">
-                        {isJdApplied && (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleClearJd}
-                                className="gap-1.5"
-                                disabled={isMatching}
-                            >
-                                <X className="size-4" />
-                                Limpiar Filtro AI
-                            </Button>
-                        )}
-                        <Button
-                            onClick={() => {
-                                void handleReverseMatching();
-                            }}
-                            disabled={isMatching || !jdText.trim()}
-                            size="sm"
-                            className="gap-1.5"
-                        >
-                            {isMatching ? (
-                                <>
-                                    <div className="size-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                                    Buscando y Rankeando...
-                                </>
-                            ) : (
-                                <>
-                                    <Sparkles className="size-4" />
-                                    Analizar y Ordenar Candidatos
-                                </>
-                            )}
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Search bar */}
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                    placeholder="Search by skill, name or anonymous ID (e.g., React, DEV-9B1C)..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 bg-card border-border"
-                />
+            {/* Navigation Tabs */}
+            <div className="flex border-b border-border gap-2">
+                <Button
+                    variant="ghost"
+                    onClick={() => setActiveTab("pool")}
+                    className={cn(
+                        "rounded-none border-b-2 px-4 py-2 text-sm font-medium hover:bg-transparent shadow-none border-b-primary text-primary",
+                        activeTab === "pool"
+                            ? "border-b-primary text-primary"
+                            : "border-b-transparent text-muted-foreground hover:text-foreground",
+                    )}
+                >
+                    <Users className="mr-2 size-4" />
+                    Talent Pool
+                </Button>
+                <Button
+                    variant="ghost"
+                    onClick={() => setActiveTab("shortlist")}
+                    className={cn(
+                        "rounded-none border-b-2 px-4 py-2 text-sm font-medium hover:bg-transparent shadow-none border-b-primary text-primary",
+                        activeTab === "shortlist"
+                            ? "border-b-primary text-primary"
+                            : "border-b-transparent text-muted-foreground hover:text-foreground",
+                    )}
+                >
+                    <Star className="mr-2 size-4" />
+                    Mis Candidatos Guardados
+                </Button>
+                <Button
+                    variant="ghost"
+                    onClick={() => setActiveTab("market")}
+                    className={cn(
+                        "rounded-none border-b-2 px-4 py-2 text-sm font-medium hover:bg-transparent shadow-none border-b-primary text-primary",
+                        activeTab === "market"
+                            ? "border-b-primary text-primary"
+                            : "border-b-transparent text-muted-foreground hover:text-foreground",
+                    )}
+                >
+                    <BarChart3 className="mr-2 size-4" />
+                    Market Intelligence
+                </Button>
             </div>
 
-            {/* Talent Grid */}
-            {filteredTalents.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border py-16 bg-card/30">
-                    <div className="flex size-16 items-center justify-center rounded-full bg-muted">
-                        <Search className="size-7 text-muted-foreground" />
-                    </div>
-                    <div className="text-center">
-                        <p className="font-medium text-foreground">No matches found</p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            Try a different search term or clear the AI match filter.
-                        </p>
-                    </div>
-                </div>
-            ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {filteredTalents.map((talent) => {
-                        const isAccepted = talent.contactStatus === "accepted";
-                        const isPending = talent.contactStatus === "pending";
-
-                        return (
-                            <Card
-                                key={talent.id}
-                                className={cn(
-                                    "group border-border/50 bg-card/50 backdrop-blur-xs transition-all flex flex-col justify-between",
-                                    isJdApplied
-                                        ? "hover:border-primary/40 hover:bg-card/80 border-primary/20 bg-primary/0"
-                                        : "hover:border-indigo/40 hover:bg-card/80",
+            {activeTab !== "market" && (
+                <>
+                    {/* AI Reverse Matching Card (11.1) */}
+                    <Card className="border-primary/20 bg-primary/5 dark:bg-primary/5 backdrop-blur-xs glow-emerald">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="flex items-center gap-2 text-base text-foreground font-semibold">
+                                <Sparkles className="size-5 text-primary" />
+                                AI Reverse Job-Matching
+                            </CardTitle>
+                            <CardDescription>
+                                Paste a Job Description. Gemini will analyze the active Talent Pool and rank developers
+                                by affinity.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-4">
+                            <Textarea
+                                placeholder="Paste Job Description here..."
+                                value={jdText}
+                                onChange={(e) => setJdText(e.target.value)}
+                                className="min-h-[100px] bg-background border-border"
+                                disabled={isMatching}
+                            />
+                            <div className="flex gap-2 justify-end">
+                                {isJdApplied && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleClearJd}
+                                        className="gap-1.5"
+                                        disabled={isMatching}
+                                    >
+                                        <X className="size-4" />
+                                        Limpiar Filtro AI
+                                    </Button>
                                 )}
-                            >
-                                <CardHeader className="pb-3">
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex items-center gap-3">
-                                            {isAccepted && talent.image ? (
-                                                <img
-                                                    src={talent.image}
-                                                    alt={talent.name || "Developer"}
-                                                    className="size-10 rounded-full border border-border object-cover shrink-0"
-                                                />
-                                            ) : (
-                                                <div className="flex size-10 items-center justify-center rounded-full bg-indigo/10 border border-indigo/20 text-indigo font-bold text-xs shrink-0">
-                                                    🔒
+                                <Button
+                                    onClick={() => {
+                                        void handleReverseMatching();
+                                    }}
+                                    disabled={isMatching || !jdText.trim()}
+                                    size="sm"
+                                    className="gap-1.5"
+                                >
+                                    {isMatching ? (
+                                        <>
+                                            <div className="size-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                                            Buscando y Rankeando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sparkles className="size-4" />
+                                            Analizar y Ordenar Candidatos
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Search bar */}
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            placeholder="Search by skill, name or anonymous ID (e.g., React, DEV-9B1C)..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10 bg-card border-border"
+                        />
+                    </div>
+                </>
+            )}
+
+            {/* Talent Grid */}
+            {activeTab !== "market" &&
+                (displayedTalents.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border py-16 bg-card/30">
+                        <div className="flex size-16 items-center justify-center rounded-full bg-muted">
+                            <Search className="size-7 text-muted-foreground" />
+                        </div>
+                        <div className="text-center">
+                            <p className="font-medium text-foreground">
+                                {activeTab === "shortlist" ? "No tienes candidatos guardados" : "No matches found"}
+                            </p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                {activeTab === "shortlist"
+                                    ? "Marca candidatos con la estrella para guardarlos en esta sección."
+                                    : "Try a different search term or clear the AI match filter."}
+                            </p>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {displayedTalents.map((talent) => {
+                            const isAccepted = talent.contactStatus === "accepted";
+                            const isPending = talent.contactStatus === "pending";
+
+                            return (
+                                <Card
+                                    key={talent.id}
+                                    className={cn(
+                                        "group border-border/50 bg-card/50 backdrop-blur-xs transition-all flex flex-col justify-between",
+                                        isJdApplied
+                                            ? "hover:border-primary/40 hover:bg-card/80 border-primary/20 bg-primary/0"
+                                            : "hover:border-indigo/40 hover:bg-card/80",
+                                    )}
+                                >
+                                    <CardHeader className="pb-3">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-3">
+                                                {isAccepted && talent.image ? (
+                                                    <img
+                                                        src={talent.image}
+                                                        alt={talent.name || "Developer"}
+                                                        className="size-10 rounded-full border border-border object-cover shrink-0"
+                                                    />
+                                                ) : (
+                                                    <div className="flex size-10 items-center justify-center rounded-full bg-indigo/10 border border-indigo/20 text-indigo font-bold text-xs shrink-0">
+                                                        🔒
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <CardTitle className="font-mono text-sm text-muted-foreground flex items-center gap-1.5">
+                                                        {talent.anonymousId}
+                                                        {isAccepted && (
+                                                            <Badge
+                                                                variant="outline"
+                                                                className="bg-emerald/10 text-emerald border-emerald/20 text-[10px] px-1 py-0 capitalize"
+                                                            >
+                                                                Aceptado
+                                                            </Badge>
+                                                        )}
+                                                    </CardTitle>
+                                                    <h3 className="text-sm font-semibold text-foreground mt-0.5">
+                                                        {isAccepted ? talent.name : "Perfil Doble Ciego"}
+                                                    </h3>
+                                                </div>
+                                            </div>
+
+                                            <div className="text-right flex items-start gap-2">
+                                                <div>
+                                                    <div className="flex items-center justify-end gap-1">
+                                                        <TrendingUp className="size-4 text-muted-foreground" />
+                                                        <span
+                                                            className={cn(
+                                                                "text-xl font-bold",
+                                                                getScoreColor(talent.averageScore),
+                                                            )}
+                                                        >
+                                                            {talent.averageScore}%
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-[10px] text-muted-foreground">Match Score</p>
+                                                </div>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 p-0 text-muted-foreground hover:text-warning hover:bg-transparent shrink-0"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        void handleToggleShortlist(talent.id);
+                                                    }}
+                                                >
+                                                    <Star
+                                                        className={cn(
+                                                            "size-4",
+                                                            talent.isShortlisted
+                                                                ? "fill-warning text-warning"
+                                                                : "text-muted-foreground",
+                                                        )}
+                                                    />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-1.5 mt-2 flex-wrap">
+                                            <Badge
+                                                className={cn(
+                                                    "capitalize text-[10px] font-medium px-2 py-0.5",
+                                                    getSeniorityColor(talent.estimatedSeniority),
+                                                )}
+                                                variant="outline"
+                                            >
+                                                <Award className="mr-1 size-3" />
+                                                {talent.estimatedSeniority}
+                                            </Badge>
+                                            {isPending && (
+                                                <Badge
+                                                    className="bg-amber/10 text-amber border-amber/20 text-[10px] px-2 py-0.5"
+                                                    variant="outline"
+                                                >
+                                                    Pendiente
+                                                </Badge>
+                                            )}
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="flex flex-col gap-4 flex-1 justify-between">
+                                        <div className="space-y-3">
+                                            {/* Justification from AI Reverse Match (11.3 / 11.1) */}
+                                            {talent.justification && (
+                                                <div className="rounded-md bg-primary/5 border border-primary/10 p-2.5 text-xs text-foreground/90">
+                                                    <p className="font-semibold text-primary mb-1 flex items-center gap-1">
+                                                        <HelpCircle className="size-3.5" />
+                                                        Razonamiento IA:
+                                                    </p>
+                                                    <p className="leading-relaxed font-sans">{talent.justification}</p>
                                                 </div>
                                             )}
+
+                                            {/* Habilidades */}
                                             <div>
-                                                <CardTitle className="font-mono text-sm text-muted-foreground flex items-center gap-1.5">
-                                                    {talent.anonymousId}
-                                                    {isAccepted && (
+                                                <p className="mb-1 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                                                    Top Skills
+                                                </p>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {talent.topSkills.map((skill) => (
                                                         <Badge
-                                                            variant="outline"
-                                                            className="bg-emerald/10 text-emerald border-emerald/20 text-[10px] px-1 py-0 capitalize"
+                                                            key={skill}
+                                                            variant="secondary"
+                                                            className="text-[10px] bg-secondary/80 text-secondary-foreground"
                                                         >
-                                                            Aceptado
+                                                            {skill}
                                                         </Badge>
-                                                    )}
-                                                </CardTitle>
-                                                <h3 className="text-sm font-semibold text-foreground mt-0.5">
-                                                    {isAccepted ? talent.name : "Perfil Doble Ciego"}
-                                                </h3>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        <div className="text-right">
-                                            <div className="flex items-center justify-end gap-1">
-                                                <TrendingUp className="size-4 text-muted-foreground" />
-                                                <span
-                                                    className={cn(
-                                                        "text-xl font-bold",
-                                                        getScoreColor(talent.averageScore),
-                                                    )}
-                                                >
-                                                    {talent.averageScore}%
-                                                </span>
-                                            </div>
-                                            <p className="text-[10px] text-muted-foreground">Match Score</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-1.5 mt-2 flex-wrap">
-                                        <Badge
-                                            className={cn(
-                                                "capitalize text-[10px] font-medium px-2 py-0.5",
-                                                getSeniorityColor(talent.estimatedSeniority),
+                                            {/* Contact information if accepted */}
+                                            {isAccepted && (
+                                                <div className="rounded-md bg-muted/30 border border-border/50 p-2.5 text-xs space-y-1.5">
+                                                    <p className="font-semibold text-foreground flex items-center gap-1.5">
+                                                        <Mail className="size-3.5 text-primary" />
+                                                        Datos de Contacto:
+                                                    </p>
+                                                    <p className="text-muted-foreground select-all">{talent.email}</p>
+                                                </div>
                                             )}
-                                            variant="outline"
-                                        >
-                                            <Award className="mr-1 size-3" />
-                                            {talent.estimatedSeniority}
-                                        </Badge>
-                                        {isPending && (
-                                            <Badge
-                                                className="bg-amber/10 text-amber border-amber/20 text-[10px] px-2 py-0.5"
-                                                variant="outline"
-                                            >
-                                                Pendiente
-                                            </Badge>
-                                        )}
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="flex flex-col gap-4 flex-1 justify-between">
-                                    <div className="space-y-3">
-                                        {/* Justification from AI Reverse Match (11.3 / 11.1) */}
-                                        {talent.justification && (
-                                            <div className="rounded-md bg-primary/5 border border-primary/10 p-2.5 text-xs text-foreground/90">
-                                                <p className="font-semibold text-primary mb-1 flex items-center gap-1">
-                                                    <HelpCircle className="size-3.5" />
-                                                    Razonamiento IA:
-                                                </p>
-                                                <p className="leading-relaxed font-sans">{talent.justification}</p>
-                                            </div>
-                                        )}
+                                        </div>
 
-                                        {/* Habilidades */}
-                                        <div>
-                                            <p className="mb-1 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                                                Top Skills
-                                            </p>
-                                            <div className="flex flex-wrap gap-1">
-                                                {talent.topSkills.map((skill) => (
-                                                    <Badge
-                                                        key={skill}
-                                                        variant="secondary"
-                                                        className="text-[10px] bg-secondary/80 text-secondary-foreground"
+                                        {/* Footer */}
+                                        <div className="flex items-center justify-between border-t border-border pt-3 mt-2">
+                                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                                <Clock className="size-3" />
+                                                <span>Actualizado {formatLastActive(talent.lastActive)}</span>
+                                            </div>
+
+                                            {isAccepted ? (
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 gap-1.5 text-xs border-emerald/30 text-emerald hover:bg-emerald/10"
+                                                    onClick={() => {
+                                                        window.location.href = `mailto:${talent.email}`;
+                                                    }}
+                                                >
+                                                    <Mail className="size-3.5" />
+                                                    Enviar Mail
+                                                </Button>
+                                            ) : isPending ? (
+                                                <Button
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    disabled
+                                                    className="h-8 gap-1.5 text-xs opacity-70"
+                                                >
+                                                    Propuesta Enviada
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 gap-1.5 text-xs hover:border-primary/50 hover:text-primary transition-colors"
+                                                    onClick={() => {
+                                                        setSelectedTalent(talent);
+                                                        setIsContactDialogOpen(true);
+                                                    }}
+                                                >
+                                                    Solicitar Contacto
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
+                    </div>
+                ))}
+
+            {/* Market Intelligence View */}
+            {activeTab === "market" && (
+                <div className="space-y-6 animate-fade-in">
+                    <Card className="border-border bg-card">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-base text-foreground font-semibold">
+                                <BarChart3 className="size-5 text-primary" />
+                                Market Intelligence - Habilidades del Talent Pool
+                            </CardTitle>
+                            <CardDescription>
+                                Análisis en tiempo real de la abundancia y escasez de habilidades técnicas según los
+                                currículums de los candidatos activos.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {isLoadingMarket ? (
+                                <div className="flex flex-col items-center justify-center py-12 gap-2">
+                                    <div className="size-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                                    <p className="text-sm text-muted-foreground">
+                                        Procesando agregados de base de datos...
+                                    </p>
+                                </div>
+                            ) : marketSkills.length === 0 ? (
+                                <div className="text-center py-12 text-muted-foreground text-sm">
+                                    No hay currículums analizados en el Talent Pool para compilar estadísticas.
+                                </div>
+                            ) : (
+                                <div className="space-y-8">
+                                    {/* Heatmap/Treemap visual en SVG/CSS puro */}
+                                    <div>
+                                        <h3 className="text-sm font-semibold text-foreground mb-4">
+                                            Mapa de Densidad de Habilidades
+                                        </h3>
+                                        <div className="flex flex-wrap gap-2.5">
+                                            {marketSkills.map((skill) => {
+                                                const maxVal = Math.max(...marketSkills.map((s) => s.value));
+                                                const pct = maxVal > 0 ? (skill.value / maxVal) * 100 : 0;
+
+                                                // Determine background styles based on intensity
+                                                let intensityClass =
+                                                    "bg-primary/5 text-primary border-primary/10 hover:border-primary/30";
+                                                if (pct > 75)
+                                                    intensityClass =
+                                                        "bg-primary/20 text-primary border-primary/30 font-bold hover:bg-primary/35";
+                                                else if (pct > 40)
+                                                    intensityClass =
+                                                        "bg-primary/15 text-primary border-primary/20 hover:bg-primary/25";
+
+                                                return (
+                                                    <div
+                                                        key={skill.name}
+                                                        className={cn(
+                                                            "px-3.5 py-2 rounded-lg border text-sm transition-all hover:scale-[1.03] flex items-center gap-2 cursor-default select-none shadow-xs",
+                                                            intensityClass,
+                                                        )}
                                                     >
-                                                        {skill}
-                                                    </Badge>
-                                                ))}
-                                            </div>
+                                                        <span>{skill.name}</span>
+                                                        <Badge
+                                                            variant="secondary"
+                                                            className="bg-background/80 text-[10px] px-1.5 py-0.5 rounded-md font-mono border-none text-foreground/80"
+                                                        >
+                                                            {skill.value}
+                                                        </Badge>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
+                                    </div>
 
-                                        {/* Contact information if accepted */}
-                                        {isAccepted && (
-                                            <div className="rounded-md bg-muted/30 border border-border/50 p-2.5 text-xs space-y-1.5">
-                                                <p className="font-semibold text-foreground flex items-center gap-1.5">
-                                                    <Mail className="size-3.5 text-primary" />
-                                                    Datos de Contacto:
+                                    {/* Comparativa Demandadas vs Escasas */}
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                        <Card className="bg-emerald/5 dark:bg-emerald/5 border-emerald/10 dark:border-emerald/20">
+                                            <CardHeader className="pb-2">
+                                                <CardTitle className="text-sm font-semibold text-emerald flex items-center gap-2">
+                                                    <span className="size-2 rounded-full bg-emerald animate-pulse" />
+                                                    Habilidades Abundantes (Alta Oferta)
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="text-xs space-y-2">
+                                                <p className="text-muted-foreground mb-3">
+                                                    Las tecnologías más comunes que dominan los candidatos de la
+                                                    plataforma:
                                                 </p>
-                                                <p className="text-muted-foreground select-all">{talent.email}</p>
-                                            </div>
-                                        )}
-                                    </div>
+                                                <div className="flex flex-col gap-2">
+                                                    {marketSkills.slice(0, 5).map((skill) => (
+                                                        <div
+                                                            key={skill.name}
+                                                            className="flex justify-between items-center bg-background/50 p-2 rounded border border-emerald/10"
+                                                        >
+                                                            <span className="font-semibold text-foreground">
+                                                                {skill.name}
+                                                            </span>
+                                                            <span className="text-muted-foreground font-medium">
+                                                                {skill.value} candidatos
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
 
-                                    {/* Footer */}
-                                    <div className="flex items-center justify-between border-t border-border pt-3 mt-2">
-                                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                                            <Clock className="size-3" />
-                                            <span>Actualizado {formatLastActive(talent.lastActive)}</span>
-                                        </div>
-
-                                        {isAccepted ? (
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="h-8 gap-1.5 text-xs border-emerald/30 text-emerald hover:bg-emerald/10"
-                                                onClick={() => {
-                                                    window.location.href = `mailto:${talent.email}`;
-                                                }}
-                                            >
-                                                <Mail className="size-3.5" />
-                                                Enviar Mail
-                                            </Button>
-                                        ) : isPending ? (
-                                            <Button
-                                                variant="secondary"
-                                                size="sm"
-                                                disabled
-                                                className="h-8 gap-1.5 text-xs opacity-70"
-                                            >
-                                                Propuesta Enviada
-                                            </Button>
-                                        ) : (
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="h-8 gap-1.5 text-xs hover:border-primary/50 hover:text-primary transition-colors"
-                                                onClick={() => {
-                                                    setSelectedTalent(talent);
-                                                    setIsContactDialogOpen(true);
-                                                }}
-                                            >
-                                                Solicitar Contacto
-                                            </Button>
-                                        )}
+                                        <Card className="bg-indigo/5 dark:bg-indigo/5 border-indigo/10 dark:border-indigo/20">
+                                            <CardHeader className="pb-2">
+                                                <CardTitle className="text-sm font-semibold text-indigo flex items-center gap-2">
+                                                    <span className="size-2 rounded-full bg-indigo" />
+                                                    Habilidades Escasas / Emergentes
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="text-xs space-y-2">
+                                                <p className="text-muted-foreground mb-3">
+                                                    Tecnologías de nicho o especializadas menos representadas en el
+                                                    pool:
+                                                </p>
+                                                <div className="flex flex-col gap-2">
+                                                    {marketSkills
+                                                        .slice(-5)
+                                                        .reverse()
+                                                        .map((skill) => (
+                                                            <div
+                                                                key={skill.name}
+                                                                className="flex justify-between items-center bg-background/50 p-2 rounded border border-indigo/10"
+                                                            >
+                                                                <span className="font-semibold text-foreground">
+                                                                    {skill.name}
+                                                                </span>
+                                                                <span className="text-muted-foreground font-medium">
+                                                                    {skill.value} candidatos
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
                                     </div>
-                                </CardContent>
-                            </Card>
-                        );
-                    })}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
             )}
 

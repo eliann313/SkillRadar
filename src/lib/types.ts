@@ -77,6 +77,7 @@ export interface TalentCard {
     contactStatus?: "none" | "pending" | "accepted" | "declined";
     requestId?: string;
     justification?: string;
+    isShortlisted?: boolean;
 }
 
 export interface ChatMessage {

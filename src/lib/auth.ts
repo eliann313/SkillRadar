@@ -10,6 +10,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     adapter: PrismaAdapter(db),
     session: { strategy: "jwt" },
     secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+    debug: true,
     ...authConfig,
     providers: [
         ...authConfig.providers,
