@@ -171,6 +171,9 @@ export async function getUserApiKeysStatusAction() {
                 anthropicApiKey: true,
                 defaultAiProvider: true,
                 defaultAiModel: true,
+                emailNotifications: true,
+                emailNewApplication: true,
+                emailApplicationStatusChanged: true,
             },
         });
 
@@ -188,6 +191,9 @@ export async function getUserApiKeysStatusAction() {
                 hasAnthropicKey: !!user.anthropicApiKey,
                 defaultAiProvider: user.defaultAiProvider,
                 defaultAiModel: user.defaultAiModel,
+                emailNotifications: user.emailNotifications,
+                emailNewApplication: user.emailNewApplication,
+                emailApplicationStatusChanged: user.emailApplicationStatusChanged,
             },
         };
     } catch (error: unknown) {
@@ -306,5 +312,177 @@ export async function updateUserPublicProfileSettingsAction(input: PublicProfile
         const errMessage = error instanceof Error ? error.message : "Error al actualizar perfil público.";
         console.error("[updateUserPublicProfileSettingsAction] Error:", errMessage);
         return { success: false, error: errMessage };
+    }
+}
+
+/**
+ * Elimina la cuenta del usuario en cascada.
+ */
+export async function deleteAccountAction(): Promise<{ success: boolean; message?: string; error?: string }> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado. Inicie sesión." };
+        }
+
+        const userId = session.user.id;
+
+        // Eliminar el usuario (la cascada a nivel de BD borrará todo lo demás)
+        await db.user.delete({
+            where: { id: userId },
+        });
+
+        return {
+            success: true,
+            message: "Tu cuenta ha sido eliminada con éxito.",
+        };
+    } catch (error: unknown) {
+        const errMessage = error instanceof Error ? error.message : "Error al eliminar la cuenta.";
+        console.error("[deleteAccountAction] Error:", errMessage);
+        return {
+            success: false,
+            error: errMessage,
+        };
+    }
+}
+
+/**
+ * Compila todos los datos personales del usuario y los entrega como JSON.
+ */
+export async function exportUserDataAction(): Promise<
+    { success: true; data: Record<string, unknown> } | { success: false; error: string }
+> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado. Inicie sesión." };
+        }
+
+        const userId = session.user.id;
+
+        const userData = await db.user.findUnique({
+            where: { id: userId },
+            include: {
+                resumes: true,
+                jobMatches: true,
+                githubAnalyses: true,
+                interviewSessions: true,
+                receivedRequests: true,
+                sentRequests: true,
+                shortlists: true,
+                shortlistedBy: true,
+                jobApplications: true,
+                notifications: true,
+                jobPostings: {
+                    include: {
+                        applications: true,
+                    },
+                },
+                jobPostingApplications: true,
+                reports: true,
+            },
+        });
+
+        if (!userData) {
+            return { success: false, error: "Usuario no encontrado." };
+        }
+
+        // Sanitizar datos sensibles para la exportación
+        const sanitizedData = {
+            id: userData.id,
+            name: userData.name,
+            email: userData.email,
+            image: userData.image,
+            role: userData.role,
+            createdAt: userData.createdAt,
+            updatedAt: userData.updatedAt,
+            isPublicProfile: userData.isPublicProfile,
+            publicUsername: userData.publicUsername,
+            showSkills: userData.showSkills,
+            showGithub: userData.showGithub,
+            showSeniority: userData.showSeniority,
+
+            // Preferencias de Inferencia y notificaciones
+            defaultAiProvider: userData.defaultAiProvider,
+            defaultAiModel: userData.defaultAiModel,
+            emailNotifications: userData.emailNotifications,
+            emailNewApplication: userData.emailNewApplication,
+            emailApplicationStatusChanged: userData.emailApplicationStatusChanged,
+
+            // Relaciones
+            resumes: userData.resumes.map((r) => ({
+                id: r.id,
+                fileName: r.fileName,
+                fileUrl: r.fileUrl,
+                rawText: r.rawText,
+                atsScore: r.atsScore,
+                analysis: r.analysis,
+                createdAt: r.createdAt,
+            })),
+            jobMatches: userData.jobMatches,
+            githubAnalyses: userData.githubAnalyses,
+            interviewSessions: userData.interviewSessions,
+            receivedRequests: userData.receivedRequests,
+            sentRequests: userData.sentRequests,
+            shortlists: userData.shortlists,
+            shortlistedBy: userData.shortlistedBy,
+            jobApplications: userData.jobApplications,
+            notifications: userData.notifications,
+            jobPostings: userData.jobPostings,
+            jobPostingApplications: userData.jobPostingApplications,
+            reports: userData.reports,
+        };
+
+        return {
+            success: true,
+            data: sanitizedData as unknown as Record<string, unknown>,
+        };
+    } catch (error: unknown) {
+        const errMessage = error instanceof Error ? error.message : "Error al exportar datos del usuario.";
+        console.error("[exportUserDataAction] Error:", errMessage);
+        return {
+            success: false,
+            error: errMessage,
+        };
+    }
+}
+
+export interface NotificationPreferencesInput {
+    emailNotifications: boolean;
+    emailNewApplication: boolean;
+    emailApplicationStatusChanged: boolean;
+}
+
+export async function saveUserNotificationPreferencesAction(input: NotificationPreferencesInput) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado." };
+        }
+
+        const userId = session.user.id;
+
+        await db.user.update({
+            where: { id: userId },
+            data: {
+                emailNotifications: input.emailNotifications,
+                emailNewApplication: input.emailNewApplication,
+                emailApplicationStatusChanged: input.emailApplicationStatusChanged,
+            },
+        });
+
+        revalidatePath("/dashboard/settings");
+
+        return {
+            success: true,
+            message: "Preferencias de notificación actualizadas con éxito.",
+        };
+    } catch (error: unknown) {
+        const errMessage = error instanceof Error ? error.message : "Error al guardar preferencias de notificación.";
+        console.error("[saveUserNotificationPreferencesAction] Error:", errMessage);
+        return {
+            success: false,
+            error: errMessage,
+        };
     }
 }

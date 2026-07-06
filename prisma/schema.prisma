@@ -55,6 +55,11 @@ model User {
   showSkills         Boolean   @default(true)
   showGithub         Boolean   @default(true)
   showSeniority      Boolean   @default(true)
+
+  // Preferencias de Notificaciones por Email
+  emailNotifications            Boolean   @default(true)
+  emailNewApplication           Boolean   @default(true)
+  emailApplicationStatusChanged Boolean   @default(true)
 }
 
 model Account {

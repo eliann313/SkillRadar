@@ -932,61 +932,61 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 21.1: Eliminación de Cuenta y Exportación de Datos (Derecho al Olvido)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Alta 🔴 — Requisito de manejo responsable de PII
 - **Descripción:**
   La plataforma almacena PII sensible (CVs, texto de currículum, contacto de developers revelado vía Doble Ciego, tokens de GitHub cifrados). No existe hoy ninguna vía para que un usuario borre su cuenta o exporte sus datos, lo cual es tanto una buena práctica de producto como un requisito de cumplimiento tipo GDPR/derecho al olvido.
 - **Criterios de Aceptación:**
-    - [ ] Crear la Server Action `deleteAccountAction` en `/dashboard/settings` que elimine en cascada (aprovechando `onDelete: Cascade` ya definido en el schema) todos los registros del User: Resume, JobMatch, GithubAnalysis, InterviewSession, ContactRequest, Shortlist, JobApplication, JobPosting, JobPostingApplication, Notification.
-    - [ ] Requerir confirmación explícita (modal con texto tipo "escribí ELIMINAR para confirmar") para prevenir borrados accidentales.
-    - [ ] Implementar `exportUserDataAction` que compile un JSON con todos los datos personales del usuario y lo entregue como descarga directa (sin pasar por storage intermedio para minimizar superficie de exposición).
-    - [ ] Invalidar la sesión de Auth.js v5 inmediatamente después del borrado exitoso y redirigir a la landing.
-- **Rama Git:** `feature/account-deletion-gdpr`
+    - [x] Crear la Server Action `deleteAccountAction` en `/dashboard/settings` que elimine en cascada (aprovechando `onDelete: Cascade` ya definido en el schema) todos los registros del User: Resume, JobMatch, GithubAnalysis, InterviewSession, ContactRequest, Shortlist, JobApplication, JobPosting, JobPostingApplication, Notification.
+    - [x] Requerir confirmación explícita (modal con texto tipo "escribí ELIMINAR para confirmar") para prevenir borrados accidentales.
+    - [x] Implementar `exportUserDataAction` que compile un JSON con todos los datos personales del usuario y lo entregue como descarga directa (sin pasar por storage intermedio para minimizar superficie de exposición).
+    - [x] Invalidar la sesión de Auth.js v5 inmediatamente después del borrado exitoso y redirigir a la landing.
+- **Rama Git:** `feature/modulo-21-compliance` (implementado en conjunto)
 
 ---
 
 ### 🎴 Tarjeta 21.2: Notificaciones Críticas por Email (Digest con Resend)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   El sistema de notificaciones de la Tarjeta 19.1 es exclusivamente in-app. Resend ya está integrado en el proyecto (usado en recuperación de contraseña, 8.2), por lo que conviene reutilizarlo para avisar por correo los eventos que realmente importan, sin depender de que el usuario tenga la app abierta.
 - **Criterios de Aceptación:**
-    - [ ] Extender `createNotification()` (19.1) para que, según el `type`, dispare opcionalmente un email vía Resend usando templates simples de React Email.
-    - [ ] Definir qué eventos son "críticos" para email inmediato (`new_application` para el recruiter, `application_status_changed` para el dev) vs. cuáles quedan solo in-app (`new_job_match`, para no saturar la bandeja).
-    - [ ] Agregar en `/dashboard/settings` una sección "Preferencias de Notificación" con toggles por tipo de evento y un opt-out general.
-    - [ ] Respetar el opt-out en `createNotification()` antes de invocar el envío de correo (chequeo server-side, no solo en el frontend).
-- **Rama Git:** `feature/email-notification-digest`
+    - [x] Extender `createNotification()` (19.1) para que, según el `type`, dispare opcionalmente un email vía Resend usando templates simples de React Email.
+    - [x] Definir qué eventos son "críticos" para email inmediato (`new_application` para el recruiter, `application_status_changed` para el dev) vs. cuáles quedan solo in-app (`new_job_match`, para no saturar la bandeja).
+    - [x] Agregar en `/dashboard/settings` una sección "Preferencias de Notificación" con toggles por tipo de evento y un opt-out general.
+    - [x] Respetar el opt-out en `createNotification()` antes de invocar el envío de correo (chequeo server-side, no solo en el frontend).
+- **Rama Git:** `feature/modulo-21-compliance` (implementado en conjunto)
 
 ---
 
 ### 🎴 Tarjeta 21.3: Páginas Legales — Términos de Servicio y Política de Privacidad
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Con PII de terceros circulando entre developers y recruiters (incluyendo revelado de contacto real vía Doble Ciego), la plataforma necesita páginas legales básicas que dejen claro qué datos se recolectan, cómo se usan y qué responsabilidad tiene cada rol de usuario al usar la información obtenida de otro.
 - **Criterios de Aceptación:**
-    - [ ] Crear las rutas estáticas `/legal/terms` y `/legal/privacy` con contenido base (puede redactarse con ayuda de IA pero debe revisarse manualmente, no es contenido a automatizar sin revisión humana).
-    - [ ] Agregar checkbox de aceptación de Términos en el flujo de registro (`/login`, Tarjeta 8.2), bloqueando el submit si no está marcado.
-    - [ ] Linkear ambas páginas en el footer de la landing (4.1) y en `/dashboard/settings`.
-    - [ ] Documentar explícitamente en la Política de Privacidad el uso de API keys de terceros (Gemini/Groq/OpenRouter/OpenAI/Anthropic) cuando el usuario configura las propias (7.1), aclarando que esos proveedores procesan el contenido enviado.
-- **Rama Git:** `feature/legal-pages`
+    - [x] Crear las rutas estáticas `/legal/terms` y `/legal/privacy` con contenido base (puede redactarse con ayuda de IA pero debe revisarse manualmente, no es contenido a automatizar sin revisión humana).
+    - [x] Agregar checkbox de aceptación de Términos en el flujo de registro (`/login`, Tarjeta 8.2), bloqueando el submit si no está marcado.
+    - [x] Linkear ambas páginas en el footer de la landing (4.1) y en `/dashboard/settings`.
+    - [x] Documentar explícitamente en la Política de Privacidad el uso de API keys de terceros (Gemini/Groq/OpenRouter/OpenAI/Anthropic) cuando el usuario configura las propias (7.1), aclarando que esos proveedores procesan el contenido enviado.
+- **Rama Git:** `feature/modulo-21-compliance` (implementado en conjunto)
 
 ---
 
 ### 🎴 Tarjeta 21.4: Retiro de Postulación (Withdraw Application)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Baja 🟢
 - **Descripción:**
   La Tarjeta 19.5 permite aplicar a una oferta pero no da al developer forma de retractarse. Completar el ciclo de vida de JobPostingApplication con la acción inversa.
 - **Criterios de Aceptación:**
-    - [ ] Agregar el estado `"withdrawn"` al enum de status de JobPostingApplication.
-    - [ ] Implementar `withdrawApplicationAction`, validando que el developerId coincida con la sesión activa (reforzando el patrón de la Tarjeta 20.1).
-    - [ ] Ocultar la aplicación retirada de la vista del recruiter (19.6) sin borrar el registro (preservar el historial para métricas).
-    - [ ] Habilitar nuevamente el botón "Aplicar" en el Job Board (19.4) si la aplicación previa fue retirada.
-- **Rama Git:** `feature/withdraw-application`
+    - [x] Agregar el estado `"withdrawn"` al enum de status de JobPostingApplication.
+    - [x] Implementar `withdrawApplicationAction`, validando que el developerId coincida con la sesión activa (reforzando el patrón de la Tarjeta 20.1).
+    - [x] Ocultar la aplicación retirada de la vista del recruiter (19.6) sin borrar el registro (preservar el historial para métricas).
+    - [x] Habilitar nuevamente el botón "Aplicar" en el Job Board (19.4) si la aplicación previa fue retirada.
+- **Rama Git:** `feature/modulo-21-compliance` (implementado en conjunto)
 
 ---
 

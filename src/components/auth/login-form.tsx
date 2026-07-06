@@ -22,12 +22,19 @@ export function LoginForm() {
     const [role, setRole] = useState<"developer" | "recruiter">("developer");
     const [showPassword, setShowPassword] = useState(false);
     const [isAuthLoading, setIsAuthLoading] = useState(false);
+    const [acceptTerms, setAcceptTerms] = useState(false);
 
     const { data: session, status } = useSession();
 
     const handleCredentialsAuth = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!email || !password) return;
+
+        if (isRegister && !acceptTerms) {
+            toast.error("Debes aceptar los Términos de Servicio y la Política de Privacidad para registrarte.");
+            return;
+        }
+
         setIsAuthLoading(true);
 
         try {
@@ -325,6 +332,41 @@ export function LoginForm() {
                                 </div>
                             )}
 
+                            {isRegister && (
+                                <div className="flex items-start gap-2 mt-2 animate-in fade-in duration-200">
+                                    <input
+                                        type="checkbox"
+                                        id="acceptTerms"
+                                        checked={acceptTerms}
+                                        onChange={(e) => setAcceptTerms(e.target.checked)}
+                                        className="mt-1 size-4 rounded border-border/60 text-primary focus:ring-primary cursor-pointer"
+                                        required
+                                    />
+                                    <Label
+                                        htmlFor="acceptTerms"
+                                        className="text-xs text-muted-foreground leading-normal cursor-pointer select-none"
+                                    >
+                                        Acepto los{" "}
+                                        <Link
+                                            href="/legal/terms"
+                                            className="text-primary hover:underline font-semibold"
+                                            target="_blank"
+                                        >
+                                            Términos de Servicio
+                                        </Link>{" "}
+                                        y la{" "}
+                                        <Link
+                                            href="/legal/privacy"
+                                            className="text-primary hover:underline font-semibold"
+                                            target="_blank"
+                                        >
+                                            Política de Privacidad
+                                        </Link>
+                                        .
+                                    </Label>
+                                </div>
+                            )}
+
                             {/* Botón Principal Submit */}
                             <Button type="submit" className="w-full gap-2 mt-2" disabled={isLoading}>
                                 {isLoading ? (
@@ -370,13 +412,13 @@ export function LoginForm() {
 
                         <p className="text-center text-[11px] text-muted-foreground">
                             Al continuar, aceptas nuestros{" "}
-                            <a href="#" className="text-primary hover:underline">
+                            <Link href="/legal/terms" className="text-primary hover:underline" target="_blank">
                                 Términos de Servicio
-                            </a>{" "}
+                            </Link>{" "}
                             y nuestra{" "}
-                            <a href="#" className="text-primary hover:underline">
+                            <Link href="/legal/privacy" className="text-primary hover:underline" target="_blank">
                                 Política de Privacidad
-                            </a>
+                            </Link>
                             .
                         </p>
                     </CardContent>

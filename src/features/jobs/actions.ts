@@ -377,3 +377,26 @@ export async function extendJobPostingExpirationAction(id: string): Promise<Acti
         };
     }
 }
+
+/**
+ * Permite a un desarrollador retirar su postulación a una oferta laboral.
+ */
+export async function withdrawApplicationAction(jobPostingId: string): Promise<ActionResult<JobPostingApplication>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id || session.user.role !== "developer") {
+            return { success: false, error: "No autorizado. Solo desarrolladores pueden retirar sus postulaciones." };
+        }
+
+        const developerId = session.user.id;
+
+        const application = await JobPostingService.withdrawApplication(developerId, jobPostingId);
+
+        revalidatePath("/dashboard/jobs");
+        revalidatePath("/dashboard/job-tracker");
+        return { success: true, data: application };
+    } catch (error) {
+        console.error("[withdrawApplicationAction] Error:", error);
+        return { success: false, error: (error as Error).message || "Error al retirar tu postulación." };
+    }
+}

@@ -7,7 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { getDeveloperJobBoardAction, applyToJobPostingAction, createReportAction } from "@/features/jobs/actions";
+import {
+    getDeveloperJobBoardAction,
+    applyToJobPostingAction,
+    createReportAction,
+    withdrawApplicationAction,
+} from "@/features/jobs/actions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Flag } from "lucide-react";
@@ -40,6 +45,7 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
     const [seniorityLevel, setSeniorityLevel] = useState("all");
     const [loading, setLoading] = useState(false);
     const [applyingId, setApplyingId] = useState<string | null>(null);
+    const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
 
     // Indica si el desarrollador no tiene ningún CV subido
     // Si en todas las ofertas matchScore es null, probablemente no tenga CV activo
@@ -108,6 +114,18 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
             toast.error(res.error || "Error al postularse.");
         }
         setApplyingId(null);
+    };
+
+    const handleWithdraw = async (jobId: string) => {
+        setWithdrawingId(jobId);
+        const res = await withdrawApplicationAction(jobId);
+        if (res.success) {
+            toast.success("Has retirado tu postulación con éxito.");
+            setJobs((prev) => prev.map((job) => (job.id === jobId ? { ...job, hasApplied: false } : job)));
+        } else {
+            toast.error(res.error || "Error al retirar la postulación.");
+        }
+        setWithdrawingId(null);
     };
 
     const getScoreColor = (score: number) => {
@@ -266,20 +284,32 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                                         </Button>
 
                                         {job.hasApplied ? (
-                                            <Button
-                                                disabled
-                                                variant="outline"
-                                                className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50/5 border-emerald-500/20 w-full md:w-auto"
-                                            >
-                                                <CheckCircle2 className="size-4 text-emerald-500" />
-                                                <span>Postulado</span>
-                                            </Button>
+                                            <div className="flex gap-2 w-full md:w-auto">
+                                                <Button
+                                                    disabled
+                                                    variant="outline"
+                                                    className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50/5 border-emerald-500/20 w-full md:w-auto"
+                                                >
+                                                    <CheckCircle2 className="size-4 text-emerald-500" />
+                                                    <span>Postulado</span>
+                                                </Button>
+                                                <Button
+                                                    variant="destructive"
+                                                    onClick={() => {
+                                                        void handleWithdraw(job.id);
+                                                    }}
+                                                    disabled={withdrawingId !== null}
+                                                    className="w-full md:w-auto"
+                                                >
+                                                    {withdrawingId === job.id ? "Retirando..." : "Retirar"}
+                                                </Button>
+                                            </div>
                                         ) : (
                                             <Button
                                                 onClick={() => {
                                                     void handleApply(job.id);
                                                 }}
-                                                disabled={applyingId !== null}
+                                                disabled={applyingId !== null || withdrawingId !== null}
                                                 className="w-full md:w-auto"
                                             >
                                                 {applyingId === job.id ? "Aplicando..." : "Aplicar"}
