@@ -222,6 +222,86 @@ ${jdSanitized}`,
     }
 
     /**
+     * Alterna el estado de favoritos/shortlist para un desarrollador.
+     * Retorna true si fue agregado, false si fue removido.
+     */
+    static async toggleShortlist(params: { recruiterId: string; developerId: string }): Promise<boolean> {
+        const existing = await db.shortlist.findUnique({
+            where: {
+                recruiterId_developerId: {
+                    recruiterId: params.recruiterId,
+                    developerId: params.developerId,
+                },
+            },
+        });
+
+        if (existing) {
+            await db.shortlist.delete({
+                where: {
+                    recruiterId_developerId: {
+                        recruiterId: params.recruiterId,
+                        developerId: params.developerId,
+                    },
+                },
+            });
+            return false;
+        } else {
+            await db.shortlist.create({
+                data: {
+                    recruiterId: params.recruiterId,
+                    developerId: params.developerId,
+                },
+            });
+            return true;
+        }
+    }
+
+    /**
+     * Obtiene el listado de IDs de desarrolladores guardados en la shortlist de un reclutador.
+     */
+    static async getShortlistedCandidates(params: { recruiterId: string }): Promise<string[]> {
+        const entries = await db.shortlist.findMany({
+            where: { recruiterId: params.recruiterId },
+            select: { developerId: true },
+        });
+        return entries.map((e) => e.developerId);
+    }
+
+    /**
+     * Compila y agrupa todas las habilidades técnicas (keywords) de los CVs del Talent Pool por frecuencia.
+     */
+    static async getMarketIntelligenceSkills(): Promise<{ name: string; value: number }[]> {
+        const resumes = await db.resume.findMany({
+            select: { analysis: true },
+        });
+
+        const skillCounts: Record<string, number> = {};
+
+        resumes.forEach((resume) => {
+            if (!resume.analysis) return;
+            try {
+                const analysis = typeof resume.analysis === "string" ? JSON.parse(resume.analysis) : resume.analysis;
+                const keywords = (analysis as { keywords?: string[] })?.keywords;
+                if (Array.isArray(keywords)) {
+                    keywords.forEach((kw) => {
+                        if (!kw) return;
+                        const normalized = kw.trim();
+                        if (!normalized) return;
+                        const key = normalized.charAt(0).toUpperCase() + normalized.slice(1);
+                        skillCounts[key] = (skillCounts[key] || 0) + 1;
+                    });
+                }
+            } catch (e) {
+                console.error("[getMarketIntelligenceSkills] Error parsing JSON:", e);
+            }
+        });
+
+        return Object.entries(skillCounts)
+            .map(([name, value]) => ({ name, value }))
+            .sort((a, b) => b.value - a.value);
+    }
+
+    /**
      * Simulación offline de matching para el pool.
      */
     static generateSimulatedPoolMatch(resumeText: string, jobDescription: string): TalentPoolMatch {

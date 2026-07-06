@@ -30,6 +30,8 @@ model User {
   interviewSessions InterviewSession[]
   receivedRequests  ContactRequest[]   @relation("DeveloperRequests")
   sentRequests      ContactRequest[]   @relation("RecruiterRequests")
+  shortlists        Shortlist[]        @relation("RecruiterShortlists")
+  shortlistedBy     Shortlist[]        @relation("DeveloperShortlists")
 
   // Claves de API Personales (Cifradas con AES-256-GCM)
   geminiApiKey       String?   @db.Text
@@ -149,4 +151,16 @@ model ContactRequest {
 
   recruiter   User     @relation("RecruiterRequests", fields: [recruiterId], references: [id], onDelete: Cascade)
   developer   User     @relation("DeveloperRequests", fields: [developerId], references: [id], onDelete: Cascade)
+}
+
+model Shortlist {
+  id          String   @id @default(cuid())
+  recruiterId String
+  developerId String
+  createdAt   DateTime @default(now())
+
+  recruiter   User     @relation("RecruiterShortlists", fields: [recruiterId], references: [id], onDelete: Cascade)
+  developer   User     @relation("DeveloperShortlists", fields: [developerId], references: [id], onDelete: Cascade)
+
+  @@unique([recruiterId, developerId])
 }

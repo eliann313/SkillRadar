@@ -19,18 +19,26 @@ export default async function DashboardPage() {
 
     // Recruiter dashboard
     if (session.user.role === "recruiter") {
-        const developers = await db.user.findMany({
-            where: { role: "developer" },
-            include: {
-                resumes: {
-                    orderBy: { createdAt: "desc" },
-                    take: 1,
+        const [developers, shortlists] = await Promise.all([
+            db.user.findMany({
+                where: { role: "developer" },
+                include: {
+                    resumes: {
+                        orderBy: { createdAt: "desc" },
+                        take: 1,
+                    },
+                    receivedRequests: {
+                        where: { recruiterId: session.user.id },
+                    },
                 },
-                receivedRequests: {
-                    where: { recruiterId: session.user.id },
-                },
-            },
-        });
+            }),
+            db.shortlist.findMany({
+                where: { recruiterId: session.user.id },
+                select: { developerId: true },
+            }),
+        ]);
+
+        const shortlistedSet = new Set(shortlists.map((s) => s.developerId));
 
         const pool = developers
             .filter((dev) => dev.resumes.length > 0)
@@ -62,16 +70,14 @@ export default async function DashboardPage() {
                             : null,
                     image: contactStatus === "accepted" ? dev.image : null,
                     estimatedSeniority: (parsedAnalysis?.estimatedSeniority || "mid") as
-                        | "junior"
-                        | "mid"
-                        | "senior"
-                        | "lead",
+                        "junior" | "mid" | "senior" | "lead",
                     averageScore: resume.atsScore || 0,
                     topSkills: parsedAnalysis?.keywords || [],
                     languages: [],
                     lastActive: new Date(resume.createdAt),
                     contactStatus,
                     requestId: request?.id,
+                    isShortlisted: shortlistedSet.has(dev.id),
                 };
             });
 
