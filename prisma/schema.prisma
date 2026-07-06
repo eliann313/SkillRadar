@@ -131,6 +131,14 @@ model GithubAnalysis {
   analysis     Json?    // { strengths: [], weaknesses: [], suggestions: [] }
   createdAt    DateTime @default(now())
 
+  // 18.1: Developer Intelligence Engine — Seniority Signals
+  commitFrequency    String?  // "daily" | "weekly" | "sporadic" | "inactive"
+  readmeQualityScore Int?     // 0-100
+  longestStreakDays  Int?
+  topRepoTopics      Json?    // string[]
+  senioritySignals   Json?    // string[] — qualitative evidence detected by AI
+  detectedPatterns   Json?    // { hasCI, hasTesting, hasDocker, hasAuthImplementation, hasCaching, hasObservability }
+
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 

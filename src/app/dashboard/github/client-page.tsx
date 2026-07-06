@@ -10,7 +10,18 @@ import { RepoList } from "@/components/github/repo-list";
 import { AnalysisCards } from "@/components/github/analysis-cards";
 import { analyzeGithubUserAction } from "@/features/github/actions";
 import { toast } from "sonner";
-import { Loader2, RefreshCw, Calendar, Sparkles } from "lucide-react";
+import {
+    Loader2,
+    RefreshCw,
+    Calendar,
+    Sparkles,
+    CheckCircle2,
+    XCircle,
+    TrendingUp,
+    GitCommit,
+    Star,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 
 interface GitHubRepo {
@@ -19,6 +30,15 @@ interface GitHubRepo {
     stars: number;
     language: string | null;
     url: string;
+}
+
+interface DetectedPatterns {
+    hasCI: boolean;
+    hasTesting: boolean;
+    hasDocker: boolean;
+    hasAuthImplementation: boolean;
+    hasCaching: boolean;
+    hasObservability: boolean;
 }
 
 interface GitHubDashboardClientProps {
@@ -34,6 +54,13 @@ interface GitHubDashboardClientProps {
             suggestions: string[];
         };
         createdAt: Date;
+        // 18.1: Seniority Signals
+        commitFrequency?: string | null;
+        readmeQualityScore?: number | null;
+        longestStreakDays?: number | null;
+        topRepoTopics?: string[] | null;
+        senioritySignals?: string[] | null;
+        detectedPatterns?: DetectedPatterns | null;
     } | null;
 }
 
@@ -184,6 +211,121 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
 
             {/* Fortalezas y Debilidades de la IA */}
             <AnalysisCards analysis={data.analysis} />
+
+            {/* 18.1: Seniority Signals Panel */}
+            {data.detectedPatterns && (
+                <div className="rounded-xl border border-border/50 bg-card/30 backdrop-blur-sm p-5 space-y-4">
+                    <div className="flex items-center gap-2">
+                        <TrendingUp className="size-5 text-primary" />
+                        <h3 className="text-base font-semibold text-foreground">Seniority Intelligence</h3>
+                        <span className="text-xs text-muted-foreground ml-auto">Evidence-based Skills</span>
+                    </div>
+
+                    {/* Métricas rápidas */}
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        {data.commitFrequency && (
+                            <div className="flex flex-col gap-1 rounded-lg bg-muted/30 p-3">
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <GitCommit className="size-3" /> Commit Frequency
+                                </span>
+                                <Badge variant="outline" className="w-fit capitalize text-xs">
+                                    {data.commitFrequency}
+                                </Badge>
+                            </div>
+                        )}
+                        {data.readmeQualityScore !== null && (
+                            <div className="flex flex-col gap-1 rounded-lg bg-muted/30 p-3">
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <Star className="size-3" /> README Quality
+                                </span>
+                                <span className="text-lg font-bold text-primary">
+                                    {data.readmeQualityScore}
+                                    <span className="text-xs text-muted-foreground">/100</span>
+                                </span>
+                            </div>
+                        )}
+                        {data.longestStreakDays !== null && (
+                            <div className="flex flex-col gap-1 rounded-lg bg-muted/30 p-3">
+                                <span className="text-xs text-muted-foreground">Longest Streak</span>
+                                <span className="text-lg font-bold text-primary">
+                                    {data.longestStreakDays}
+                                    <span className="text-xs text-muted-foreground"> days</span>
+                                </span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Detected Patterns Checklist */}
+                    <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                            Detected Patterns
+                        </p>
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                            {(
+                                [
+                                    { key: "hasCI", label: "CI/CD" },
+                                    { key: "hasTesting", label: "Testing" },
+                                    { key: "hasDocker", label: "Docker" },
+                                    { key: "hasAuthImplementation", label: "Auth Flow" },
+                                    { key: "hasCaching", label: "Caching" },
+                                    { key: "hasObservability", label: "Observability" },
+                                ] as const
+                            ).map(({ key, label }) => {
+                                const detected = data.detectedPatterns?.[key] ?? false;
+                                return (
+                                    <div
+                                        key={key}
+                                        className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
+                                            detected
+                                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                                                : "bg-muted/20 text-muted-foreground border border-border/30"
+                                        }`}
+                                    >
+                                        {detected ? (
+                                            <CheckCircle2 className="size-3.5 shrink-0" />
+                                        ) : (
+                                            <XCircle className="size-3.5 shrink-0 opacity-40" />
+                                        )}
+                                        {label}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Seniority Signals */}
+                    {data.senioritySignals && data.senioritySignals.length > 0 && (
+                        <div>
+                            <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                                Seniority Evidence
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                                {data.senioritySignals.map((signal, i) => (
+                                    <Badge key={i} variant="secondary" className="text-xs">
+                                        {signal}
+                                    </Badge>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Top Topics */}
+                    {data.topRepoTopics && data.topRepoTopics.length > 0 && (
+                        <div>
+                            <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                                Top Topics
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                                {data.topRepoTopics.map((topic, i) => (
+                                    <Badge key={i} variant="outline" className="text-xs">
+                                        {topic}
+                                    </Badge>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
             <div className="grid gap-6 md:grid-cols-2">
                 {/* Distribución de Lenguajes */}
