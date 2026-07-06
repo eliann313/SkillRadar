@@ -60,7 +60,7 @@
         "@emnapi/runtime": "1.10.0",
         "@tailwindcss/postcss": "4",
         "@types/bcryptjs": "^2.4.6",
-        "@types/node": "20",
+        "@types/node": "26",
         "@types/react": "19",
         "@types/react-dom": "19",
         "@types/ws": "8.18.1",
