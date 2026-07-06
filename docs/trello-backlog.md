@@ -868,61 +868,61 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 20.1: Auditoría IDOR sobre el Job Board (JobPosting / JobPostingApplication)
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴 — Bloqueante antes de exponer M19 en producción
 - **Descripción:**
   Las Server Actions del Módulo 19 (19.5, 19.6) no especificaron control explícito de propiedad de recursos. Sin esta verificación, un developer autenticado podría, manipulando IDs en el cliente, leer aplicaciones de otros developers, y un recruiter podría ver o modificar aplicaciones de ofertas que no le pertenecen — el mismo patrón de riesgo IDOR ya mitigado en ContactRequest (12.1) pero no replicado acá.
 - **Criterios de Aceptación:**
-    - [ ] Auditar `applyToJobPostingAction`, `updateApplicationStatusAction` y la query de `/dashboard/recruiter/postings/[id]/applications`: verificar en cada una que `session.user.id` coincida con el recruiterId de la oferta (o developerId de la aplicación) antes de retornar/mutar datos.
-    - [ ] Escribir tests de integración (Vitest) que simulen a un recruiter A intentando acceder a las aplicaciones de una oferta del recruiter B y verifiquen respuesta 403/null, replicando la metodología de la Tarjeta 7.3.
-    - [ ] Aplicar el mismo criterio de DTOs server-only usado en 12.1: la query de listado de aplicaciones para el recruiter no debe incluir campos sensibles del developer si el estado del ContactRequest asociado no es `"accepted"`.
-    - [ ] Revisar que `getNotificationsAction` (19.1) filtre estrictamente por userId de la sesión y no acepte un userId como parámetro del cliente.
-- **Rama Git:** `feature/idor-audit-job-board`
+    - [x] Auditar `applyToJobPostingAction`, `updateApplicationStatusAction` y la query de `/dashboard/recruiter/postings/[id]/applications`: verificar en cada una que `session.user.id` coincida con el recruiterId de la oferta (o developerId de la aplicación) antes de retornar/mutar datos.
+    - [x] Escribir tests de integración (Vitest) que simulen a un recruiter A intentando acceder a las aplicaciones de una oferta del recruiter B y verifiquen respuesta 403/null, replicando la metodología de la Tarjeta 7.3.
+    - [x] Aplicar el mismo criterio de DTOs server-only usado en 12.1: la query de listado de aplicaciones para el recruiter no debe incluir campos sensibles del developer si el estado del ContactRequest asociado no es `"accepted"`.
+    - [x] Revisar que `getNotificationsAction` (19.1) filtre estrictamente por userId de la sesión y no acepte un userId como parámetro del cliente.
+- **Rama Git:** `feature/modulo-20-security-hardening`
 
 ---
 
 ### 🎴 Tarjeta 20.2: Rate Limiting & Prevención de Abuso sobre M19
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Alta 🔴
 - **Descripción:**
   Extender la infraestructura de Upstash (16.1) a las nuevas Server Actions de aplicación y publicación de ofertas, hoy sin ningún límite. Sin esto, un bot puede aplicar a todas las ofertas del pool en segundos o floodear el board con JobPosting falsos.
 - **Criterios de Aceptación:**
-    - [ ] Aplicar el Ratelimit de `src/lib/rate-limit.ts` sobre `applyToJobPostingAction` (ej: máximo 20 postulaciones por developer por día).
-    - [ ] Aplicar límite sobre `createJobPostingAction` ya contemplado en 19.2, verificar que efectivamente esté cableado y no solo documentado.
-    - [ ] Aplicar límite sobre el trigger de cálculo de matchScore masivo de la Tarjeta 19.6 (notificación de nuevas ofertas), para no disparar N llamadas a la IA sin control cuando el pool de developers crece.
-    - [ ] Loggear (sin PII) los intentos bloqueados por rate limit para poder distinguir abuso real de falsos positivos.
-- **Rama Git:** `feature/rate-limiting-job-board`
+    - [x] Aplicar el Ratelimit de `src/lib/rate-limit.ts` sobre `applyToJobPostingAction` (ej: máximo 20 postulaciones por developer por día).
+    - [x] Aplicar límite sobre `createJobPostingAction` ya contemplado en 19.2, verificar que efectivamente esté cableado y no solo documentado.
+    - [x] Aplicar límite sobre el trigger de cálculo de matchScore masivo de la Tarjeta 19.6 (notificación de nuevas ofertas), para no disparar N llamadas a la IA sin control cuando el pool de developers crece.
+    - [x] Loggear (sin PII) los intentos bloqueados por rate limit para poder distinguir abuso real de falsos positivos.
+- **Rama Git:** `feature/modulo-20-security-hardening`
 
 ---
 
 ### 🎴 Tarjeta 20.3: Sistema de Reporte y Moderación de Contenido
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Ni JobPosting ni el pitch de ContactRequest tienen forma de ser reportados. Agregar un mecanismo simple para que developers marquen ofertas sospechosas/spam y recruiters marquen mensajes de contacto inapropiados, con un flag que oculte el contenido mientras se revisa (soft-moderation, sin necesidad todavía de un panel admin completo — eso es la Tarjeta 22.3).
 - **Criterios de Aceptación:**
-    - [ ] Crear el modelo `ContentReport` en Prisma: id, reporterId, `targetType ("job_posting" | "contact_request")`, targetId, reason, `status ("pending" | "reviewed" | "dismissed")`, createdAt.
-    - [ ] Agregar el botón "Reportar" en `JobPostingCard` (19.4) y en la vista de solicitudes de contacto recibidas (12.1).
-    - [ ] Implementar `createReportAction` con Zod validation y rate limit (máx. 5 reportes por usuario por día para evitar abuso del propio sistema de reporte).
-    - [ ] Ocultar automáticamente un JobPosting del Job Board (sin borrarlo) si acumula 3+ reportes de usuarios distintos, dejándolo en estado `status: "under_review"`.
-- **Rama Git:** `feature/content-reporting-system`
+    - [x] Crear el modelo `ContentReport` en Prisma: id, reporterId, `targetType ("job_posting" | "contact_request")`, targetId, reason, `status ("pending" | "reviewed" | "dismissed")`, createdAt.
+    - [x] Agregar el botón "Reportar" en `JobPostingCard` (19.4) y en la vista de solicitudes de contacto recibidas (12.1).
+    - [x] Implementar `createReportAction` con Zod validation y rate limit (máx. 5 reportes por usuario por día para evitar abuso del propio sistema de reporte).
+    - [x] Ocultar automáticamente un JobPosting del Job Board (sin borrarlo) si acumula 3+ reportes de usuarios distintos, dejándolo en estado `status: "under_review"`.
+- **Rama Git:** `feature/modulo-20-security-hardening`
 
 ---
 
 ### 🎴 Tarjeta 20.4: Expiración Automática de Ofertas Laborales
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   JobPosting (19.2) no tiene fecha de expiración. Sin esto, el Job Board acumula ofertas viejas para siempre, degradando la calidad del matching de la Tarjeta 19.4 con el tiempo.
 - **Criterios de Aceptación:**
-    - [ ] Agregar el campo `expiresAt: DateTime?` al modelo JobPosting, default de 30 días desde `createdAt` al publicar.
-    - [ ] Crear un Vercel Cron Job (`vercel.json` con `crons`) que corra diariamente y actualice a `status: "closed"` toda oferta con `expiresAt < now()`.
-    - [ ] Mostrar en la UI del recruiter (19.3) el tiempo restante antes de la expiración y un botón "Extender 30 días más".
-    - [ ] Excluir explícitamente las ofertas `"closed"` de la query de matching (19.4/19.6) para que no se sigan notificando ni sumando en el conteo de aplicaciones activas.
-- **Rama Git:** `feature/job-posting-expiration-cron`
+    - [x] Agregar el campo `expiresAt: DateTime?` al modelo JobPosting, default de 30 días desde `createdAt` al publicar.
+    - [x] Crear un Vercel Cron Job (`vercel.json` con `crons`) que corra diariamente y actualice a `status: "closed"` toda oferta con `expiresAt < now()`.
+    - [x] Mostrar en la UI del recruiter (19.3) el tiempo restante antes de la expiración y un botón "Extender 30 días más".
+    - [x] Excluir explícitamente las ofertas `"closed"` de la query de matching (19.4/19.6) para que no se sigan notificando ni sumando en el conteo de aplicaciones activas.
+- **Rama Git:** `feature/modulo-20-security-hardening`
 
 ---
 

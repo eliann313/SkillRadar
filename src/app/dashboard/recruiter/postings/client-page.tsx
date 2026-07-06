@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, Edit, Eye, X, Lock, Send } from "lucide-react";
+import { Plus, Edit, Eye, X, Lock, Send, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +21,7 @@ import {
     updateJobPostingAction,
     publishJobPostingAction,
     closeJobPostingAction,
+    extendJobPostingExpirationAction,
 } from "@/features/jobs/actions";
 import { toast } from "sonner";
 
@@ -35,6 +36,7 @@ interface JobPosting {
     requiredSkills: unknown; // array de strings
     seniorityLevel: string;
     status: string;
+    expiresAt?: string | Date | null;
     createdAt: string | Date;
     updatedAt: string | Date;
     _count?: {
@@ -172,6 +174,16 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
         }
     };
 
+    const handleExtendExpiration = async (id: string) => {
+        const res = await extendJobPostingExpirationAction(id);
+        if (!res.success) {
+            toast.error(res.error || "Error al extender la expiración.");
+        } else {
+            setPostings((prev) => prev.map((p) => (p.id === id ? { ...p, expiresAt: res.data.expiresAt } : p)));
+            toast.success("Expiración extendida por 30 días adicionales.");
+        }
+    };
+
     const getStatusBadge = (status: string) => {
         switch (status) {
             case "published":
@@ -180,6 +192,10 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
                 );
             case "closed":
                 return <Badge className="bg-rose-500/10 text-rose-500 border border-rose-500/20">Cerrada</Badge>;
+            case "under_review":
+                return (
+                    <Badge className="bg-rose-500/10 text-rose-500 border border-rose-500/20">En revisión (Spam)</Badge>
+                );
             default:
                 return <Badge className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">Borrador</Badge>;
         }
@@ -240,6 +256,18 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
                                     <CardTitle className="text-base font-semibold leading-tight line-clamp-1">
                                         {posting.title}
                                     </CardTitle>
+                                    {posting.status === "published" && posting.expiresAt && (
+                                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-1">
+                                            <Clock className="size-3 text-indigo" />
+                                            <span>
+                                                {(() => {
+                                                    const diff = new Date(posting.expiresAt).getTime() - Date.now();
+                                                    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+                                                    return days > 0 ? `Expira en ${days}d` : "Expirada";
+                                                })()}
+                                            </span>
+                                        </div>
+                                    )}
                                     <CardDescription className="text-xs font-medium text-foreground/80">
                                         {posting.company} — {posting.location}
                                     </CardDescription>
@@ -308,17 +336,30 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
                                         )}
 
                                         {posting.status === "published" && (
-                                            <Button
-                                                variant="ghost"
-                                                size="icon-sm"
-                                                onClick={() => {
-                                                    void handleClose(posting.id);
-                                                }}
-                                                title="Cerrar oferta"
-                                                className="size-8 text-rose-500 hover:text-rose-600 hover:bg-rose-50/10"
-                                            >
-                                                <Lock className="size-3.5" />
-                                            </Button>
+                                            <>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon-sm"
+                                                    onClick={() => {
+                                                        void handleExtendExpiration(posting.id);
+                                                    }}
+                                                    title="Extender 30 días"
+                                                    className="size-8 text-indigo-500 hover:text-indigo-600 hover:bg-indigo-50/10"
+                                                >
+                                                    <Clock className="size-3.5" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon-sm"
+                                                    onClick={() => {
+                                                        void handleClose(posting.id);
+                                                    }}
+                                                    title="Cerrar oferta"
+                                                    className="size-8 text-rose-500 hover:text-rose-600 hover:bg-rose-50/10"
+                                                >
+                                                    <Lock className="size-3.5" />
+                                                </Button>
+                                            </>
                                         )}
                                     </div>
                                 </div>

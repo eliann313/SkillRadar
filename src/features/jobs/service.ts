@@ -3,6 +3,7 @@ import { createNotification } from "@/lib/notifications";
 import { JobMatchService } from "@/features/job-match/service";
 import { RecruiterService } from "@/features/recruiter/service";
 import type { Prisma, JobPosting, JobPostingApplication, ContactRequest } from "@prisma/client";
+import { checkProactiveMatchingRateLimit } from "@/lib/rate-limit";
 
 export interface JobPostingData {
     title: string;
@@ -90,9 +91,13 @@ export class JobPostingService {
             throw new Error("Acceso denegado. No eres el propietario de esta oferta.");
         }
 
+        const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
         const updatedPosting = await db.jobPosting.update({
             where: { id },
-            data: { status: "published" },
+            data: {
+                status: "published",
+                expiresAt,
+            },
         });
 
         // Iniciar el trigger de matching asíncronamente para no bloquear el request principal
@@ -120,6 +125,34 @@ export class JobPostingService {
         return await db.jobPosting.update({
             where: { id },
             data: { status: "closed" },
+        });
+    }
+
+    /**
+     * Extiende la expiración de una oferta de trabajo por 30 días más.
+     */
+    static async extendJobPostingExpiration(recruiterId: string, id: string): Promise<JobPosting> {
+        const jobPosting = await db.jobPosting.findUnique({
+            where: { id },
+        });
+
+        if (!jobPosting) {
+            throw new Error("Oferta de trabajo no encontrada.");
+        }
+
+        if (jobPosting.recruiterId !== recruiterId) {
+            throw new Error("Acceso denegado. No eres el propietario de esta oferta.");
+        }
+
+        if (jobPosting.status !== "published") {
+            throw new Error("Solo se pueden extender ofertas activas y publicadas.");
+        }
+
+        const newExpiration = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+        return await db.jobPosting.update({
+            where: { id },
+            data: { expiresAt: newExpiration },
         });
     }
 
@@ -217,7 +250,11 @@ export class JobPostingService {
         });
 
         // 2. Obtener ofertas publicadas
-        const whereClause: Prisma.JobPostingWhereInput = { status: "published" };
+        const now = new Date();
+        const whereClause: Prisma.JobPostingWhereInput = {
+            status: "published",
+            OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+        };
 
         if (filters?.remoteType && filters.remoteType !== "all") {
             whereClause.remoteType = filters.remoteType;
@@ -550,6 +587,17 @@ export class JobPostingService {
             });
 
             if (!jobPosting || jobPosting.status !== "published") return;
+            if (jobPosting.expiresAt && jobPosting.expiresAt < new Date()) return;
+
+            // Aplicar Rate Limiting para matching proactivo
+            const limiterKey = `proactive-match:${jobPosting.recruiterId}`;
+            const limitResult = await checkProactiveMatchingRateLimit(limiterKey);
+            if (!limitResult.success) {
+                console.warn(
+                    `🛡️ [RateLimit] Matching proactivo bloqueado para el recruiter ${jobPosting.recruiterId}. Excedió límite de 50/día.`,
+                );
+                return;
+            }
 
             // 1. Obtener desarrolladores recientes
             // Buscamos los 10 desarrolladores más recientemente actualizados o creados
@@ -592,5 +640,63 @@ export class JobPostingService {
         } catch (error) {
             console.error("[triggerProactiveMatching] Error en trigger asíncrono de matching:", error);
         }
+    }
+
+    /**
+     * Crea un reporte de contenido (spam, inapropiado) para una oferta laboral o solicitud de contacto.
+     * Si una oferta de trabajo acumula 3 o más reportes de usuarios distintos, pasa automáticamente a estado "under_review".
+     */
+    static async createContentReport(
+        reporterId: string,
+        data: { targetType: "job_posting" | "contact_request"; targetId: string; reason: string },
+    ) {
+        // 1. Verificar si ya reportó este contenido
+        const existing = await db.contentReport.findUnique({
+            where: {
+                reporterId_targetType_targetId: {
+                    reporterId,
+                    targetType: data.targetType,
+                    targetId: data.targetId,
+                },
+            },
+        });
+
+        if (existing) {
+            throw new Error("Ya has reportado este contenido anteriormente.");
+        }
+
+        // 2. Crear el reporte
+        const report = await db.contentReport.create({
+            data: {
+                reporterId,
+                targetType: data.targetType,
+                targetId: data.targetId,
+                reason: data.reason,
+                status: "pending",
+            },
+        });
+
+        // 3. Si es job_posting, verificar el número de reportes acumulados
+        if (data.targetType === "job_posting") {
+            const reportCount = await db.contentReport.count({
+                where: {
+                    targetId: data.targetId,
+                    targetType: "job_posting",
+                },
+            });
+
+            if (reportCount >= 3) {
+                // Soft-moderation: cambiar status a "under_review"
+                await db.jobPosting.update({
+                    where: { id: data.targetId },
+                    data: { status: "under_review" },
+                });
+                console.warn(
+                    `⚠️ [Moderation] La oferta laboral ${data.targetId} ha sido puesta en revisión (under_review) tras acumular ${reportCount} reportes.`,
+                );
+            }
+        }
+
+        return report;
     }
 }

@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { getDeveloperJobBoardAction, applyToJobPostingAction } from "@/features/jobs/actions";
+import { getDeveloperJobBoardAction, applyToJobPostingAction, createReportAction } from "@/features/jobs/actions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Flag } from "lucide-react";
 
 interface JobPosting {
     id: string;
@@ -68,6 +69,34 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
 
         return () => clearTimeout(delayDebounce);
     }, [fetchJobs]);
+
+    const [reportingJobId, setReportingJobId] = useState<string | null>(null);
+    const [reportReason, setReportReason] = useState("");
+    const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+
+    const handleSendReport = async () => {
+        if (!reportingJobId) return;
+        if (reportReason.trim().length < 5) {
+            toast.error("El motivo debe tener al menos 5 caracteres.");
+            return;
+        }
+        setIsSubmittingReport(true);
+        const res = await createReportAction({
+            targetType: "job_posting",
+            targetId: reportingJobId,
+            reason: reportReason,
+        });
+
+        if (res.success) {
+            toast.success("El reporte ha sido enviado. Revisaremos el contenido a la brevedad.");
+            setReportingJobId(null);
+            setReportReason("");
+            void fetchJobs(); // Recargar el listado por si se ocultó la oferta
+        } else {
+            toast.error(res.error || "Error al enviar el reporte.");
+        }
+        setIsSubmittingReport(false);
+    };
 
     const handleApply = async (jobId: string) => {
         setApplyingId(jobId);
@@ -225,12 +254,22 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                                         </div>
                                     )}
 
-                                    <div>
+                                    <div className="flex gap-2 w-full md:w-auto">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            title="Reportar esta oferta"
+                                            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                                            onClick={() => setReportingJobId(job.id)}
+                                        >
+                                            <Flag className="size-4" />
+                                        </Button>
+
                                         {job.hasApplied ? (
                                             <Button
                                                 disabled
                                                 variant="outline"
-                                                className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50/5 border-emerald-500/20"
+                                                className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50/5 border-emerald-500/20 w-full md:w-auto"
                                             >
                                                 <CheckCircle2 className="size-4 text-emerald-500" />
                                                 <span>Postulado</span>
@@ -253,6 +292,50 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                     })
                 )}
             </div>
+
+            {/* Modal de Reporte */}
+            {reportingJobId && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+                    <div className="bg-card border border-border rounded-xl shadow-2xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95 duration-200">
+                        <div className="flex items-center gap-2 text-destructive font-semibold">
+                            <Flag className="size-5" />
+                            <h3 className="text-lg">Reportar Oferta Laboral</h3>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                            Por favor, describe de forma concisa por qué consideras que esta oferta es spam, inapropiada
+                            o fraudulenta.
+                        </p>
+                        <textarea
+                            className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                            placeholder="Escribe tu motivo aquí (mínimo 5 caracteres)..."
+                            value={reportReason}
+                            onChange={(e) => setReportReason(e.target.value)}
+                            disabled={isSubmittingReport}
+                        />
+                        <div className="flex justify-end gap-3 pt-2">
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setReportingJobId(null);
+                                    setReportReason("");
+                                }}
+                                disabled={isSubmittingReport}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                onClick={() => {
+                                    void handleSendReport();
+                                }}
+                                disabled={isSubmittingReport}
+                            >
+                                {isSubmittingReport ? "Enviando..." : "Enviar Reporte"}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

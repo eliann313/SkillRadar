@@ -4,8 +4,9 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Shield } from "lucide-react";
+import { Check, X, Shield, Flag } from "lucide-react";
 import { acceptContactRequestAction, declineContactRequestAction } from "@/features/developer-requests/actions";
+import { createReportAction } from "@/features/jobs/actions";
 import { toast } from "sonner";
 
 export interface RequestItem {
@@ -25,6 +26,39 @@ interface ContactRequestsListProps {
 export function ContactRequestsList({ requests: initialRequests }: ContactRequestsListProps) {
     const [requests, setRequests] = useState<RequestItem[]>(initialRequests);
     const [actionId, setActionId] = useState<string | null>(null);
+    const [reportingReqId, setReportingReqId] = useState<string | null>(null);
+    const [reportReason, setReportReason] = useState("");
+    const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+
+    const handleSendReport = async () => {
+        if (!reportingReqId) return;
+        if (reportReason.trim().length < 5) {
+            toast.error("El motivo debe tener al menos 5 caracteres.");
+            return;
+        }
+        setIsSubmittingReport(true);
+        try {
+            const res = await createReportAction({
+                targetType: "contact_request",
+                targetId: reportingReqId,
+                reason: reportReason,
+            });
+
+            if (res.success) {
+                toast.success("El reporte ha sido enviado. Revisaremos el contenido a la brevedad.");
+                setReportingReqId(null);
+                setReportReason("");
+                setRequests((prev) => prev.filter((r) => r.id !== reportingReqId));
+            } else {
+                toast.error(res.error || "Error al enviar el reporte.");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Error al enviar el reporte.");
+        } finally {
+            setIsSubmittingReport(false);
+        }
+    };
 
     const handleAccept = async (requestId: string) => {
         setActionId(requestId);
@@ -106,7 +140,17 @@ export function ContactRequestsList({ requests: initialRequests }: ContactReques
                                     &ldquo;{req.message}&rdquo;
                                 </div>
                             </div>
-                            <div className="flex gap-2 shrink-0 justify-end">
+                            <div className="flex gap-2 shrink-0 justify-end items-center">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    title="Reportar esta solicitud"
+                                    onClick={() => setReportingReqId(req.id)}
+                                    disabled={isBusy}
+                                    className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                                >
+                                    <Flag className="size-3.5" />
+                                </Button>
                                 <Button
                                     variant="outline"
                                     size="sm"
@@ -131,6 +175,50 @@ export function ContactRequestsList({ requests: initialRequests }: ContactReques
                     );
                 })}
             </CardContent>
+
+            {/* Modal de Reporte */}
+            {reportingReqId && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+                    <div className="bg-card border border-border rounded-xl shadow-2xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95 duration-200">
+                        <div className="flex items-center gap-2 text-destructive font-semibold">
+                            <Flag className="size-5" />
+                            <h3 className="text-lg font-bold">Reportar Petición de Contacto</h3>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                            Por favor, describe de forma concisa por qué consideras que esta petición de contacto es
+                            spam o inapropiada.
+                        </p>
+                        <textarea
+                            className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                            placeholder="Escribe tu motivo aquí (mínimo 5 caracteres)..."
+                            value={reportReason}
+                            onChange={(e) => setReportReason(e.target.value)}
+                            disabled={isSubmittingReport}
+                        />
+                        <div className="flex justify-end gap-3 pt-2">
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setReportingReqId(null);
+                                    setReportReason("");
+                                }}
+                                disabled={isSubmittingReport}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                onClick={() => {
+                                    void handleSendReport();
+                                }}
+                                disabled={isSubmittingReport}
+                            >
+                                {isSubmittingReport ? "Enviando..." : "Enviar Reporte"}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </Card>
     );
 }
