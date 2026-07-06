@@ -31,6 +31,7 @@ import {
     Menu,
     Sparkles,
     Kanban,
+    LineChart,
 } from "lucide-react";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 
@@ -54,6 +55,11 @@ const developerNavItems = [
         href: "/dashboard/github",
         label: "GitHub Analysis",
         icon: GitHubLogoIcon,
+    },
+    {
+        href: "/dashboard/progress",
+        label: "Progress",
+        icon: LineChart,
     },
     {
         href: "/dashboard/resume-builder",
