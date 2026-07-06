@@ -16,7 +16,7 @@ export class GithubAnalysisRepository {
             longestStreakDays: data.longestStreakDays ?? null,
             topRepoTopics: (data.topRepoTopics ?? []) as Prisma.InputJsonValue,
             senioritySignals: (data.senioritySignals ?? []) as Prisma.InputJsonValue,
-            detectedPatterns: (data.detectedPatterns ?? null) as Prisma.InputJsonValue | null,
+            detectedPatterns: data.detectedPatterns ? (data.detectedPatterns as Prisma.InputJsonValue) : undefined,
         };
 
         if (existing) {
