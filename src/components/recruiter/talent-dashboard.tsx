@@ -31,6 +31,7 @@ import {
     HelpCircle,
     Star,
     BarChart3,
+    Eye,
 } from "lucide-react";
 import {
     rankTalentPoolAction,
@@ -39,6 +40,7 @@ import {
     getMarketIntelligenceSkillsAction,
 } from "@/features/recruiter/actions";
 import { toast } from "sonner";
+import { CandidateDetailModal } from "./candidate-detail-modal";
 
 interface TalentDashboardProps {
     talents?: TalentCard[];
@@ -141,6 +143,10 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
     );
     const [isSendingPitch, setIsSendingPitch] = useState(false);
     const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
+
+    // Estado para modal de detalle de candidato (IA Copilot & Observaciones)
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [detailCandidate, setDetailCandidate] = useState<TalentCard | null>(null);
 
     // Buscar perfiles de forma tradicional (texto libre)
     const filteredTalents = talents.filter((talent) => {
@@ -553,40 +559,55 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                                                 <span>Actualizado {formatLastActive(talent.lastActive)}</span>
                                             </div>
 
-                                            {isAccepted ? (
+                                            <div className="flex items-center gap-1.5">
                                                 <Button
-                                                    variant="outline"
+                                                    variant="ghost"
                                                     size="sm"
-                                                    className="h-8 gap-1.5 text-xs border-emerald/30 text-emerald hover:bg-emerald/10"
+                                                    className="h-8 gap-1 text-xs text-primary hover:bg-primary/10 hover:text-primary"
                                                     onClick={() => {
-                                                        window.location.href = `mailto:${talent.email}`;
+                                                        setDetailCandidate(talent);
+                                                        setIsDetailOpen(true);
                                                     }}
                                                 >
-                                                    <Mail className="size-3.5" />
-                                                    Enviar Mail
+                                                    <Eye className="size-3.5" />
+                                                    Análisis
                                                 </Button>
-                                            ) : isPending ? (
-                                                <Button
-                                                    variant="secondary"
-                                                    size="sm"
-                                                    disabled
-                                                    className="h-8 gap-1.5 text-xs opacity-70"
-                                                >
-                                                    Propuesta Enviada
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-8 gap-1.5 text-xs hover:border-primary/50 hover:text-primary transition-colors"
-                                                    onClick={() => {
-                                                        setSelectedTalent(talent);
-                                                        setIsContactDialogOpen(true);
-                                                    }}
-                                                >
-                                                    Solicitar Contacto
-                                                </Button>
-                                            )}
+
+                                                {isAccepted ? (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-8 gap-1.5 text-xs border-emerald/30 text-emerald hover:bg-emerald/10"
+                                                        onClick={() => {
+                                                            window.location.href = `mailto:${talent.email}`;
+                                                        }}
+                                                    >
+                                                        <Mail className="size-3.5" />
+                                                        Enviar Mail
+                                                    </Button>
+                                                ) : isPending ? (
+                                                    <Button
+                                                        variant="secondary"
+                                                        size="sm"
+                                                        disabled
+                                                        className="h-8 gap-1.5 text-xs opacity-70"
+                                                    >
+                                                        Propuesta Enviada
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-8 gap-1.5 text-xs hover:border-primary/50 hover:text-primary transition-colors"
+                                                        onClick={() => {
+                                                            setSelectedTalent(talent);
+                                                            setIsContactDialogOpen(true);
+                                                        }}
+                                                    >
+                                                        Solicitar Contacto
+                                                    </Button>
+                                                )}
+                                            </div>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -796,6 +817,13 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <CandidateDetailModal
+                isOpen={isDetailOpen}
+                onOpenChange={setIsDetailOpen}
+                candidate={detailCandidate}
+                jobDescription={jdText}
+            />
         </div>
     );
 }

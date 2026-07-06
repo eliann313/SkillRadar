@@ -30,6 +30,7 @@ import {
     ChevronRight,
     Menu,
     Sparkles,
+    Kanban,
 } from "lucide-react";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 
@@ -43,6 +44,7 @@ const developerNavItems = [
     { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/cv-analysis", label: "CV Analysis", icon: FileText },
     { href: "/dashboard/job-match", label: "Job Match", icon: Briefcase },
+    { href: "/dashboard/job-tracker", label: "Job Tracker", icon: Kanban },
     {
         href: "/dashboard/interview",
         label: "Mock Interview",

@@ -5,10 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { JobMatch } from "@/lib/types";
-import { Check, X, Target, TrendingUp, AlertCircle, Sparkles, Eye } from "lucide-react";
+import { Check, X, Target, TrendingUp, AlertCircle, Sparkles, Eye, Copy, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ExplainabilityPanel } from "@/components/explainability-panel";
+import { generateSmartPitchAction } from "@/features/job-match/actions";
+import { toast } from "sonner";
 
 interface MatchScoreCardProps {
     match: JobMatch;
@@ -16,6 +18,40 @@ interface MatchScoreCardProps {
 
 export function MatchScoreCard({ match }: MatchScoreCardProps) {
     const [isPanelOpen, setIsPanelOpen] = useState(false);
+    const [pitch, setPitch] = useState<string | null>(null);
+    const [isGeneratingPitch, setIsGeneratingPitch] = useState(false);
+    const [isCopied, setIsCopied] = useState(false);
+
+    const handleGeneratePitch = async () => {
+        setIsGeneratingPitch(true);
+        try {
+            const res = await generateSmartPitchAction(match.id);
+            if (res.success) {
+                setPitch(res.data);
+                toast.success("¡Pitch de Valor generado con éxito!");
+            } else {
+                toast.error(res.error);
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Ocurrió un error al generar el pitch");
+        } finally {
+            setIsGeneratingPitch(false);
+        }
+    };
+
+    const handleCopy = async () => {
+        if (!pitch) return;
+        try {
+            await navigator.clipboard.writeText(pitch);
+            setIsCopied(true);
+            toast.success("Copiado al portapapeles");
+            setTimeout(() => setIsCopied(false), 2000);
+        } catch (error) {
+            console.error(error);
+            toast.error("No se pudo copiar");
+        }
+    };
 
     const getScoreColor = (score: number) => {
         if (score >= 80) return "text-emerald";
@@ -211,6 +247,81 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                         </div>
                     </>
                 )}
+
+                <Separator />
+
+                {/* Smart Pitch / Auto-Cover Letter */}
+                <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-2">
+                        <Sparkles className="size-5 text-primary" />
+                        <h3 className="font-semibold text-foreground">Smart Pitch / Carta de Presentación</h3>
+                    </div>
+
+                    {!pitch ? (
+                        <div className="rounded-lg border border-dashed border-border/80 bg-muted/10 p-6 text-center flex flex-col items-center gap-3">
+                            <p className="text-xs text-muted-foreground max-w-md">
+                                Genera un pitch de presentación personalizado y honesto para esta oferta. Enfocado en tu
+                                valor inmediato y tus brechas.
+                            </p>
+                            <Button
+                                onClick={() => {
+                                    void handleGeneratePitch();
+                                }}
+                                disabled={isGeneratingPitch}
+                                size="sm"
+                            >
+                                {isGeneratingPitch ? (
+                                    <>
+                                        <Loader2 className="mr-2 size-3.5 animate-spin" />
+                                        Redactando Pitch...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles className="mr-1.5 size-3.5" />
+                                        Generar Pitch de Valor
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-3">
+                            <div className="relative">
+                                <textarea
+                                    value={pitch}
+                                    onChange={(e) => setPitch(e.target.value)}
+                                    className="w-full min-h-[160px] p-3 text-xs bg-muted/20 border border-border/80 rounded-lg text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans leading-relaxed outline-none"
+                                />
+                            </div>
+                            <div className="flex items-center gap-2 justify-end">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        void handleGeneratePitch();
+                                    }}
+                                    disabled={isGeneratingPitch}
+                                    className="h-8 text-[11px]"
+                                >
+                                    {isGeneratingPitch ? (
+                                        <Loader2 className="size-3 animate-spin" />
+                                    ) : (
+                                        "Volver a Generar"
+                                    )}
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    onClick={() => {
+                                        void handleCopy();
+                                    }}
+                                    className="h-8 text-[11px] gap-1"
+                                >
+                                    {isCopied ? <Check className="size-3" /> : <Copy className="size-3" />}
+                                    {isCopied ? "Copiado" : "Copiar"}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </CardContent>
 
             <ExplainabilityPanel

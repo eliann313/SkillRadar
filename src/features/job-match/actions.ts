@@ -95,3 +95,21 @@ export async function deleteJobMatchAction(id: string): Promise<ActionResult<boo
         return { success: false, error: "Error al eliminar el registro de matching." };
     }
 }
+
+export async function generateSmartPitchAction(jobMatchId: string): Promise<ActionResult<string>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado." };
+        }
+
+        const pitch = await JobMatchService.generateSmartPitch(jobMatchId, session.user.id);
+        return { success: true, data: pitch };
+    } catch (error: unknown) {
+        console.error("[generateSmartPitchAction] Error:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Error al generar el pitch de valor.",
+        };
+    }
+}
