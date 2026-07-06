@@ -80,6 +80,8 @@ let githubLimiter: Ratelimit | InMemorySlidingWindow | null = null;
 let loginLimiter: Ratelimit | InMemorySlidingWindow | null = null;
 let jobPostingLimiter: Ratelimit | InMemorySlidingWindow | null = null;
 let jobPostingApplyLimiter: Ratelimit | InMemorySlidingWindow | null = null;
+let proactiveMatchingLimiter: Ratelimit | InMemorySlidingWindow | null = null;
+let contentReportLimiter: Ratelimit | InMemorySlidingWindow | null = null;
 
 const CV_LIMIT = 5; // 5 análisis de CV por día
 const JOB_MATCH_LIMIT = 10; // 10 Job Matches por día
@@ -87,6 +89,8 @@ const GITHUB_LIMIT = 10; // 10 análisis de GitHub por día
 const LOGIN_LIMIT = 5; // 5 intentos de login por 15 min
 const JOB_POSTING_LIMIT = 10; // 10 ofertas nuevas por día
 const JOB_POSTING_APPLY_LIMIT = 20; // 20 postulaciones por día
+const PROACTIVE_MATCHING_LIMIT = 50; // 50 matches proactivos por día
+const CONTENT_REPORT_LIMIT = 5; // 5 reportes por día
 const WINDOW_DURATION_MS = 24 * 60 * 60 * 1000; // 24 horas
 const LOGIN_WINDOW_MS = 15 * 60 * 1000; // 15 minutos
 
@@ -141,6 +145,20 @@ if (hasUpstashConfig) {
             prefix: "ratelimit:job-posting-apply",
         });
 
+        proactiveMatchingLimiter = new Ratelimit({
+            redis,
+            limiter: Ratelimit.slidingWindow(PROACTIVE_MATCHING_LIMIT, "24 h"),
+            analytics: true,
+            prefix: "ratelimit:proactive-matching",
+        });
+
+        contentReportLimiter = new Ratelimit({
+            redis,
+            limiter: Ratelimit.slidingWindow(CONTENT_REPORT_LIMIT, "24 h"),
+            analytics: true,
+            prefix: "ratelimit:content-report",
+        });
+
         console.warn("🛡️ [RateLimit] Upstash Redis inicializado correctamente para Rate Limiting.");
     } catch (error) {
         console.error(
@@ -156,6 +174,8 @@ const githubMemoryFallback = new InMemorySlidingWindow(GITHUB_LIMIT, WINDOW_DURA
 const loginMemoryFallback = new InMemorySlidingWindow(LOGIN_LIMIT, LOGIN_WINDOW_MS);
 const jobPostingMemoryFallback = new InMemorySlidingWindow(JOB_POSTING_LIMIT, WINDOW_DURATION_MS);
 const jobPostingApplyMemoryFallback = new InMemorySlidingWindow(JOB_POSTING_APPLY_LIMIT, WINDOW_DURATION_MS);
+const proactiveMatchingMemoryFallback = new InMemorySlidingWindow(PROACTIVE_MATCHING_LIMIT, WINDOW_DURATION_MS);
+const contentReportMemoryFallback = new InMemorySlidingWindow(CONTENT_REPORT_LIMIT, WINDOW_DURATION_MS);
 
 // Inicializar limitadores de memoria si Upstash no está disponible o falló
 if (!cvLimiter) {
@@ -186,6 +206,16 @@ if (!jobPostingLimiter) {
 if (!jobPostingApplyLimiter) {
     console.warn("⚠️ [RateLimit] Usando limitador en memoria para Job Postings Apply (Límite: 20/día).");
     jobPostingApplyLimiter = jobPostingApplyMemoryFallback;
+}
+
+if (!proactiveMatchingLimiter) {
+    console.warn("⚠️ [RateLimit] Usando limitador en memoria para matching proactivo (Límite: 50/día).");
+    proactiveMatchingLimiter = proactiveMatchingMemoryFallback;
+}
+
+if (!contentReportLimiter) {
+    console.warn("⚠️ [RateLimit] Usando limitador en memoria para reporte de contenido (Límite: 5/día).");
+    contentReportLimiter = contentReportMemoryFallback;
 }
 
 /**
@@ -439,5 +469,59 @@ export async function checkJobPostingApplyRateLimit(identifier: string): Promise
         }
     } else {
         return await jobPostingApplyLimiter!.limitRequest(sanitizedIdentifier);
+    }
+}
+
+/**
+ * Verifica el límite de cálculos de matching proactivo.
+ */
+export async function checkProactiveMatchingRateLimit(identifier: string): Promise<RateLimitResult> {
+    const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
+
+    if (proactiveMatchingLimiter instanceof Ratelimit) {
+        try {
+            const result = await proactiveMatchingLimiter.limit(sanitizedIdentifier);
+            return {
+                success: result.success,
+                limit: result.limit,
+                remaining: result.remaining,
+                reset: result.reset,
+            };
+        } catch (error) {
+            console.warn(
+                "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para Proactive Matching, cayendo en fallback en memoria:",
+                error,
+            );
+            return await proactiveMatchingMemoryFallback.limitRequest(sanitizedIdentifier);
+        }
+    } else {
+        return await proactiveMatchingLimiter!.limitRequest(sanitizedIdentifier);
+    }
+}
+
+/**
+ * Verifica el límite de reportes de contenido.
+ */
+export async function checkContentReportRateLimit(identifier: string): Promise<RateLimitResult> {
+    const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
+
+    if (contentReportLimiter instanceof Ratelimit) {
+        try {
+            const result = await contentReportLimiter.limit(sanitizedIdentifier);
+            return {
+                success: result.success,
+                limit: result.limit,
+                remaining: result.remaining,
+                reset: result.reset,
+            };
+        } catch (error) {
+            console.warn(
+                "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para Content Report, cayendo en fallback en memoria:",
+                error,
+            );
+            return await contentReportMemoryFallback.limitRequest(sanitizedIdentifier);
+        }
+    } else {
+        return await contentReportLimiter!.limitRequest(sanitizedIdentifier);
     }
 }

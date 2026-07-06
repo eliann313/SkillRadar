@@ -36,6 +36,7 @@ model User {
   notifications     Notification[]
   jobPostings       JobPosting[]       @relation("RecruiterJobPostings")
   jobPostingApplications JobPostingApplication[] @relation("DeveloperApplications")
+  reports           ContentReport[]    @relation("UserReports")
 
   // Claves de API Personales (Cifradas con AES-256-GCM)
   geminiApiKey       String?   @db.Text
@@ -223,7 +224,8 @@ model JobPosting {
   description    String   @db.Text
   requiredSkills Json     // array de strings
   seniorityLevel String
-  status         String   @default("draft") // "draft" | "published" | "closed"
+  status         String   @default("draft") // "draft" | "published" | "closed" | "under_review"
+  expiresAt      DateTime?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -261,4 +263,19 @@ model JobPostingMatchCache {
   jobPosting   JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
 
   @@unique([resumeId, jobPostingId])
+}
+
+model ContentReport {
+  id          String   @id @default(cuid())
+  reporterId  String
+  targetType  String   // "job_posting" | "contact_request"
+  targetId    String
+  reason      String
+  status      String   @default("pending") // "pending" | "reviewed" | "dismissed"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  reporter    User     @relation("UserReports", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([reporterId, targetType, targetId])
 }

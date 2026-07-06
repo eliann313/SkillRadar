@@ -1,9 +1,15 @@
 "use server";
 
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { z } from "zod";
 import { JobPostingService } from "./service";
-import { checkJobPostingRateLimit, checkJobPostingApplyRateLimit, getClientIp } from "@/lib/rate-limit";
+import {
+    checkJobPostingRateLimit,
+    checkJobPostingApplyRateLimit,
+    checkContentReportRateLimit,
+    getClientIp,
+} from "@/lib/rate-limit";
 import { revalidatePath } from "next/cache";
 import type { JobPosting, JobPostingApplication } from "@prisma/client";
 
@@ -250,6 +256,22 @@ export async function applyToJobPostingAction(jobPostingId: string): Promise<Act
 
         const developerId = session.user.id;
 
+        // Verificar que la oferta exista y esté publicada y no expirada
+        const jobPosting = await db.jobPosting.findUnique({
+            where: { id: jobPostingId },
+        });
+
+        if (
+            !jobPosting ||
+            jobPosting.status !== "published" ||
+            (jobPosting.expiresAt && jobPosting.expiresAt < new Date())
+        ) {
+            return {
+                success: false,
+                error: "No puedes postularte a esta oferta. Puede haber expirado, cerrado o estar bajo revisión.",
+            };
+        }
+
         // Rate Limiting
         const isGuest = session.user.isGuest === true;
         const identifier = isGuest ? `ip:${await getClientIp()}` : `user:${developerId}`;
@@ -274,5 +296,84 @@ export async function applyToJobPostingAction(jobPostingId: string): Promise<Act
     } catch (error) {
         console.error("[applyToJobPostingAction] Error:", error);
         return { success: false, error: (error as Error).message || "Error al enviar tu postulación." };
+    }
+}
+
+/**
+ * Reportar una oferta laboral o solicitud de contacto.
+ * Aplica Rate Limiting con Upstash (máximo 5 reportes por día).
+ */
+export async function createReportAction(rawInput: unknown): Promise<ActionResult<boolean>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado." };
+        }
+
+        const reportSchema = z.object({
+            targetType: z.enum(["job_posting", "contact_request"]),
+            targetId: z.string().min(1),
+            reason: z.string().min(5, "El motivo debe tener al menos 5 caracteres.").max(500),
+        });
+
+        const validation = reportSchema.safeParse(rawInput);
+        if (!validation.success) {
+            return {
+                success: false,
+                error: validation.error.errors.map((e) => e.message).join(" "),
+            };
+        }
+
+        const reporterId = session.user.id;
+
+        // Rate Limiting
+        const isGuest = session.user.isGuest === true;
+        const identifier = isGuest ? `ip:${await getClientIp()}` : `user:${reporterId}`;
+        const limitResult = await checkContentReportRateLimit(identifier);
+
+        if (!limitResult.success) {
+            console.warn(
+                `🛡️ [RateLimit] Reporte de contenido bloqueado para el usuario ${reporterId}. Excedió límite de 5/día.`,
+            );
+            const resetTime = new Date(limitResult.reset);
+            const now = new Date();
+            const diffMs = resetTime.getTime() - now.getTime();
+            const diffHours = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60)));
+            return {
+                success: false,
+                error: `Límite diario de reportes alcanzado (máximo 5 por día). Tu cuota se restablecerá en ${diffHours} ${diffHours === 1 ? "hora" : "horas"}.`,
+            };
+        }
+
+        await JobPostingService.createContentReport(reporterId, validation.data);
+
+        revalidatePath("/dashboard/jobs");
+        return { success: true, data: true };
+    } catch (error) {
+        console.error("[createReportAction] Error:", error);
+        return { success: false, error: (error as Error).message || "Error al enviar el reporte." };
+    }
+}
+
+/**
+ * Extiende la expiración de una oferta laboral por 30 días más (Solo Recruiters).
+ */
+export async function extendJobPostingExpirationAction(id: string): Promise<ActionResult<JobPosting>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id || session.user.role !== "recruiter") {
+            return { success: false, error: "No autorizado." };
+        }
+
+        const updatedJob = await JobPostingService.extendJobPostingExpiration(session.user.id, id);
+
+        revalidatePath("/dashboard/recruiter/postings");
+        return { success: true, data: updatedJob };
+    } catch (error) {
+        console.error("[extendJobPostingExpirationAction] Error:", error);
+        return {
+            success: false,
+            error: (error as Error).message || "Error al extender la expiración de la oferta.",
+        };
     }
 }
