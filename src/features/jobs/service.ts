@@ -165,7 +165,11 @@ export class JobPostingService {
             orderBy: { createdAt: "desc" },
             include: {
                 _count: {
-                    select: { applications: true },
+                    select: {
+                        applications: {
+                            where: { status: { not: "withdrawn" } },
+                        },
+                    },
                 },
             },
         });
@@ -289,7 +293,7 @@ export class JobPostingService {
                         },
                     },
                 });
-                hasApplied = !!app;
+                hasApplied = !!app && app.status !== "withdrawn";
 
                 if (latestResume) {
                     const match = await this.getOrCalculateMatchScore(
@@ -328,7 +332,53 @@ export class JobPostingService {
         });
 
         if (existing) {
-            throw new Error("Ya te has postulado a esta oferta laboral.");
+            if (existing.status === "withdrawn") {
+                const latestResume = await db.resume.findFirst({
+                    where: { userId: developerId },
+                    orderBy: { createdAt: "desc" },
+                });
+                if (!latestResume) {
+                    throw new Error("Debes subir un CV antes de postularte a las ofertas laborales.");
+                }
+                const application = await db.jobPostingApplication.update({
+                    where: { id: existing.id },
+                    data: {
+                        status: "submitted",
+                        resumeId: latestResume.id,
+                        updatedAt: new Date(),
+                    },
+                    include: {
+                        jobPosting: true,
+                        developer: true,
+                    },
+                });
+
+                await createNotification({
+                    userId: application.jobPosting.recruiterId,
+                    type: "new_application",
+                    title: "Nueva postulación recibida",
+                    message: `${application.developer.name || "Un desarrollador"} se ha postulado a la oferta de ${application.jobPosting.title} en ${application.jobPosting.company}.`,
+                    link: `/dashboard/recruiter/postings/${jobPostingId}/applications`,
+                    metadata: { applicationId: application.id, jobPostingId },
+                });
+
+                try {
+                    await db.jobApplication.create({
+                        data: {
+                            userId: developerId,
+                            title: application.jobPosting.title,
+                            company: application.jobPosting.company,
+                            status: "applied",
+                        },
+                    });
+                } catch (kanbanError) {
+                    console.error("[applyToJobPosting] Error creando card en el Kanban del Job Tracker:", kanbanError);
+                }
+
+                return application;
+            } else {
+                throw new Error("Ya te has postulado a esta oferta laboral.");
+            }
         }
 
         // 2. Obtener el CV activo
@@ -401,7 +451,10 @@ export class JobPostingService {
         }
 
         const applications = await db.jobPostingApplication.findMany({
-            where: { jobPostingId },
+            where: {
+                jobPostingId,
+                status: { not: "withdrawn" },
+            },
             orderBy: { createdAt: "desc" },
             include: {
                 developer: {
@@ -698,5 +751,37 @@ export class JobPostingService {
         }
 
         return report;
+    }
+
+    /**
+     * Retira una postulación existente. Cambia el estado a "withdrawn".
+     */
+    static async withdrawApplication(developerId: string, jobPostingId: string): Promise<JobPostingApplication> {
+        const app = await db.jobPostingApplication.findUnique({
+            where: {
+                jobPostingId_developerId: {
+                    jobPostingId,
+                    developerId,
+                },
+            },
+        });
+
+        if (!app) {
+            throw new Error("No existe una postulación para esta oferta.");
+        }
+
+        if (app.status === "withdrawn") {
+            throw new Error("La postulación ya ha sido retirada.");
+        }
+
+        // Actualizar estado a "withdrawn"
+        const updated = await db.jobPostingApplication.update({
+            where: { id: app.id },
+            data: {
+                status: "withdrawn",
+            },
+        });
+
+        return updated;
     }
 }
