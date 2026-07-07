@@ -148,7 +148,7 @@ jobs:
             - name: Wait for PostgreSQL
               run: |
                   for i in {1..30}; do
-                    if pg_isready -h localhost -p 5432; then
+                    if pg_isready -h localhost -p 5432 -U postgres; then
                       echo "Database is ready"
                       exit 0
                     fi
@@ -160,7 +160,7 @@ jobs:
                   PGPASSWORD: postgres
 
             - name: Push Prisma Schema to Test DB
-              run: npx prisma db push --skip-generate --accept-data-loss
+              run: npx prisma db push --accept-data-loss
               env:
                   DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/testing"
 
