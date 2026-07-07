@@ -42,5 +42,11 @@ export default defineConfig({
         stdout: "ignore",
         stderr: "pipe",
         timeout: 120000,
+        env: {
+            DATABASE_URL: process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/testing",
+            AUTH_SECRET: process.env.AUTH_SECRET || "your-super-shared-secret-key",
+            NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || "your-super-shared-secret-key",
+            NODE_ENV: "development",
+        },
     },
 });

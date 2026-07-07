@@ -97,8 +97,10 @@ jobs:
             - name: Build Next.js app
               run: npm run build
               env:
-                  # Add required env vars here (use GitHub Secrets for real values)
                   NEXT_TELEMETRY_DISABLED: 1
+                  DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/testing"
+                  AUTH_SECRET: "your-super-shared-secret-key"
+                  NEXTAUTH_SECRET: "your-super-shared-secret-key"
 
             - name: Upload build artifact
               uses: actions/upload-artifact@v7
