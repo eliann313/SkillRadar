@@ -130,8 +130,8 @@ jobs:
                 options: >-
                     --health-cmd "pg_isready -U postgres"
                     --health-interval 10s
-                    --health-timeout 5s
-                    --health-retries 5
+                    --health-timeout 10s
+                    --health-retries 10
         steps:
             - name: Checkout
               uses: actions/checkout@v7
@@ -146,7 +146,7 @@ jobs:
               run: npm ci
 
             - name: Push Prisma Schema to Test DB
-              run: npx prisma db push --skip-generate
+              run: npx prisma db push --skip-generate --accept-data-loss
               env:
                   DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/testing"
 
