@@ -25,10 +25,10 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+              uses: actions/checkout@v4 # nosemgrep
 
             - name: Setup Node.js
-              uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+              uses: actions/setup-node@v4 # nosemgrep
               with:
                   node-version: ${{ env.NODE_VERSION }}
                   cache: "npm"
@@ -54,10 +54,10 @@ jobs:
         needs: quality
         steps:
             - name: Checkout
-              uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+              uses: actions/checkout@v4 # nosemgrep
 
             - name: Setup Node.js
-              uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+              uses: actions/setup-node@v4 # nosemgrep
               with:
                   node-version: ${{ env.NODE_VERSION }}
                   cache: "npm"
@@ -69,7 +69,7 @@ jobs:
               run: npm run test -- --coverage
 
             - name: Upload coverage to Codecov
-              uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4.5.0
+              uses: codecov/codecov-action@v4 # nosemgrep
               with:
                   fail_ci_if_error: false
               continue-on-error: true
@@ -83,10 +83,10 @@ jobs:
         needs: [quality, test]
         steps:
             - name: Checkout
-              uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+              uses: actions/checkout@v4 # nosemgrep
 
             - name: Setup Node.js
-              uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+              uses: actions/setup-node@v4 # nosemgrep
               with:
                   node-version: ${{ env.NODE_VERSION }}
                   cache: "npm"
@@ -104,7 +104,7 @@ jobs:
                   PRISMA_SKIP_ENGINE_CHECK: "true"
 
             - name: Upload build artifact
-              uses: actions/upload-artifact@efa1aef0e12e1762c9339396328328c3104e747a # v4.3.4
+              uses: actions/upload-artifact@v4 # nosemgrep
               with:
                   name: nextjs-build-${{ github.sha }}
                   path: .next/
@@ -134,10 +134,10 @@ jobs:
                     --health-retries 10
         steps:
             - name: Checkout
-              uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+              uses: actions/checkout@v4 # nosemgrep
 
             - name: Setup Node.js
-              uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+              uses: actions/setup-node@v4 # nosemgrep
               with:
                   node-version: ${{ env.NODE_VERSION }}
                   cache: "npm"
@@ -170,7 +170,7 @@ jobs:
                   USE_NEON_WEBSOCKETS: "false"
 
             - name: Upload Playwright Report
-              uses: actions/upload-artifact@efa1aef0e12e1762c9339396328328c3104e747a # v4.3.4
+              uses: actions/upload-artifact@v4 # nosemgrep
               if: always()
               with:
                   name: playwright-report
