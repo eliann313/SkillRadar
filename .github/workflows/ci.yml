@@ -101,6 +101,7 @@ jobs:
                   DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/testing"
                   AUTH_SECRET: "your-super-shared-secret-key"
                   NEXTAUTH_SECRET: "your-super-shared-secret-key"
+                  PRISMA_SKIP_ENGINE_CHECK: "true"
 
             - name: Upload build artifact
               uses: actions/upload-artifact@v7
@@ -145,7 +146,12 @@ jobs:
               run: npm ci
 
             - name: Push Prisma Schema to Test DB
-              run: npx prisma db push
+              run: npx prisma db push --skip-generate
+              env:
+                  DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/testing"
+
+            - name: Generate Prisma Client
+              run: npx prisma generate
               env:
                   DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/testing"
 
