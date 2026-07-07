@@ -11,10 +11,14 @@ export class InterviewService {
      */
     static async startSession(userId: string) {
         // Obtener el último CV
-        const latestResume = await db.resume.findFirst({
-            where: { userId },
-            orderBy: { createdAt: "desc" },
-        });
+        const latestResume =
+            (await db.resume.findFirst({
+                where: { userId, isActive: true },
+            })) ||
+            (await db.resume.findFirst({
+                where: { userId },
+                orderBy: { createdAt: "desc" },
+            }));
 
         // Obtener el último Job Match
         const latestJobMatch = await db.jobMatch.findFirst({

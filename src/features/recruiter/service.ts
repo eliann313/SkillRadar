@@ -400,10 +400,14 @@ ${jdSanitized}`,
         recruiterId: string;
         jobDescription: string;
     }): Promise<{ question: string; expectedResponse: string }[]> {
-        const resume = await db.resume.findFirst({
-            where: { userId: params.developerId },
-            orderBy: { createdAt: "desc" },
-        });
+        const resume =
+            (await db.resume.findFirst({
+                where: { userId: params.developerId, isActive: true },
+            })) ||
+            (await db.resume.findFirst({
+                where: { userId: params.developerId },
+                orderBy: { createdAt: "desc" },
+            }));
 
         if (!resume) {
             throw new Error("El candidato no cuenta con un currículum activo.");

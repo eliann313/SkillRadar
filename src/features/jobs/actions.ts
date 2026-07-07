@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@/lib/auth";
+import { trackServerEvent } from "@/lib/analytics";
 import { db } from "@/lib/db";
 import { z } from "zod";
 import { JobPostingService } from "./service";
@@ -289,6 +290,9 @@ export async function applyToJobPostingAction(jobPostingId: string): Promise<Act
         }
 
         const application = await JobPostingService.applyToJobPosting(developerId, jobPostingId);
+
+        // Registrar analítica
+        await trackServerEvent("job_posting_applied", developerId, { jobPostingId });
 
         revalidatePath("/dashboard/jobs");
         revalidatePath("/dashboard/job-tracker");

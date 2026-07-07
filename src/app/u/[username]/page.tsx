@@ -7,6 +7,7 @@ import { SkillRadarChart } from "@/components/dashboard";
 import { Globe, Shield, Calendar, Sparkles, Terminal, FileText, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { trackServerEvent } from "@/lib/analytics";
 
 interface PageProps {
     params: Promise<{
@@ -79,6 +80,9 @@ export default async function PublicProfilePage({ params }: PageProps) {
     if (!user || !user.isPublicProfile) {
         notFound();
     }
+
+    // Registrar evento de vista de perfil público
+    void trackServerEvent("public_profile_viewed", user.id, { username });
 
     const latestResume = user.resumes[0] || null;
     const latestGithub = user.githubAnalyses[0] || null;

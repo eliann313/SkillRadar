@@ -38,4 +38,28 @@ export class ResumeRepository {
             where: { id, userId },
         });
     }
+
+    static async setActive(id: string, userId: string) {
+        return await db.$transaction([
+            db.resume.updateMany({
+                where: { userId },
+                data: { isActive: false },
+            }),
+            db.resume.update({
+                where: { id, userId },
+                data: { isActive: true },
+            }),
+        ]);
+    }
+
+    static async getActive(userId: string) {
+        const active = await db.resume.findFirst({
+            where: { userId, isActive: true },
+        });
+        if (active) return active;
+        return await db.resume.findFirst({
+            where: { userId },
+            orderBy: { createdAt: "desc" },
+        });
+    }
 }

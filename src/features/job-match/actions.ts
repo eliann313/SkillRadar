@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@/lib/auth";
+import { trackServerEvent } from "@/lib/analytics";
 import { checkJobMatchRateLimit, getClientIp } from "@/lib/rate-limit";
 import type { JobMatch, Resume } from "@prisma/client";
 import { revalidatePath } from "next/cache";
@@ -47,6 +48,11 @@ export async function createJobMatchAction(input: CreateJobMatchActionInput): Pr
             userId: session.user.id,
             resumeId,
             jobOfferText,
+        });
+
+        // Registrar analítica
+        await trackServerEvent("job_match_completed", session.user.id, {
+            matchScore: jobMatch.matchScore,
         });
 
         revalidatePath("/dashboard/job-match");

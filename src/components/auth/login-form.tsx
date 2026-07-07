@@ -13,6 +13,8 @@ import { RoleSelector } from "./role-selector";
 import { registerUserAction } from "@/lib/auth-actions";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
 export function LoginForm() {
     const [isRegister, setIsRegister] = useState(false);
@@ -25,6 +27,14 @@ export function LoginForm() {
     const [acceptTerms, setAcceptTerms] = useState(false);
 
     const { data: session, status } = useSession();
+    const searchParams = useSearchParams();
+    const errorParam = searchParams.get("error");
+
+    useEffect(() => {
+        if (errorParam === "AccessDenied") {
+            toast.error("Tu cuenta ha sido suspendida por moderación. Contacta a soporte.");
+        }
+    }, [errorParam]);
 
     const handleCredentialsAuth = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -82,6 +92,8 @@ export function LoginForm() {
                     // El rate limit o clave inválida disparan errores
                     if (loginRes.error.includes("RATE_LIMIT_EXCEEDED") || loginRes.error.includes("Configuration")) {
                         toast.error("Has alcanzado el límite de intentos de login. Espera 15 minutos.");
+                    } else if (loginRes.error.includes("USER_SUSPENDED") || loginRes.error.includes("AccessDenied")) {
+                        toast.error("Tu cuenta ha sido suspendida. Por favor, contacta al soporte.");
                     } else {
                         toast.error("Credenciales inválidas. Verifica tu correo y contraseña.");
                     }

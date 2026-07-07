@@ -87,16 +87,26 @@ export default async function DashboardPage() {
     const userId = session.user.id;
 
     // 1. Obtener el último CV subido por el usuario
-    const latestResume = await db.resume.findFirst({
-        where: { userId },
-        orderBy: { createdAt: "desc" },
-        select: {
-            id: true,
-            fileName: true,
-            atsScore: true,
-            createdAt: true,
-        },
-    });
+    const latestResume =
+        (await db.resume.findFirst({
+            where: { userId, isActive: true },
+            select: {
+                id: true,
+                fileName: true,
+                atsScore: true,
+                createdAt: true,
+            },
+        })) ||
+        (await db.resume.findFirst({
+            where: { userId },
+            orderBy: { createdAt: "desc" },
+            select: {
+                id: true,
+                fileName: true,
+                atsScore: true,
+                createdAt: true,
+            },
+        }));
 
     // 2. Obtener el último Job Match
     const latestJobMatch = await db.jobMatch.findFirst({

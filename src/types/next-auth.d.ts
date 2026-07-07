@@ -6,12 +6,14 @@ declare module "next-auth" {
             id: string;
             role: string;
             isGuest?: boolean;
+            isSuspended?: boolean;
         } & DefaultSession["user"];
     }
 
     interface User {
         role?: string;
         isGuest?: boolean;
+        isSuspended?: boolean;
     }
 }
 
@@ -20,5 +22,6 @@ declare module "next-auth/jwt" {
         id: string;
         role: string;
         isGuest?: boolean;
+        isSuspended?: boolean;
     }
 }

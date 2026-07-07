@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@/lib/auth";
+import { trackServerEvent } from "@/lib/analytics";
 import { RecruiterService, type RankedCandidate } from "./service";
 import type { ActionResult } from "@/features/job-match/types";
 import { revalidatePath } from "next/cache";
@@ -68,6 +69,9 @@ export async function createContactRequestAction(
             developerId,
             message,
         });
+
+        // Registrar analítica
+        await trackServerEvent("contact_request_sent", session.user.id, { developerId });
 
         revalidatePath("/dashboard");
 
