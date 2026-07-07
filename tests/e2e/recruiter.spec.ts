@@ -12,7 +12,7 @@ test.describe("Recruiter E2E Flow", () => {
 
         // 3. Verificar redirección a Dashboard
         await page.waitForURL("/dashboard");
-        await expect(page.getByText("Simulación Activa")).toBeVisible();
+        await expect(page.getByTestId("guest-mode-banner")).toBeVisible();
 
         // 4. Navegar a Job Postings
         await page.goto("/dashboard/recruiter/postings");

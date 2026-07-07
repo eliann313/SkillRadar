@@ -13,7 +13,7 @@ test.describe("Developer E2E Flow", () => {
 
         // 3. Verificar que redirige al Dashboard
         await page.waitForURL("/dashboard");
-        await expect(page.getByText("Simulación Activa")).toBeVisible();
+        await expect(page.getByTestId("guest-mode-banner")).toBeVisible();
 
         // 4. Ir a la sección de Análisis de CV
         await page.goto("/dashboard/cv-analysis");
