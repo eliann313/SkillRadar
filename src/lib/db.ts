@@ -1,6 +1,8 @@
 import { neonConfig } from "@neondatabase/serverless";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 import ws from "ws";
 
 const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/placeholder";
@@ -18,20 +20,22 @@ const useNeon =
     process.env.DATABASE_URL.trim() === "" ||
     (process.env.USE_NEON_WEBSOCKETS !== "false" && connectionString.includes("neon.tech"));
 
-let prismaInstance: PrismaClient;
-
-if (useNeon) {
-    neonConfig.webSocketConstructor = ws;
-    const adapter = new PrismaNeon({ connectionString });
-    prismaInstance = new PrismaClient({ adapter });
-} else {
-    prismaInstance = new PrismaClient();
-}
-
 const globalForPrisma = globalThis as unknown as {
     prisma: PrismaClient | undefined;
 };
 
-export const db = globalForPrisma.prisma ?? prismaInstance;
+export const db =
+    globalForPrisma.prisma ??
+    (useNeon
+        ? (() => {
+              neonConfig.webSocketConstructor = ws;
+              const adapter = new PrismaNeon({ connectionString });
+              return new PrismaClient({ adapter });
+          })()
+        : (() => {
+              const pool = new Pool({ connectionString });
+              const adapter = new PrismaPg(pool);
+              return new PrismaClient({ adapter });
+          })());
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
