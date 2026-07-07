@@ -158,6 +158,8 @@ jobs:
                   NEXTAUTH_SECRET: "your-super-shared-secret-key"
                   ENABLE_GUEST_LOGIN: "true"
                   NODE_ENV: "development"
+                  NEXT_PUBLIC_DISABLE_NOTIFICATIONS: "true"
+                  USE_NEON_WEBSOCKETS: "false"
 
             - name: Upload Playwright Report
               uses: actions/upload-artifact@v7
