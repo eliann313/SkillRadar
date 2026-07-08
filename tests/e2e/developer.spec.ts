@@ -12,12 +12,12 @@ test.describe("Developer E2E Flow", () => {
         await devDemoButton.click();
 
         // 3. Verificar que redirige al Dashboard
-        await page.waitForURL("/dashboard");
+        await page.waitForURL("**/dashboard");
         await expect(page.getByTestId("guest-mode-banner")).toBeVisible();
 
         // 4. Ir a la sección de Análisis de CV
         await page.goto("/dashboard/cv-analysis");
-        await page.waitForURL("/dashboard/cv-analysis");
+        await page.waitForURL("**/dashboard/cv-analysis");
 
         // 5. Expandir la entrada de texto plano del currículum
         const pasteTextTrigger = page.getByText("Or paste your CV text");
@@ -46,7 +46,7 @@ test.describe("Developer E2E Flow", () => {
         // datos, así que acá no debe aparecer el CV recién "subido" — verificamos el
         // estado vacío real en vez de un dato que el modo Guest nunca guarda.
         await page.goto("/dashboard/settings/resumes");
-        await page.waitForURL("/dashboard/settings/resumes");
+        await page.waitForURL("**/dashboard/settings/resumes");
 
         // 10. Verificar que la pantalla cargue correctamente en su estado vacío esperado
         await expect(page.getByRole("heading", { name: "Gestionar Currículums" })).toBeVisible();

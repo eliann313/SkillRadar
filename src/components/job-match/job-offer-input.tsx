@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Sparkles, Loader2, FileText } from "lucide-react";
+import { Link } from "@/i18n/routing";
 
 interface ResumeOption {
     id: string;
@@ -53,9 +54,12 @@ export function JobOfferInput({ resumes, onMatch, isLoading = false }: JobOfferI
                     {resumes.length === 0 ? (
                         <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3.5 text-sm text-amber-600 dark:text-amber-400">
                             No has subido ningún CV aún. Por favor ve a la sección de{" "}
-                            <a href="/dashboard/cv-analysis" className="underline font-semibold hover:text-amber-700">
+                            <Link
+                                href="/dashboard/cv-analysis"
+                                className="underline font-semibold hover:text-amber-700"
+                            >
                                 CV Analysis
-                            </a>{" "}
+                            </Link>{" "}
                             para cargar tu primer currículum.
                         </div>
                     ) : (

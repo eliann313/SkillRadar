@@ -1,0 +1,38 @@
+{
+    "Home": {
+        "title": "SkillRadar | Optimizador de Perfil Tecnológico con IA",
+        "description": "Analiza tu CV, empareja perfiles con ofertas de empleo y practica entrevistas técnicas. Optimización de alta fidelidad para desarrolladores.",
+        "tag": "Optimizador de Desarrolladores de Próxima Generación",
+        "heroTitle": "Deconstruye y Optimiza tu <bold>Perfil Tecnológico</bold> con IA",
+        "heroSubtitle": "Compara tu CV con descripciones de puestos reales, cierra brechas de habilidades técnicas y prepárate para entrevistas simuladas avanzadas. Creado por desarrolladores, para desarrolladores.",
+        "startFree": "Comenzar Gratis",
+        "exploreFeatures": "Explorar Funciones",
+        "signIn": "Iniciar Sesión",
+        "getStarted": "Comenzar",
+        "feature1Title": "Optimización ATS",
+        "feature1Desc": "Desglose instantáneo de la estructura de tu CV. Extrae habilidades, detecta mejoras de redacción y calcula puntuaciones ATS reales.",
+        "feature2Title": "Compatibilidad de Empleo",
+        "feature2Desc": "Compara el análisis de tu CV directamente con descripciones de empleo reales. Identifica tecnologías faltantes y brechas de stack.",
+        "feature3Title": "Entrevistas Simuladas",
+        "feature3Desc": "Practica preguntas adaptadas a las brechas de tu currículum utilizando Google Gemini. Recibe comentarios dinámicos y estructurados.",
+        "footerText": "© 2026 SkillRadar. Optimizador ATS criptográfico seguro.",
+        "privacyPolicy": "Política de Privacidad",
+        "termsOfService": "Términos de Servicio"
+    },
+    "Sidebar": {
+        "overview": "Inicio",
+        "cvAnalysis": "Análisis de CV",
+        "jobBoard": "Bolsa de Trabajo",
+        "jobMatch": "Compatibilidad de Empleo",
+        "jobTracker": "Seguimiento de Empleos",
+        "mockInterview": "Entrevista de Práctica",
+        "githubAnalysis": "Análisis de GitHub",
+        "progress": "Progreso",
+        "resumeBuilder": "Creador de Currículum",
+        "linkedinAudit": "Auditoría de LinkedIn",
+        "talentPool": "Base de Talentos",
+        "jobPostings": "Ofertas de Empleo",
+        "settings": "Configuración",
+        "logout": "Cerrar sesión"
+    }
+}

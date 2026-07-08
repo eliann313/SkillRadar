@@ -6,7 +6,11 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/layout/theme-provider";
-import "./globals.css";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
+import { notFound } from "next/navigation";
+import { routing } from "@/i18n/routing";
+import "../globals.css";
 
 const inter = Inter({
     variable: "--font-sans",
@@ -31,26 +35,40 @@ export const viewport: Viewport = {
     initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
     children,
+    params,
 }: Readonly<{
     children: React.ReactNode;
+    params: Promise<{ locale: string }>;
 }>) {
+    const { locale } = await params;
+
+    // Validate that the incoming locale is supported
+    if (!routing.locales.includes(locale as "es" | "en")) {
+        notFound();
+    }
+
+    // Load messages for the provider
+    const messages = await getMessages();
+
     return (
         <html
-            lang="en"
+            lang={locale}
             className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
             suppressHydrationWarning
         >
             <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-300">
-                <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-                    <SessionProvider>
-                        <TooltipProvider delay={300}>{children}</TooltipProvider>
-                    </SessionProvider>
-                    <Toaster richColors position="top-right" />
-                </ThemeProvider>
-                <Analytics />
-                <SpeedInsights />
+                <NextIntlClientProvider messages={messages}>
+                    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+                        <SessionProvider>
+                            <TooltipProvider delay={300}>{children}</TooltipProvider>
+                        </SessionProvider>
+                        <Toaster richColors position="top-right" />
+                    </ThemeProvider>
+                    <Analytics />
+                    <SpeedInsights />
+                </NextIntlClientProvider>
             </body>
         </html>
     );

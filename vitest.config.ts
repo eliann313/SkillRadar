@@ -23,6 +23,7 @@ export default defineConfig({
         alias: {
             "@": path.resolve(import.meta.dirname, "./src"),
             "next/server": path.resolve(import.meta.dirname, "./node_modules/next/server.js"),
+            "next/navigation": path.resolve(import.meta.dirname, "./node_modules/next/navigation.js"),
         },
     },
     ssr: {

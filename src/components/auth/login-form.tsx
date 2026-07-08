@@ -12,12 +12,15 @@ import { Mail, Loader2, Bot, Users, Lock, User, Eye, EyeOff, Sparkles } from "lu
 import { RoleSelector } from "./role-selector";
 import { registerUserAction } from "@/lib/auth-actions";
 import { toast } from "sonner";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
+import { LanguageSwitcher, ThemeToggle } from "@/components/layout";
 
 export function LoginForm() {
-    const [isRegister, setIsRegister] = useState(false);
+    const searchParams = useSearchParams();
+    const isRegisterParam = searchParams.get("register") === "true";
+    const [isRegister, setIsRegister] = useState(isRegisterParam);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [name, setName] = useState("");
@@ -27,7 +30,6 @@ export function LoginForm() {
     const [acceptTerms, setAcceptTerms] = useState(false);
 
     const { data: session, status } = useSession();
-    const searchParams = useSearchParams();
     const errorParam = searchParams.get("error");
 
     useEffect(() => {
@@ -142,7 +144,12 @@ export function LoginForm() {
     const isLoading = status === "loading" || isAuthLoading;
 
     return (
-        <main className="flex min-h-screen items-center justify-center p-4">
+        <main className="flex min-h-screen items-center justify-center p-4 relative w-full">
+            {/* Top-right controls */}
+            <div className="absolute top-4 right-4 flex items-center gap-2">
+                <LanguageSwitcher />
+                <ThemeToggle />
+            </div>
             <div className="w-full max-w-md">
                 {/* Logo */}
                 <div className="mb-6 text-center">

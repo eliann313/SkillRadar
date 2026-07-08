@@ -47,7 +47,10 @@ export const authConfig = {
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
             const isLoggedIn = !!auth?.user;
-            const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
+            const pathname = nextUrl.pathname;
+            // Strip locale prefix if present (e.g. /es/dashboard -> /dashboard)
+            const basePage = pathname.replace(/^\/(?:es|en)(?=\/|$)/, "") || "/";
+            const isOnDashboard = basePage.startsWith("/dashboard");
 
             // Guard against infinitely nested callbackUrl parameters.
             // This can happen when the signIn page is "/login" and NextAuth appends
