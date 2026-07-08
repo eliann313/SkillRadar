@@ -8,9 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { requestPasswordResetAction } from "@/lib/auth-actions";
 import { toast } from "sonner";
 import { Mail, Loader2, ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 
 export default function ForgotPasswordPage() {
+    const t = useTranslations("Auth");
     const [email, setEmail] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -58,37 +60,34 @@ export default function ForgotPasswordPage() {
 
                 <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-xl">
                     <CardHeader>
-                        <CardTitle className="text-xl">Restablecer Contraseña</CardTitle>
+                        <CardTitle className="text-xl">{t("resetPasswordTitle")}</CardTitle>
                         <CardDescription>
-                            {isSubmitted
-                                ? "Revisa tu bandeja de entrada para continuar."
-                                : "Ingresa tu email y te enviaremos instrucciones de recuperación."}
+                            {isSubmitted ? t("forgotPasswordSuccessDesc") : t("forgotPasswordDesc")}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         {isSubmitted ? (
                             <div className="flex flex-col gap-4 text-center">
                                 <div className="p-4 rounded-xl bg-primary/5 text-sm text-muted-foreground border border-primary/10">
-                                    Hemos enviado un link de restablecimiento a <strong>{email}</strong>. El enlace
-                                    expira en 15 minutos.
+                                    {t("forgotPasswordSuccessMessage", { email })}
                                 </div>
                                 <Link
                                     href="/login"
                                     className="mt-2 text-sm text-primary hover:underline flex items-center justify-center gap-2"
                                 >
-                                    <ArrowLeft className="size-4" /> Volver al Inicio de Sesión
+                                    <ArrowLeft className="size-4" /> {t("backToLogin")}
                                 </Link>
                             </div>
                         ) : (
                             <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
                                 <div className="flex flex-col gap-1.5">
-                                    <Label htmlFor="email">Correo Electrónico</Label>
+                                    <Label htmlFor="email">{t("emailLabel")}</Label>
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
                                         <Input
                                             id="email"
                                             type="email"
-                                            placeholder="you@example.com"
+                                            placeholder={t("emailPlaceholder")}
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                             className="pl-9"
@@ -102,12 +101,12 @@ export default function ForgotPasswordPage() {
                                     {isLoading ? (
                                         <>
                                             <Loader2 className="size-4 animate-spin" />
-                                            Enviando...
+                                            {t("sending")}
                                         </>
                                     ) : (
                                         <>
                                             <Mail className="size-4" />
-                                            Enviar Enlace
+                                            {t("sendLinkBtn")}
                                         </>
                                     )}
                                 </Button>
@@ -116,7 +115,7 @@ export default function ForgotPasswordPage() {
                                     href="/login"
                                     className="text-sm text-muted-foreground hover:text-foreground hover:underline text-center flex items-center justify-center gap-2 mt-2"
                                 >
-                                    <ArrowLeft className="size-4" /> Volver al Inicio de Sesión
+                                    <ArrowLeft className="size-4" /> {t("backToLogin")}
                                 </Link>
                             </form>
                         )}

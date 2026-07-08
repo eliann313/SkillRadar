@@ -16,8 +16,11 @@ import { Link } from "@/i18n/routing";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { LanguageSwitcher, ThemeToggle } from "@/components/layout";
+import { useTranslations, useLocale } from "next-intl";
 
 export function LoginForm() {
+    const t = useTranslations("Auth");
+    const locale = useLocale();
     const searchParams = useSearchParams();
     const isRegisterParam = searchParams.get("register") === "true";
     const [isRegister, setIsRegister] = useState(isRegisterParam);
@@ -114,7 +117,7 @@ export function LoginForm() {
     const handleProviderLogin = async (provider: "github" | "google") => {
         setIsAuthLoading(true);
         try {
-            await signIn(provider, { callbackUrl: "/dashboard" });
+            await signIn(provider, { callbackUrl: `/${locale}/dashboard` });
         } catch (err) {
             console.error("Provider login error:", err);
             toast.error("Fallo al conectar con el proveedor externo.");
@@ -127,7 +130,7 @@ export function LoginForm() {
         setIsAuthLoading(true);
         try {
             // Gatilla el credentials provider aislado "guest" para modo simulación
-            await signIn("guest", { role, callbackUrl: "/dashboard" });
+            await signIn("guest", { role, callbackUrl: `/${locale}/dashboard` });
         } catch (err) {
             console.error("Guest login error:", err);
             toast.error("No se pudo iniciar la sesión simulada.");
@@ -172,14 +175,8 @@ export function LoginForm() {
 
                 <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-xl transition-all duration-300">
                     <CardHeader className="text-center pb-4">
-                        <CardTitle className="text-xl">
-                            {isRegister ? "Crear una cuenta" : "Bienvenido de nuevo"}
-                        </CardTitle>
-                        <CardDescription>
-                            {isRegister
-                                ? "Regístrate para optimizar tu CV con inteligencia artificial"
-                                : "Ingresa a tu panel para encontrar talento o evaluar tu perfil"}
-                        </CardDescription>
+                        <CardTitle className="text-xl">{isRegister ? t("signUpTitle") : t("signInTitle")}</CardTitle>
+                        <CardDescription>{isRegister ? t("signUpSubtitle") : t("signInSubtitle")}</CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-col gap-5">
                         {/* Social logins y Demos */}
@@ -244,7 +241,7 @@ export function LoginForm() {
                             <div className="flex items-center gap-4 py-2">
                                 <Separator className="flex-1" />
                                 <span className="text-xs text-muted-foreground font-semibold">
-                                    {isRegister ? "O REGÍSTRATE CON TU CORREO" : "O ENTRA CON TU CUENTA"}
+                                    {isRegister ? t("separatorRegister") : t("separatorLogin")}
                                 </span>
                                 <Separator className="flex-1" />
                             </div>
@@ -255,13 +252,13 @@ export function LoginForm() {
                             {/* Campo Nombre (Solo Registro) */}
                             {isRegister && (
                                 <div className="flex flex-col gap-1.5">
-                                    <Label htmlFor="name">Nombre (Opcional)</Label>
+                                    <Label htmlFor="name">{t("nameLabel")}</Label>
                                     <div className="relative">
                                         <User className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
                                         <Input
                                             id="name"
                                             type="text"
-                                            placeholder="Tu nombre completo"
+                                            placeholder={t("namePlaceholder")}
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
                                             className="pl-9"
@@ -273,13 +270,13 @@ export function LoginForm() {
 
                             {/* Campo Correo */}
                             <div className="flex flex-col gap-1.5">
-                                <Label htmlFor="email">Correo Electrónico</Label>
+                                <Label htmlFor="email">{t("emailLabel")}</Label>
                                 <div className="relative">
                                     <Mail className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
                                     <Input
                                         id="email"
                                         type="email"
-                                        placeholder="you@example.com"
+                                        placeholder={t("emailPlaceholder")}
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         className="pl-9"
@@ -292,10 +289,10 @@ export function LoginForm() {
                             {/* Campo Contraseña */}
                             <div className="flex flex-col gap-1.5">
                                 <div className="flex items-center justify-between">
-                                    <Label htmlFor="password">Contraseña</Label>
+                                    <Label htmlFor="password">{t("passwordLabel")}</Label>
                                     {!isRegister && (
                                         <Link href="/forgot-password" className="text-xs text-primary hover:underline">
-                                            ¿Olvidaste tu contraseña?
+                                            {t("forgotPassword")}
                                         </Link>
                                     )}
                                 </div>
@@ -304,7 +301,7 @@ export function LoginForm() {
                                     <Input
                                         id="password"
                                         type={showPassword ? "text" : "password"}
-                                        placeholder="••••••••"
+                                        placeholder={t("passwordPlaceholder")}
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         className="pl-9 pr-9"
@@ -325,7 +322,7 @@ export function LoginForm() {
                             {/* Selector de Rol (Solo Registro) */}
                             {isRegister && (
                                 <div className="flex flex-col gap-1.5 mt-1">
-                                    <Label>Tipo de Perfil</Label>
+                                    <Label>{t("profileTypeLabel")}</Label>
                                     <div className="grid grid-cols-2 gap-3">
                                         <Button
                                             type="button"
@@ -334,7 +331,7 @@ export function LoginForm() {
                                             onClick={() => setRole("developer")}
                                         >
                                             <Bot className="size-4" />
-                                            Desarrollador
+                                            {t("developer")}
                                         </Button>
                                         <Button
                                             type="button"
@@ -343,7 +340,7 @@ export function LoginForm() {
                                             onClick={() => setRole("recruiter")}
                                         >
                                             <Users className="size-4" />
-                                            Reclutador
+                                            {t("recruiter")}
                                         </Button>
                                     </div>
                                 </div>
@@ -363,21 +360,21 @@ export function LoginForm() {
                                         htmlFor="acceptTerms"
                                         className="text-xs text-muted-foreground leading-normal cursor-pointer select-none"
                                     >
-                                        Acepto los{" "}
+                                        {t("acceptTermsPre")}{" "}
                                         <Link
                                             href="/legal/terms"
                                             className="text-primary hover:underline font-semibold"
                                             target="_blank"
                                         >
-                                            Términos de Servicio
+                                            {t("termsOfService")}
                                         </Link>{" "}
-                                        y la{" "}
+                                        {t("acceptTermsMid")}{" "}
                                         <Link
                                             href="/legal/privacy"
                                             className="text-primary hover:underline font-semibold"
                                             target="_blank"
                                         >
-                                            Política de Privacidad
+                                            {t("privacyPolicy")}
                                         </Link>
                                         .
                                     </Label>
@@ -389,12 +386,12 @@ export function LoginForm() {
                                 {isLoading ? (
                                     <>
                                         <Loader2 className="size-4 animate-spin" />
-                                        {isRegister ? "Registrando..." : "Cargando..."}
+                                        {isRegister ? t("registering") : t("loading")}
                                     </>
                                 ) : (
                                     <>
                                         {isRegister ? <Sparkles className="size-4" /> : <Mail className="size-4" />}
-                                        {isRegister ? "Registrarse" : "Iniciar Sesión"}
+                                        {isRegister ? t("registerBtn") : t("loginBtn")}
                                     </>
                                 )}
                             </Button>
@@ -404,37 +401,37 @@ export function LoginForm() {
                         <div className="text-center text-sm text-muted-foreground mt-1">
                             {isRegister ? (
                                 <p>
-                                    ¿Ya tienes una cuenta?{" "}
+                                    {t("hasAccountText")}{" "}
                                     <button
                                         type="button"
                                         onClick={() => setIsRegister(false)}
                                         className="text-primary hover:underline font-semibold"
                                     >
-                                        Inicia Sesión
+                                        {t("signInLink")}
                                     </button>
                                 </p>
                             ) : (
                                 <p>
-                                    ¿No tienes una cuenta?{" "}
+                                    {t("noAccountText")}{" "}
                                     <button
                                         type="button"
                                         onClick={() => setIsRegister(true)}
                                         className="text-primary hover:underline font-semibold"
                                     >
-                                        Regístrate gratis
+                                        {t("signUpLink")}
                                     </button>
                                 </p>
                             )}
                         </div>
 
                         <p className="text-center text-[11px] text-muted-foreground">
-                            Al continuar, aceptas nuestros{" "}
+                            {t("agreePre")}{" "}
                             <Link href="/legal/terms" className="text-primary hover:underline" target="_blank">
-                                Términos de Servicio
+                                {t("termsOfService")}
                             </Link>{" "}
-                            y nuestra{" "}
+                            {t("agreeMid")}{" "}
                             <Link href="/legal/privacy" className="text-primary hover:underline" target="_blank">
-                                Política de Privacidad
+                                {t("privacyPolicy")}
                             </Link>
                             .
                         </p>
