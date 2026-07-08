@@ -33,7 +33,9 @@ describe("authConfig callbacks.authorized", () => {
     });
 
     it("debe redirigir al login limpio si se detectan callbackUrl infinitas o anidadas", () => {
-        const nextUrl = new URL("http://localhost:3000/login?callbackUrl=http%3A%2F%2Flocalhost%3A3000%2Flogin%3FcallbackUrl%3D... ");
+        const nextUrl = new URL(
+            "http://localhost:3000/login?callbackUrl=http%3A%2F%2Flocalhost%3A3000%2Flogin%3FcallbackUrl%3D... ",
+        );
         const responseRedirectSpy = vi.spyOn(Response, "redirect");
 
         authorized({

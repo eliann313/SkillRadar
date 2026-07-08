@@ -21,9 +21,7 @@ vi.mock("@/components/ui/dropdown-menu", () => ({
     DropdownMenu: ({ children }: any) => <div>{children}</div>,
     DropdownMenuTrigger: ({ render }: any) => render,
     DropdownMenuContent: ({ children }: any) => <div>{children}</div>,
-    DropdownMenuItem: ({ children, onClick }: any) => (
-        <button onClick={onClick}>{children}</button>
-    ),
+    DropdownMenuItem: ({ children, onClick }: any) => <button onClick={onClick}>{children}</button>,
 }));
 
 describe("LanguageSwitcher Component", () => {

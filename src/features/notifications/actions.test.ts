@@ -1,10 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-    getNotificationsAction,
-    markAsReadAction,
-    markAllAsReadAction,
-} from "./actions";
+import { getNotificationsAction, markAsReadAction, markAllAsReadAction } from "./actions";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 
@@ -39,9 +35,7 @@ describe("Notifications Actions", () => {
             };
             vi.mocked(auth).mockResolvedValue(mockSession as any);
 
-            const mockNotifications = [
-                { id: "notif-1", userId: "user-123", read: false, text: "Nueva postulación" },
-            ];
+            const mockNotifications = [{ id: "notif-1", userId: "user-123", read: false, text: "Nueva postulación" }];
 
             const spyFindMany = vi.spyOn(db.notification, "findMany").mockResolvedValue(mockNotifications as any);
             const spyCountUnread = vi.spyOn(db.notification, "count").mockResolvedValue(1 as any);
@@ -118,7 +112,9 @@ describe("Notifications Actions", () => {
                 read: false,
             };
             vi.spyOn(db.notification, "findUnique").mockResolvedValue(mockNotification as any);
-            const spyUpdate = vi.spyOn(db.notification, "update").mockResolvedValue({ ...mockNotification, read: true } as any);
+            const spyUpdate = vi
+                .spyOn(db.notification, "update")
+                .mockResolvedValue({ ...mockNotification, read: true } as any);
 
             const result = await markAsReadAction("notif-1");
 
