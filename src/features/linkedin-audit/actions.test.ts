@@ -21,7 +21,7 @@ describe("Linkedin Audit Actions", () => {
     });
 
     it("debe retornar error si no hay sesión activa", async () => {
-        vi.mocked(auth).mockResolvedValue(null);
+        vi.mocked(auth).mockResolvedValue(null as any);
 
         const result = await auditLinkedinProfileAction("Mi perfil");
 

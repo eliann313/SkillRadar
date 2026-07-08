@@ -23,7 +23,7 @@ describe("Notifications Actions", () => {
 
     describe("getNotificationsAction", () => {
         it("debe retornar error si no hay sesión activa", async () => {
-            vi.mocked(auth).mockResolvedValue(null);
+            vi.mocked(auth).mockResolvedValue(null as any);
 
             const result = await getNotificationsAction();
 
@@ -44,10 +44,7 @@ describe("Notifications Actions", () => {
             ];
 
             const spyFindMany = vi.spyOn(db.notification, "findMany").mockResolvedValue(mockNotifications as any);
-            const spyCountUnread = vi.spyOn(db.notification, "count").mockImplementation(async (args: any) => {
-                if (args?.where?.read === false) return 1;
-                return 1;
-            });
+            const spyCountUnread = vi.spyOn(db.notification, "count").mockResolvedValue(1 as any);
 
             const result = await getNotificationsAction(1, 10);
 
