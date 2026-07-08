@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import {
     Dialog,
     DialogContent,
@@ -31,6 +32,7 @@ import {
     Globe,
     Share2,
     Copy,
+    FileText,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -580,6 +582,30 @@ export default function SettingsPage() {
                         <Button className="w-fit">Save Changes</Button>
                     </CardContent>
                 </Card>
+
+                {/* CV Version Management (Developer only) */}
+                {user.role === "developer" && (
+                    <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <FileText className="size-5 text-emerald-500" />
+                                Mis Currículums
+                            </CardTitle>
+                            <CardDescription>
+                                Administra tus archivos de CV subidos, cambia tu currículum activo para Job Match o
+                                elimina versiones antiguas.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Link href="/dashboard/settings/resumes">
+                                <Button variant="secondary" className="gap-2">
+                                    <FileText className="size-4" />
+                                    Gestionar CVs
+                                </Button>
+                            </Link>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* AI CONFIGURATION (MULTI-MODEL SERVICE) - PREMIUM POWER USER BENEFIT */}
                 <Card className="border-primary/20 bg-card/40 backdrop-blur-md relative overflow-hidden shadow-lg transition-all duration-300 hover:shadow-primary/5">

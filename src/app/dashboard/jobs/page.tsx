@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { JobPostingService } from "@/features/jobs/service";
 import { JobsClientPage } from "./client-page";
 
-import type { JobPostingWithMatch } from "@/features/jobs/actions";
+import type { JobPostingWithMatch } from "@/features/jobs/types";
 
 export default async function DeveloperJobsPage() {
     const session = await auth();

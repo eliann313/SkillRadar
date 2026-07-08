@@ -5,6 +5,14 @@ export default defineConfig({
     test: {
         environment: "node",
         globals: true,
+        exclude: [
+            "**/node_modules/**",
+            "**/dist/**",
+            "**/cypress/**",
+            "**/.{idea,git,cache,output,temp}/**",
+            "**/{karma,rollup,webpack,vite,vitest}.config.*",
+            "**/tests/e2e/**",
+        ],
         // Add coverage configurations if needed
         coverage: {
             provider: "v8",

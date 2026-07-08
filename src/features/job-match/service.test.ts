@@ -24,6 +24,7 @@ describe("JobMatchService", () => {
             rawText: "Soy desarrollador React, TypeScript y Node.js.",
             atsScore: 80,
             analysis: null,
+            isActive: false,
             createdAt: new Date(),
         };
 

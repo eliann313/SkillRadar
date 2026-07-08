@@ -17,6 +17,7 @@ model User {
   passwordHash  String?   @db.Text
   passwordResetToken   String?   @unique
   passwordResetExpires DateTime?
+  isSuspended   Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -110,6 +111,7 @@ model Resume {
   rawText     String   @db.Text
   atsScore    Int?
   analysis    Json?    // { keywords: [], missingKeywords: [], formatIssues: [], strengths: [], improvements: [], estimatedSeniority: "" }
+  isActive    Boolean  @default(false)
   createdAt   DateTime @default(now())
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -283,4 +285,11 @@ model ContentReport {
   reporter    User     @relation("UserReports", fields: [reporterId], references: [id], onDelete: Cascade)
 
   @@unique([reporterId, targetType, targetId])
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  name      String   // cv_uploaded, job_match_completed, public_profile_viewed, contact_request_sent, job_posting_applied, user_registered
+  userHash  String?  // Hash SHA-256 del userId para agrupar conversiones sin revelar PII
+  createdAt DateTime @default(now())
 }

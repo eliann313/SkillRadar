@@ -77,6 +77,7 @@ export const authConfig = {
                 token.id = user.id || "";
                 token.role = user.role || "developer";
                 token.isGuest = user.isGuest || false;
+                token.isSuspended = user.isSuspended || false;
             }
             return token;
         },
@@ -85,6 +86,7 @@ export const authConfig = {
                 session.user.id = token.id as string;
                 session.user.role = token.role as string;
                 session.user.isGuest = token.isGuest as boolean;
+                session.user.isSuspended = token.isSuspended as boolean;
             }
             return session;
         },
