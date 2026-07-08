@@ -61,6 +61,11 @@ describe("Notifications Actions", () => {
                     take: 10,
                 }),
             );
+            expect(spyCountUnread).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: { userId: "user-123", read: false },
+                }),
+            );
         });
     });
 
