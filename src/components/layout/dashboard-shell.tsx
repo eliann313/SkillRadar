@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ThemeToggle } from "./theme-toggle";
+import { LanguageSwitcher } from "./language-switcher";
+import { useTranslations } from "next-intl";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -44,42 +46,47 @@ const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 const developerNavItems = [
-    { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-    { href: "/dashboard/cv-analysis", label: "CV Analysis", icon: FileText },
-    { href: "/dashboard/jobs", label: "Job Board", icon: Briefcase },
-    { href: "/dashboard/job-match", label: "Job Match", icon: Briefcase },
-    { href: "/dashboard/job-tracker", label: "Job Tracker", icon: Kanban },
+    { href: "/dashboard", label: "Overview", key: "overview", icon: LayoutDashboard },
+    { href: "/dashboard/cv-analysis", label: "CV Analysis", key: "cvAnalysis", icon: FileText },
+    { href: "/dashboard/jobs", label: "Job Board", key: "jobBoard", icon: Briefcase },
+    { href: "/dashboard/job-match", label: "Job Match", key: "jobMatch", icon: Briefcase },
+    { href: "/dashboard/job-tracker", label: "Job Tracker", key: "jobTracker", icon: Kanban },
     {
         href: "/dashboard/interview",
         label: "Mock Interview",
+        key: "mockInterview",
         icon: MessageSquare,
     },
     {
         href: "/dashboard/github",
         label: "GitHub Analysis",
+        key: "githubAnalysis",
         icon: GitHubLogoIcon,
     },
     {
         href: "/dashboard/progress",
         label: "Progress",
+        key: "progress",
         icon: LineChart,
     },
     {
         href: "/dashboard/resume-builder",
         label: "Resume Builder",
+        key: "resumeBuilder",
         icon: Sparkles,
     },
     {
         href: "/dashboard/linkedin-audit",
         label: "LinkedIn Audit",
+        key: "linkedinAudit",
         icon: LinkedinIcon,
     },
 ];
 
 const recruiterNavItems = [
-    { href: "/dashboard", label: "Talent Pool", icon: Users },
-    { href: "/dashboard/recruiter/postings", label: "Job Postings", icon: Briefcase },
-    { href: "/dashboard/settings", label: "Settings", icon: Settings },
+    { href: "/dashboard", label: "Talent Pool", key: "talentPool", icon: Users },
+    { href: "/dashboard/recruiter/postings", label: "Job Postings", key: "jobPostings", icon: Briefcase },
+    { href: "/dashboard/settings", label: "Settings", key: "settings", icon: Settings },
 ];
 
 interface SidebarProps {
@@ -90,6 +97,7 @@ interface SidebarProps {
 
 function SidebarContent({ collapsed, onToggle, isMobile = false }: SidebarProps) {
     const pathname = usePathname();
+    const t = useTranslations("Sidebar");
     const { data: session } = useSession();
     const user = session?.user;
     const logout = () => {
@@ -151,7 +159,7 @@ function SidebarContent({ collapsed, onToggle, isMobile = false }: SidebarProps)
                                 )}
                             >
                                 <Icon className="size-5 shrink-0" />
-                                {!collapsed && <span>{item.label}</span>}
+                                {!collapsed && <span>{t(item.key)}</span>}
                             </Link>
                         );
 
@@ -161,7 +169,7 @@ function SidebarContent({ collapsed, onToggle, isMobile = false }: SidebarProps)
                                     <Tooltip>
                                         <TooltipTrigger render={linkContent} />
                                         <TooltipContent side="right" sideOffset={8}>
-                                            {item.label}
+                                            {t(item.key)}
                                         </TooltipContent>
                                     </Tooltip>
                                 </li>
@@ -206,14 +214,14 @@ function SidebarContent({ collapsed, onToggle, isMobile = false }: SidebarProps)
                                 onClick={onToggle}
                             >
                                 <Settings className="size-3.5" />
-                                <span>Settings</span>
+                                <span>{t("settings")}</span>
                             </Link>
                             <button
                                 onClick={logout}
                                 className="flex items-center justify-center gap-2 rounded-md bg-destructive/10 hover:bg-destructive/20 px-3 py-2 text-xs font-medium text-destructive transition-colors border border-destructive/20"
                             >
                                 <LogOut className="size-3.5" />
-                                <span>Log out</span>
+                                <span>{t("logout")}</span>
                             </button>
                         </div>
                     </div>
@@ -260,7 +268,7 @@ function SidebarContent({ collapsed, onToggle, isMobile = false }: SidebarProps)
                                 render={
                                     <Link href="/dashboard/settings" className="flex items-center gap-2">
                                         <Settings className="size-4" />
-                                        Settings
+                                        {t("settings")}
                                     </Link>
                                 }
                             />
@@ -270,7 +278,7 @@ function SidebarContent({ collapsed, onToggle, isMobile = false }: SidebarProps)
                                 onClick={logout}
                             >
                                 <LogOut className="size-4" />
-                                Log out
+                                {t("logout")}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -338,6 +346,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                     </div>
                     <div className="flex items-center gap-4">
                         <NotificationBell />
+                        <LanguageSwitcher />
                         <ThemeToggle />
                     </div>
                 </header>

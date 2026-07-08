@@ -11,12 +11,12 @@ test.describe("Recruiter E2E Flow", () => {
         await recruiterDemoButton.click();
 
         // 3. Verificar redirección a Dashboard
-        await page.waitForURL("/dashboard");
+        await page.waitForURL("**/dashboard");
         await expect(page.getByTestId("guest-mode-banner")).toBeVisible();
 
         // 4. Navegar a Job Postings
         await page.goto("/dashboard/recruiter/postings");
-        await page.waitForURL("/dashboard/recruiter/postings");
+        await page.waitForURL("**/dashboard/recruiter/postings");
 
         // 5. Abrir formulario de creación de oferta
         const createButton = page.getByRole("button", { name: "Crear Oferta" }).first();
