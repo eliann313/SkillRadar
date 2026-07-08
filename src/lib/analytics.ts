@@ -1,4 +1,4 @@
-import { track } from "@vercel/analytics";
+import { track } from "@vercel/analytics/server";
 import { db } from "@/lib/db";
 import { createHash } from "crypto";
 
@@ -45,7 +45,7 @@ export async function trackServerEvent(
         }
 
         // Registrar en Vercel Analytics
-        track(name, {
+        await track(name, {
             ...cleanProperties,
             userHash: userHash || "anonymous",
         });

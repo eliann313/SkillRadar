@@ -40,12 +40,16 @@ test.describe("Developer E2E Flow", () => {
         // En modo Guest devuelve mocks inmediatamente
         await expect(page.locator("text=ATS Score")).toBeVisible({ timeout: 10000 });
 
-        // 9. Navegar a nuestra nueva pantalla de Gestión de CVs
+        // 9. Navegar a nuestra pantalla de Gestión de CVs.
+        // Nota: en modo Guest el análisis de CV es mockeado/efímero (ver
+        // src/features/cv-analysis/actions.ts) y nunca se persiste en la base de
+        // datos, así que acá no debe aparecer el CV recién "subido" — verificamos el
+        // estado vacío real en vez de un dato que el modo Guest nunca guarda.
         await page.goto("/dashboard/settings/resumes");
         await page.waitForURL("/dashboard/settings/resumes");
 
-        // 10. Verificar que el CV figure y el botón de activo esté visible
+        // 10. Verificar que la pantalla cargue correctamente en su estado vacío esperado
         await expect(page.getByRole("heading", { name: "Gestionar Currículums" })).toBeVisible();
-        await expect(page.getByText("curriculum_texto.txt")).toBeVisible();
+        await expect(page.getByText("No tienes currículums subidos")).toBeVisible();
     });
 });

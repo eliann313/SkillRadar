@@ -46,9 +46,9 @@ test.describe("Recruiter E2E Flow", () => {
         await expect(saveButton).toBeVisible();
         await saveButton.click();
 
-        // 8. Esperar a que se guarde el borrador y cerrarlo o confirmar que figura en la tabla
-        // Debe de cerrarse el modal y listarse el borrador
-        await expect(page.getByText("Staff Frontend Engineer")).toBeVisible({ timeout: 10000 });
+        // 8. Esperar a que se guarde el borrador y se cierre el modal, y luego verificar que figura en la lista
+        await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 15000 });
+        await expect(page.getByText("Staff Frontend Engineer").first()).toBeVisible({ timeout: 10000 });
 
         // 9. Publicar la oferta
         // El botón tiene el título "Publicar oferta"
