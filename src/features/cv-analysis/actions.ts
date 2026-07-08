@@ -1,6 +1,7 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { auth, assertActiveUser } from "@/lib/auth";
+import { trackServerEvent } from "@/lib/analytics";
 import { CVAnalysisService } from "./service";
 import { ResumeRepository } from "./repository";
 import type { Resume } from "@prisma/client";
@@ -64,6 +65,7 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
         if (isGuest) {
             // Simular retraso de análisis de IA para realismo
             await new Promise((resolve) => setTimeout(resolve, 1500));
+            await trackServerEvent("cv_uploaded", session.user.id, { isGuest: true, atsScore: 82 });
             return {
                 success: true,
                 data: {
@@ -100,6 +102,8 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
                 fileName,
                 rawText,
             });
+
+            await trackServerEvent("cv_uploaded", session.user.id, { isGuest: false, atsScore: resume.atsScore });
 
             revalidatePath("/dashboard");
 
@@ -199,6 +203,8 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
             fileUrl: fileUrl!,
             fileBuffer,
         });
+
+        await trackServerEvent("cv_uploaded", session.user.id, { isGuest: false, atsScore: resume.atsScore });
 
         // Revalidar la vista del dashboard
         revalidatePath("/dashboard");
@@ -347,6 +353,89 @@ export async function getProgressDataAction() {
     } catch (error: unknown) {
         const errMessage = error instanceof Error ? error.message : "Error al obtener datos de progreso.";
         console.error("[getProgressDataAction] Error:", errMessage);
+        return { success: false, error: errMessage };
+    }
+}
+
+export async function setActiveResumeAction(id: string): Promise<ActionResult<boolean>> {
+    try {
+        const session = await assertActiveUser();
+        const userId = session.user.id;
+
+        await ResumeRepository.setActive(id, userId);
+
+        revalidatePath("/dashboard");
+        revalidatePath("/dashboard/settings/resumes");
+        revalidatePath("/dashboard/job-match");
+        revalidatePath("/dashboard/jobs");
+        return { success: true, data: true };
+    } catch (error: unknown) {
+        const errMessage = error instanceof Error ? error.message : "Error al marcar el CV como activo.";
+        console.error("[setActiveResumeAction] Error:", errMessage);
+        return { success: false, error: errMessage };
+    }
+}
+
+export async function deleteResumeAction(
+    id: string,
+    force = false,
+): Promise<
+    ActionResult<{ warning?: boolean; matches?: number; interviews?: number; applications?: number } | boolean>
+> {
+    try {
+        const session = await assertActiveUser();
+        const userId = session.user.id;
+
+        // Validar ownership
+        const resume = await db.resume.findFirst({
+            where: { id, userId },
+        });
+
+        if (!resume) {
+            return { success: false, error: "Currículum no encontrado o no autorizado." };
+        }
+
+        // Si no se fuerza, contar relaciones asociadas para advertir al usuario
+        if (!force) {
+            const matches = await db.jobMatch.count({ where: { resumeId: id } });
+            const interviews = await db.interviewSession.count({ where: { resumeId: id } });
+            const applications = await db.jobPostingApplication.count({ where: { resumeId: id } });
+
+            if (matches > 0 || interviews > 0 || applications > 0) {
+                return {
+                    success: true,
+                    data: {
+                        warning: true,
+                        matches,
+                        interviews,
+                        applications,
+                    },
+                };
+            }
+        }
+
+        // Proceder a eliminar
+        await ResumeRepository.delete(id, userId);
+
+        // Si era el CV activo, marcar el más reciente restante como activo de forma predeterminada
+        if (resume.isActive) {
+            const latestRemaining = await db.resume.findFirst({
+                where: { userId },
+                orderBy: { createdAt: "desc" },
+            });
+            if (latestRemaining) {
+                await ResumeRepository.setActive(latestRemaining.id, userId);
+            }
+        }
+
+        revalidatePath("/dashboard");
+        revalidatePath("/dashboard/settings/resumes");
+        revalidatePath("/dashboard/job-match");
+        revalidatePath("/dashboard/jobs");
+        return { success: true, data: true };
+    } catch (error: unknown) {
+        const errMessage = error instanceof Error ? error.message : "Error al eliminar el currículum.";
+        console.error("[deleteResumeAction] Error:", errMessage);
         return { success: false, error: errMessage };
     }
 }

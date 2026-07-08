@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@/lib/auth";
+import { trackServerEvent } from "@/lib/analytics";
 import { db } from "@/lib/db";
 import { z } from "zod";
 import { JobPostingService } from "./service";
@@ -13,31 +14,7 @@ import {
 import { revalidatePath } from "next/cache";
 import type { JobPosting, JobPostingApplication } from "@prisma/client";
 
-export type ActionResult<T> = { success: true; data: T } | { success: false; error: string };
-
-// Zod Schema para validación de datos de oferta laboral
-export const jobPostingSchema = z.object({
-    title: z.string().min(2, "El título es obligatorio y debe tener al menos 2 caracteres.").max(150),
-    company: z.string().min(2, "El nombre de la empresa es obligatorio.").max(100),
-    location: z.string().min(2, "La ubicación es obligatoria.").max(100),
-    remoteType: z.enum(["remote", "hybrid", "onsite"], {
-        errorMap: () => ({ message: "Tipo de trabajo inválido." }),
-    }),
-    description: z.string().min(10, "La descripción es obligatoria y debe tener al menos 10 caracteres."),
-    requiredSkills: z.array(z.string()).min(1, "Debe agregar al menos una habilidad requerida."),
-    seniorityLevel: z.string().min(2, "El nivel de seniority es obligatorio."),
-});
-
-export type JobPostingWithCount = JobPosting & {
-    _count: {
-        applications: number;
-    };
-};
-
-export type JobPostingWithMatch = JobPosting & {
-    matchScore: number | null;
-    hasApplied: boolean;
-};
+import { type ActionResult, type JobPostingWithCount, type JobPostingWithMatch, jobPostingSchema } from "./types";
 
 /**
  * Crea una oferta laboral en estado draft (Solo Recruiters).
@@ -77,6 +54,29 @@ export async function createJobPostingAction(rawInput: unknown): Promise<ActionR
             };
         }
 
+        // Modo Demo/Guest: NO persistir. "guest-recruiter-id" es compartido por todas
+        // las sesiones anónimas, así que un insert real contaminaría a otros visitantes.
+        // El cliente maneja el estado localmente (ver handleSave en client-page.tsx),
+        // por lo que devolver el objeto en memoria alcanza para toda la UI.
+        if (isGuest) {
+            const demoJob: JobPosting = {
+                id: `demo-job-${Date.now()}`,
+                recruiterId,
+                title: validation.data.title,
+                company: validation.data.company,
+                location: validation.data.location,
+                remoteType: validation.data.remoteType,
+                description: validation.data.description,
+                requiredSkills: validation.data.requiredSkills,
+                seniorityLevel: validation.data.seniorityLevel,
+                status: "draft",
+                expiresAt: null,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+            return { success: true, data: demoJob };
+        }
+
         const newJob = await JobPostingService.createJobPosting(recruiterId, validation.data);
 
         revalidatePath("/dashboard/recruiter/postings");
@@ -106,6 +106,10 @@ export async function updateJobPostingAction(id: string, rawInput: unknown): Pro
             };
         }
 
+        if (session.user.isGuest === true) {
+            return { success: true, data: { id, ...validation.data } as unknown as JobPosting };
+        }
+
         const updatedJob = await JobPostingService.updateJobPosting(session.user.id, id, validation.data);
 
         revalidatePath("/dashboard/recruiter/postings");
@@ -124,6 +128,13 @@ export async function publishJobPostingAction(id: string): Promise<ActionResult<
         const session = await auth();
         if (!session?.user?.id || session.user.role !== "recruiter") {
             return { success: false, error: "No autorizado." };
+        }
+
+        // Modo Demo/Guest: el posting tampoco existe en la DB (ver createJobPostingAction),
+        // así que no hay nada para buscar/actualizar. El cliente no lee `data` en este caso
+        // (solo `success`), por eso el cast es seguro.
+        if (session.user.isGuest === true) {
+            return { success: true, data: { id } as unknown as JobPosting };
         }
 
         const publishedJob = await JobPostingService.publishJobPosting(session.user.id, id);
@@ -145,6 +156,10 @@ export async function closeJobPostingAction(id: string): Promise<ActionResult<Jo
         const session = await auth();
         if (!session?.user?.id || session.user.role !== "recruiter") {
             return { success: false, error: "No autorizado." };
+        }
+
+        if (session.user.isGuest === true) {
+            return { success: true, data: { id } as unknown as JobPosting };
         }
 
         const closedJob = await JobPostingService.closeJobPosting(session.user.id, id);
@@ -289,6 +304,9 @@ export async function applyToJobPostingAction(jobPostingId: string): Promise<Act
         }
 
         const application = await JobPostingService.applyToJobPosting(developerId, jobPostingId);
+
+        // Registrar analítica
+        await trackServerEvent("job_posting_applied", developerId, { jobPostingId });
 
         revalidatePath("/dashboard/jobs");
         revalidatePath("/dashboard/job-tracker");

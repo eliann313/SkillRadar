@@ -229,7 +229,9 @@ export class JobPostingService {
             };
         } catch (error) {
             console.error(
-                `[getOrCalculateMatchScore] Error calculando match para resume ${resumeId} y job ${jobPostingId}:`,
+                "[getOrCalculateMatchScore] Error calculando match para resume y job:",
+                resumeId,
+                jobPostingId,
                 error,
             );
             // Retornar fallback para no romper toda la lista
@@ -248,10 +250,14 @@ export class JobPostingService {
         filters?: { remoteType?: string; seniorityLevel?: string; search?: string },
     ) {
         // 1. Obtener el CV activo del developer
-        const latestResume = await db.resume.findFirst({
-            where: { userId: developerId },
-            orderBy: { createdAt: "desc" },
-        });
+        const latestResume =
+            (await db.resume.findFirst({
+                where: { userId: developerId, isActive: true },
+            })) ||
+            (await db.resume.findFirst({
+                where: { userId: developerId },
+                orderBy: { createdAt: "desc" },
+            }));
 
         // 2. Obtener ofertas publicadas
         const now = new Date();
@@ -333,10 +339,14 @@ export class JobPostingService {
 
         if (existing) {
             if (existing.status === "withdrawn") {
-                const latestResume = await db.resume.findFirst({
-                    where: { userId: developerId },
-                    orderBy: { createdAt: "desc" },
-                });
+                const latestResume =
+                    (await db.resume.findFirst({
+                        where: { userId: developerId, isActive: true },
+                    })) ||
+                    (await db.resume.findFirst({
+                        where: { userId: developerId },
+                        orderBy: { createdAt: "desc" },
+                    }));
                 if (!latestResume) {
                     throw new Error("Debes subir un CV antes de postularte a las ofertas laborales.");
                 }
@@ -382,10 +392,14 @@ export class JobPostingService {
         }
 
         // 2. Obtener el CV activo
-        const latestResume = await db.resume.findFirst({
-            where: { userId: developerId },
-            orderBy: { createdAt: "desc" },
-        });
+        const latestResume =
+            (await db.resume.findFirst({
+                where: { userId: developerId, isActive: true },
+            })) ||
+            (await db.resume.findFirst({
+                where: { userId: developerId },
+                orderBy: { createdAt: "desc" },
+            }));
 
         if (!latestResume) {
             throw new Error("Debes subir un CV antes de postularte a las ofertas laborales.");
@@ -663,10 +677,14 @@ export class JobPostingService {
 
             for (const dev of developers) {
                 // Obtener su CV más reciente
-                const latestResume = await db.resume.findFirst({
-                    where: { userId: dev.id },
-                    orderBy: { createdAt: "desc" },
-                });
+                const latestResume =
+                    (await db.resume.findFirst({
+                        where: { userId: dev.id, isActive: true },
+                    })) ||
+                    (await db.resume.findFirst({
+                        where: { userId: dev.id },
+                        orderBy: { createdAt: "desc" },
+                    }));
 
                 if (!latestResume) continue;
 

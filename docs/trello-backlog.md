@@ -751,16 +751,16 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 4.3: Implementar Internacionalización (i18n) Nativa con next-intl
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Baja 🟢 — **Ejecutar al final del roadmap**
 - **Descripción:**
   Configurar la infraestructura de traducción en el proyecto para dar soporte dinámico a múltiples idiomas (Español/Inglés) sin duplicar código. Utilizaremos la librería estándar `next-intl` aprovechando el enrutamiento dinámico `[locale]` de Next.js App Router para una traducción limpia y mantenible tanto en el servidor como en el cliente.
 - **Criterios de Aceptación:**
-    - [ ] Instalar la librería `next-intl`.
-    - [ ] Configurar los archivos de diccionarios en la raíz (`messages/en.json` y `messages/es.json`) con las traducciones base del shell y la landing.
-    - [ ] Reestructurar el enrutamiento envolviendo las páginas del dashboard y marketing bajo la carpeta dinámica `src/app/[locale]/`.
-    - [ ] Configurar el enrutamiento y la redirección automática del idioma en el middleware/proxy de la aplicación.
-    - [ ] Crear un componente selector de idioma (`LanguageSwitcher` con shadcn/ui) integrado en la barra superior o en el sidebar para alternar entre Español e Inglés con un clic.
+    - [x] Instalar la librería `next-intl`.
+    - [x] Configurar los archivos de diccionarios en la raíz (`messages/en.json` y `messages/es.json`) con las traducciones base del shell y la landing.
+    - [x] Reestructurar el enrutamiento envolviendo las páginas del dashboard y marketing bajo la carpeta dinámica `src/app/[locale]/`.
+    - [x] Configurar el enrutamiento y la redirección automática del idioma en el middleware/proxy de la aplicación.
+    - [x] Crear un componente selector de idioma (`LanguageSwitcher` con shadcn/ui) integrado en la barra superior o en el sidebar para alternar entre Español e Inglés con un clic.
 - **Rama Git:** `feature/i18n-next-intl-setup`
 
 ## 🔔 Módulo 19: Job Board & Postulaciones Internas (Recruiter → Developer)
@@ -996,58 +996,58 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 22.1: Suite E2E con Playwright sobre Flujos Críticos
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Alta 🔴 — Único módulo con testing hoy es la Tarjeta 7.3 (crypto)
 - **Descripción:**
   Con 19+ módulos interdependientes (ej: aplicar a una oferta dispara notificación Y crea card en el Kanban personal), una regresión manual ya no es viable. Instrumentar tests end-to-end sobre los flujos de negocio que más rompen si fallan silenciosamente.
 - **Criterios de Aceptación:**
-    - [ ] Instalar y configurar `@playwright/test` con un usuario de demo (reutilizando el modo Guest de la Tarjeta 9.0 para no depender de mocks de auth reales).
-    - [ ] Cubrir el flujo Developer: login demo → upload CV → job match → ver resultado con score.
-    - [ ] Cubrir el flujo Recruiter: login demo → crear JobPosting → publicar → ver en Job Board como developer → aplicar → recruiter ve la aplicación notificada.
-    - [ ] Integrar la corrida de Playwright como step en el pipeline de CI de GitHub Actions ya existente (el mismo que corre claude-review), fallando el PR si algún flujo crítico se rompe.
-- **Rama Git:** `feature/e2e-testing-playwright`
+    - [x] Instalar y configurar `@playwright/test` con un usuario de demo (reutilizando el modo Guest de la Tarjeta 9.0 para no depender de mocks de auth reales).
+    - [x] Cubrir el flujo Developer: login demo → upload CV → job match → ver resultado con score.
+    - [x] Cubrir el flujo Recruiter: login demo → crear JobPosting → publicar → ver en Job Board como developer → aplicar → recruiter ve la aplicación notificada.
+    - [x] Integrar la corrida de Playwright como step en el pipeline de CI de GitHub Actions ya existente (el mismo que corre claude-review), fallando el PR si algún flujo crítico se rompe.
+- **Rama Git:** `feature/quality-moderation-and-resumes` (agrupada)
 
 ---
 
 ### 🎴 Tarjeta 22.2: Instrumentación de Analítica de Producto
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   Ningún módulo mide si las features de growth (17.2 Perfil Público, 17.3 Badge, el loop viral) realmente están funcionando. Sin datos, las decisiones de roadmap futuras (incluyendo priorizar features nuevas) son a ciegas.
 - **Criterios de Aceptación:**
-    - [ ] Integrar Vercel Analytics o PostHog (evaluar cuál respeta mejor el presupuesto de free tier ya que el resto del proyecto está optimizado por costo, 7.1).
-    - [ ] Instrumentar eventos clave: `cv_uploaded`, `job_match_completed`, `public_profile_viewed`, `contact_request_sent`, `job_posting_applied`.
-    - [ ] Crear un dashboard simple (interno, no visible al usuario final) que muestre conversión del funnel: registro → CV subido → primer match → primer contacto/aplicación.
-    - [ ] Asegurar que no se trackee PII en los eventos (solo IDs anonimizados, nunca email/nombre en el payload de analytics).
-- **Rama Git:** `feature/product-analytics`
+    - [x] Integrar Vercel Analytics o PostHog (evaluar cuál respeta mejor el presupuesto de free tier ya que el resto del proyecto está optimizado por costo, 7.1).
+    - [x] Instrumentar eventos clave: `cv_uploaded`, `job_match_completed`, `public_profile_viewed`, `contact_request_sent`, `job_posting_applied`.
+    - [x] Crear un dashboard simple (interno, no visible al usuario final) que muestre conversión del funnel: registro → CV subido → primer match → primer contacto/aplicación.
+    - [x] Asegurar que no se trackee PII en los eventos (solo IDs anonimizados, nunca email/nombre en el payload de analytics).
+- **Rama Git:** `feature/quality-moderation-and-resumes` (agrupada)
 
 ---
 
 ### 🎴 Tarjeta 22.3: Rol Admin y Panel de Moderación
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Media 🟡
 - **Descripción:**
   `User.role` hoy solo soporta `"developer"` | `"recruiter"`. No existe forma de banear una cuenta abusiva ni de revisar los ContentReport generados en la Tarjeta 20.3 más allá del auto-ocultamiento automático.
 - **Criterios de Aceptación:**
-    - [ ] Extender `role` para soportar `"admin"` (verificar en auth.ts que no rompa la lógica existente de gating por rol en Server Actions).
-    - [ ] Crear la ruta protegida `/dashboard/admin` (middleware que rechace con 404 si `role !== "admin"`, no solo un redirect, para no filtrar la existencia de la ruta).
-    - [ ] Listar los ContentReport pendientes con acciones "Descartar" / "Suspender cuenta reportada" (`User.isSuspended: Boolean`).
-    - [ ] Bloquear login y todas las Server Actions de escritura para usuarios con `isSuspended: true`, mostrando un mensaje claro en el intento de login.
-- **Rama Git:** `feature/admin-moderation-panel`
+    - [x] Extender `role` para soportar `"admin"` (verificar en auth.ts que no rompa la lógica existente de gating por rol en Server Actions).
+    - [x] Crear la ruta protegida `/dashboard/admin` (middleware que rechace con 404 si `role !== "admin"`, no solo un redirect, para no filtrar la existencia de la ruta).
+    - [x] Listar los ContentReport pendientes con acciones "Descartar" / "Suspender cuenta reportada" (`User.isSuspended: Boolean`).
+    - [x] Bloquear login y todas las Server Actions de escritura para usuarios con `isSuspended: true`, mostrando un mensaje claro en el intento de login.
+- **Rama Git:** `feature/quality-moderation-and-resumes` (agrupada)
 
 ---
 
 ### 🎴 Tarjeta 22.4: Gestión de Versiones de Resume
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completado`
 - **Prioridad:** Baja 🟢
 - **Descripción:**
   El flujo actual permite subir y analizar CVs (Módulo 2) pero no hay una vista dedicada para administrar el historial: el usuario no puede ver todas sus versiones subidas ni borrar las obsoletas, acumulando registros de Resume sin control con el tiempo.
 - **Criterios de Aceptación:**
-    - [ ] Crear la sección "Mis CVs" en `/dashboard/settings` o como ruta propia, listando todos los Resume del usuario ordenados por fecha con su `atsScore`.
-    - [ ] Marcar visualmente cuál es el "CV activo" (el usado por default en Job Match, Tarjeta 10.2).
-    - [ ] Implementar `deleteResumeAction`, verificando ownership (userId) y advirtiendo si el CV a borrar tiene JobMatch o InterviewSession asociados (borrado en cascada ya definido en el schema, pero avisar antes de perder ese historial).
-    - [ ] Permitir marcar un Resume distinto como activo sin tener que resubir el archivo.
-- **Rama Git:** `feature/resume-version-management`
+    - [x] Crear la sección "Mis CVs" en `/dashboard/settings` o como ruta propia, listando todos los Resume del usuario ordenados por fecha con su `atsScore`.
+    - [x] Marcar visualmente cuál es el "CV activo" (el usado por default en Job Match, Tarjeta 10.2).
+    - [x] Implementar `deleteResumeAction`, verificando ownership (userId) y advirtiendo si el CV a borrar tiene JobMatch o InterviewSession asociados (borrado en cascada ya definido en el schema, pero avisar antes de perder ese historial).
+    - [x] Permitir marcar un Resume distinto como activo sin tener que resubir el archivo.
+- **Rama Git:** `feature/quality-moderation-and-resumes` (agrupada)

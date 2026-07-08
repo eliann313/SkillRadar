@@ -12,10 +12,15 @@ import { Mail, Loader2, Bot, Users, Lock, User, Eye, EyeOff, Sparkles } from "lu
 import { RoleSelector } from "./role-selector";
 import { registerUserAction } from "@/lib/auth-actions";
 import { toast } from "sonner";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { LanguageSwitcher, ThemeToggle } from "@/components/layout";
 
 export function LoginForm() {
-    const [isRegister, setIsRegister] = useState(false);
+    const searchParams = useSearchParams();
+    const isRegisterParam = searchParams.get("register") === "true";
+    const [isRegister, setIsRegister] = useState(isRegisterParam);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [name, setName] = useState("");
@@ -25,6 +30,13 @@ export function LoginForm() {
     const [acceptTerms, setAcceptTerms] = useState(false);
 
     const { data: session, status } = useSession();
+    const errorParam = searchParams.get("error");
+
+    useEffect(() => {
+        if (errorParam === "AccessDenied") {
+            toast.error("Tu cuenta ha sido suspendida por moderación. Contacta a soporte.");
+        }
+    }, [errorParam]);
 
     const handleCredentialsAuth = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -82,6 +94,8 @@ export function LoginForm() {
                     // El rate limit o clave inválida disparan errores
                     if (loginRes.error.includes("RATE_LIMIT_EXCEEDED") || loginRes.error.includes("Configuration")) {
                         toast.error("Has alcanzado el límite de intentos de login. Espera 15 minutos.");
+                    } else if (loginRes.error.includes("USER_SUSPENDED") || loginRes.error.includes("AccessDenied")) {
+                        toast.error("Tu cuenta ha sido suspendida. Por favor, contacta al soporte.");
                     } else {
                         toast.error("Credenciales inválidas. Verifica tu correo y contraseña.");
                     }
@@ -130,7 +144,12 @@ export function LoginForm() {
     const isLoading = status === "loading" || isAuthLoading;
 
     return (
-        <main className="flex min-h-screen items-center justify-center p-4">
+        <main className="flex min-h-screen items-center justify-center p-4 relative w-full">
+            {/* Top-right controls */}
+            <div className="absolute top-4 right-4 flex items-center gap-2">
+                <LanguageSwitcher />
+                <ThemeToggle />
+            </div>
             <div className="w-full max-w-md">
                 {/* Logo */}
                 <div className="mb-6 text-center">

@@ -1,19 +1,41 @@
 import { neonConfig } from "@neondatabase/serverless";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "@prisma/client";
-
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 import ws from "ws";
 
-neonConfig.webSocketConstructor = ws;
+const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/placeholder";
 
-const connectionString = process.env.DATABASE_URL!;
+// Determinar si es un entorno de test unitario (Vitest)
+const isUnitTest = process.env.VITEST === "true" || process.env.NODE_ENV === "test";
 
-const adapter = new PrismaNeon({ connectionString });
+// Usamos el adaptador Neon WebSockets si:
+// 1. Estamos en tests unitarios (para compatibilidad con los mocks de la base de datos).
+// 2. No se provee una variable de entorno DATABASE_URL real.
+// 3. La URL de conexión apunta explícitamente a un servidor Neon (contiene neon.tech).
+const useNeon =
+    isUnitTest ||
+    !process.env.DATABASE_URL ||
+    process.env.DATABASE_URL.trim() === "" ||
+    (process.env.USE_NEON_WEBSOCKETS !== "false" && connectionString.includes("neon.tech"));
 
 const globalForPrisma = globalThis as unknown as {
     prisma: PrismaClient | undefined;
 };
 
-export const db = globalForPrisma.prisma ?? new PrismaClient({ adapter });
+export const db =
+    globalForPrisma.prisma ??
+    (useNeon
+        ? (() => {
+              neonConfig.webSocketConstructor = ws;
+              const adapter = new PrismaNeon({ connectionString });
+              return new PrismaClient({ adapter });
+          })()
+        : (() => {
+              const pool = new Pool({ connectionString });
+              const adapter = new PrismaPg(pool);
+              return new PrismaClient({ adapter });
+          })());
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;

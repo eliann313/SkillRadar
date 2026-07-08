@@ -18,11 +18,16 @@ export async function POST(req: NextRequest) {
         // Cargar el CV más reciente del usuario para el contexto del Copilot
         let cvContext = "No hay CV cargado para este usuario todavía.";
         try {
-            const latestResume = await db.resume.findFirst({
-                where: { userId: session.user.id },
-                orderBy: { createdAt: "desc" },
-                select: { rawText: true, atsScore: true },
-            });
+            const latestResume =
+                (await db.resume.findFirst({
+                    where: { userId: session.user.id, isActive: true },
+                    select: { rawText: true, atsScore: true },
+                })) ||
+                (await db.resume.findFirst({
+                    where: { userId: session.user.id },
+                    orderBy: { createdAt: "desc" },
+                    select: { rawText: true, atsScore: true },
+                }));
             if (latestResume?.rawText) {
                 cvContext = `CV del usuario (extracto):\n${latestResume.rawText.substring(0, 3000)}`;
                 if (latestResume.atsScore) {

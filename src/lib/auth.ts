@@ -12,6 +12,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
     debug: true,
     ...authConfig,
+    callbacks: {
+        ...authConfig.callbacks,
+        async signIn({ user }) {
+            if (user?.id) {
+                const isGuest = (user as { isGuest?: boolean }).isGuest === true;
+                if (!isGuest) {
+                    const dbUser = await db.user.findUnique({
+                        where: { id: user.id },
+                        select: { isSuspended: true },
+                    });
+                    if (dbUser?.isSuspended) {
+                        return false; // Denegado, redirige a /login?error=AccessDenied
+                    }
+                }
+            }
+            return true;
+        },
+    },
     providers: [
         ...authConfig.providers,
         Credentials({
@@ -54,6 +72,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     const isValid = await bcrypt.compare(password, user.passwordHash);
                     if (!isValid) return null;
 
+                    if (user.isSuspended) {
+                        throw new Error("USER_SUSPENDED");
+                    }
+
                     return {
                         id: user.id,
                         name: user.name,
@@ -61,12 +83,34 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         image: user.image,
                         role: user.role,
                         isGuest: false,
+                        isSuspended: false,
                     };
                 } catch (error) {
                     console.error("[Auth] Error en authorize credentials:", error);
+                    if (error instanceof Error && error.message === "USER_SUSPENDED") {
+                        throw error;
+                    }
                     return null;
                 }
             },
         }),
     ],
 });
+
+export async function assertActiveUser() {
+    const session = await auth();
+    if (!session?.user?.id) {
+        throw new Error("No autorizado.");
+    }
+    if (session.user.isGuest) {
+        return session;
+    }
+    const dbUser = await db.user.findUnique({
+        where: { id: session.user.id },
+        select: { isSuspended: true },
+    });
+    if (!dbUser || dbUser.isSuspended) {
+        throw new Error("USER_SUSPENDED");
+    }
+    return session;
+}

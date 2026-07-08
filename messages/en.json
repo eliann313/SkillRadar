@@ -1,0 +1,38 @@
+{
+    "Home": {
+        "title": "SkillRadar | AI-Powered Tech Profile Optimizer",
+        "description": "Analyze your CV, match profiles with job requirements, and practice technical interviews. High-fidelity optimization for developers.",
+        "tag": "Next-Gen Developer Optimizer",
+        "heroTitle": "Deconstruct and Optimize Your <bold>Tech Profile</bold> with AI",
+        "heroSubtitle": "Compare your CV against real job descriptions, close engineering skill gaps, and prepare for core mock interviews. Built by developers, for developers.",
+        "startFree": "Start for Free",
+        "exploreFeatures": "Explore Features",
+        "signIn": "Sign In",
+        "getStarted": "Get Started",
+        "feature1Title": "ATS Optimization",
+        "feature1Desc": "Instant breakdown of your CV structure. Extract skills, detect phrasing improvements, and calculate real ATS scores.",
+        "feature2Title": "Context Job Matching",
+        "feature2Desc": "Match your stored CV analysis directly with raw Job Descriptions. Identify missing stack keywords and tech gaps.",
+        "feature3Title": "Simulated Interviews",
+        "feature3Desc": "Practice core questions tailored to your resume gaps using Google Gemini. Receive dynamic, structured feedback.",
+        "footerText": "© 2026 SkillRadar. Secure cryptographic ATS optimizer.",
+        "privacyPolicy": "Privacy Policy",
+        "termsOfService": "Terms of Service"
+    },
+    "Sidebar": {
+        "overview": "Overview",
+        "cvAnalysis": "CV Analysis",
+        "jobBoard": "Job Board",
+        "jobMatch": "Job Match",
+        "jobTracker": "Job Tracker",
+        "mockInterview": "Mock Interview",
+        "githubAnalysis": "GitHub Analysis",
+        "progress": "Progress",
+        "resumeBuilder": "Resume Builder",
+        "linkedinAudit": "LinkedIn Audit",
+        "talentPool": "Talent Pool",
+        "jobPostings": "Job Postings",
+        "settings": "Settings",
+        "logout": "Log out"
+    }
+}

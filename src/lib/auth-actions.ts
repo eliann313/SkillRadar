@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import { trackServerEvent } from "@/lib/analytics";
 
 export async function updateUserRole(role: "developer" | "recruiter") {
     const session = await auth();
@@ -68,7 +69,7 @@ export async function registerUserAction(input: {
         // 12 salt rounds para máxima resistencia a ataques de fuerza bruta en reposo
         const passwordHash = await bcrypt.hash(password, 12);
 
-        await db.user.create({
+        const user = await db.user.create({
             data: {
                 name: name || null,
                 email: sanitizedEmail,
@@ -76,6 +77,9 @@ export async function registerUserAction(input: {
                 role,
             },
         });
+
+        // Registrar analítica
+        await trackServerEvent("user_registered", user.id, { role });
 
         return { success: true, message: "Usuario registrado con éxito." };
     } catch (error: unknown) {

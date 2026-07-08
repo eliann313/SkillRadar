@@ -15,7 +15,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
     return (
         <div className="flex flex-col min-h-screen">
             {isGuest && (
-                <div className="sticky top-0 z-50 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-indigo-600 px-4 py-2 text-center text-xs font-semibold text-white shadow-md select-none animate-fade-in transition-all">
+                <div
+                    data-testid="guest-mode-banner"
+                    className="sticky top-0 z-50 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-indigo-600 px-4 py-2 text-center text-xs font-semibold text-white shadow-md select-none animate-fade-in transition-all"
+                >
                     <svg
                         viewBox="0 0 24 24"
                         fill="none"

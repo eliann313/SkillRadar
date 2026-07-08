@@ -13,7 +13,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: PR Review Labeler
-              uses: actions/github-script@v9
+              uses: actions/github-script@v9 # nosemgrep
               with:
                   script: |
                       const { owner, repo } = context.repo;

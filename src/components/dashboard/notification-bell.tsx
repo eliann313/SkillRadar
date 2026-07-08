@@ -18,16 +18,27 @@ export function NotificationBell() {
     const [loading, setLoading] = useState(false);
 
     const fetchNotifications = async (silent = false) => {
-        if (!silent) setLoading(true);
-        const result = await getNotificationsAction(1, 15);
-        if (result.success && result.data) {
-            setNotifications(result.data.notifications);
-            setUnreadCount(result.data.unreadCount);
+        if (process.env.NEXT_PUBLIC_DISABLE_NOTIFICATIONS === "true") {
+            return;
         }
-        if (!silent) setLoading(false);
+        try {
+            if (!silent) setLoading(true);
+            const result = await getNotificationsAction(1, 15);
+            if (result && result.success && result.data) {
+                setNotifications(result.data.notifications);
+                setUnreadCount(result.data.unreadCount);
+            }
+        } catch (error) {
+            console.error("Error al obtener notificaciones en el cliente:", error);
+        } finally {
+            if (!silent) setLoading(false);
+        }
     };
 
     useEffect(() => {
+        if (process.env.NEXT_PUBLIC_DISABLE_NOTIFICATIONS === "true") {
+            return;
+        }
         // Carga inicial diferida para evitar llamadas síncronas a setState durante el montaje
         const timer = setTimeout(() => {
             void fetchNotifications();
