@@ -45,7 +45,7 @@ graph TD
         DB_Sec -->|If NOT accepted: strip PII| R
         DB_Sec -->|If accepted: expose full profile| R
     end
-    
+
     style Security fill:#f9f2f4,stroke:#3a1a1a,stroke-width:1px
     style DB fill:#eef9f2,stroke:#1a3a2a,stroke-width:1px
 ```
@@ -54,30 +54,30 @@ graph TD
 
 ## 🚀 Key Features
 
-*   **ATS Structured Resume Parsing**: Uploads resumes in PDF format via secure gateways and instantly receives structured feedback powered by **Gemini 2.5 Flash** (identifying strengths, improvement items, formatting suggestions, ATS score, and seniority levels).
-*   **Double-Blind Recruiter Privacy**: Strict server-side sanitization. Sensitive PII fields (`name`, `email`, `githubUsername`, `image`) are automatically stripped for profiles in a non-accepted state (`status !== "accepted"`), preventing bias during the sourcing phase.
-*   **In-App Interactive AI Interview**: Simulates technical interviews using Gemini with dynamically generated follow-up questions based on the candidate's CV and generates a detailed performance debrief.
-*   **Active SSRF & CV Privacy Mitigations**: Protects CV document URLs via active session controls, resolving uploads through transient (1-hour expiry) signed URLs. Prevents Server-Side Request Forgery by validating hostnames and enforcing `https:` protocols on server fetches.
-*   **Cryptographic Database Encryption (AES-256-GCM)**: Multi-tenant and user-supplied API keys are encrypted at rest in PostgreSQL. Keys are stored as `ivHex:authTagHex:encryptedTextHex`, decrypted strictly in server memory, and never exposed to the client.
-*   **Combined i18n & NextAuth Middleware**: A custom proxy middleware (`src/proxy.ts`) combines route protection from **Auth.js v5** with locale-prefixed routing from **next-intl**, ensuring seamless redirections (e.g. `/es/dashboard`).
-*   **State-of-the-Art Visual Aesthetics**: Premium dark/light themes, sleek glassmorphic UI elements using Tailwind CSS v4, smooth animations, and a responsive custom localized Language Switcher built on Radix/Base UI v1 (`render` props instead of deprecated `asChild`).
+- **ATS Structured Resume Parsing**: Uploads resumes in PDF format via secure gateways and instantly receives structured feedback powered by **Gemini 2.5 Flash** (identifying strengths, improvement items, formatting suggestions, ATS score, and seniority levels).
+- **Double-Blind Recruiter Privacy**: Strict server-side sanitization. Sensitive PII fields (`name`, `email`, `githubUsername`, `image`) are automatically stripped for profiles in a non-accepted state (`status !== "accepted"`), preventing bias during the sourcing phase.
+- **In-App Interactive AI Interview**: Simulates technical interviews using Gemini with dynamically generated follow-up questions based on the candidate's CV and generates a detailed performance debrief.
+- **Active SSRF & CV Privacy Mitigations**: Protects CV document URLs via active session controls, resolving uploads through transient (1-hour expiry) signed URLs. Prevents Server-Side Request Forgery by validating hostnames and enforcing `https:` protocols on server fetches.
+- **Cryptographic Database Encryption (AES-256-GCM)**: Multi-tenant and user-supplied API keys are encrypted at rest in PostgreSQL. Keys are stored as `ivHex:authTagHex:encryptedTextHex`, decrypted strictly in server memory, and never exposed to the client.
+- **Combined i18n & NextAuth Middleware**: A custom proxy middleware (`src/proxy.ts`) combines route protection from **Auth.js v5** with locale-prefixed routing from **next-intl**, ensuring seamless redirections (e.g. `/es/dashboard`).
+- **State-of-the-Art Visual Aesthetics**: Premium dark/light themes, sleek glassmorphic UI elements using Tailwind CSS v4, smooth animations, and a responsive custom localized Language Switcher built on Radix/Base UI v1 (`render` props instead of deprecated `asChild`).
 
 ---
 
 ## 🛠️ Tech Stack & Versioning
 
-*   **Frontend**: Next.js 16.2.10 (App Router utilizing Turbopack) & React 19.0.0.
-*   **Styling**: Tailwind CSS v4.0.0 & shadcn/ui.
-*   **Dynamic Components**: `@base-ui/react` ^1.5.0 (Base UI v1).
-*   **ORM**: Prisma ^7.8.0.
-*   **Database**: Neon PostgreSQL Serverless (configured with custom transaction pooling).
-*   **Authentication**: Auth.js v5 (NextAuth `5.0.0-beta`) utilizing secure JWT strategy.
-*   **Security & Hashing**: `bcryptjs` for password hashing, `jose` for cryptographically signing session JWTs.
-*   **Rate Limiting**: Upstash Redis Web SDK (`@upstash/ratelimit`).
-*   **AI Orchestration**: Vercel AI SDK (`ai` v4) with `@google/generative-ai`.
-*   **Internationalization**: `next-intl` ^3.x.
-*   **Unit Testing**: Vitest ^3.0.0 & `@testing-library/react`.
-*   **E2E Testing**: Playwright ^1.50.0.
+- **Frontend**: Next.js 16.2.10 (App Router utilizing Turbopack) & React 19.0.0.
+- **Styling**: Tailwind CSS v4.0.0 & shadcn/ui.
+- **Dynamic Components**: `@base-ui/react` ^1.5.0 (Base UI v1).
+- **ORM**: Prisma ^7.8.0.
+- **Database**: Neon PostgreSQL Serverless (configured with custom transaction pooling).
+- **Authentication**: Auth.js v5 (NextAuth `5.0.0-beta`) utilizing secure JWT strategy.
+- **Security & Hashing**: `bcryptjs` for password hashing, `jose` for cryptographically signing session JWTs.
+- **Rate Limiting**: Upstash Redis Web SDK (`@upstash/ratelimit`).
+- **AI Orchestration**: Vercel AI SDK (`ai` v4) with `@google/generative-ai`.
+- **Internationalization**: `next-intl` ^3.x.
+- **Unit Testing**: Vitest ^3.0.0 & `@testing-library/react`.
+- **E2E Testing**: Playwright ^1.50.0.
 
 ---
 
@@ -206,6 +206,7 @@ cmd /c npm run build
 To keep the main branches clean and maintain strict quality standards, this project implements local git hooks using **Husky** and **lint-staged**.
 
 Every time you run `git commit`, the following operations execute automatically:
+
 1.  Filters staged files (`*.ts`, `*.tsx`, `*.js`).
 2.  Runs `eslint --fix` to fix any syntax/linting warnings.
 3.  Runs `prettier --write` to normalize file styles.

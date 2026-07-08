@@ -45,7 +45,7 @@ graph TD
         DB_Sec -->|Si NO está aceptado: remueve PII| R
         DB_Sec -->|Si está aceptado: expone perfil completo| R
     end
-    
+
     style Security fill:#f9f2f4,stroke:#3a1a1a,stroke-width:1px
     style DB fill:#eef9f2,stroke:#1a3a2a,stroke-width:1px
 ```
@@ -54,30 +54,30 @@ graph TD
 
 ## 🚀 Características Principales
 
-*   **Análisis ATS Estructurado de CV**: Carga currículums en formato PDF de manera segura y obtén análisis estructurados utilizando **Gemini 2.5 Flash** (identificación de fortalezas, mejoras, sugerencias de formato, puntaje ATS y nivel de seniority).
-*   **Privacidad de Doble Ciego**: Sanitización estricta en servidor. Los datos de contacto sensibles (`name`, `email`, `githubUsername`, `image`) de los candidatos se eliminan automáticamente para perfiles que no han sido aceptados (`status !== "accepted"`), previniendo sesgos en la fase de reclutamiento.
-*   **Entrevista Técnica Interactiva con IA**: Simulación de entrevistas técnicas personalizadas usando Gemini mediante generación dinámica de preguntas basadas en el currículum del candidato, culminando en un reporte de rendimiento detallado.
-*   **Defensa Activa contra SSRF y Privacidad de Archivos**: Acceso a archivos CV protegido por sesión. Las descargas se resuelven mediante URLs firmadas temporales (1 hora de validez). Previene ataques SSRF validando nombres de dominio autorizados y forzando protocolos `https:`.
-*   **Cifrado Criptográfico de Base de Datos (AES-256-GCM)**: Las claves de API de los usuarios se encriptan en reposo en PostgreSQL como `ivHex:authTagHex:encryptedTextHex`, desencriptándose únicamente en la memoria del servidor.
-*   **Middleware combinado i18n & NextAuth**: Middleware unificado (`src/proxy.ts`) que combina la protección de rutas de **Auth.js v5** con el enrutamiento localizado de **next-intl**, logrando redirecciones automáticas coherentes (ej. `/es/dashboard`).
-*   **Diseño Visual Premium**: Modos claro y oscuro, interfaces con estética de cristal (glassmorphic) usando Tailwind CSS v4, animaciones suaves y un selector de idioma localizado y adaptado a Base UI v1 (empleando la propiedad `render` en lugar de `asChild` para los triggers).
+- **Análisis ATS Estructurado de CV**: Carga currículums en formato PDF de manera segura y obtén análisis estructurados utilizando **Gemini 2.5 Flash** (identificación de fortalezas, mejoras, sugerencias de formato, puntaje ATS y nivel de seniority).
+- **Privacidad de Doble Ciego**: Sanitización estricta en servidor. Los datos de contacto sensibles (`name`, `email`, `githubUsername`, `image`) de los candidatos se eliminan automáticamente para perfiles que no han sido aceptados (`status !== "accepted"`), previniendo sesgos en la fase de reclutamiento.
+- **Entrevista Técnica Interactiva con IA**: Simulación de entrevistas técnicas personalizadas usando Gemini mediante generación dinámica de preguntas basadas en el currículum del candidato, culminando en un reporte de rendimiento detallado.
+- **Defensa Activa contra SSRF y Privacidad de Archivos**: Acceso a archivos CV protegido por sesión. Las descargas se resuelven mediante URLs firmadas temporales (1 hora de validez). Previene ataques SSRF validando nombres de dominio autorizados y forzando protocolos `https:`.
+- **Cifrado Criptográfico de Base de Datos (AES-256-GCM)**: Las claves de API de los usuarios se encriptan en reposo en PostgreSQL como `ivHex:authTagHex:encryptedTextHex`, desencriptándose únicamente en la memoria del servidor.
+- **Middleware combinado i18n & NextAuth**: Middleware unificado (`src/proxy.ts`) que combina la protección de rutas de **Auth.js v5** con el enrutamiento localizado de **next-intl**, logrando redirecciones automáticas coherentes (ej. `/es/dashboard`).
+- **Diseño Visual Premium**: Modos claro y oscuro, interfaces con estética de cristal (glassmorphic) usando Tailwind CSS v4, animaciones suaves y un selector de idioma localizado y adaptado a Base UI v1 (empleando la propiedad `render` en lugar de `asChild` para los triggers).
 
 ---
 
 ## 🛠️ Stack Tecnológico y Versiones
 
-*   **Frontend**: Next.js 16.2.10 (App Router con Turbopack) & React 19.0.0.
-*   **Estilos**: Tailwind CSS v4.0.0 & shadcn/ui.
-*   **Componentes Interactivos**: `@base-ui/react` ^1.5.0 (Base UI v1).
-*   **ORM**: Prisma ^7.8.0.
-*   **Base de Datos**: Neon PostgreSQL Serverless (con transaction pooling activo).
-*   **Autenticación**: Auth.js v5 (NextAuth `5.0.0-beta`) con estrategia basada en JWT.
-*   **Seguridad**: `bcryptjs` para hash de contraseñas y `jose` para la firma de JWT de sesión.
-*   **Límites de Ratio (Rate Limiting)**: Upstash Redis Web SDK (`@upstash/ratelimit`).
-*   **Modelos de IA**: Vercel AI SDK (`ai` v4) con `@google/generative-ai`.
-*   **Internacionalización**: `next-intl` ^3.x.
-*   **Pruebas Unitarias**: Vitest ^3.0.0 & `@testing-library/react`.
-*   **Pruebas E2E**: Playwright ^1.50.0.
+- **Frontend**: Next.js 16.2.10 (App Router con Turbopack) & React 19.0.0.
+- **Estilos**: Tailwind CSS v4.0.0 & shadcn/ui.
+- **Componentes Interactivos**: `@base-ui/react` ^1.5.0 (Base UI v1).
+- **ORM**: Prisma ^7.8.0.
+- **Base de Datos**: Neon PostgreSQL Serverless (con transaction pooling activo).
+- **Autenticación**: Auth.js v5 (NextAuth `5.0.0-beta`) con estrategia basada en JWT.
+- **Seguridad**: `bcryptjs` para hash de contraseñas y `jose` para la firma de JWT de sesión.
+- **Límites de Ratio (Rate Limiting)**: Upstash Redis Web SDK (`@upstash/ratelimit`).
+- **Modelos de IA**: Vercel AI SDK (`ai` v4) con `@google/generative-ai`.
+- **Internacionalización**: `next-intl` ^3.x.
+- **Pruebas Unitarias**: Vitest ^3.0.0 & `@testing-library/react`.
+- **Pruebas E2E**: Playwright ^1.50.0.
 
 ---
 
@@ -206,6 +206,7 @@ cmd /c npm run build
 Con el fin de mantener un repositorio limpio y robusto, el proyecto cuenta con hooks locales automáticos mediante **Husky** y **lint-staged**.
 
 Cada vez que realizas un `git commit`, el sistema intercepta el comando y ejecuta automáticamente:
+
 1.  Filtra los archivos en stage (`*.ts`, `*.tsx`, `*.js`).
 2.  Corre `eslint --fix` para resolver advertencias de sintaxis automáticamente.
 3.  Corre `prettier --write` para normalizar los estilos del código.
