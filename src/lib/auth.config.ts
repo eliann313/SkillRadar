@@ -3,8 +3,7 @@ import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 
-const isDev = process.env.NODE_ENV === "development";
-const enableGuestLogin = process.env.ENABLE_GUEST_LOGIN === "true" || isDev;
+const enableGuestLogin = process.env.ENABLE_GUEST_LOGIN !== "false";
 
 const providers: NextAuthConfig["providers"] = [
     GitHub({

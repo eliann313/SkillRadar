@@ -16,6 +16,20 @@ vi.mock("@/i18n/routing", () => ({
     Link: ({ children, href }: any) => <a href={href}>{children}</a>,
 }));
 
+// Mock next-intl useTranslations
+vi.mock("next-intl", () => ({
+    useTranslations: () => (key: string) => {
+        const translations: Record<string, string> = {
+            signUpTitle: "Crear una cuenta",
+            signInTitle: "Bienvenido de nuevo",
+            registerBtn: "Registrarse",
+            loginBtn: "Iniciar Sesión",
+        };
+        return translations[key] || key;
+    },
+    useLocale: () => "es",
+}));
+
 // Mock language switcher and theme toggle
 vi.mock("@/components/layout", () => ({
     LanguageSwitcher: () => <div>LanguageSwitcher</div>,
