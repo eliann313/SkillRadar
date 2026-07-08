@@ -751,16 +751,16 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 
 ### 🎴 Tarjeta 4.3: Implementar Internacionalización (i18n) Nativa con next-intl
 
-- **Estado:** `[ ] Pendiente`
+- **Estado:** `[x] Completada`
 - **Prioridad:** Baja 🟢 — **Ejecutar al final del roadmap**
 - **Descripción:**
   Configurar la infraestructura de traducción en el proyecto para dar soporte dinámico a múltiples idiomas (Español/Inglés) sin duplicar código. Utilizaremos la librería estándar `next-intl` aprovechando el enrutamiento dinámico `[locale]` de Next.js App Router para una traducción limpia y mantenible tanto en el servidor como en el cliente.
 - **Criterios de Aceptación:**
-    - [ ] Instalar la librería `next-intl`.
-    - [ ] Configurar los archivos de diccionarios en la raíz (`messages/en.json` y `messages/es.json`) con las traducciones base del shell y la landing.
-    - [ ] Reestructurar el enrutamiento envolviendo las páginas del dashboard y marketing bajo la carpeta dinámica `src/app/[locale]/`.
-    - [ ] Configurar el enrutamiento y la redirección automática del idioma en el middleware/proxy de la aplicación.
-    - [ ] Crear un componente selector de idioma (`LanguageSwitcher` con shadcn/ui) integrado en la barra superior o en el sidebar para alternar entre Español e Inglés con un clic.
+    - [x] Instalar la librería `next-intl`.
+    - [x] Configurar los archivos de diccionarios en la raíz (`messages/en.json` y `messages/es.json`) con las traducciones base del shell y la landing.
+    - [x] Reestructurar el enrutamiento envolviendo las páginas del dashboard y marketing bajo la carpeta dinámica `src/app/[locale]/`.
+    - [x] Configurar el enrutamiento y la redirección automática del idioma en el middleware/proxy de la aplicación.
+    - [x] Crear un componente selector de idioma (`LanguageSwitcher` con shadcn/ui) integrado en la barra superior o en el sidebar para alternar entre Español e Inglés con un clic.
 - **Rama Git:** `feature/i18n-next-intl-setup`
 
 ## 🔔 Módulo 19: Job Board & Postulaciones Internas (Recruiter → Developer)

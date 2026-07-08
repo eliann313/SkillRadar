@@ -10,19 +10,22 @@ SkillRadar es una plataforma moderna y de grado industrial para el **análisis d
 
 - **Análisis ATS Estructurado de CV**: Carga tu currículum en formato PDF y obtén de inmediato un análisis estructurado utilizando **Gemini 2.5 Flash** (habilidades, áreas de mejora, puntaje ATS y seniority).
 - **Simulador Offline Inteligente**: Si no cuentas con claves de API configuradas, la plataforma conmuta automáticamente a un motor híbrido de simulación reactiva que analiza palabras clave e infiere métricas lógicas en local.
-- **Gestión Segura de Archivos**: Integración directa con **UploadThing** para la carga de currículums en la nube, protegido con defensas activas contra ataques de inyección SSRF (Server-Side Request Forgery).
+- **Privacidad y Seguridad de Archivos**: Rutas de UploadThing completamente protegidas con sesiones activas y URLs firmadas de corta duración (1 hora). Incluye validaciones y mitigaciones contra SSRF.
+- **Internacionalización Nativa (i18n)**: Soporte completo en Español e Inglés gestionado con **next-intl** utilizando rutas dinámicas (`/[locale]`) y protección de rutas agnóstica combinada con el middleware de NextAuth.
+- **Selector de Tema e Idioma de Nivel Premium**: Alternancia fluida entre tema claro/oscuro y locales de español/inglés en la landing page, página de login/registro (manejando parámetros de registro) y el panel del dashboard.
 - **Control de Versiones y Calidad pre-commit**: Escudo de validación local mediante **Husky** y **lint-staged** que formatea y valida sintácticamente el código antes de cada commit.
-- **Etiquetado Automático de PRs**: Flujo de CI-CD en GitHub que triplica y clasifica de forma automática las capas afectadas en cada Pull Request.
+- **Etiquetado Automático de PRs**: Flujo de CI-CD en GitHub que clasifica de forma automática las capas afectadas en cada Pull Request.
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Stack Tecnológico
 
-- **Framework**: Next.js ^16 (App Router) + React 19 + TypeScript (Strict Mode).
-- **Estilos & UI**: Tailwind CSS + shadcn/ui.
-- **Base de Datos & ORM**: PostgreSQL (Neon Serverless) + Prisma ORM.
-- **Autenticación**: Auth.js v5 (NextAuth) con proveedor GitHub OAuth.
-- **Integración de IA**: Vercel AI SDK (Gemini como primario, OpenRouter y Groq como alternativas).
+- **Framework**: Next.js 16 (App Router con Turbopack) + React 19 + TypeScript (Strict Mode).
+- **Estilos & UI**: Tailwind CSS v4.0 + shadcn/ui + `@base-ui/react` (Base UI v1).
+- **Base de Datos & ORM**: PostgreSQL (Neon Serverless Pooler) + Prisma ORM.
+- **Autenticación**: Auth.js v5 (NextAuth v5 beta) con estrategia JWT segura.
+- **Internacionalización**: `next-intl` (enrutamiento nativo del sistema de archivos y diccionarios estáticos).
+- **Integración de IA**: Vercel AI SDK (Gemini `gemini-2.5-flash` como primario, OpenRouter y Groq como alternativas manuales).
 
 ---
 
@@ -43,7 +46,7 @@ La plataforma soporta tres proveedores de IA con niveles de acceso gratuitos:
 - **Google Gemini (Primario)**:
     1.  Ingresa a [Google AI Studio](https://aistudio.google.com/).
     2.  Haz clic en **"Get API Key"** y genérala de forma 100% gratuita.
-    3.  Copia y pega la clave en tu `.env` bajo `GEMINI_API_KEY`.
+    3.  Copia la clave en tu `.env` bajo `GEMINI_API_KEY`.
 - **OpenRouter (Fallback/Alternativo)**:
     1.  Crea una cuenta en [OpenRouter](https://openrouter.ai/).
     2.  Genera una API Key gratuita en la sección de Keys. Puedes usar modelos marcados como `:free` sin necesidad de tarjeta de crédito.
@@ -58,7 +61,7 @@ La plataforma soporta tres proveedores de IA con niveles de acceso gratuitos:
 1.  Asegúrate de que tu `DATABASE_URL` apunte a tu proyecto de Neon en tu archivo `.env`.
 2.  Genera el cliente de Prisma e implementa las migraciones o sincroniza el esquema:
     ```bash
-    npm install
+    cmd /c npm install
     npx prisma db push
     ```
 
@@ -67,10 +70,36 @@ La plataforma soporta tres proveedores de IA con niveles de acceso gratuitos:
 Inicia tu servidor local de desarrollo:
 
 ```bash
-npm run dev
+cmd /c npm run dev
 ```
 
 Abre [http://localhost:3000](http://localhost:3000) en tu navegador para ver la aplicación.
+
+---
+
+## 🧪 Pruebas y Verificación
+
+Para ejecutar la verificación estática, chequeo de formato, pruebas unitarias y de integración, así como de Playwright E2E:
+
+```bash
+# Comprobación de Tipos (Typecheck)
+cmd /c npm run type-check
+
+# Comprobación de formato (Prettier)
+cmd /c npm run format:check
+
+# Comprobación de reglas (ESLint)
+cmd /c npm run lint
+
+# Pruebas unitarias e integración (Vitest)
+cmd /c npm run test
+
+# Pruebas E2E (Playwright)
+cmd /c npx playwright test
+
+# Compilación de producción (Next Build)
+cmd /c npm run build
+```
 
 ---
 

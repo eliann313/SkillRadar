@@ -10,7 +10,9 @@ SkillRadar is a modern, production-ready developer platform designed for **talen
 
 - **ATS Structured Resume Parsing**: Upload resumes in PDF format and instantly receive structured feedback powered by **Gemini 2.5 Flash** (strengths, improvements, formatting issues, ATS score, and seniority).
 - **Intelligent Offline Simulation**: When API keys are missing in the local environment, the platform automatically switches to a robust local analyzer that dynamically infers metrics and keywords without blocking development.
-- **Secure File Handling**: Fully integrated with **UploadThing** for secure cloud file uploads, strictly protected with server-side validation barriers against SSRF (Server-Side Request Forgery).
+- **Secure File Privacy**: Fully protected UploadThing file routers with active sessions and short-lived (1h) signed URLs for developer resumes. Includes defensive validation barriers against SSRF.
+- **Native Internationalization (i18n)**: Out-of-the-box multilingual support (English/Spanish) powered by **next-intl** using dynamic routing (`/[locale]`) and locale-agnostic route protection combined with NextAuth middleware.
+- **Premium UX Theme & Language Selection**: Seamless toggle between Light/Dark mode and English/Spanish locales on the landing page, login forms (flawlessly handling query params for signup redirection), and dashboard.
 - **Pre-commit Quality Gate**: Local Git hooks via **Husky** and **lint-staged** automatically format and lint staged files before any commit goes through.
 - **Automatic PR Triage**: A robust GitHub Actions CI/CD flow automatically categorizes pull requests based on the modified layers and Conventional Commits title structure.
 
@@ -18,11 +20,12 @@ SkillRadar is a modern, production-ready developer platform designed for **talen
 
 ## 🛠️ Tech Stack
 
-- **Framework**: Next.js ^16 (App Router) + React 19 + TypeScript (Strict Mode).
-- **Styling & UI**: Tailwind CSS + shadcn/ui.
-- **Database & ORM**: PostgreSQL (Neon Serverless) + Prisma ORM.
-- **Authentication**: Auth.js v5 (NextAuth) with GitHub OAuth Provider.
-- **AI Integration**: Vercel AI SDK (Gemini as primary, OpenRouter and Groq as manual fallbacks).
+- **Framework**: Next.js 16 (App Router with Turbopack) + React 19 + TypeScript (Strict Mode).
+- **Styling & UI**: Tailwind CSS v4.0 + shadcn/ui + `@base-ui/react` (Base UI v1).
+- **Database & ORM**: PostgreSQL (Neon Serverless Pooler) + Prisma ORM.
+- **Authentication**: Auth.js v5 (NextAuth v5 beta) using secure JWT strategy.
+- **Internationalization**: `next-intl` (native file-system routing & client/server translation keys).
+- **AI Integration**: Vercel AI SDK (Gemini `gemini-2.5-flash` as primary, OpenRouter and Groq as manual fallbacks).
 
 ---
 
@@ -47,18 +50,18 @@ SkillRadar supports three AI providers with highly generous free tiers:
 - **OpenRouter (Alternative/Fallback)**:
     1.  Create an account at [OpenRouter](https://openrouter.ai/).
     2.  Create an API Key. You can consume models marked as `:free` without providing any credit card information.
-    3.  Paste the key into your local `.env` as `OPENROUTER_API_KEY`.
+    3.  Copy the key into your local `.env` as `OPENROUTER_API_KEY`.
 - **Groq (Ultra-fast Inference)**:
     1.  Register at [Groq Console](https://console.groq.com/).
     2.  Generate a free API Key instantly.
-    3.  Paste the key into your local `.env` as `GROQ_API_KEY`.
+    3.  Copy the key into your local `.env` as `GROQ_API_KEY`.
 
 ### 3. Sincronize the Database
 
 1.  Ensure your `DATABASE_URL` in `.env` points to your Neon PostgreSQL project.
 2.  Generate the Prisma Client and apply migrations or push the schema:
     ```bash
-    npm install
+    cmd /c npm install
     npx prisma db push
     ```
 
@@ -67,10 +70,36 @@ SkillRadar supports three AI providers with highly generous free tiers:
 Fire up the local development server:
 
 ```bash
-npm run dev
+cmd /c npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the running application.
+
+---
+
+## 🧪 Testing & Verification
+
+To run static analysis, formatting checks, unit tests, and Playwright E2E tests:
+
+```bash
+# Typecheck
+cmd /c npm run type-check
+
+# Format check
+cmd /c npm run format:check
+
+# Eslint check
+cmd /c npm run lint
+
+# Vitest Unit/Integration tests
+cmd /c npm run test
+
+# Playwright E2E tests
+cmd /c npx playwright test
+
+# Build production bundle
+cmd /c npm run build
+```
 
 ---
 
