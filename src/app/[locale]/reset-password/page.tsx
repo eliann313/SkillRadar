@@ -9,9 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { resetPasswordAction } from "@/lib/auth-actions";
 import { toast } from "sonner";
 import { Lock, Loader2, Eye, EyeOff, CheckCircle2, AlertTriangle } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 
 function ResetPasswordForm() {
+    const t = useTranslations("Auth");
     const searchParams = useSearchParams();
     const token = searchParams.get("token");
 
@@ -68,14 +70,12 @@ function ResetPasswordForm() {
             <Card className="border-destructive/30 bg-destructive/5 backdrop-blur-sm shadow-xl">
                 <CardHeader className="text-center">
                     <AlertTriangle className="mx-auto size-12 text-destructive mb-2" />
-                    <CardTitle className="text-destructive">Token no válido</CardTitle>
-                    <CardDescription>
-                        Falta el token de restablecimiento de contraseña en la dirección URL.
-                    </CardDescription>
+                    <CardTitle className="text-destructive">{t("invalidTokenTitle")}</CardTitle>
+                    <CardDescription>{t("invalidTokenDesc")}</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
                     <Link href="/login" className="text-sm text-primary hover:underline">
-                        Volver al Inicio de Sesión
+                        {t("backToLogin")}
                     </Link>
                 </CardContent>
             </Card>
@@ -87,13 +87,13 @@ function ResetPasswordForm() {
             <Card className="border-primary/20 bg-primary/5 backdrop-blur-sm shadow-xl">
                 <CardHeader className="text-center">
                     <CheckCircle2 className="mx-auto size-12 text-primary mb-2" />
-                    <CardTitle>Contraseña Restablecida</CardTitle>
-                    <CardDescription>Tu contraseña ha sido restablecida de forma segura.</CardDescription>
+                    <CardTitle>{t("successResetTitle")}</CardTitle>
+                    <CardDescription>{t("successResetDesc")}</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center flex flex-col gap-4">
-                    <p className="text-sm text-muted-foreground">Ya puedes ingresar con tus nuevas credenciales.</p>
+                    <p className="text-sm text-muted-foreground">{t("successResetNext")}</p>
                     <Link href="/login" className="text-sm text-primary hover:underline font-semibold">
-                        Iniciar Sesión ahora
+                        {t("signInNow")}
                     </Link>
                 </CardContent>
             </Card>
@@ -103,14 +103,14 @@ function ResetPasswordForm() {
     return (
         <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-xl">
             <CardHeader>
-                <CardTitle className="text-xl">Nueva Contraseña</CardTitle>
-                <CardDescription>Define una contraseña segura para tu cuenta.</CardDescription>
+                <CardTitle className="text-xl">{t("newPasswordTitle")}</CardTitle>
+                <CardDescription>{t("newPasswordDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
                 <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
                     {/* Contraseña */}
                     <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="password">Nueva Contraseña</Label>
+                        <Label htmlFor="password">{t("newPasswordLabel")}</Label>
                         <div className="relative">
                             <Lock className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
                             <Input
@@ -136,7 +136,7 @@ function ResetPasswordForm() {
 
                     {/* Confirmar Contraseña */}
                     <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
+                        <Label htmlFor="confirmPassword">{t("confirmPasswordLabel")}</Label>
                         <div className="relative">
                             <Lock className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
                             <Input
@@ -154,14 +154,14 @@ function ResetPasswordForm() {
 
                     {/* Indicadores de Requisitos */}
                     <div className="text-xs space-y-1.5 my-1 p-3 rounded-lg bg-muted/40">
-                        <p className="font-semibold text-muted-foreground">La contraseña debe tener:</p>
+                        <p className="font-semibold text-muted-foreground">{t("requirementsTitle")}</p>
                         <div className="grid grid-cols-2 gap-x-2 gap-y-1">
                             <div className="flex items-center gap-1.5">
                                 <div
                                     className={`size-1.5 rounded-full ${hasMinLength ? "bg-primary" : "bg-muted-foreground"}`}
                                 />
                                 <span className={hasMinLength ? "text-primary" : "text-muted-foreground"}>
-                                    Mín. 8 caracteres
+                                    {t("reqMinLength")}
                                 </span>
                             </div>
                             <div className="flex items-center gap-1.5">
@@ -169,7 +169,7 @@ function ResetPasswordForm() {
                                     className={`size-1.5 rounded-full ${hasUppercase ? "bg-primary" : "bg-muted-foreground"}`}
                                 />
                                 <span className={hasUppercase ? "text-primary" : "text-muted-foreground"}>
-                                    Una mayúscula
+                                    {t("reqUppercase")}
                                 </span>
                             </div>
                             <div className="flex items-center gap-1.5">
@@ -177,14 +177,16 @@ function ResetPasswordForm() {
                                     className={`size-1.5 rounded-full ${hasLowercase ? "bg-primary" : "bg-muted-foreground"}`}
                                 />
                                 <span className={hasLowercase ? "text-primary" : "text-muted-foreground"}>
-                                    Una minúscula
+                                    {t("reqLowercase")}
                                 </span>
                             </div>
                             <div className="flex items-center gap-1.5">
                                 <div
                                     className={`size-1.5 rounded-full ${hasNumber ? "bg-primary" : "bg-muted-foreground"}`}
                                 />
-                                <span className={hasNumber ? "text-primary" : "text-muted-foreground"}>Un número</span>
+                                <span className={hasNumber ? "text-primary" : "text-muted-foreground"}>
+                                    {t("reqNumber")}
+                                </span>
                             </div>
                         </div>
                         <div className="pt-1.5 border-t border-border/40 flex items-center gap-1.5">
@@ -192,7 +194,7 @@ function ResetPasswordForm() {
                                 className={`size-1.5 rounded-full ${passwordsMatch ? "bg-primary" : "bg-muted-foreground"}`}
                             />
                             <span className={passwordsMatch ? "text-primary" : "text-muted-foreground"}>
-                                Las contraseñas coinciden
+                                {t("reqMatch")}
                             </span>
                         </div>
                     </div>
@@ -211,10 +213,10 @@ function ResetPasswordForm() {
                         {isLoading ? (
                             <>
                                 <Loader2 className="size-4 animate-spin" />
-                                Restableciendo...
+                                {t("resettingBtn")}
                             </>
                         ) : (
-                            "Restablecer Contraseña"
+                            t("resetPasswordTitle")
                         )}
                     </Button>
                 </form>
@@ -224,6 +226,8 @@ function ResetPasswordForm() {
 }
 
 export default function ResetPasswordPage() {
+    const t = useTranslations("Auth");
+
     return (
         <main className="flex min-h-screen items-center justify-center p-4 bg-background">
             <div className="w-full max-w-md">
@@ -248,7 +252,7 @@ export default function ResetPasswordPage() {
                     fallback={
                         <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-xl p-6 text-center">
                             <Loader2 className="size-8 animate-spin mx-auto text-primary mb-2" />
-                            <p className="text-sm text-muted-foreground">Cargando...</p>
+                            <p className="text-sm text-muted-foreground">{t("loading")}</p>
                         </Card>
                     }
                 >
