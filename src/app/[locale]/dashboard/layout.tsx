@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/layout";
+import { getTranslations } from "next-intl/server";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const session = await auth();
@@ -11,6 +12,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
     const isGuest = session.user.isGuest === true;
     const isRecruiter = session.user.role === "recruiter";
+    const t = await getTranslations("DashboardLayout");
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -33,8 +35,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
                         />
                     </svg>
                     <span>
-                        Navegando en <strong>Modo Demo ({isRecruiter ? "Reclutador" : "Desarrollador"})</strong>. Las
-                        llamadas a APIs e IA son simuladas en el servidor de forma segura.
+                        {t.rich("demoBanner", {
+                            mode: isRecruiter ? t("recruiterMode") : t("developerMode"),
+                            strongName: (chunks) => <strong>{chunks}</strong>,
+                        })}
                     </span>
                 </div>
             )}

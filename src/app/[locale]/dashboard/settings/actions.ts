@@ -31,6 +31,13 @@ export async function saveUserApiKeysAction(input: ApiKeysInput) {
         }
 
         const userId = session.user.id;
+        const isGuest = session.user.isGuest === true;
+        if (isGuest) {
+            return {
+                success: true,
+                message: "Claves de API personales actualizadas correctamente (Modo Simulación).",
+            };
+        }
 
         // Buscar el registro de usuario actual
         const currentUser = await db.user.findUnique({
@@ -123,6 +130,13 @@ export async function saveUserInferencePreferencesAction(input: InferencePrefere
         }
 
         const userId = session.user.id;
+        const isGuest = session.user.isGuest === true;
+        if (isGuest) {
+            return {
+                success: true,
+                message: "Preferencias de inferencia actualizadas con éxito (Modo Simulación).",
+            };
+        }
 
         await db.user.update({
             where: { id: userId },
@@ -160,6 +174,24 @@ export async function getUserApiKeysStatusAction() {
         }
 
         const userId = session.user.id;
+        const isGuest = session.user.isGuest === true;
+        if (isGuest) {
+            return {
+                success: true,
+                data: {
+                    hasGeminiKey: false,
+                    hasGroqKey: false,
+                    hasOpenrouterKey: false,
+                    hasOpenaiKey: false,
+                    hasAnthropicKey: false,
+                    defaultAiProvider: "gemini",
+                    defaultAiModel: "gemini-2.5-flash",
+                    emailNotifications: true,
+                    emailNewApplication: true,
+                    emailApplicationStatusChanged: true,
+                },
+            };
+        }
 
         const user = await db.user.findUnique({
             where: { id: userId },
@@ -225,6 +257,19 @@ export async function getUserPublicProfileSettingsAction() {
         }
 
         const userId = session.user.id;
+        const isGuest = session.user.isGuest === true;
+        if (isGuest) {
+            return {
+                success: true,
+                data: {
+                    isPublicProfile: false,
+                    publicUsername: "demo-user",
+                    showSkills: true,
+                    showGithub: true,
+                    showSeniority: true,
+                },
+            };
+        }
 
         const user = await db.user.findUnique({
             where: { id: userId },
@@ -263,6 +308,13 @@ export async function updateUserPublicProfileSettingsAction(input: PublicProfile
         }
 
         const userId = session.user.id;
+        const isGuest = session.user.isGuest === true;
+        if (isGuest) {
+            return {
+                success: true,
+                message: "Configuración de perfil público actualizada correctamente (Modo Simulación).",
+            };
+        }
 
         // Si se define un username, validar que sea único en la base de datos
         if (input.publicUsername) {
@@ -326,6 +378,13 @@ export async function deleteAccountAction(): Promise<{ success: boolean; message
         }
 
         const userId = session.user.id;
+        const isGuest = session.user.isGuest === true;
+        if (isGuest) {
+            return {
+                success: false,
+                error: "Esta acción no está disponible en modo demo.",
+            };
+        }
 
         // Eliminar el usuario (la cascada a nivel de BD borrará todo lo demás)
         await db.user.delete({
@@ -359,6 +418,44 @@ export async function exportUserDataAction(): Promise<
         }
 
         const userId = session.user.id;
+        const isGuest = session.user.isGuest === true;
+        if (isGuest) {
+            return {
+                success: true,
+                data: {
+                    id: userId,
+                    name: "Demo User",
+                    email: "demo-user@skillradar.dev",
+                    image: null,
+                    role: session.user.role || "developer",
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    isPublicProfile: false,
+                    publicUsername: "demo-user",
+                    showSkills: true,
+                    showGithub: true,
+                    showSeniority: true,
+                    defaultAiProvider: "google",
+                    defaultAiModel: "gemini-2.5-flash",
+                    emailNotifications: true,
+                    emailNewApplication: true,
+                    emailApplicationStatusChanged: true,
+                    resumes: [],
+                    jobMatches: [],
+                    githubAnalyses: [],
+                    interviewSessions: [],
+                    receivedRequests: [],
+                    sentRequests: [],
+                    shortlists: [],
+                    shortlistedBy: [],
+                    jobApplications: [],
+                    notifications: [],
+                    jobPostings: [],
+                    jobPostingApplications: [],
+                    reports: [],
+                },
+            };
+        }
 
         const userData = await db.user.findUnique({
             where: { id: userId },
@@ -461,6 +558,13 @@ export async function saveUserNotificationPreferencesAction(input: NotificationP
         }
 
         const userId = session.user.id;
+        const isGuest = session.user.isGuest === true;
+        if (isGuest) {
+            return {
+                success: true,
+                message: "Preferencias de notificación actualizadas con éxito (Modo Simulación).",
+            };
+        }
 
         await db.user.update({
             where: { id: userId },

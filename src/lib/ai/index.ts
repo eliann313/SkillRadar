@@ -21,7 +21,7 @@ export interface AIServiceOptions {
 }
 
 export class AIService {
-    private static getModelInstance(provider: string, model: string, userSettings?: AIServiceOptions["userSettings"]) {
+    public static getModelInstance(provider: string, model: string, userSettings?: AIServiceOptions["userSettings"]) {
         let apiKey: string | undefined;
 
         console.warn(`🔮 [AIService] Instanciando proveedor: "${provider}" con modelo: "${model}"`);

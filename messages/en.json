@@ -93,5 +93,24 @@
         "reqNumber": "One number",
         "reqMatch": "Passwords match",
         "resettingBtn": "Resetting..."
+    },
+    "CareerCopilot": {
+        "title": "Career Copilot",
+        "subtitle": "Powered by SkillRadar AI",
+        "welcome": "Hello! I am your Career Copilot",
+        "descriptionDeveloper": "Ask me about your resume, career advice, or how to prepare for interviews.",
+        "descriptionRecruiter": "Ask me about job postings, candidates, or how to evaluate talent.",
+        "placeholderDeveloper": "Ask me anything about your career...",
+        "placeholderRecruiter": "Ask me anything about recruiting or candidates...",
+        "keyboardInstructions": "Enter to send · Shift+Enter for new line",
+        "openLabel": "Open Career Copilot",
+        "closeLabel": "Close",
+        "minimizeLabel": "Minimize",
+        "expandLabel": "Expand"
+    },
+    "DashboardLayout": {
+        "demoBanner": "Navigating in <strongName>{mode}</strongName>. API and AI calls are securely simulated on the server.",
+        "recruiterMode": "Demo Mode (Recruiter)",
+        "developerMode": "Demo Mode (Developer)"
     }
 }

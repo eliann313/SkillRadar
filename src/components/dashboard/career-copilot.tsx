@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useChat, type UIMessage } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { Button } from "@/components/ui/button";
@@ -10,18 +10,67 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Bot, X, MessageCircle, Send, Loader2, Minimize2 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
+import { getUserApiKeysStatusAction } from "@/app/[locale]/dashboard/settings/actions";
 
 export function CareerCopilot() {
+    const t = useTranslations("CareerCopilot");
     const { data: session } = useSession();
     const [isOpen, setIsOpen] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
     const [input, setInput] = useState("");
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    const { messages, sendMessage, status } = useChat({
-        transport: new DefaultChatTransport({
+    const [provider, setProvider] = useState("gemini");
+    const [model, setModel] = useState("gemini-2.5-flash");
+    const [providerKeys, setProviderKeys] = useState({
+        gemini: true,
+        groq: true,
+        openrouter: true,
+        openai: false,
+        anthropic: false,
+    });
+
+    // Fetch user key settings and default AI preferences when the chat opens
+    useEffect(() => {
+        if (!isOpen) return;
+        const fetchStatus = async () => {
+            try {
+                const res = await getUserApiKeysStatusAction();
+                if (res && res.success && res.data) {
+                    setProviderKeys({
+                        gemini: true,
+                        groq: true,
+                        openrouter: true,
+                        openai: res.data.hasOpenaiKey,
+                        anthropic: res.data.hasAnthropicKey,
+                    });
+                    if (res.data.defaultAiProvider) {
+                        setProvider(res.data.defaultAiProvider);
+                    }
+                    if (res.data.defaultAiModel) {
+                        setModel(res.data.defaultAiModel);
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching API keys status for Career Copilot:", err);
+            }
+        };
+        void fetchStatus();
+    }, [isOpen]);
+
+    const transport = useMemo(() => {
+        return new DefaultChatTransport({
             api: "/api/chat/career-copilot",
-        }),
+            body: {
+                provider,
+                model,
+            },
+        });
+    }, [provider, model]);
+
+    const { messages, sendMessage, status } = useChat({
+        transport,
     });
 
     const isLoading = status === "streaming" || status === "submitted";
@@ -48,8 +97,10 @@ export function CareerCopilot() {
         }
     };
 
-    // Solo visible para developers autenticados
-    if (!session?.user || session.user.role !== "developer") return null;
+    // Visible para cualquier usuario autenticado
+    if (!session?.user) return null;
+
+    const isRecruiter = session.user.role === "recruiter";
 
     return (
         <>
@@ -58,7 +109,7 @@ export function CareerCopilot() {
                 <button
                     id="career-copilot-open"
                     onClick={() => setIsOpen(true)}
-                    aria-label="Abrir Career Copilot"
+                    aria-label={t("openLabel")}
                     className="fixed bottom-6 right-6 z-50 flex size-14 items-center justify-center rounded-full bg-primary shadow-lg shadow-primary/30 text-primary-foreground transition-all hover:scale-110 hover:shadow-primary/50 active:scale-95"
                 >
                     <MessageCircle className="size-6" />
@@ -75,7 +126,7 @@ export function CareerCopilot() {
                 <div
                     className={cn(
                         "fixed bottom-6 right-6 z-50 flex flex-col rounded-2xl border border-border/50 bg-background/95 shadow-2xl backdrop-blur-md transition-all duration-300",
-                        isMinimized ? "h-14 w-72" : "h-[480px] w-[340px] sm:w-[380px]",
+                        isMinimized ? "h-14 w-72" : "h-[520px] w-[340px] sm:w-[380px]",
                     )}
                 >
                     {/* Header */}
@@ -85,8 +136,8 @@ export function CareerCopilot() {
                                 <Bot className="size-4 text-primary" />
                             </div>
                             <div>
-                                <p className="text-sm font-semibold text-foreground leading-none">Career Copilot</p>
-                                <p className="text-[10px] text-muted-foreground mt-0.5">Powered by SkillRadar AI</p>
+                                <p className="text-sm font-semibold text-foreground leading-none">{t("title")}</p>
+                                <p className="text-[10px] text-muted-foreground mt-0.5">{t("subtitle")}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-1">
@@ -95,7 +146,7 @@ export function CareerCopilot() {
                                 size="icon"
                                 className="size-7"
                                 onClick={() => setIsMinimized(!isMinimized)}
-                                aria-label={isMinimized ? "Expandir" : "Minimizar"}
+                                aria-label={isMinimized ? t("expandLabel") : t("minimizeLabel")}
                             >
                                 <Minimize2 className="size-3.5" />
                             </Button>
@@ -105,7 +156,7 @@ export function CareerCopilot() {
                                 className="size-7"
                                 id="career-copilot-close"
                                 onClick={() => setIsOpen(false)}
-                                aria-label="Cerrar"
+                                aria-label={t("closeLabel")}
                             >
                                 <X className="size-3.5" />
                             </Button>
@@ -114,6 +165,165 @@ export function CareerCopilot() {
 
                     {!isMinimized && (
                         <>
+                            {/* Model Selector Bar */}
+                            <div className="flex items-center justify-between border-b border-border/20 bg-muted/40 px-4 py-2 text-[11px] text-muted-foreground shrink-0 select-none">
+                                <span className="font-medium tracking-wide">MODEL:</span>
+                                <div className="flex items-center gap-2">
+                                    <select
+                                        value={provider}
+                                        onChange={(e) => {
+                                            const newProvider = e.target.value;
+                                            setProvider(newProvider);
+                                            if (newProvider === "gemini") setModel("gemini-2.5-flash");
+                                            else if (newProvider === "groq") setModel("llama-3.3-70b-versatile");
+                                            else if (newProvider === "openrouter")
+                                                setModel("google/gemini-2.5-flash:free");
+                                            else if (newProvider === "openai") setModel("gpt-4o");
+                                            else if (newProvider === "anthropic") setModel("claude-4.6-sonnet");
+                                        }}
+                                        className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none font-bold text-foreground text-[11px] cursor-pointer hover:text-primary transition-colors pr-1"
+                                    >
+                                        <option
+                                            value="gemini"
+                                            className="bg-popover text-popover-foreground font-semibold"
+                                        >
+                                            Gemini
+                                        </option>
+                                        <option
+                                            value="groq"
+                                            className="bg-popover text-popover-foreground font-semibold"
+                                        >
+                                            Groq
+                                        </option>
+                                        <option
+                                            value="openrouter"
+                                            className="bg-popover text-popover-foreground font-semibold"
+                                        >
+                                            OpenRouter
+                                        </option>
+                                        <option
+                                            value="openai"
+                                            disabled={!providerKeys.openai}
+                                            className="bg-popover text-popover-foreground font-semibold"
+                                        >
+                                            OpenAI {!providerKeys.openai && "🔒"}
+                                        </option>
+                                        <option
+                                            value="anthropic"
+                                            disabled={!providerKeys.anthropic}
+                                            className="bg-popover text-popover-foreground font-semibold"
+                                        >
+                                            Anthropic {!providerKeys.anthropic && "🔒"}
+                                        </option>
+                                    </select>
+                                    <span className="text-muted-foreground/30">|</span>
+                                    <select
+                                        value={model}
+                                        onChange={(e) => setModel(e.target.value)}
+                                        className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-[11px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer max-w-[150px] truncate pr-1"
+                                    >
+                                        {provider === "gemini" && (
+                                            <>
+                                                <option
+                                                    value="gemini-2.5-flash"
+                                                    className="bg-popover text-popover-foreground"
+                                                >
+                                                    Gemini 2.5 Flash
+                                                </option>
+                                                <option
+                                                    value="gemini-2.5-pro"
+                                                    className="bg-popover text-popover-foreground"
+                                                >
+                                                    Gemini 2.5 Pro
+                                                </option>
+                                                <option
+                                                    value="gemini-3.5-flash"
+                                                    className="bg-popover text-popover-foreground"
+                                                >
+                                                    Gemini 3.5 Flash
+                                                </option>
+                                                <option
+                                                    value="gemini-3.1-pro"
+                                                    className="bg-popover text-popover-foreground"
+                                                >
+                                                    Gemini 3.1 Pro
+                                                </option>
+                                            </>
+                                        )}
+                                        {provider === "groq" && (
+                                            <>
+                                                <option
+                                                    value="llama-3.3-70b-versatile"
+                                                    className="bg-popover text-popover-foreground"
+                                                >
+                                                    Llama 3.3 70B
+                                                </option>
+                                                <option
+                                                    value="mixtral-8x7b-32768"
+                                                    className="bg-popover text-popover-foreground"
+                                                >
+                                                    Mixtral 8x7B
+                                                </option>
+                                            </>
+                                        )}
+                                        {provider === "openrouter" && (
+                                            <>
+                                                <option
+                                                    value="google/gemini-2.5-flash:free"
+                                                    className="bg-popover text-popover-foreground"
+                                                >
+                                                    Gemini 2.5 Free
+                                                </option>
+                                                <option
+                                                    value="meta-llama/llama-3.1-70b-instruct:free"
+                                                    className="bg-popover text-popover-foreground"
+                                                >
+                                                    Llama 3.1 Free
+                                                </option>
+                                            </>
+                                        )}
+                                        {provider === "openai" && (
+                                            <>
+                                                <option value="gpt-4o" className="bg-popover text-popover-foreground">
+                                                    GPT-4o
+                                                </option>
+                                                <option value="gpt-5.5" className="bg-popover text-popover-foreground">
+                                                    GPT-5.5
+                                                </option>
+                                                <option
+                                                    value="gpt-5.5-instant"
+                                                    className="bg-popover text-popover-foreground"
+                                                >
+                                                    GPT-5.5 Instant
+                                                </option>
+                                            </>
+                                        )}
+                                        {provider === "anthropic" && (
+                                            <>
+                                                <option
+                                                    value="claude-4.6-sonnet"
+                                                    className="bg-popover text-popover-foreground"
+                                                >
+                                                    Claude 4.6 Sonnet
+                                                </option>
+                                                <option
+                                                    value="claude-4.7-opus"
+                                                    className="bg-popover text-popover-foreground"
+                                                >
+                                                    Claude 4.7 Opus
+                                                </option>
+                                                <option
+                                                    value="claude-4.5-haiku"
+                                                    className="bg-popover text-popover-foreground"
+                                                >
+                                                    Claude 4.5 Haiku
+                                                </option>
+                                            </>
+                                        )}
+                                    </select>
+                                </div>
+                            </div>
+
                             {/* Messages */}
                             <ScrollArea className="flex-1 p-3" ref={scrollRef}>
                                 {messages.length === 0 ? (
@@ -122,12 +332,9 @@ export function CareerCopilot() {
                                             <Bot className="size-6 text-primary" />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-medium text-foreground">
-                                                ¡Hola! Soy tu Career Copilot
-                                            </p>
+                                            <p className="text-sm font-medium text-foreground">{t("welcome")}</p>
                                             <p className="mt-1 text-xs text-muted-foreground max-w-[220px]">
-                                                Preguntame sobre tu CV, consejos de carrera o cómo prepararte para
-                                                entrevistas.
+                                                {isRecruiter ? t("descriptionRecruiter") : t("descriptionDeveloper")}
                                             </p>
                                         </div>
                                     </div>
@@ -211,7 +418,9 @@ export function CareerCopilot() {
                                         value={input}
                                         onChange={(e) => setInput(e.target.value)}
                                         onKeyDown={handleKeyDown}
-                                        placeholder="Preguntame algo sobre tu carrera..."
+                                        placeholder={
+                                            isRecruiter ? t("placeholderRecruiter") : t("placeholderDeveloper")
+                                        }
                                         className="min-h-0 resize-none text-xs leading-relaxed py-2 max-h-24"
                                         rows={1}
                                         disabled={isLoading}
@@ -231,7 +440,7 @@ export function CareerCopilot() {
                                     </Button>
                                 </form>
                                 <p className="mt-1.5 text-[10px] text-muted-foreground/60 text-center">
-                                    Enter para enviar · Shift+Enter para nueva línea
+                                    {t("keyboardInstructions")}
                                 </p>
                             </div>
                         </>
