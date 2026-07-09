@@ -53,7 +53,7 @@ Cada tarjeta incluye su prioridad (Alta 🔴, Media 🟡, Baja 🟢) y su estado
 | 39  | 7.2     | M7     | Career Copilot Widget                       | Growth        |
 | 40  | 18.1    | M18    | GitHub Schema Extendido (Seniority Signals) | Intelligence  |
 | 41  | 18.2    | M18    | Modos de Entrevista Avanzados               | Intelligence  |
-| 42  | 4.3     | M4     | i18n con next-intl                          | Opcional      |
+| 42  | 4.3 ✅  | M4     | i18n con next-intl                          | Opcional      |
 
 ---
 

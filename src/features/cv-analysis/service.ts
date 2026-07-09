@@ -1,10 +1,10 @@
-import { PDFParse } from "pdf-parse";
 import { ResumeRepository } from "./repository";
 import { CVAnalysisAIService } from "./ai-service";
 
 export class CVAnalysisService {
     static async parsePDF(buffer: Buffer): Promise<string> {
         try {
+            const { PDFParse } = await import("pdf-parse");
             const parser = new PDFParse({ data: buffer });
             const textResult = await parser.getText();
             const rawText = textResult.text || "";

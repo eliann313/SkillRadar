@@ -10,8 +10,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Bot, X, MessageCircle, Send, Loader2, Minimize2 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 
 export function CareerCopilot() {
+    const t = useTranslations("CareerCopilot");
     const { data: session } = useSession();
     const [isOpen, setIsOpen] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
@@ -48,8 +50,10 @@ export function CareerCopilot() {
         }
     };
 
-    // Solo visible para developers autenticados
-    if (!session?.user || session.user.role !== "developer") return null;
+    // Visible para cualquier usuario autenticado
+    if (!session?.user) return null;
+
+    const isRecruiter = session.user.role === "recruiter";
 
     return (
         <>
@@ -58,7 +62,7 @@ export function CareerCopilot() {
                 <button
                     id="career-copilot-open"
                     onClick={() => setIsOpen(true)}
-                    aria-label="Abrir Career Copilot"
+                    aria-label={t("openLabel")}
                     className="fixed bottom-6 right-6 z-50 flex size-14 items-center justify-center rounded-full bg-primary shadow-lg shadow-primary/30 text-primary-foreground transition-all hover:scale-110 hover:shadow-primary/50 active:scale-95"
                 >
                     <MessageCircle className="size-6" />
@@ -85,8 +89,8 @@ export function CareerCopilot() {
                                 <Bot className="size-4 text-primary" />
                             </div>
                             <div>
-                                <p className="text-sm font-semibold text-foreground leading-none">Career Copilot</p>
-                                <p className="text-[10px] text-muted-foreground mt-0.5">Powered by SkillRadar AI</p>
+                                <p className="text-sm font-semibold text-foreground leading-none">{t("title")}</p>
+                                <p className="text-[10px] text-muted-foreground mt-0.5">{t("subtitle")}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-1">
@@ -95,7 +99,7 @@ export function CareerCopilot() {
                                 size="icon"
                                 className="size-7"
                                 onClick={() => setIsMinimized(!isMinimized)}
-                                aria-label={isMinimized ? "Expandir" : "Minimizar"}
+                                aria-label={isMinimized ? t("expandLabel") : t("minimizeLabel")}
                             >
                                 <Minimize2 className="size-3.5" />
                             </Button>
@@ -105,7 +109,7 @@ export function CareerCopilot() {
                                 className="size-7"
                                 id="career-copilot-close"
                                 onClick={() => setIsOpen(false)}
-                                aria-label="Cerrar"
+                                aria-label={t("closeLabel")}
                             >
                                 <X className="size-3.5" />
                             </Button>
@@ -122,12 +126,9 @@ export function CareerCopilot() {
                                             <Bot className="size-6 text-primary" />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-medium text-foreground">
-                                                ¡Hola! Soy tu Career Copilot
-                                            </p>
+                                            <p className="text-sm font-medium text-foreground">{t("welcome")}</p>
                                             <p className="mt-1 text-xs text-muted-foreground max-w-[220px]">
-                                                Preguntame sobre tu CV, consejos de carrera o cómo prepararte para
-                                                entrevistas.
+                                                {isRecruiter ? t("descriptionRecruiter") : t("descriptionDeveloper")}
                                             </p>
                                         </div>
                                     </div>
@@ -211,7 +212,9 @@ export function CareerCopilot() {
                                         value={input}
                                         onChange={(e) => setInput(e.target.value)}
                                         onKeyDown={handleKeyDown}
-                                        placeholder="Preguntame algo sobre tu carrera..."
+                                        placeholder={
+                                            isRecruiter ? t("placeholderRecruiter") : t("placeholderDeveloper")
+                                        }
                                         className="min-h-0 resize-none text-xs leading-relaxed py-2 max-h-24"
                                         rows={1}
                                         disabled={isLoading}
@@ -231,7 +234,7 @@ export function CareerCopilot() {
                                     </Button>
                                 </form>
                                 <p className="mt-1.5 text-[10px] text-muted-foreground/60 text-center">
-                                    Enter para enviar · Shift+Enter para nueva línea
+                                    {t("keyboardInstructions")}
                                 </p>
                             </div>
                         </>

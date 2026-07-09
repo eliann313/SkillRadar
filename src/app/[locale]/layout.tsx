@@ -59,7 +59,7 @@ export default async function RootLayout({
             suppressHydrationWarning
         >
             <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-300">
-                <NextIntlClientProvider messages={messages}>
+                <NextIntlClientProvider locale={locale} messages={messages}>
                     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
                         <SessionProvider>
                             <TooltipProvider delay={300}>{children}</TooltipProvider>
