@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { streamText } from "ai";
 import { AIService } from "@/lib/ai";
+import { isValidProviderAndModel } from "@/lib/ai/models";
 
 export async function POST(req: NextRequest) {
     const session = await auth();
@@ -46,6 +47,9 @@ export async function POST(req: NextRequest) {
 
         // Obtener llaves API del usuario si no es invitado
         let formattedSettings;
+        let preferredProvider = "gemini";
+        let preferredModel = "gemini-2.5-flash";
+
         if (!session.user.isGuest) {
             try {
                 const userSettings = await db.user.findUnique({
@@ -56,6 +60,8 @@ export async function POST(req: NextRequest) {
                         openrouterApiKey: true,
                         openaiApiKey: true,
                         anthropicApiKey: true,
+                        defaultAiProvider: true,
+                        defaultAiModel: true,
                     },
                 });
                 if (userSettings) {
@@ -66,14 +72,25 @@ export async function POST(req: NextRequest) {
                         openaiApiKeyEncrypted: userSettings.openaiApiKey,
                         anthropicApiKeyEncrypted: userSettings.anthropicApiKey,
                     };
+                    if (userSettings.defaultAiProvider) {
+                        preferredProvider = userSettings.defaultAiProvider;
+                    }
+                    if (userSettings.defaultAiModel) {
+                        preferredModel = userSettings.defaultAiModel;
+                    }
                 }
             } catch {
                 // Silently bypass
             }
         }
 
-        const activeProvider = provider || "gemini";
-        const activeModel = model || "gemini-2.5-flash";
+        let activeProvider = preferredProvider;
+        let activeModel = preferredModel;
+
+        if (provider && model && isValidProviderAndModel(provider, model)) {
+            activeProvider = provider;
+            activeModel = model;
+        }
 
         const modelInstance = AIService.getModelInstance(activeProvider, activeModel, formattedSettings);
 

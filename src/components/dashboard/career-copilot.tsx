@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { Bot, X, MessageCircle, Send, Loader2, Minimize2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
+import { getUserApiKeysStatusAction } from "@/app/[locale]/dashboard/settings/actions";
 
 export function CareerCopilot() {
     const t = useTranslations("CareerCopilot");
@@ -22,6 +23,41 @@ export function CareerCopilot() {
 
     const [provider, setProvider] = useState("gemini");
     const [model, setModel] = useState("gemini-2.5-flash");
+    const [providerKeys, setProviderKeys] = useState({
+        gemini: true,
+        groq: true,
+        openrouter: true,
+        openai: false,
+        anthropic: false,
+    });
+
+    // Fetch user key settings and default AI preferences when the chat opens
+    useEffect(() => {
+        if (!isOpen) return;
+        const fetchStatus = async () => {
+            try {
+                const res = await getUserApiKeysStatusAction();
+                if (res && res.success && res.data) {
+                    setProviderKeys({
+                        gemini: true,
+                        groq: true,
+                        openrouter: true,
+                        openai: res.data.hasOpenaiKey,
+                        anthropic: res.data.hasAnthropicKey,
+                    });
+                    if (res.data.defaultAiProvider) {
+                        setProvider(res.data.defaultAiProvider);
+                    }
+                    if (res.data.defaultAiModel) {
+                        setModel(res.data.defaultAiModel);
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching API keys status for Career Copilot:", err);
+            }
+        };
+        void fetchStatus();
+    }, [isOpen]);
 
     const transport = useMemo(() => {
         return new DefaultChatTransport({
@@ -167,15 +203,17 @@ export function CareerCopilot() {
                                         </option>
                                         <option
                                             value="openai"
+                                            disabled={!providerKeys.openai}
                                             className="bg-popover text-popover-foreground font-semibold"
                                         >
-                                            OpenAI
+                                            OpenAI {!providerKeys.openai && "🔒"}
                                         </option>
                                         <option
                                             value="anthropic"
+                                            disabled={!providerKeys.anthropic}
                                             className="bg-popover text-popover-foreground font-semibold"
                                         >
-                                            Anthropic
+                                            Anthropic {!providerKeys.anthropic && "🔒"}
                                         </option>
                                     </select>
                                     <span className="text-muted-foreground/30">|</span>

@@ -184,7 +184,7 @@ export async function getUserApiKeysStatusAction() {
                     hasOpenrouterKey: false,
                     hasOpenaiKey: false,
                     hasAnthropicKey: false,
-                    defaultAiProvider: "google",
+                    defaultAiProvider: "gemini",
                     defaultAiModel: "gemini-2.5-flash",
                     emailNotifications: true,
                     emailNewApplication: true,
