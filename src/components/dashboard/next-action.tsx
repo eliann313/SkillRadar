@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { FileUp, Sparkles, MessageSquare, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 interface NextActionProps {
     type: "upload-cv" | "job-match" | "mock-interview" | string;
@@ -14,6 +15,8 @@ interface NextActionProps {
 }
 
 export function NextAction({ type, title, description, ctaText, ctaLink }: NextActionProps) {
+    const t = useTranslations("Dashboard");
+
     // Seleccionar icono según el tipo
     const getIcon = () => {
         switch (type) {
@@ -51,9 +54,13 @@ export function NextAction({ type, title, description, ctaText, ctaLink }: NextA
                     <div className="size-11 rounded-xl bg-muted/50 flex items-center justify-center">{getIcon()}</div>
                     <div>
                         <CardTitle className="text-base font-bold flex items-center gap-2">
-                            Next Recommended Action
+                            {t("nextRecommendedAction", { default: "Next Recommended Action" })}
                         </CardTitle>
-                        <CardDescription>Siguiente paso para optimizar tu perfil profesional</CardDescription>
+                        <CardDescription>
+                            {t("nextRecommendedActionDesc", {
+                                default: "Siguiente paso para optimizar tu perfil profesional",
+                            })}
+                        </CardDescription>
                     </div>
                 </div>
             </CardHeader>

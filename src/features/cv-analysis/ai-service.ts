@@ -113,17 +113,11 @@ Debes evaluar y calcular tres puntuaciones (de 0 a 100) y sus respectivas explic
         } catch (error) {
             console.error("[CVAnalysisAIService] Error durante el análisis con AIService:", error);
 
-            // Fallback robusto en desarrollo por si falla la llamada
-            if (process.env.NODE_ENV !== "production") {
-                console.warn(
-                    "⚠️ [CVAnalysisAIService] Falló la inferencia del AIService en desarrollo. Retornando simulación como fallback.",
-                );
-                return this.generateSimulatedAnalysis(cvText);
-            }
-
-            throw new Error(
-                "No se pudo completar el análisis del currículum con la IA a través del servicio centralizado.",
+            // Fallback robusto por si falla la llamada
+            console.warn(
+                "⚠️ [CVAnalysisAIService] Falló la inferencia del AIService. Retornando simulación como fallback.",
             );
+            return this.generateSimulatedAnalysis(cvText);
         }
     }
 

@@ -13,6 +13,7 @@ import { startInterviewAction, saveInterviewMessagesAction, finishInterviewActio
 import { cn } from "@/lib/utils";
 import { Send, Bot, User, Sparkles, CheckCircle2, Zap, Award as Trophy, Loader2, Flame, Users } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 function serializeMessages(msgs: UIMessage[]): Array<{ role: string; content: string }> {
     return msgs.map((msg) => {
@@ -31,6 +32,7 @@ function serializeMessages(msgs: UIMessage[]): Array<{ role: string; content: st
 }
 
 export function MockInterviewChat() {
+    const t = useTranslations("MockInterview");
     const [sessionId, setSessionId] = useState<string | null>(null);
     const [isStarting, setIsStarting] = useState(false);
     const [isFinishing, setIsFinishing] = useState(false);
@@ -84,15 +86,16 @@ export function MockInterviewChat() {
             const res = await startInterviewAction();
             if (res.success && res.data) {
                 setSessionId(res.data.id);
-                toast.success("Sesión de entrevista inicializada.");
+                toast.success(t("initSuccess"));
                 // Primer mensaje de bienvenida automático
+                const welcomeMsgText = t("welcomeMessage");
                 const initialMsg: UIMessage = {
                     id: crypto.randomUUID(),
                     role: "assistant" as const,
                     parts: [
                         {
                             type: "text" as const,
-                            text: "¡Hola! Bienvenido a tu simulación de entrevista técnica. Para empezar, cuéntame brevemente sobre tu experiencia general en desarrollo de software y qué tecnologías has dominado recientemente.",
+                            text: welcomeMsgText,
                         },
                     ],
                 };
@@ -100,16 +103,15 @@ export function MockInterviewChat() {
                 await saveInterviewMessagesAction(res.data.id, [
                     {
                         role: initialMsg.role,
-                        content:
-                            "¡Hola! Bienvenido a tu simulación de entrevista técnica. Para empezar, cuéntame brevemente sobre tu experiencia general en desarrollo de software y qué tecnologías has dominado recientemente.",
+                        content: welcomeMsgText,
                     },
                 ]);
             } else {
-                toast.error(res.error || "No se pudo iniciar la entrevista.");
+                toast.error(res.error || t("initError"));
             }
         } catch (err) {
             console.error(err);
-            toast.error("Ocurrió un error inesperado al iniciar.");
+            toast.error(t("unexpectedError"));
         } finally {
             setIsStarting(false);
         }
@@ -122,7 +124,7 @@ export function MockInterviewChat() {
         const promise = finishInterviewAction(sessionId, interviewMode);
 
         toast.promise(promise, {
-            loading: "Generando tu reporte cualitativo y calificaciones...",
+            loading: t("qualitativeProgress"),
             success: (res: {
                 success: boolean;
                 data?: {
@@ -139,10 +141,10 @@ export function MockInterviewChat() {
                 if (res.success && res.data) {
                     setDebrief(res.data);
                     setIsFinishing(false);
-                    return "¡Reporte compilado con éxito!";
+                    return t("compileSuccess");
                 } else {
                     setIsFinishing(false);
-                    throw new Error(res.error || "No se pudo compilar el debrief.");
+                    throw new Error(res.error || t("compileError"));
                 }
             },
             error: (err: Error) => {
@@ -170,31 +172,35 @@ export function MockInterviewChat() {
                         <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-xl bg-primary/10 glow-emerald">
                             <Trophy className="size-8 text-primary" />
                         </div>
-                        <CardTitle className="text-2xl font-black">Resultado de la Entrevista</CardTitle>
-                        <CardDescription>Calificaciones estructuradas por el motor de IA de SkillRadar</CardDescription>
+                        <CardTitle className="text-2xl font-black">{t("resultsTitle")}</CardTitle>
+                        <CardDescription>{t("resultsDesc")}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-8">
                         {/* Scores Grid */}
                         <div className="grid gap-4 sm:grid-cols-4">
                             <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 text-center">
-                                <p className="text-xs font-semibold text-muted-foreground uppercase">Score Global</p>
+                                <p className="text-xs font-semibold text-muted-foreground uppercase">
+                                    {t("globalScore")}
+                                </p>
                                 <p className="text-3xl font-black text-primary mt-1">{debrief.score}%</p>
                             </div>
                             <div className="p-4 rounded-xl border border-border/50 bg-card/30 text-center">
                                 <p className="text-xs font-semibold text-muted-foreground uppercase">
-                                    Conocimiento Técnico
+                                    {t("techKnowledge")}
                                 </p>
                                 <p className="text-3xl font-black text-foreground mt-1">{debrief.technicalScore}%</p>
                             </div>
                             <div className="p-4 rounded-xl border border-border/50 bg-card/30 text-center">
-                                <p className="text-xs font-semibold text-muted-foreground uppercase">Comunicación</p>
+                                <p className="text-xs font-semibold text-muted-foreground uppercase">
+                                    {t("communication")}
+                                </p>
                                 <p className="text-3xl font-black text-foreground mt-1">
                                     {debrief.communicationScore}%
                                 </p>
                             </div>
                             <div className="p-4 rounded-xl border border-border/50 bg-card/30 text-center">
                                 <p className="text-xs font-semibold text-muted-foreground uppercase">
-                                    Arquitectura & Test
+                                    {t("architectureTest")}
                                 </p>
                                 <p className="text-3xl font-black text-foreground mt-1">{debrief.architectureScore}%</p>
                             </div>
@@ -206,7 +212,7 @@ export function MockInterviewChat() {
                                 {debrief.structuredThinkingScore !== null && (
                                     <div className="p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/5 text-center">
                                         <p className="text-xs font-semibold text-muted-foreground uppercase">
-                                            🤝 Pensamiento Estructurado
+                                            {t("structuredThinking")}
                                         </p>
                                         <p className="text-2xl font-black text-indigo-500 mt-1">
                                             {debrief.structuredThinkingScore}%
@@ -216,7 +222,7 @@ export function MockInterviewChat() {
                                 {debrief.pressureHandlingScore !== null && (
                                     <div className="p-4 rounded-xl border border-orange-500/20 bg-orange-500/5 text-center">
                                         <p className="text-xs font-semibold text-muted-foreground uppercase">
-                                            ⚡ Manejo de Presión
+                                            {t("pressureHandling")}
                                         </p>
                                         <p className="text-2xl font-black text-orange-500 mt-1">
                                             {debrief.pressureHandlingScore}%
@@ -230,7 +236,7 @@ export function MockInterviewChat() {
                         <div className="p-4 rounded-xl bg-muted/30 border border-border/40">
                             <h4 className="font-bold text-sm text-foreground flex items-center gap-2 mb-2">
                                 <Zap className="size-4 text-primary" />
-                                Evaluación General
+                                {t("generalEvaluation")}
                             </h4>
                             <p className="text-xs text-muted-foreground leading-relaxed">{debrief.feedback}</p>
                         </div>
@@ -240,7 +246,7 @@ export function MockInterviewChat() {
                             <div>
                                 <h4 className="font-bold text-sm text-emerald-500 mb-2 flex items-center gap-2">
                                     <CheckCircle2 className="size-4" />
-                                    Fortalezas
+                                    {t("strengths")}
                                 </h4>
                                 <ul className="space-y-1.5">
                                     {debrief.strengths.map((str, idx) => (
@@ -257,7 +263,7 @@ export function MockInterviewChat() {
                             <div>
                                 <h4 className="font-bold text-sm text-primary mb-2 flex items-center gap-2">
                                     <Sparkles className="size-4" />
-                                    Puntos de Mejora
+                                    {t("improvements")}
                                 </h4>
                                 <ul className="space-y-1.5">
                                     {debrief.improvements.map((imp, idx) => (
@@ -280,9 +286,9 @@ export function MockInterviewChat() {
                                     setSessionId(null);
                                     setMessages([]);
                                 }}
-                                className="gap-2"
+                                className="gap-2 cursor-pointer"
                             >
-                                Realizar Nueva Entrevista
+                                {t("retryBtn")}
                             </Button>
                         </div>
                     </CardContent>
@@ -297,13 +303,18 @@ export function MockInterviewChat() {
                 <div>
                     <CardTitle className="flex items-center gap-2">
                         <Bot className="size-5 text-primary" />
-                        Simulador de Entrevista
+                        {t("title")}
                     </CardTitle>
-                    <CardDescription>Práctica interactiva adaptada a tu perfil y CV</CardDescription>
+                    <CardDescription>{t("description")}</CardDescription>
                 </div>
                 {sessionId && !isFinishing && (
-                    <Button variant="destructive" size="sm" onClick={() => void handleFinish()}>
-                        Finalizar Entrevista
+                    <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => void handleFinish()}
+                        className="cursor-pointer"
+                    >
+                        {t("finishBtn")}
                     </Button>
                 )}
             </CardHeader>
@@ -317,10 +328,8 @@ export function MockInterviewChat() {
                                 <Sparkles className="size-8 text-primary animate-pulse" />
                             </div>
                             <div className="text-center">
-                                <h3 className="font-semibold text-foreground">¿Listo para practicar?</h3>
-                                <p className="mt-1 text-sm text-muted-foreground max-w-xs">
-                                    Selecciona el modo y comenzá tu simulación de entrevista.
-                                </p>
+                                <h3 className="font-semibold text-foreground">{t("readyQuestion")}</h3>
+                                <p className="mt-1 text-sm text-muted-foreground max-w-xs">{t("readyDescription")}</p>
                             </div>
 
                             {/* 18.2: Mode Selector */}
@@ -329,22 +338,22 @@ export function MockInterviewChat() {
                                     [
                                         {
                                             mode: "standard" as const,
-                                            label: "Standard",
-                                            description: "Entrevista técnica clásica",
+                                            label: t("modeStandardLabel"),
+                                            description: t("modeStandardDesc"),
                                             icon: <Bot className="size-5 text-primary" />,
                                             color: "border-primary/30 bg-primary/5",
                                         },
                                         {
                                             mode: "pressure" as const,
-                                            label: "Pressure",
-                                            description: "Alta presión y follow-ups",
+                                            label: t("modePressureLabel"),
+                                            description: t("modePressureDesc"),
                                             icon: <Flame className="size-5 text-orange-500" />,
                                             color: "border-orange-500/30 bg-orange-500/5",
                                         },
                                         {
                                             mode: "recruiter_simulation" as const,
-                                            label: "Recruiter",
-                                            description: "Foco en comunicación",
+                                            label: t("modeRecruiterLabel"),
+                                            description: t("modeRecruiterDesc"),
                                             icon: <Users className="size-5 text-indigo-500" />,
                                             color: "border-indigo-500/30 bg-indigo-500/5",
                                         },
@@ -355,7 +364,7 @@ export function MockInterviewChat() {
                                         id={`interview-mode-${mode}`}
                                         onClick={() => setInterviewMode(mode)}
                                         className={cn(
-                                            "flex flex-col items-center gap-2 rounded-xl border p-3 text-center transition-all",
+                                            "flex flex-col items-center gap-2 rounded-xl border p-3 text-center transition-all cursor-pointer",
                                             color,
                                             interviewMode === mode
                                                 ? "ring-2 ring-primary/50 ring-offset-1 ring-offset-background"
@@ -371,16 +380,20 @@ export function MockInterviewChat() {
                                 ))}
                             </div>
 
-                            <Button onClick={() => void startInterview()} className="gap-2" disabled={isStarting}>
+                            <Button
+                                onClick={() => void startInterview()}
+                                className="gap-2 cursor-pointer"
+                                disabled={isStarting}
+                            >
                                 {isStarting ? (
                                     <>
                                         <Loader2 className="size-4 animate-spin" />
-                                        Iniciando...
+                                        {t("starting")}
                                     </>
                                 ) : (
                                     <>
                                         <Bot className="size-4" />
-                                        Comenzar Entrevista
+                                        {t("startBtn")}
                                     </>
                                 )}
                             </Button>
@@ -461,7 +474,7 @@ export function MockInterviewChat() {
                         <div className="flex gap-3">
                             <Textarea
                                 ref={inputRef}
-                                placeholder="Escribe tu respuesta..."
+                                placeholder={t("writePlaceholder")}
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={handleKeyDown}
@@ -469,14 +482,17 @@ export function MockInterviewChat() {
                                 className="min-h-[44px] max-h-32 resize-none"
                                 rows={1}
                             />
-                            <Button size="icon" type="submit" disabled={!input.trim() || isLoading || isFinishing}>
+                            <Button
+                                size="icon"
+                                type="submit"
+                                disabled={!input.trim() || isLoading || isFinishing}
+                                className="cursor-pointer"
+                            >
                                 <Send className="size-4" />
                                 <span className="sr-only">Enviar mensaje</span>
                             </Button>
                         </div>
-                        <p className="mt-2 text-xs text-muted-foreground">
-                            Presiona Enter para enviar, Shift+Enter para salto de línea
-                        </p>
+                        <p className="mt-2 text-xs text-muted-foreground">{t("sendInstruction")}</p>
                     </form>
                 )}
             </CardContent>

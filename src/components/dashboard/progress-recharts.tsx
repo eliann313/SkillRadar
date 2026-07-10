@@ -28,14 +28,14 @@ export function ProgressRecharts({ data }: { data: ScorePoint[] }) {
                 <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                         <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                            <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                         </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-border/20" vertical={false} />
                     <XAxis
                         dataKey="date"
-                        stroke="hsl(var(--muted-foreground))"
+                        stroke="var(--muted-foreground)"
                         fontSize={11}
                         tickLine={false}
                         axisLine={false}
@@ -43,7 +43,7 @@ export function ProgressRecharts({ data }: { data: ScorePoint[] }) {
                     />
                     <YAxis
                         domain={[0, 100]}
-                        stroke="hsl(var(--muted-foreground))"
+                        stroke="var(--muted-foreground)"
                         fontSize={11}
                         tickLine={false}
                         axisLine={false}
@@ -51,10 +51,10 @@ export function ProgressRecharts({ data }: { data: ScorePoint[] }) {
                     />
                     <Tooltip
                         contentStyle={{
-                            backgroundColor: "hsl(var(--popover))",
-                            borderColor: "hsl(var(--border))",
+                            backgroundColor: "var(--popover)",
+                            borderColor: "var(--border)",
                             borderRadius: "var(--radius)",
-                            color: "hsl(var(--popover-foreground))",
+                            color: "var(--popover-foreground)",
                             fontSize: "12px",
                             boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
                         }}
@@ -64,7 +64,7 @@ export function ProgressRecharts({ data }: { data: ScorePoint[] }) {
                         type="monotone"
                         dataKey="score"
                         name="Score ATS"
-                        stroke="hsl(var(--primary))"
+                        stroke="var(--primary)"
                         fillOpacity={1}
                         fill="url(#colorScore)"
                         strokeWidth={2.5}

@@ -66,12 +66,16 @@ export const PROVIDER_MODELS: Record<string, Array<{ id: string; name: string }>
     ],
     openrouter: [
         {
-            id: "meta-llama/llama-3.1-70b-instruct:free",
-            name: "Llama 3.1 70B Instruct (Gratuito)",
+            id: "openrouter/free",
+            name: "OpenRouter Free Router (Selecciona el mejor modelo gratuito activo)",
         },
         {
-            id: "google/gemini-2.5-flash:free",
-            name: "Gemini 2.5 Flash Free (Gratuito)",
+            id: "google/gemini-2.5-flash",
+            name: "Gemini 2.5 Flash (Pago)",
+        },
+        {
+            id: "meta-llama/llama-3.1-70b-instruct",
+            name: "Llama 3.1 70B Instruct (Pago)",
         },
         { id: "custom", name: "➕ Ingresar ID personalizado..." },
     ],

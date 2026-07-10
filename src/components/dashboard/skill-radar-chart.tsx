@@ -130,16 +130,11 @@ export function SkillRadarChart({ keywords }: { keywords: string[] }) {
             <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
                     <PolarGrid className="stroke-border/30" />
-                    <PolarAngleAxis
-                        dataKey="subject"
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
-                        tickSize={10}
-                    />
+                    <PolarAngleAxis dataKey="subject" stroke="var(--muted-foreground)" fontSize={12} tickSize={10} />
                     <PolarRadiusAxis
                         angle={30}
                         domain={[0, 100]}
-                        stroke="hsl(var(--muted-foreground))"
+                        stroke="var(--muted-foreground)"
                         fontSize={9}
                         tick={false}
                         axisLine={false}
@@ -147,8 +142,8 @@ export function SkillRadarChart({ keywords }: { keywords: string[] }) {
                     <Radar
                         name="Skills"
                         dataKey="A"
-                        stroke="hsl(var(--primary))"
-                        fill="hsl(var(--primary))"
+                        stroke="var(--primary)"
+                        fill="var(--primary)"
                         fillOpacity={0.25}
                         strokeWidth={2}
                     />

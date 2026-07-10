@@ -256,6 +256,10 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
                 justification={analysis.explainability?.justification}
                 evidenceFound={analysis.explainability?.evidenceFound}
                 missingEvidence={analysis.explainability?.missingEvidence}
+                technicalScore={analysis.technicalScore}
+                technicalExplanation={analysis.technicalExplanation}
+                credibilityScore={analysis.credibilityScore}
+                credibilityExplanation={analysis.credibilityExplanation}
             />
         </div>
     );

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface KanbanBoardProps {
     initialApplications: JobApplication[];
@@ -29,13 +30,14 @@ interface KanbanBoardProps {
 }
 
 const COLUMNS = [
-    { id: "to_apply", title: "To Apply", color: "border-t-muted-foreground/30 bg-muted/5" },
-    { id: "applied", title: "Applied", color: "border-t-primary/40 bg-primary/0" },
-    { id: "interviewing", title: "Interviewing", color: "border-t-warning/40 bg-warning/0" },
-    { id: "offer", title: "Offer", color: "border-t-emerald/40 bg-emerald/0" },
+    { id: "to_apply", color: "border-t-muted-foreground/30 bg-muted/5" },
+    { id: "applied", color: "border-t-primary/40 bg-primary/0" },
+    { id: "interviewing", color: "border-t-warning/40 bg-warning/0" },
+    { id: "offer", color: "border-t-emerald/40 bg-emerald/0" },
 ];
 
 export function KanbanBoard({ initialApplications, onCreate, onUpdateStatus, onDelete }: KanbanBoardProps) {
+    const t = useTranslations("JobTracker");
     const [apps, setApps] = useState<JobApplication[]>(initialApplications);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [activeColumn, setActiveColumn] = useState<string>("to_apply");
@@ -67,10 +69,10 @@ export function KanbanBoard({ initialApplications, onCreate, onUpdateStatus, onD
 
         const res = await onUpdateStatus(id, status);
         if (!res.success) {
-            toast.error(res.error || "No se pudo mover la postulación");
+            toast.error(res.error || t("moveError"));
             setApps(originalApps); // Rollback
         } else {
-            toast.success(`Postulación movida a ${COLUMNS.find((c) => c.id === status)?.title}`);
+            toast.success(t("moveSuccess", { column: t(status) }));
         }
         setDraggedId(null);
     };
@@ -78,7 +80,7 @@ export function KanbanBoard({ initialApplications, onCreate, onUpdateStatus, onD
     const handleCreateApp = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newApp.title.trim() || !newApp.company.trim()) {
-            toast.error("Por favor, completa los campos requeridos");
+            toast.error(t("requiredFieldsError"));
             return;
         }
 
@@ -92,7 +94,7 @@ export function KanbanBoard({ initialApplications, onCreate, onUpdateStatus, onD
 
         if (res.success) {
             // Re-fetch or add directly (since Server Actions revalidate, we can just append if returned, or we rely on Next.js page refresh)
-            toast.success("Postulación agregada exitosamente");
+            toast.success(t("createSuccess"));
             setIsAddDialogOpen(false);
             setNewApp({ title: "", company: "", url: "" });
 
@@ -100,7 +102,7 @@ export function KanbanBoard({ initialApplications, onCreate, onUpdateStatus, onD
             // Para simplificar, recargamos la página o actualizamos el estado si sabemos que fue exitoso
             window.location.reload();
         } else {
-            toast.error(res.error || "Error al crear la postulación");
+            toast.error(res.error || t("createError"));
         }
         setIsSubmitting(false);
     };
@@ -111,10 +113,10 @@ export function KanbanBoard({ initialApplications, onCreate, onUpdateStatus, onD
 
         const res = await onDelete(id);
         if (!res.success) {
-            toast.error(res.error || "No se pudo eliminar la postulación");
+            toast.error(res.error || t("deleteError"));
             setApps(originalApps); // Rollback
         } else {
-            toast.success("Postulación eliminada");
+            toast.success(t("deleteSuccess"));
         }
     };
 
@@ -122,20 +124,18 @@ export function KanbanBoard({ initialApplications, onCreate, onUpdateStatus, onD
         <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-xl font-semibold text-foreground">Tablero Kanban de Búsqueda</h2>
-                    <p className="text-xs text-muted-foreground">
-                        Arrastra y suelta tus postulaciones para gestionar sus etapas
-                    </p>
+                    <h2 className="text-xl font-semibold text-foreground">{t("title")}</h2>
+                    <p className="text-xs text-muted-foreground">{t("description")}</p>
                 </div>
                 <Button
                     onClick={() => {
                         setActiveColumn("to_apply");
                         setIsAddDialogOpen(true);
                     }}
-                    className="gap-1.5"
+                    className="gap-1.5 cursor-pointer"
                 >
                     <Plus className="size-4" />
-                    Nueva Postulación
+                    {t("newApplication")}
                 </Button>
             </div>
 
@@ -157,7 +157,7 @@ export function KanbanBoard({ initialApplications, onCreate, onUpdateStatus, onD
                         >
                             <div className="flex items-center justify-between mb-3 px-1">
                                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                    {column.title}
+                                    {t(column.id)}
                                     <span className="flex size-5 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
                                         {columnApps.length}
                                     </span>
@@ -165,21 +165,21 @@ export function KanbanBoard({ initialApplications, onCreate, onUpdateStatus, onD
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                    className="h-6 w-6 text-muted-foreground hover:text-foreground cursor-pointer"
                                     onClick={() => {
                                         setActiveColumn(column.id);
                                         setIsAddDialogOpen(true);
                                     }}
                                 >
                                     <Plus className="size-3.5" />
-                                    <span className="sr-only">Añadir a {column.title}</span>
+                                    <span className="sr-only">{t("addAppTo", { column: t(column.id) })}</span>
                                 </Button>
                             </div>
 
                             <div className="flex flex-col gap-2.5 flex-1 overflow-y-auto max-h-[600px] pr-1">
                                 {columnApps.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-12 px-4 rounded-lg border border-dashed border-border/60 bg-muted/5 flex-1 text-center">
-                                        <p className="text-[11px] text-muted-foreground">No hay ofertas</p>
+                                        <p className="text-[11px] text-muted-foreground">{t("emptyColumn")}</p>
                                     </div>
                                 ) : (
                                     columnApps.map((app) => (
@@ -203,11 +203,11 @@ export function KanbanBoard({ initialApplications, onCreate, onUpdateStatus, onD
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                                                        className="h-7 w-7 text-destructive hover:bg-destructive/10 cursor-pointer"
                                                         onClick={() => void handleDeleteApp(app.id)}
                                                     >
                                                         <Trash2 className="size-3.5" />
-                                                        <span className="sr-only">Eliminar</span>
+                                                        <span className="sr-only">{t("deleteApp")}</span>
                                                     </Button>
                                                 </div>
                                             </div>
@@ -221,7 +221,7 @@ export function KanbanBoard({ initialApplications, onCreate, onUpdateStatus, onD
                                                         className="flex items-center gap-1 hover:underline"
                                                     >
                                                         <ExternalLink className="size-3" />
-                                                        Ver Oferta
+                                                        {t("viewOffer")}
                                                     </a>
                                                     <span className="text-muted-foreground/50 text-[9px] font-mono select-none">
                                                         #{app.id.slice(-4).toUpperCase()}
@@ -241,15 +241,13 @@ export function KanbanBoard({ initialApplications, onCreate, onUpdateStatus, onD
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>Nueva Postulación</DialogTitle>
-                        <DialogDescription>
-                            Añade los detalles de la oferta de empleo para realizar su seguimiento.
-                        </DialogDescription>
+                        <DialogTitle>{t("newApplication")}</DialogTitle>
+                        <DialogDescription>{t("addAppDesc")}</DialogDescription>
                     </DialogHeader>
                     <form onSubmit={(e) => void handleCreateApp(e)} className="space-y-4 py-2">
                         <div className="space-y-1.5">
                             <label htmlFor="title" className="text-xs font-semibold text-foreground">
-                                Cargo/Rol *
+                                {t("roleLabel")}
                             </label>
                             <Input
                                 id="title"
@@ -261,7 +259,7 @@ export function KanbanBoard({ initialApplications, onCreate, onUpdateStatus, onD
                         </div>
                         <div className="space-y-1.5">
                             <label htmlFor="company" className="text-xs font-semibold text-foreground">
-                                Empresa *
+                                {t("companyLabel")}
                             </label>
                             <Input
                                 id="company"
@@ -273,7 +271,7 @@ export function KanbanBoard({ initialApplications, onCreate, onUpdateStatus, onD
                         </div>
                         <div className="space-y-1.5">
                             <label htmlFor="url" className="text-xs font-semibold text-foreground">
-                                URL de la Oferta (Opcional)
+                                {t("urlLabel")}
                             </label>
                             <Input
                                 id="url"
@@ -289,17 +287,18 @@ export function KanbanBoard({ initialApplications, onCreate, onUpdateStatus, onD
                                 variant="outline"
                                 onClick={() => setIsAddDialogOpen(false)}
                                 disabled={isSubmitting}
+                                className="cursor-pointer"
                             >
-                                Cancelar
+                                {t("cancel")}
                             </Button>
-                            <Button type="submit" disabled={isSubmitting}>
+                            <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
                                 {isSubmitting ? (
                                     <>
                                         <Loader2 className="mr-2 size-4 animate-spin" />
-                                        Guardando...
+                                        {t("saving")}
                                     </>
                                 ) : (
-                                    "Agregar"
+                                    t("add")
                                 )}
                             </Button>
                         </DialogFooter>

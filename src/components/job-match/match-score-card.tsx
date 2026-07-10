@@ -11,12 +11,14 @@ import { Button } from "@/components/ui/button";
 import { ExplainabilityPanel } from "@/components/explainability-panel";
 import { generateSmartPitchAction } from "@/features/job-match/actions";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 interface MatchScoreCardProps {
     match: JobMatch;
 }
 
 export function MatchScoreCard({ match }: MatchScoreCardProps) {
+    const t = useTranslations("JobMatch");
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [pitch, setPitch] = useState<string | null>(null);
     const [isGeneratingPitch, setIsGeneratingPitch] = useState(false);
@@ -28,13 +30,13 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
             const res = await generateSmartPitchAction(match.id);
             if (res.success) {
                 setPitch(res.data);
-                toast.success("¡Pitch de Valor generado con éxito!");
+                toast.success(t("pitchSuccess"));
             } else {
                 toast.error(res.error);
             }
         } catch (error) {
             console.error(error);
-            toast.error("Ocurrió un error al generar el pitch");
+            toast.error(t("pitchError"));
         } finally {
             setIsGeneratingPitch(false);
         }
@@ -45,11 +47,11 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
         try {
             await navigator.clipboard.writeText(pitch);
             setIsCopied(true);
-            toast.success("Copiado al portapapeles");
+            toast.success(t("copiedSuccess"));
             setTimeout(() => setIsCopied(false), 2000);
         } catch (error) {
             console.error(error);
-            toast.error("No se pudo copiar");
+            toast.error(t("copyError"));
         }
     };
 
@@ -61,10 +63,10 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
     };
 
     const getScoreLabel = (score: number) => {
-        if (score >= 80) return "Excellent Match";
-        if (score >= 60) return "Good Match";
-        if (score >= 40) return "Partial Match";
-        return "Low Match";
+        if (score >= 80) return t("excellentMatch");
+        if (score >= 60) return t("goodMatch");
+        if (score >= 40) return t("partialMatch");
+        return t("lowMatch");
     };
 
     const getProgressColor = (score: number) => {
@@ -81,11 +83,11 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                     <div>
                         <CardTitle className="flex items-center gap-2">
                             <Target className="size-5 text-primary" />
-                            Match Results
+                            {t("matchResults")}
                         </CardTitle>
                         <CardDescription className="mt-1">
                             {match.jobTitle}
-                            {match.company && ` at ${match.company}`}
+                            {match.company && ` - ${match.company}`}
                         </CardDescription>
                     </div>
                     <div className="flex flex-col items-end gap-1">
@@ -97,10 +99,10 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                             variant="ghost"
                             size="sm"
                             onClick={() => setIsPanelOpen(true)}
-                            className="h-7 px-2 mt-1 gap-1 text-[11px] text-primary hover:bg-primary/10 hover:text-primary"
+                            className="h-7 px-2 mt-1 gap-1 text-[11px] text-primary hover:bg-primary/10 hover:text-primary cursor-pointer"
                         >
                             <Eye className="size-3" />
-                            Ver Razonamiento
+                            {t("reasoningBtn", { default: "Ver Razonamiento" })}
                         </Button>
                     </div>
                 </div>
@@ -109,7 +111,7 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                 {/* Progress bar */}
                 <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Compatibility Score</span>
+                        <span className="text-muted-foreground">{t("compatibilityScore")}</span>
                         <span className="font-medium">{match.matchScore}/100</span>
                     </div>
                     <div className="relative h-3 overflow-hidden rounded-full bg-muted">
@@ -131,9 +133,9 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                                 <Check className="size-4 text-emerald" />
                             </div>
                             <div>
-                                <p className="font-medium text-foreground">Aligned Skills</p>
+                                <p className="font-medium text-foreground">{t("alignedSkills")}</p>
                                 <p className="text-xs text-muted-foreground">
-                                    {match.alignedSkills.length} skills match
+                                    {t("skillsMatchCount", { count: match.alignedSkills.length })}
                                 </p>
                             </div>
                         </div>
@@ -153,9 +155,9 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                                 <X className="size-4 text-destructive" />
                             </div>
                             <div>
-                                <p className="font-medium text-foreground">Skill Gaps</p>
+                                <p className="font-medium text-foreground">{t("skillGaps")}</p>
                                 <p className="text-xs text-muted-foreground">
-                                    {match.missingSkills.length} skills to learn
+                                    {t("skillsToLearnCount", { count: match.missingSkills.length })}
                                 </p>
                             </div>
                         </div>
@@ -177,10 +179,9 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                         <>
                             <TrendingUp className="size-5 shrink-0 text-emerald" />
                             <div>
-                                <p className="font-medium text-foreground">Strong Candidate</p>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    Your profile aligns well with this position. Consider applying and highlighting your{" "}
-                                    {match.alignedSkills.slice(0, 3).join(", ")} experience.
+                                <p className="font-medium text-foreground">{t("strongCandidate")}</p>
+                                <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                                    {t("strongCandidateDesc", { skills: match.alignedSkills.slice(0, 3).join(", ") })}
                                 </p>
                             </div>
                         </>
@@ -188,10 +189,11 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                         <>
                             <AlertCircle className="size-5 shrink-0 text-warning" />
                             <div>
-                                <p className="font-medium text-foreground">Consider Upskilling</p>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    Focus on learning {match.missingSkills.slice(0, 2).join(" and ")} to improve your
-                                    match score for similar positions.
+                                <p className="font-medium text-foreground">{t("upskillingCandidate")}</p>
+                                <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                                    {t("upskillingCandidateDesc", {
+                                        skills: match.missingSkills.slice(0, 2).join(t("and", { default: " and " })),
+                                    })}
                                 </p>
                             </div>
                         </>
@@ -205,7 +207,7 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                         <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-2">
                                 <Sparkles className="size-5 text-primary animate-pulse" />
-                                <p className="font-semibold text-foreground">AI Action Steps</p>
+                                <p className="font-semibold text-foreground">{t("aiActionSteps")}</p>
                             </div>
                             <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted-foreground">
                                 {match.recommendations.map((rec, idx) => (
@@ -216,14 +218,16 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                     </>
                 )}
 
-                {/* Tu Ruta de Crecimiento / Action Plan (Tarea 11.2) */}
+                {/* Tu Ruta de Crecimiento / Action Plan */}
                 {match.actionPlan && match.actionPlan.length > 0 && (
                     <>
                         <Separator />
                         <div className="flex flex-col gap-4">
                             <div className="flex items-center gap-2">
                                 <TrendingUp className="size-5 text-emerald" />
-                                <h3 className="font-semibold text-foreground">Tu Ruta de Crecimiento (Action Plan)</h3>
+                                <h3 className="font-semibold text-foreground">
+                                    {t("growthPath", { default: "Tu Ruta de Crecimiento (Action Plan)" })}
+                                </h3>
                             </div>
                             <div className="grid gap-4 sm:grid-cols-2">
                                 {match.actionPlan.map((plan, idx) => (
@@ -254,31 +258,29 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-2">
                         <Sparkles className="size-5 text-primary" />
-                        <h3 className="font-semibold text-foreground">Smart Pitch / Carta de Presentación</h3>
+                        <h3 className="font-semibold text-foreground">{t("smartPitchTitle")}</h3>
                     </div>
 
                     {!pitch ? (
                         <div className="rounded-lg border border-dashed border-border/80 bg-muted/10 p-6 text-center flex flex-col items-center gap-3">
-                            <p className="text-xs text-muted-foreground max-w-md">
-                                Genera un pitch de presentación personalizado y honesto para esta oferta. Enfocado en tu
-                                valor inmediato y tus brechas.
-                            </p>
+                            <p className="text-xs text-muted-foreground max-w-md">{t("smartPitchDesc")}</p>
                             <Button
                                 onClick={() => {
                                     void handleGeneratePitch();
                                 }}
                                 disabled={isGeneratingPitch}
                                 size="sm"
+                                className="cursor-pointer"
                             >
                                 {isGeneratingPitch ? (
                                     <>
                                         <Loader2 className="mr-2 size-3.5 animate-spin" />
-                                        Redactando Pitch...
+                                        {t("generatingPitch")}
                                     </>
                                 ) : (
                                     <>
                                         <Sparkles className="mr-1.5 size-3.5" />
-                                        Generar Pitch de Valor
+                                        {t("generatePitchBtn")}
                                     </>
                                 )}
                             </Button>
@@ -300,12 +302,12 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                                         void handleGeneratePitch();
                                     }}
                                     disabled={isGeneratingPitch}
-                                    className="h-8 text-[11px]"
+                                    className="h-8 text-[11px] cursor-pointer"
                                 >
                                     {isGeneratingPitch ? (
                                         <Loader2 className="size-3 animate-spin" />
                                     ) : (
-                                        "Volver a Generar"
+                                        t("regenerateBtn")
                                     )}
                                 </Button>
                                 <Button
@@ -313,10 +315,10 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                                     onClick={() => {
                                         void handleCopy();
                                     }}
-                                    className="h-8 text-[11px] gap-1"
+                                    className="h-8 text-[11px] gap-1 cursor-pointer"
                                 >
                                     {isCopied ? <Check className="size-3" /> : <Copy className="size-3" />}
-                                    {isCopied ? "Copiado" : "Copiar"}
+                                    {isCopied ? t("copiedBtn") : t("copyBtn")}
                                 </Button>
                             </div>
                         </div>
@@ -327,7 +329,7 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
             <ExplainabilityPanel
                 isOpen={isPanelOpen}
                 onOpenChange={setIsPanelOpen}
-                title="Explicabilidad de Job Match"
+                title={t("atsExplicability")}
                 score={match.matchScore}
                 justification={match.explainability?.justification}
                 evidenceFound={match.explainability?.evidenceFound}
