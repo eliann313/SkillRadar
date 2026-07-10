@@ -2,6 +2,10 @@ import { z } from "zod";
 
 export const atsAnalysisSchema = z.object({
     atsScore: z.number().min(0).max(100),
+    technicalScore: z.number().min(0).max(100),
+    credibilityScore: z.number().min(0).max(100),
+    credibilityExplanation: z.string(),
+    technicalExplanation: z.string(),
     keywords: z.array(z.string()),
     missingKeywords: z.array(z.string()),
     formatIssues: z.array(z.string()),

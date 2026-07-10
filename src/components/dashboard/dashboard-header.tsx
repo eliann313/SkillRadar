@@ -1,20 +1,23 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { useTranslations, useLocale } from "next-intl";
 
 export function DashboardHeader() {
     const { data: session } = useSession();
     const user = session?.user;
+    const t = useTranslations("DashboardHeader");
+    const locale = useLocale();
 
     const getGreeting = () => {
         const hour = new Date().getHours();
-        if (hour < 12) return "Good morning";
-        if (hour < 18) return "Good afternoon";
-        return "Good evening";
+        if (hour < 12) return t("greetingMorning");
+        if (hour < 18) return t("greetingAfternoon");
+        return t("greetingEvening");
     };
 
     const formatDate = () => {
-        return new Date().toLocaleDateString("en-US", {
+        return new Date().toLocaleDateString(locale === "es" ? "es-ES" : "en-US", {
             weekday: "long",
             year: "numeric",
             month: "long",

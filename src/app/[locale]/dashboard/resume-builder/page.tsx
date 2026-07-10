@@ -4,24 +4,23 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Sparkles, Plus, Printer, Save, Mail, Phone, Globe, X } from "lucide-react";
 import { toast } from "sonner";
-import { Sparkles, Plus, Trash2, Printer, Save, Globe, Mail, Phone } from "lucide-react";
-import {
-    analyzeImpactVerbsAction,
-    saveResumeDataAction,
-    type ImpactVerbAnalysis,
-} from "@/features/resume-builder/actions";
+import { analyzeImpactVerbsAction, saveResumeDataAction } from "@/features/resume-builder/actions";
+import { useTranslations } from "next-intl";
 
-const GithubIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-        <path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z" />
+// Lucide Icon Mocks because simple svg icons are cleaner for PDF exports
+const GithubIcon = () => (
+    <svg className="size-3" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
     </svg>
 );
 
-const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+const LinkedinIcon = () => (
+    <svg className="size-3" fill="currentColor" viewBox="0 0 24 24">
         <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
     </svg>
 );
@@ -34,6 +33,20 @@ interface ExperienceItem {
     description: string;
 }
 
+interface ProjectItem {
+    id: string;
+    name: string;
+    role: string;
+    dates: string;
+    description: string;
+}
+
+interface LanguageItem {
+    id: string;
+    name: string;
+    level: string;
+}
+
 interface EducationItem {
     id: string;
     institution: string;
@@ -42,7 +55,24 @@ interface EducationItem {
     description: string;
 }
 
+interface ImpactVerbSuggestion {
+    original: string;
+    suggestion: string;
+    reason: string;
+}
+
+interface ImpactVerbAnalysis {
+    impactScore: number;
+    passiveVerbsCount: number;
+    activeVerbsCount: number;
+    passiveVerbsFound: string[];
+    suggestions: ImpactVerbSuggestion[];
+    recommendations: string[];
+}
+
 export default function ResumeBuilderPage() {
+    const t = useTranslations("ResumeBuilder");
+
     const [personalInfo, setPersonalInfo] = useState({
         name: "Jane Doe",
         title: "Senior Full Stack Engineer",
@@ -54,6 +84,8 @@ export default function ResumeBuilderPage() {
         summary:
             "Desarrollador Full Stack con más de 5 años de experiencia diseñando y escalando arquitecturas de software modernas con React, Next.js y Node.js. Apasionado por la optimización del rendimiento frontend y la resiliencia en la nube.",
     });
+
+    const [noExperience, setNoExperience] = useState(false);
 
     const [experience, setExperience] = useState<ExperienceItem[]>([
         {
@@ -72,6 +104,22 @@ export default function ResumeBuilderPage() {
             description:
                 "Trabajé creando integraciones con pasarelas de pago como Stripe. Ayudé a estructurar la base de datos PostgreSQL y escribí documentación técnica para las APIs internas.",
         },
+    ]);
+
+    const [projects, setProjects] = useState<ProjectItem[]>([
+        {
+            id: "1",
+            name: "SkillRadar Optimizer",
+            role: "Creator & Lead Developer",
+            dates: "2026",
+            description:
+                "Diseñé e implementé una plataforma con arquitectura Onion y Next.js 16 para analizar compatibilidad ATS de currículums. Reduje tiempos de respuesta integrando APIs optimizadas de Vercel AI SDK.",
+        },
+    ]);
+
+    const [languages, setLanguages] = useState<LanguageItem[]>([
+        { id: "1", name: "Español", level: "Nativo" },
+        { id: "2", name: "Inglés", level: "C1" },
     ]);
 
     const [education, setEducation] = useState<EducationItem[]>([
@@ -102,7 +150,9 @@ export default function ResumeBuilderPage() {
     const [isSaving, setIsSaving] = useState(false);
 
     // Form editing tabs
-    const [activeSection, setActiveSection] = useState<"info" | "experience" | "education" | "skills">("info");
+    const [activeSection, setActiveSection] = useState<
+        "info" | "experience" | "projects" | "languages" | "education" | "skills"
+    >("info");
 
     const addExperience = () => {
         setExperience([
@@ -113,6 +163,22 @@ export default function ResumeBuilderPage() {
 
     const removeExperience = (id: string) => {
         setExperience(experience.filter((exp) => exp.id !== id));
+    };
+
+    const addProject = () => {
+        setProjects([...projects, { id: Date.now().toString(), name: "", role: "", dates: "", description: "" }]);
+    };
+
+    const removeProject = (id: string) => {
+        setProjects(projects.filter((p) => p.id !== id));
+    };
+
+    const addLanguage = () => {
+        setLanguages([...languages, { id: Date.now().toString(), name: "", level: "" }]);
+    };
+
+    const removeLanguage = (id: string) => {
+        setLanguages(languages.filter((l) => l.id !== id));
     };
 
     const addEducation = () => {
@@ -140,11 +206,12 @@ export default function ResumeBuilderPage() {
 
     // Analyze bullet points using AI
     const handleAnalyzeVerbs = async () => {
-        const concatenatedExp = experience
-            .map((exp) => `${exp.role} en ${exp.company}:\n${exp.description}`)
-            .join("\n\n");
+        const concatenatedExp = noExperience
+            ? projects.map((proj) => `${proj.role} en ${proj.name}:\n${proj.description}`).join("\n\n")
+            : experience.map((exp) => `${exp.role} en ${exp.company}:\n${exp.description}`).join("\n\n");
+
         if (!concatenatedExp.trim()) {
-            toast.error("Por favor agrega detalles de experiencia profesional antes de analizar.");
+            toast.error(t("addDetailsError"));
             return;
         }
 
@@ -169,17 +236,37 @@ export default function ResumeBuilderPage() {
     const getRawTextRepresentation = () => {
         let text = `${personalInfo.name}\n${personalInfo.title}\n${personalInfo.email} | ${personalInfo.phone} | ${personalInfo.website}\nGitHub: ${personalInfo.github} | LinkedIn: ${personalInfo.linkedin}\n\n`;
         if (personalInfo.summary) {
-            text += `RESUMEN PROFESIONAL\n${personalInfo.summary}\n\n`;
+            text += `${t("summaryLabel")}\n${personalInfo.summary}\n\n`;
         }
-        text += `EXPERIENCIA PROFESIONAL\n`;
-        experience.forEach((exp) => {
-            text += `- ${exp.role} en ${exp.company} (${exp.dates})\n  ${exp.description}\n\n`;
-        });
-        text += `EDUCACIÓN\n`;
+
+        if (!noExperience && experience.length > 0) {
+            text += `${t("professionalExperience")}\n`;
+            experience.forEach((exp) => {
+                text += `- ${exp.role} en ${exp.company} (${exp.dates})\n  ${exp.description}\n\n`;
+            });
+        }
+
+        if (projects.length > 0) {
+            text += `${t("personalProjects")}\n`;
+            projects.forEach((p) => {
+                text += `- ${p.role} en ${p.name} (${p.dates})\n  ${p.description}\n\n`;
+            });
+        }
+
+        if (languages.length > 0) {
+            text += `${t("languagesLabelTitle")}\n`;
+            languages.forEach((l) => {
+                text += `- ${l.name}: ${l.level}\n`;
+            });
+            text += "\n";
+        }
+
+        text += `${t("educationLabel")}\n`;
         education.forEach((edu) => {
             text += `- ${edu.degree} en ${edu.institution} (${edu.dates})\n  ${edu.description}\n\n`;
         });
-        text += `HABILIDADES\n${skills.join(", ")}\n`;
+
+        text += `${t("skillsLabelTitle")}\n${skills.join(", ")}\n`;
         return text;
     };
 
@@ -187,12 +274,20 @@ export default function ResumeBuilderPage() {
     const handleSaveResume = async () => {
         setIsSaving(true);
         try {
-            const resumeJson = JSON.stringify({ personalInfo, experience, education, skills });
+            const resumeJson = JSON.stringify({
+                personalInfo,
+                experience: noExperience ? [] : experience,
+                projects,
+                languages,
+                education,
+                skills,
+                noExperience,
+            });
             const rawText = getRawTextRepresentation();
 
             const result = await saveResumeDataAction(resumeJson, rawText);
             if (result.success) {
-                toast.success("¡CV guardado y publicado en el Talent Pool correctamente!");
+                toast.success(t("saveSuccess"));
             } else {
                 toast.error(result.error || "Fallo al guardar el currículum.");
             }
@@ -252,10 +347,8 @@ export default function ResumeBuilderPage() {
             {/* Header / Actions bar */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between no-print">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">AI Resume Builder</h1>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        Edita tu CV estructurado y optimízalo con IA para ser compatible con ATS.
-                    </p>
+                    <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">{t("title")}</h1>
+                    <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button
@@ -265,7 +358,7 @@ export default function ResumeBuilderPage() {
                         className="gap-1.5 border-border"
                     >
                         <Printer className="size-4" />
-                        Imprimir / Descargar PDF
+                        {t("downloadPdf")}
                     </Button>
                     <Button
                         onClick={() => {
@@ -278,12 +371,12 @@ export default function ResumeBuilderPage() {
                         {isSaving ? (
                             <>
                                 <div className="size-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                                Publicando...
+                                {t("publishBtnLoading")}
                             </>
                         ) : (
                             <>
                                 <Save className="size-4" />
-                                Publicar en Pool
+                                {t("publishBtn")}
                             </>
                         )}
                     </Button>
@@ -298,49 +391,66 @@ export default function ResumeBuilderPage() {
                     <Card className="border-border bg-card">
                         <CardHeader className="pb-3">
                             <div className="flex flex-wrap gap-1 border-b border-border pb-2">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setActiveSection("info")}
-                                    className={`px-3 py-1.5 text-xs font-semibold ${activeSection === "info" ? "bg-primary/10 text-primary hover:bg-primary/20" : "text-muted-foreground"}`}
-                                >
-                                    Info Personal
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setActiveSection("experience")}
-                                    className={`px-3 py-1.5 text-xs font-semibold ${activeSection === "experience" ? "bg-primary/10 text-primary hover:bg-primary/20" : "text-muted-foreground"}`}
-                                >
-                                    Experiencia
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setActiveSection("education")}
-                                    className={`px-3 py-1.5 text-xs font-semibold ${activeSection === "education" ? "bg-primary/10 text-primary hover:bg-primary/20" : "text-muted-foreground"}`}
-                                >
-                                    Educación
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setActiveSection("skills")}
-                                    className={`px-3 py-1.5 text-xs font-semibold ${activeSection === "skills" ? "bg-primary/10 text-primary hover:bg-primary/20" : "text-muted-foreground"}`}
-                                >
-                                    Habilidades
-                                </Button>
+                                {[
+                                    { id: "info", label: t("tabPersonalInfo") },
+                                    { id: "experience", label: t("tabExperience"), hide: noExperience },
+                                    { id: "projects", label: t("tabProjects") },
+                                    { id: "languages", label: t("tabLanguages") },
+                                    { id: "education", label: t("tabEducation") },
+                                    { id: "skills", label: t("tabSkills") },
+                                ]
+                                    .filter((tab) => !tab.hide)
+                                    .map((tab) => (
+                                        <Button
+                                            key={tab.id}
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                                setActiveSection(
+                                                    tab.id as
+                                                        | "info"
+                                                        | "experience"
+                                                        | "projects"
+                                                        | "languages"
+                                                        | "education"
+                                                        | "skills",
+                                                )
+                                            }
+                                            className={`px-3 py-1.5 text-xs font-semibold ${
+                                                activeSection === tab.id
+                                                    ? "bg-primary/10 text-primary hover:bg-primary/20"
+                                                    : "text-muted-foreground"
+                                            }`}
+                                        >
+                                            {tab.label}
+                                        </Button>
+                                    ))}
                             </div>
                         </CardHeader>
                         <CardContent className="pt-2">
                             {/* Personal Info Tab */}
                             {activeSection === "info" && (
                                 <div className="space-y-4">
+                                    <div className="flex items-center gap-2 pb-2">
+                                        <input
+                                            type="checkbox"
+                                            id="no-experience"
+                                            checked={noExperience}
+                                            onChange={(e) => {
+                                                setNoExperience(e.target.checked);
+                                            }}
+                                            className="size-4 accent-primary rounded border-border"
+                                        />
+                                        <Label htmlFor="no-experience" className="text-xs font-semibold cursor-pointer">
+                                            {t("noExperienceCheckbox")}
+                                        </Label>
+                                    </div>
+
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="flex flex-col gap-1.5">
-                                            <label className="text-xs font-semibold text-muted-foreground">
-                                                Nombre Completo
-                                            </label>
+                                            <Label className="text-xs font-semibold text-muted-foreground">
+                                                {t("personalName")}
+                                            </Label>
                                             <Input
                                                 value={personalInfo.name}
                                                 onChange={(e) =>
@@ -350,9 +460,9 @@ export default function ResumeBuilderPage() {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <label className="text-xs font-semibold text-muted-foreground">
-                                                Título Profesional
-                                            </label>
+                                            <Label className="text-xs font-semibold text-muted-foreground">
+                                                {t("personalTitle")}
+                                            </Label>
                                             <Input
                                                 value={personalInfo.title}
                                                 onChange={(e) =>
@@ -364,7 +474,9 @@ export default function ResumeBuilderPage() {
                                     </div>
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="flex flex-col gap-1.5">
-                                            <label className="text-xs font-semibold text-muted-foreground">Email</label>
+                                            <Label className="text-xs font-semibold text-muted-foreground">
+                                                {t("personalEmail")}
+                                            </Label>
                                             <Input
                                                 value={personalInfo.email}
                                                 onChange={(e) =>
@@ -374,9 +486,9 @@ export default function ResumeBuilderPage() {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <label className="text-xs font-semibold text-muted-foreground">
-                                                Teléfono
-                                            </label>
+                                            <Label className="text-xs font-semibold text-muted-foreground">
+                                                {t("personalPhone")}
+                                            </Label>
                                             <Input
                                                 value={personalInfo.phone}
                                                 onChange={(e) =>
@@ -388,9 +500,9 @@ export default function ResumeBuilderPage() {
                                     </div>
                                     <div className="grid gap-4 sm:grid-cols-3">
                                         <div className="flex flex-col gap-1.5">
-                                            <label className="text-xs font-semibold text-muted-foreground">
-                                                Sitio Web
-                                            </label>
+                                            <Label className="text-xs font-semibold text-muted-foreground">
+                                                {t("personalWebsite")}
+                                            </Label>
                                             <Input
                                                 value={personalInfo.website}
                                                 onChange={(e) =>
@@ -400,9 +512,9 @@ export default function ResumeBuilderPage() {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <label className="text-xs font-semibold text-muted-foreground">
+                                            <Label className="text-xs font-semibold text-muted-foreground">
                                                 GitHub
-                                            </label>
+                                            </Label>
                                             <Input
                                                 value={personalInfo.github}
                                                 onChange={(e) =>
@@ -412,9 +524,9 @@ export default function ResumeBuilderPage() {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <label className="text-xs font-semibold text-muted-foreground">
+                                            <Label className="text-xs font-semibold text-muted-foreground">
                                                 LinkedIn
-                                            </label>
+                                            </Label>
                                             <Input
                                                 value={personalInfo.linkedin}
                                                 onChange={(e) =>
@@ -425,41 +537,43 @@ export default function ResumeBuilderPage() {
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-1.5">
-                                        <label className="text-xs font-semibold text-muted-foreground">
-                                            Resumen de Perfil
-                                        </label>
+                                        <Label className="text-xs font-semibold text-muted-foreground">
+                                            {t("summaryLabel")}
+                                        </Label>
                                         <Textarea
                                             value={personalInfo.summary}
                                             onChange={(e) =>
                                                 setPersonalInfo({ ...personalInfo, summary: e.target.value })
                                             }
-                                            rows={4}
-                                            className="bg-background border-border min-h-[100px]"
+                                            rows={3}
+                                            className="bg-background border-border"
                                         />
                                     </div>
                                 </div>
                             )}
 
                             {/* Experience Tab */}
-                            {activeSection === "experience" && (
+                            {activeSection === "experience" && !noExperience && (
                                 <div className="space-y-6">
                                     {experience.map((exp, index) => (
                                         <div
                                             key={exp.id}
-                                            className="border border-border/80 rounded-lg p-4 bg-muted/20 relative space-y-3"
+                                            className="space-y-4 p-4 rounded-lg border border-border bg-muted/10 relative"
                                         >
-                                            <button
-                                                type="button"
+                                            <Button
+                                                variant="ghost"
+                                                size="icon-xs"
                                                 onClick={() => removeExperience(exp.id)}
-                                                className="absolute top-3 right-3 text-muted-foreground hover:text-destructive transition-colors"
+                                                className="absolute top-2 right-2 text-muted-foreground hover:text-destructive"
                                             >
-                                                <Trash2 className="size-4" />
-                                            </button>
-                                            <div className="grid gap-3 sm:grid-cols-3">
-                                                <div className="flex flex-col gap-1.5 sm:col-span-1">
-                                                    <label className="text-xs font-semibold text-muted-foreground">
-                                                        Empresa
-                                                    </label>
+                                                <X className="size-4" />
+                                            </Button>
+
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <Label className="text-xs font-semibold text-muted-foreground">
+                                                        {t("experienceCompany")}
+                                                    </Label>
                                                     <Input
                                                         value={exp.company}
                                                         onChange={(e) => {
@@ -470,10 +584,10 @@ export default function ResumeBuilderPage() {
                                                         className="bg-background border-border"
                                                     />
                                                 </div>
-                                                <div className="flex flex-col gap-1.5 sm:col-span-1">
-                                                    <label className="text-xs font-semibold text-muted-foreground">
-                                                        Rol / Cargo
-                                                    </label>
+                                                <div className="flex flex-col gap-1.5">
+                                                    <Label className="text-xs font-semibold text-muted-foreground">
+                                                        {t("experienceRole")}
+                                                    </Label>
                                                     <Input
                                                         value={exp.role}
                                                         onChange={(e) => {
@@ -484,10 +598,13 @@ export default function ResumeBuilderPage() {
                                                         className="bg-background border-border"
                                                     />
                                                 </div>
-                                                <div className="flex flex-col gap-1.5 sm:col-span-1">
-                                                    <label className="text-xs font-semibold text-muted-foreground">
-                                                        Fechas
-                                                    </label>
+                                            </div>
+
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <Label className="text-xs font-semibold text-muted-foreground">
+                                                        {t("experienceDates")}
+                                                    </Label>
                                                     <Input
                                                         value={exp.dates}
                                                         onChange={(e) => {
@@ -500,10 +617,11 @@ export default function ResumeBuilderPage() {
                                                     />
                                                 </div>
                                             </div>
+
                                             <div className="flex flex-col gap-1.5">
-                                                <label className="text-xs font-semibold text-muted-foreground">
-                                                    Responsabilidades (Viñetas)
-                                                </label>
+                                                <Label className="text-xs font-semibold text-muted-foreground">
+                                                    {t("experienceDesc")}
+                                                </Label>
                                                 <Textarea
                                                     value={exp.description}
                                                     onChange={(e) => {
@@ -524,7 +642,162 @@ export default function ResumeBuilderPage() {
                                         className="w-full gap-1.5 border-dashed border-border hover:bg-muted/40"
                                     >
                                         <Plus className="size-4" />
-                                        Agregar Experiencia Laboral
+                                        {t("addExperienceBtn")}
+                                    </Button>
+                                </div>
+                            )}
+
+                            {/* Projects Tab */}
+                            {activeSection === "projects" && (
+                                <div className="space-y-6">
+                                    {projects.map((proj, index) => (
+                                        <div
+                                            key={proj.id}
+                                            className="space-y-4 p-4 rounded-lg border border-border bg-muted/10 relative"
+                                        >
+                                            <Button
+                                                variant="ghost"
+                                                size="icon-xs"
+                                                onClick={() => removeProject(proj.id)}
+                                                className="absolute top-2 right-2 text-muted-foreground hover:text-destructive"
+                                            >
+                                                <X className="size-4" />
+                                            </Button>
+
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <Label className="text-xs font-semibold text-muted-foreground">
+                                                        {t("projectsName")}
+                                                    </Label>
+                                                    <Input
+                                                        value={proj.name}
+                                                        onChange={(e) => {
+                                                            const copy = [...projects];
+                                                            copy[index].name = e.target.value;
+                                                            setProjects(copy);
+                                                        }}
+                                                        className="bg-background border-border"
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col gap-1.5">
+                                                    <Label className="text-xs font-semibold text-muted-foreground">
+                                                        {t("projectsRole")}
+                                                    </Label>
+                                                    <Input
+                                                        value={proj.role}
+                                                        onChange={(e) => {
+                                                            const copy = [...projects];
+                                                            copy[index].role = e.target.value;
+                                                            setProjects(copy);
+                                                        }}
+                                                        className="bg-background border-border"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <Label className="text-xs font-semibold text-muted-foreground">
+                                                        {t("projectsDates")}
+                                                    </Label>
+                                                    <Input
+                                                        value={proj.dates}
+                                                        onChange={(e) => {
+                                                            const copy = [...projects];
+                                                            copy[index].dates = e.target.value;
+                                                            setProjects(copy);
+                                                        }}
+                                                        placeholder="Ej: 2026"
+                                                        className="bg-background border-border"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col gap-1.5">
+                                                <Label className="text-xs font-semibold text-muted-foreground">
+                                                    {t("projectsDesc")}
+                                                </Label>
+                                                <Textarea
+                                                    value={proj.description}
+                                                    onChange={(e) => {
+                                                        const copy = [...projects];
+                                                        copy[index].description = e.target.value;
+                                                        setProjects(copy);
+                                                    }}
+                                                    rows={3}
+                                                    className="bg-background border-border min-h-[80px]"
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <Button
+                                        onClick={addProject}
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-full gap-1.5 border-dashed border-border hover:bg-muted/40"
+                                    >
+                                        <Plus className="size-4" />
+                                        {t("addProjectBtn")}
+                                    </Button>
+                                </div>
+                            )}
+
+                            {/* Languages Tab */}
+                            {activeSection === "languages" && (
+                                <div className="space-y-4">
+                                    {languages.map((l, index) => (
+                                        <div
+                                            key={l.id}
+                                            className="flex gap-3 items-end relative p-3 rounded-lg border border-border bg-muted/5"
+                                        >
+                                            <div className="flex-1 grid gap-3 sm:grid-cols-2">
+                                                <div className="flex flex-col gap-1">
+                                                    <Label className="text-[10px] font-semibold text-muted-foreground">
+                                                        {t("languagesName")}
+                                                    </Label>
+                                                    <Input
+                                                        value={l.name}
+                                                        onChange={(e) => {
+                                                            const copy = [...languages];
+                                                            copy[index].name = e.target.value;
+                                                            setLanguages(copy);
+                                                        }}
+                                                        className="h-8 bg-background border-border text-xs"
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                    <Label className="text-[10px] font-semibold text-muted-foreground">
+                                                        {t("languagesLevel")}
+                                                    </Label>
+                                                    <Input
+                                                        value={l.level}
+                                                        onChange={(e) => {
+                                                            const copy = [...languages];
+                                                            copy[index].level = e.target.value;
+                                                            setLanguages(copy);
+                                                        }}
+                                                        className="h-8 bg-background border-border text-xs"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon-xs"
+                                                onClick={() => removeLanguage(l.id)}
+                                                className="text-muted-foreground hover:text-destructive shrink-0"
+                                            >
+                                                <X className="size-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                    <Button
+                                        onClick={addLanguage}
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-full gap-1.5 border-dashed border-border hover:bg-muted/40"
+                                    >
+                                        <Plus className="size-4" />
+                                        {t("addLanguageBtn")}
                                     </Button>
                                 </div>
                             )}
@@ -535,20 +808,22 @@ export default function ResumeBuilderPage() {
                                     {education.map((edu, index) => (
                                         <div
                                             key={edu.id}
-                                            className="border border-border/80 rounded-lg p-4 bg-muted/20 relative space-y-3"
+                                            className="space-y-4 p-4 rounded-lg border border-border bg-muted/10 relative"
                                         >
-                                            <button
-                                                type="button"
+                                            <Button
+                                                variant="ghost"
+                                                size="icon-xs"
                                                 onClick={() => removeEducation(edu.id)}
-                                                className="absolute top-3 right-3 text-muted-foreground hover:text-destructive transition-colors"
+                                                className="absolute top-2 right-2 text-muted-foreground hover:text-destructive"
                                             >
-                                                <Trash2 className="size-4" />
-                                            </button>
-                                            <div className="grid gap-3 sm:grid-cols-3">
-                                                <div className="flex flex-col gap-1.5 sm:col-span-1">
-                                                    <label className="text-xs font-semibold text-muted-foreground">
-                                                        Institución
-                                                    </label>
+                                                <X className="size-4" />
+                                            </Button>
+
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <Label className="text-xs font-semibold text-muted-foreground">
+                                                        {t("educationInstitution")}
+                                                    </Label>
                                                     <Input
                                                         value={edu.institution}
                                                         onChange={(e) => {
@@ -559,10 +834,10 @@ export default function ResumeBuilderPage() {
                                                         className="bg-background border-border"
                                                     />
                                                 </div>
-                                                <div className="flex flex-col gap-1.5 sm:col-span-1">
-                                                    <label className="text-xs font-semibold text-muted-foreground">
-                                                        Título / Especialización
-                                                    </label>
+                                                <div className="flex flex-col gap-1.5">
+                                                    <Label className="text-xs font-semibold text-muted-foreground">
+                                                        {t("educationDegree")}
+                                                    </Label>
                                                     <Input
                                                         value={edu.degree}
                                                         onChange={(e) => {
@@ -573,10 +848,13 @@ export default function ResumeBuilderPage() {
                                                         className="bg-background border-border"
                                                     />
                                                 </div>
-                                                <div className="flex flex-col gap-1.5 sm:col-span-1">
-                                                    <label className="text-xs font-semibold text-muted-foreground">
-                                                        Fechas
-                                                    </label>
+                                            </div>
+
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <Label className="text-xs font-semibold text-muted-foreground">
+                                                        {t("educationDates")}
+                                                    </Label>
                                                     <Input
                                                         value={edu.dates}
                                                         onChange={(e) => {
@@ -584,14 +862,16 @@ export default function ResumeBuilderPage() {
                                                             copy[index].dates = e.target.value;
                                                             setEducation(copy);
                                                         }}
+                                                        placeholder="Ej: 2016 - 2020"
                                                         className="bg-background border-border"
                                                     />
                                                 </div>
                                             </div>
+
                                             <div className="flex flex-col gap-1.5">
-                                                <label className="text-xs font-semibold text-muted-foreground">
-                                                    Descripción Adicional (Opcional)
-                                                </label>
+                                                <Label className="text-xs font-semibold text-muted-foreground">
+                                                    {t("educationDesc")}
+                                                </Label>
                                                 <Textarea
                                                     value={edu.description}
                                                     onChange={(e) => {
@@ -612,7 +892,7 @@ export default function ResumeBuilderPage() {
                                         className="w-full gap-1.5 border-dashed border-border hover:bg-muted/40"
                                     >
                                         <Plus className="size-4" />
-                                        Agregar Educación
+                                        {t("addEducationBtn")}
                                     </Button>
                                 </div>
                             )}
@@ -629,7 +909,7 @@ export default function ResumeBuilderPage() {
                                         />
                                         <Button type="submit" size="sm" className="gap-1">
                                             <Plus className="size-4" />
-                                            Añadir
+                                            {t("addSkillBtn")}
                                         </Button>
                                     </form>
                                     <div className="flex flex-wrap gap-1.5 p-3 rounded-lg border border-border bg-muted/10 min-h-[100px]">
@@ -660,31 +940,30 @@ export default function ResumeBuilderPage() {
                         <CardHeader className="pb-3">
                             <CardTitle className="flex items-center gap-2 text-base text-foreground font-semibold">
                                 <Sparkles className="size-5 text-primary" />
-                                Impact Verb Analyzer
+                                {t("atsAnalysisTitle")}
                             </CardTitle>
-                            <CardDescription>
-                                La IA evalúa si estás usando viñetas de experiencia activas u orientadas a resultados
-                                con verbos de acción fuertes.
-                            </CardDescription>
+                            <CardDescription>{t("atsAnalysisDesc")}</CardDescription>
                         </CardHeader>
                         <CardContent className="flex flex-col gap-4">
                             <Button
                                 onClick={() => {
                                     void handleAnalyzeVerbs();
                                 }}
-                                disabled={isAnalyzing || experience.length === 0}
+                                disabled={
+                                    isAnalyzing || (noExperience ? projects.length === 0 : experience.length === 0)
+                                }
                                 className="w-full gap-1.5"
                                 size="sm"
                             >
                                 {isAnalyzing ? (
                                     <>
                                         <div className="size-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                                        Evaluando viñetas con IA...
+                                        {t("analyzingVerbs")}
                                     </>
                                 ) : (
                                     <>
                                         <Sparkles className="size-4" />
-                                        Analizar Redacción de Experiencias
+                                        {t("analyzeVerbsBtn")}
                                     </>
                                 )}
                             </Button>
@@ -745,10 +1024,10 @@ export default function ResumeBuilderPage() {
                                                         className="p-2.5 rounded-lg border border-border/60 bg-background/50 space-y-1"
                                                     >
                                                         <p className="text-destructive line-through leading-relaxed">
-                                                            ❌ &ldquo;{s.original}&rdquo;
+                                                            &ldquo;{s.original}&rdquo;
                                                         </p>
                                                         <p className="text-emerald font-medium leading-relaxed">
-                                                            ✅ &ldquo;{s.suggestion}&rdquo;
+                                                            &ldquo;{s.suggestion}&rdquo;
                                                         </p>
                                                         <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
                                                             Razón: {s.reason}
@@ -778,7 +1057,7 @@ export default function ResumeBuilderPage() {
                 {/* Right Side: A4 Page live preview */}
                 <div className="lg:col-span-6 lg:sticky lg:top-20">
                     <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider no-print">
-                        Previsualización del CV (ATS A4)
+                        {t("atsAnalysisTitle")} (ATS A4)
                     </h2>
 
                     <Card className="a4-preview-card border border-border bg-white text-slate-800 font-sans shadow-lg mx-auto p-8 rounded-none w-full max-w-[210mm] min-h-[297mm] flex flex-col justify-between select-none">
@@ -786,10 +1065,10 @@ export default function ResumeBuilderPage() {
                             {/* Profile Header */}
                             <div className="text-center border-b border-slate-200 pb-5">
                                 <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                                    {personalInfo.name || "Tu Nombre"}
+                                    {personalInfo.name || "Jane Doe"}
                                 </h1>
                                 <p className="text-sm font-semibold text-indigo-600 mt-1 uppercase tracking-wide">
-                                    {personalInfo.title || "Título Profesional"}
+                                    {personalInfo.title || "Professional Title"}
                                 </p>
 
                                 <div className="flex flex-wrap gap-x-4 gap-y-1.5 justify-center items-center text-xs text-slate-500 mt-3.5 font-medium">
@@ -813,13 +1092,13 @@ export default function ResumeBuilderPage() {
                                     )}
                                     {personalInfo.github && (
                                         <span className="flex items-center gap-1">
-                                            <GithubIcon className="size-3 text-slate-400" />
+                                            <GithubIcon />
                                             {personalInfo.github}
                                         </span>
                                     )}
                                     {personalInfo.linkedin && (
                                         <span className="flex items-center gap-1">
-                                            <LinkedinIcon className="size-3 text-slate-400" />
+                                            <LinkedinIcon />
                                             {personalInfo.linkedin}
                                         </span>
                                     )}
@@ -830,7 +1109,7 @@ export default function ResumeBuilderPage() {
                             {personalInfo.summary && (
                                 <div className="space-y-2">
                                     <h2 className="text-xs font-bold text-slate-900 border-b-2 border-slate-900 pb-1 uppercase tracking-wider">
-                                        Resumen Profesional
+                                        {t("summaryLabel")}
                                     </h2>
                                     <p className="text-xs leading-relaxed text-slate-600 font-sans text-justify">
                                         {personalInfo.summary}
@@ -839,10 +1118,10 @@ export default function ResumeBuilderPage() {
                             )}
 
                             {/* Experience Section */}
-                            {experience.length > 0 && (
+                            {!noExperience && experience.length > 0 && (
                                 <div className="space-y-3">
                                     <h2 className="text-xs font-bold text-slate-900 border-b-2 border-slate-900 pb-1 uppercase tracking-wider">
-                                        Experiencia Profesional
+                                        {t("professionalExperience")}
                                     </h2>
                                     <div className="space-y-4">
                                         {experience.map((exp) => (
@@ -858,7 +1137,35 @@ export default function ResumeBuilderPage() {
                                                     </span>
                                                 </div>
                                                 <p className="text-xs leading-relaxed text-slate-600 font-sans whitespace-pre-line text-justify pl-3 border-l border-slate-200">
-                                                    {exp.description || "Describe tus logros y responsabilidades..."}
+                                                    {exp.description || "Describe tus logros..."}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Projects Section */}
+                            {projects.length > 0 && (
+                                <div className="space-y-3">
+                                    <h2 className="text-xs font-bold text-slate-900 border-b-2 border-slate-900 pb-1 uppercase tracking-wider">
+                                        {t("personalProjects")}
+                                    </h2>
+                                    <div className="space-y-4">
+                                        {projects.map((proj) => (
+                                            <div key={proj.id} className="space-y-1.5">
+                                                <div className="flex justify-between items-baseline">
+                                                    <h3 className="text-xs font-bold text-slate-900">
+                                                        {proj.role || "Rol"}{" "}
+                                                        <span className="text-slate-400 font-normal">in</span>{" "}
+                                                        {proj.name || "Proyecto"}
+                                                    </h3>
+                                                    <span className="text-[10px] font-semibold text-slate-500 font-mono">
+                                                        {proj.dates || "Fechas"}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs leading-relaxed text-slate-600 font-sans whitespace-pre-line text-justify pl-3 border-l border-slate-200">
+                                                    {proj.description || "Describe el desarrollo..."}
                                                 </p>
                                             </div>
                                         ))}
@@ -870,7 +1177,7 @@ export default function ResumeBuilderPage() {
                             {education.length > 0 && (
                                 <div className="space-y-3">
                                     <h2 className="text-xs font-bold text-slate-900 border-b-2 border-slate-900 pb-1 uppercase tracking-wider">
-                                        Educación
+                                        {t("educationLabel")}
                                     </h2>
                                     <div className="space-y-3">
                                         {education.map((edu) => (
@@ -893,22 +1200,47 @@ export default function ResumeBuilderPage() {
                                 </div>
                             )}
 
-                            {/* Skills Section */}
-                            {skills.length > 0 && (
-                                <div className="space-y-2">
-                                    <h2 className="text-xs font-bold text-slate-900 border-b-2 border-slate-900 pb-1 uppercase tracking-wider">
-                                        Habilidades Técnicas
-                                    </h2>
-                                    <div className="flex flex-wrap gap-x-2 gap-y-1.5 pl-3 border-l border-slate-200">
-                                        {skills.map((skill, index) => (
-                                            <span key={skill} className="text-xs text-slate-700 font-sans font-medium">
-                                                {skill}
-                                                {index < skills.length - 1 ? "," : ""}
-                                            </span>
-                                        ))}
+                            <div className="grid grid-cols-2 gap-6">
+                                {/* Skills Section */}
+                                {skills.length > 0 && (
+                                    <div className="space-y-2">
+                                        <h2 className="text-xs font-bold text-slate-900 border-b-2 border-slate-900 pb-1 uppercase tracking-wider">
+                                            {t("skillsLabelTitle")}
+                                        </h2>
+                                        <div className="flex flex-wrap gap-x-2 gap-y-1 pl-3 border-l border-slate-200">
+                                            {skills.map((skill, index) => (
+                                                <span
+                                                    key={skill}
+                                                    className="text-[11px] text-slate-700 font-sans font-medium"
+                                                >
+                                                    {skill}
+                                                    {index < skills.length - 1 ? "," : ""}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
+
+                                {/* Languages Section */}
+                                {languages.length > 0 && (
+                                    <div className="space-y-2">
+                                        <h2 className="text-xs font-bold text-slate-900 border-b-2 border-slate-900 pb-1 uppercase tracking-wider">
+                                            {t("languagesLabelTitle")}
+                                        </h2>
+                                        <div className="space-y-1 pl-3 border-l border-slate-200">
+                                            {languages.map((l) => (
+                                                <div
+                                                    key={l.id}
+                                                    className="text-[11px] text-slate-700 font-sans font-medium"
+                                                >
+                                                    <span className="font-bold">{l.name || "Idioma"}:</span>{" "}
+                                                    <span className="text-slate-500">{l.level || "Nivel"}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         {/* Footer (ATS friendly tag) */}

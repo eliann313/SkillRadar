@@ -29,6 +29,10 @@ export interface CVAnalysis {
     id: string;
     userId: string;
     atsScore: number;
+    technicalScore?: number;
+    credibilityScore?: number;
+    technicalExplanation?: string;
+    credibilityExplanation?: string;
     detectedKeywords: string[];
     missingKeywords: string[];
     estimatedSeniority: "junior" | "mid" | "senior" | "lead";

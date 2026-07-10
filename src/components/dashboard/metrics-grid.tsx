@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { RadialProgress } from "./radial-progress";
 import { FileText, Briefcase, MessageSquare, TrendingUp } from "lucide-react";
 import Link from "next/link";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { useTranslations, useLocale } from "next-intl";
 
 interface MetricsGridProps {
     latestResume: {
@@ -29,6 +30,9 @@ interface MetricsGridProps {
 }
 
 export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGridProps) {
+    const t = useTranslations("Dashboard");
+    const locale = useLocale();
+
     const atsScore = latestResume?.atsScore ?? 0;
     const matchScore = latestJobMatch?.matchScore ?? 0;
 
@@ -50,27 +54,30 @@ export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGri
             <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
                 <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
-                        <CardTitle className="text-base font-medium">ATS Score</CardTitle>
+                        <CardTitle className="text-base font-medium">{t("atsScoreCardTitle")}</CardTitle>
                         <Badge variant="secondary" className="text-xs">
-                            {latestResume ? "Last analysis" : "No CV"}
+                            {latestResume ? t("lastAnalysis") : t("noCv")}
                         </Badge>
                     </div>
-                    <CardDescription>
-                        {latestResume ? latestResume.fileName : "Your CV optimization score"}
+                    <CardDescription className="truncate max-w-[220px]">
+                        {latestResume ? latestResume.fileName : t("atsScoreCardDesc")}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center gap-4 pt-4">
                     <RadialProgress value={atsScore} size={140} strokeWidth={10}>
                         <div className="flex flex-col items-center">
                             <span className="text-3xl font-bold text-foreground">{atsScore}</span>
-                            <span className="text-xs text-muted-foreground">out of 100</span>
+                            <span className="text-xs text-muted-foreground">{t("atsScoreCardLabel")}</span>
                         </div>
                     </RadialProgress>
                     {latestResume && (
                         <div className="flex items-center gap-2 text-sm">
                             <TrendingUp className="size-4 text-emerald" />
                             <span className="text-muted-foreground text-xs">
-                                Subido el {new Date(latestResume.createdAt).toLocaleDateString()}
+                                {locale === "es" ? "Subido el" : "Uploaded on"}{" "}
+                                {new Date(latestResume.createdAt).toLocaleDateString(
+                                    locale === "es" ? "es-ES" : "en-US",
+                                )}
                             </span>
                         </div>
                     )}
@@ -82,7 +89,7 @@ export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGri
                             className: "w-full",
                         })}
                     >
-                        {latestResume ? "Improve Score" : "Upload CV"}
+                        {latestResume ? t("atsScoreImprove") : t("atsScoreUpload")}
                     </Link>
                 </CardContent>
             </Card>
@@ -91,13 +98,15 @@ export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGri
             <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
                 <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
-                        <CardTitle className="text-base font-medium">Job Match</CardTitle>
+                        <CardTitle className="text-base font-medium">{t("jobMatchCardTitle")}</CardTitle>
                         <Badge variant="secondary" className="text-xs">
-                            {latestJobMatch ? "Latest Match" : "No matches"}
+                            {latestJobMatch ? t("latestMatch") : t("noMatches")}
                         </Badge>
                     </div>
                     <CardDescription>
-                        {latestJobMatch ? `Match para ${seniority.toUpperCase()}` : "Recent offer compatibility"}
+                        {latestJobMatch
+                            ? `${t("jobMatchCardDesc")} (${seniority.toUpperCase()})`
+                            : t("jobMatchCardDesc")}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4 pt-4 justify-between h-[210px]">
@@ -106,7 +115,7 @@ export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGri
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm text-muted-foreground truncate max-w-[180px]">
-                                        Afinidad de Perfil
+                                        {t("jobMatchCardLabel")}
                                     </span>
                                     <span className="text-2xl font-bold text-foreground">{matchScore}%</span>
                                 </div>
@@ -127,7 +136,9 @@ export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGri
                         </>
                     ) : (
                         <div className="text-center py-6 text-xs text-muted-foreground flex flex-col items-center justify-center flex-1">
-                            Compara tu CV con ofertas reales para medir afinidad técnica.
+                            {locale === "es"
+                                ? "Compara tu CV con ofertas reales para medir afinidad técnica."
+                                : "Compare your CV with real offers to measure technical affinity."}
                         </div>
                     )}
                     <Link
@@ -138,7 +149,7 @@ export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGri
                             className: "w-full",
                         })}
                     >
-                        {latestJobMatch ? "New Match" : "Analyze Match"}
+                        {latestJobMatch ? t("jobMatchCardNew") : t("jobMatchCardAnalyze")}
                     </Link>
                 </CardContent>
             </Card>
@@ -147,12 +158,12 @@ export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGri
             <Card className="border-border/50 bg-card/50 backdrop-blur-sm md:col-span-2 lg:col-span-1">
                 <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
-                        <CardTitle className="text-base font-medium">Account Limits</CardTitle>
+                        <CardTitle className="text-base font-medium">{t("limitsCardTitle")}</CardTitle>
                         <Badge variant="outline" className="text-xs">
-                            Free Plan
+                            {t("limitsCardCta")}
                         </Badge>
                     </div>
-                    <CardDescription>Monthly usage remaining</CardDescription>
+                    <CardDescription>{t("limitsCardDesc")}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4 pt-4">
                     {/* CV Analysis */}
@@ -160,7 +171,7 @@ export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGri
                         <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">
                                 <FileText className="size-4 text-muted-foreground" />
-                                <span className="text-muted-foreground">CV Analysis</span>
+                                <span className="text-muted-foreground">{t("limitsCardCv")}</span>
                             </div>
                             <span className="font-medium">
                                 {limits.cvAnalysis.used}/{limits.cvAnalysis.limit}
@@ -174,7 +185,7 @@ export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGri
                         <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">
                                 <Briefcase className="size-4 text-muted-foreground" />
-                                <span className="text-muted-foreground">Job Match</span>
+                                <span className="text-muted-foreground">{t("limitsCardMatch")}</span>
                             </div>
                             <span className="font-medium">
                                 {limits.jobMatch.used}/{limits.jobMatch.limit}
@@ -188,7 +199,7 @@ export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGri
                         <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">
                                 <MessageSquare className="size-4 text-muted-foreground" />
-                                <span className="text-muted-foreground">Mock Interview</span>
+                                <span className="text-muted-foreground">{t("limitsCardInterview")}</span>
                             </div>
                             <span className="font-medium">
                                 {limits.mockInterview.used}/{limits.mockInterview.limit}
@@ -200,9 +211,16 @@ export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGri
                         />
                     </div>
 
-                    <Button variant="default" size="sm" className="mt-2 w-full" disabled>
-                        Free Tier Active
-                    </Button>
+                    <button
+                        className={buttonVariants({
+                            variant: "default",
+                            size: "sm",
+                            className: "mt-2 w-full cursor-not-allowed opacity-80",
+                        })}
+                        disabled
+                    >
+                        {t("limitsCardCta")}
+                    </button>
                 </CardContent>
             </Card>
         </div>
