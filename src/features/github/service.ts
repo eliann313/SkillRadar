@@ -132,6 +132,9 @@ Devuelve el análisis completo incluyendo las señales de seniority basadas en l
                 userSettings,
             });
 
+            // Asegurar el uso de los lenguajes reales obtenidos de la API de GitHub
+            aiAnalysis.languages = languages;
+
             return await GithubAnalysisRepository.createOrUpdate(userId, sanitizedUsername, aiAnalysis);
         } catch (error) {
             console.error(

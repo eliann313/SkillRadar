@@ -8,15 +8,18 @@ import { Globe, Shield, Calendar, Sparkles, Terminal, FileText, ArrowRight } fro
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { trackServerEvent } from "@/lib/analytics";
+import { getTranslations } from "next-intl/server";
 
 interface PageProps {
     params: Promise<{
+        locale: string;
         username: string;
     }>;
 }
 
 export async function generateMetadata({ params }: PageProps) {
-    const { username } = await params;
+    const { username, locale } = await params;
+    const t = await getTranslations({ locale, namespace: "PublicProfile" });
     const user = await db.user.findUnique({
         where: { publicUsername: username },
         select: {
@@ -27,16 +30,16 @@ export async function generateMetadata({ params }: PageProps) {
 
     if (!user || !user.isPublicProfile) {
         return {
-            title: "Perfil Privado | SkillRadar",
+            title: t("privateTitle"),
         };
     }
 
     const displayName = user.name || username;
     return {
-        title: `${displayName} - Perfil Profesional | SkillRadar`,
+        title: `${displayName} - ${t("title")} | SkillRadar`,
         description: `Visualiza el Skill Radar y tecnologías dominadas de ${displayName} en SkillRadar.`,
         openGraph: {
-            title: `${displayName} - Perfil Profesional | SkillRadar`,
+            title: `${displayName} - ${t("title")} | SkillRadar`,
             description: `Perfil interactivo con Skill Radar y tecnologías de ${displayName}.`,
             type: "profile",
             images: [
@@ -50,7 +53,7 @@ export async function generateMetadata({ params }: PageProps) {
         },
         twitter: {
             card: "summary_large_image",
-            title: `${displayName} - Perfil Profesional | SkillRadar`,
+            title: `${displayName} - ${t("title")} | SkillRadar`,
             description: `Perfil interactivo con Skill Radar y tecnologías de ${displayName}.`,
             images: [`/api/badge/${username}`],
         },
@@ -58,7 +61,8 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function PublicProfilePage({ params }: PageProps) {
-    const { username } = await params;
+    const { username, locale } = await params;
+    const t = await getTranslations({ locale, namespace: "PublicProfile" });
 
     // Cargar datos del usuario
     const user = await db.user.findUnique({
@@ -89,13 +93,13 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
     // Extraer habilidades y seniority del CV
     let keywords: string[] = [];
-    let seniority = "No definido";
+    let seniority = t("notDefined");
     let resumeUpdatedAt: Date | null = null;
 
     if (latestResume) {
         const analysis = latestResume.analysis as { keywords?: string[]; estimatedSeniority?: string } | null;
         keywords = Array.isArray(analysis?.keywords) ? analysis.keywords : [];
-        seniority = analysis?.estimatedSeniority || "No definido";
+        seniority = analysis?.estimatedSeniority || t("notDefined");
         resumeUpdatedAt = latestResume.createdAt;
     }
 
@@ -104,11 +108,24 @@ export default async function PublicProfilePage({ params }: PageProps) {
     let githubUpdatedAt: Date | null = null;
 
     if (latestGithub) {
-        githubLanguages = (latestGithub.languages as Record<string, number>) || {};
+        const rawLanguages = (latestGithub.languages as Record<string, number>) || {};
+        const totalBytes = Object.values(rawLanguages).reduce((a, b) => a + b, 0);
+        if (totalBytes > 0) {
+            for (const [lang, bytes] of Object.entries(rawLanguages)) {
+                githubLanguages[lang] = (bytes / totalBytes) * 100;
+            }
+        } else {
+            githubLanguages = rawLanguages;
+        }
         githubUpdatedAt = latestGithub.createdAt;
     }
 
     const dateToShow = resumeUpdatedAt || githubUpdatedAt || user.createdAt;
+    const dateString = new Date(dateToShow).toLocaleDateString(locale === "es" ? "es-ES" : "en-US", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    });
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col justify-between py-12 px-4 sm:px-6 lg:px-8">
@@ -129,11 +146,11 @@ export default async function PublicProfilePage({ params }: PageProps) {
                             </h1>
                             <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
                                 <Globe className="size-4 text-emerald-500" />
-                                Perfil Verificado en SkillRadar
+                                {t("verifiedProfile")}
                             </p>
                         </div>
                     </div>
-                    {user.showSeniority && seniority !== "No definido" && (
+                    {user.showSeniority && seniority !== t("notDefined") && (
                         <Badge
                             variant="secondary"
                             className="capitalize text-sm px-3 py-1 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors"
@@ -149,11 +166,9 @@ export default async function PublicProfilePage({ params }: PageProps) {
                         <CardHeader>
                             <CardTitle className="text-base font-semibold flex items-center gap-2">
                                 <Sparkles className="size-5 text-primary" />
-                                Skill Radar Chart
+                                {t("chartTitle")}
                             </CardTitle>
-                            <CardDescription>
-                                Distribución técnica estimada a través de su historial profesional.
-                            </CardDescription>
+                            <CardDescription>{t("chartDesc")}</CardDescription>
                         </CardHeader>
                         <CardContent className="flex-1 flex items-center justify-center p-4">
                             <SkillRadarChart keywords={keywords} />
@@ -166,16 +181,14 @@ export default async function PublicProfilePage({ params }: PageProps) {
                             <CardHeader>
                                 <CardTitle className="text-base font-semibold flex items-center gap-2">
                                     <Terminal className="size-5 text-indigo-500" />
-                                    Distribución de GitHub
+                                    {t("githubTitle")}
                                 </CardTitle>
-                                <CardDescription>
-                                    Uso de lenguajes de programación en repositorios públicos.
-                                </CardDescription>
+                                <CardDescription>{t("githubDesc")}</CardDescription>
                             </CardHeader>
                             <CardContent className="flex-1 flex flex-col justify-center p-6 pt-0">
                                 {Object.keys(githubLanguages).length === 0 ? (
                                     <div className="text-center text-muted-foreground py-6">
-                                        <p className="text-xs">Sin datos de GitHub vinculados aún.</p>
+                                        <p className="text-xs">{t("noGithubData")}</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
@@ -209,11 +222,9 @@ export default async function PublicProfilePage({ params }: PageProps) {
                         <CardHeader>
                             <CardTitle className="text-base font-semibold flex items-center gap-2">
                                 <FileText className="size-5 text-emerald-500" />
-                                Top Skills Extraídos
+                                {t("topSkillsTitle")}
                             </CardTitle>
-                            <CardDescription>
-                                Habilidades técnicas validadas a través de su CV y experiencia real.
-                            </CardDescription>
+                            <CardDescription>{t("topSkillsDesc")}</CardDescription>
                         </CardHeader>
                         <CardContent className="flex flex-wrap gap-2 pt-0">
                             {keywords.slice(0, 15).map((skill) => (
@@ -233,16 +244,11 @@ export default async function PublicProfilePage({ params }: PageProps) {
                 <div className="flex justify-between items-center text-xs text-muted-foreground pt-4 border-t border-border/20">
                     <p className="flex items-center gap-1">
                         <Calendar className="size-3.5" />
-                        Última sincronización:{" "}
-                        {new Date(dateToShow).toLocaleDateString("es-ES", {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                        })}
+                        {t("lastSync", { date: dateString })}
                     </p>
                     <p className="flex items-center gap-1">
                         <Shield className="size-3.5" />
-                        Perfil Protegido por SkillRadar
+                        {t("protectedProfile")}
                     </p>
                 </div>
             </div>
@@ -254,11 +260,8 @@ export default async function PublicProfilePage({ params }: PageProps) {
                         <Sparkles className="size-5" />
                     </div>
                     <div className="space-y-1">
-                        <h3 className="text-sm font-bold text-foreground">¿Eres reclutador o desarrollador?</h3>
-                        <p className="text-[11px] text-muted-foreground leading-normal">
-                            Analiza la compatibilidad ATS de tu CV y obtén una visualización interactiva de tus
-                            habilidades gratis con SkillRadar.
-                        </p>
+                        <h3 className="text-sm font-bold text-foreground">{t("ctaTitle")}</h3>
+                        <p className="text-[11px] text-muted-foreground leading-normal">{t("ctaDesc")}</p>
                     </div>
                     <Link
                         href="/"
@@ -267,7 +270,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
                             "w-full group flex items-center justify-center gap-1",
                         )}
                     >
-                        Probar SkillRadar Gratis
+                        {t("ctaButton")}
                         <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
                     </Link>
                 </Card>

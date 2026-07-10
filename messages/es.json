@@ -112,5 +112,23 @@
         "demoBanner": "Navegando en <strongName>{mode}</strongName>. Las llamadas a APIs e IA son simuladas en el servidor de forma segura.",
         "recruiterMode": "Modo Demo (Reclutador)",
         "developerMode": "Modo Demo (Desarrollador)"
+    },
+    "PublicProfile": {
+        "title": "Perfil Profesional",
+        "verifiedProfile": "Perfil Verificado en SkillRadar",
+        "chartTitle": "Skill Radar Chart",
+        "chartDesc": "Distribución técnica estimada a través de su historial profesional.",
+        "githubTitle": "Distribución de GitHub",
+        "githubDesc": "Uso de lenguajes de programación en repositorios públicos.",
+        "noGithubData": "Sin datos de GitHub vinculados aún.",
+        "topSkillsTitle": "Top Skills Extraídos",
+        "topSkillsDesc": "Habilidades técnicas validadas a través de su CV y experiencia real.",
+        "lastSync": "Última sincronización: {date}",
+        "protectedProfile": "Perfil Protegido por SkillRadar",
+        "ctaTitle": "¿Eres reclutador o desarrollador?",
+        "ctaDesc": "Analiza la compatibilidad ATS de tu CV y obtén una visualización interactiva de tus habilidades gratis con SkillRadar.",
+        "ctaButton": "Probar SkillRadar Gratis",
+        "privateTitle": "Perfil Privado | SkillRadar",
+        "notDefined": "No definido"
     }
 }

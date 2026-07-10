@@ -112,5 +112,23 @@
         "demoBanner": "Navigating in <strongName>{mode}</strongName>. API and AI calls are securely simulated on the server.",
         "recruiterMode": "Demo Mode (Recruiter)",
         "developerMode": "Demo Mode (Developer)"
+    },
+    "PublicProfile": {
+        "title": "Professional Profile",
+        "verifiedProfile": "Verified Profile on SkillRadar",
+        "chartTitle": "Skill Radar Chart",
+        "chartDesc": "Estimated technical distribution based on professional history.",
+        "githubTitle": "GitHub Distribution",
+        "githubDesc": "Usage of programming languages in public repositories.",
+        "noGithubData": "No GitHub data linked yet.",
+        "topSkillsTitle": "Top Extracted Skills",
+        "topSkillsDesc": "Technical skills validated through CV and real experience.",
+        "lastSync": "Last synchronization: {date}",
+        "protectedProfile": "Profile Protected by SkillRadar",
+        "ctaTitle": "Are you a recruiter or developer?",
+        "ctaDesc": "Analyze your CV ATS compatibility and get an interactive visualization of your skills for free with SkillRadar.",
+        "ctaButton": "Try SkillRadar for Free",
+        "privateTitle": "Private Profile | SkillRadar",
+        "notDefined": "Not defined"
     }
 }
