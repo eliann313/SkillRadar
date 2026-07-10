@@ -13,6 +13,7 @@ import { useUploadThing } from "@/lib/uploadthing-client";
 import { toast } from "sonner";
 import { getSignedFileUrlAction } from "@/app/actions/cv-actions";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 
 interface CVUploadFormProps {
     onAnalyze: (content: string, fileName?: string) => void;
@@ -30,6 +31,7 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
     const [hasUploadError, setHasUploadError] = useState(false);
+    const t = useTranslations("CVAnalysis");
 
     useEffect(() => {
         const handlePdfNotReadable = () => {
@@ -57,7 +59,12 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
             setUploadProgress(0);
             const uploadedFile = res?.[0];
             if (uploadedFile) {
-                toast.success(`Archivo "${uploadedFile.name}" subido de forma segura.`);
+                toast.success(
+                    t("uploadSuccess", {
+                        file: uploadedFile.name,
+                        default: `Archivo "${uploadedFile.name}" subido de forma segura.`,
+                    }),
+                );
 
                 try {
                     // Generar URL firmada temporal de corta duración
@@ -79,24 +86,36 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
         onUploadError: (error: Error) => {
             setIsUploading(false);
             setUploadProgress(0);
-            toast.error(`Error al subir el archivo: ${error.message}`);
+            toast.error(
+                t("uploadError", {
+                    error: error.message,
+                    default: `Error al subir el archivo: ${error.message}`,
+                }),
+            );
         },
         onUploadProgress: (p) => {
             setUploadProgress(p);
         },
     });
 
-    const onDrop = useCallback((acceptedFiles: File[]) => {
-        const pdfFile = acceptedFiles[0];
-        if (pdfFile) {
-            if (pdfFile.size > MAX_FILE_SIZE) {
-                toast.error("El archivo excede el límite de 4MB. Por favor, sube un archivo más pequeño.");
-                return;
+    const onDrop = useCallback(
+        (acceptedFiles: File[]) => {
+            const pdfFile = acceptedFiles[0];
+            if (pdfFile) {
+                if (pdfFile.size > MAX_FILE_SIZE) {
+                    toast.error(
+                        t("sizeLimitError", {
+                            default: "El archivo excede el límite de 4MB. Por favor, sube un archivo más pequeño.",
+                        }),
+                    );
+                    return;
+                }
+                setFile(pdfFile);
+                setTextContent("");
             }
-            setFile(pdfFile);
-            setTextContent("");
-        }
-    }, []);
+        },
+        [t],
+    );
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -155,7 +174,12 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
                 }
                 setIsUploading(false);
                 setUploadProgress(0);
-                toast.success(`Archivo "${file.name}" subido de forma segura (Modo Demo).`);
+                toast.success(
+                    t("uploadSuccessDemo", {
+                        file: file.name,
+                        default: `Archivo "${file.name}" subido de forma segura (Modo Demo).`,
+                    }),
+                );
                 onAnalyze("https://utfs.io/f/demo-resume.pdf", file.name);
                 return;
             }
@@ -168,7 +192,11 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
             } catch (err) {
                 console.error("Upload error:", err);
                 setIsUploading(false);
-                toast.error("Ocurrió un error inesperado al subir el archivo.");
+                toast.error(
+                    t("uploadErrorUnexpected", {
+                        default: "Ocurrió un error inesperado al subir el archivo.",
+                    }),
+                );
             }
         } else if (textContent.trim()) {
             onAnalyze(textContent);
@@ -182,9 +210,13 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <FileText className="size-5 text-primary" />
-                    Upload Your CV
+                    {t("uploadCvCardTitle", { default: "Subir Currículum" })}
                 </CardTitle>
-                <CardDescription>Upload your CV as PDF or paste the text content for AI analysis</CardDescription>
+                <CardDescription>
+                    {t("uploadCvCardDesc", {
+                        default: "Sube tu CV en formato PDF o pega el contenido para su análisis.",
+                    })}
+                </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-6">
                 {/* Dropzone */}
@@ -226,9 +258,13 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
                         </div>
                         <div className="text-center">
                             <p className="font-medium text-foreground">
-                                {isDragActive ? "Drop your CV here" : "Drag & drop your CV"}
+                                {isDragActive
+                                    ? t("dropCvHere", { default: "Suelta tu CV aquí" })
+                                    : t("dragDropCv", { default: "Arrastra y suelta tu CV" })}
                             </p>
-                            <p className="mt-1 text-sm text-muted-foreground">or click to browse (PDF only, max 5MB)</p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                {t("clickToBrowse", { default: "o haz clic para explorar (PDF, máx 4MB)" })}
+                            </p>
                         </div>
                     </div>
                 ) : (
@@ -255,7 +291,7 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
                         {isUploading && (
                             <div className="mt-2 space-y-1.5">
                                 <div className="flex justify-between text-xs text-muted-foreground">
-                                    <span>Uploading CV...</span>
+                                    <span>{t("uploadingCv", { default: "Subiendo CV..." })}</span>
                                     <span>{uploadProgress}%</span>
                                 </div>
                                 <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
@@ -280,15 +316,17 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
                             />
                         }
                     >
-                        <span>Or paste your CV text</span>
+                        <span>{t("orPasteCvText", { default: "O pega el texto de tu CV" })}</span>
                         <ChevronDown className={cn("size-4 transition-transform", isTextOpen && "rotate-180")} />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pt-4">
                         <div className="flex flex-col gap-2">
-                            <Label htmlFor="cv-text">CV Content</Label>
+                            <Label htmlFor="cv-text">{t("cvContentLabel", { default: "Contenido del CV" })}</Label>
                             <Textarea
                                 id="cv-text"
-                                placeholder="Paste your CV content here if PDF upload fails..."
+                                placeholder={t("pasteCvPlaceholder", {
+                                    default: "Pega el texto aquí si la subida del PDF falla...",
+                                })}
                                 value={textContent}
                                 onChange={(e) => {
                                     setTextContent(e.target.value);
@@ -321,17 +359,20 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
                     {isUploading ? (
                         <>
                             <Loader2 className="animate-spin" />
-                            Uploading to secure storage ({uploadProgress}%)...
+                            {t("uploadingToStorage", {
+                                progress: uploadProgress,
+                                default: `Subiendo al almacenamiento seguro (${uploadProgress}%)...`,
+                            })}
                         </>
                     ) : isLoading ? (
                         <>
                             <Loader2 className="animate-spin" />
-                            Analyzing...
+                            {t("analyzing", { default: "Analizando..." })}
                         </>
                     ) : (
                         <>
                             <Sparkles />
-                            Analyze with AI
+                            {t("analyzeWithAi", { default: "Analizar con IA" })}
                         </>
                     )}
                 </Button>

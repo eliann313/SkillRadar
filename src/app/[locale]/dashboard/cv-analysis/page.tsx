@@ -10,11 +10,13 @@ import { AnalysisSkeleton } from "@/components/ui/loading-skeletons";
 import { uploadAndParseCVAction } from "@/features/cv-analysis/actions";
 import { toast } from "sonner";
 import type { ATSAnalysis } from "@/features/cv-analysis/types";
+import { useTranslations } from "next-intl";
 
 export default function CVAnalysisPage() {
     const { data: session, status } = useSession();
     const [analysis, setAnalysis] = useState<CVAnalysis | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const t = useTranslations("CVAnalysis");
 
     if (status === "loading") {
         return (
@@ -68,6 +70,10 @@ export default function CVAnalysisPage() {
                     id: dbResume.id,
                     userId: session.user.id,
                     atsScore: dbResume.atsScore ?? (dbAnalysis?.atsScore || 0),
+                    technicalScore: dbAnalysis?.technicalScore ?? undefined,
+                    credibilityScore: dbAnalysis?.credibilityScore ?? undefined,
+                    technicalExplanation: dbAnalysis?.technicalExplanation ?? undefined,
+                    credibilityExplanation: dbAnalysis?.credibilityExplanation ?? undefined,
                     detectedKeywords: dbAnalysis?.keywords || [],
                     missingKeywords: dbAnalysis?.missingKeywords || [],
                     estimatedSeniority: mappedSeniority,
@@ -77,21 +83,18 @@ export default function CVAnalysisPage() {
                 };
 
                 setAnalysis(mappedAnalysis);
-                toast.success("¡Análisis de CV completado con éxito!");
+                toast.success(t("successToast"));
             } else {
                 if (result.error === "PDF_NOT_READABLE") {
-                    toast.error(
-                        "El PDF subido no contiene texto legible (posiblemente sea una imagen escaneada). Por favor, usa la sección de abajo para pegar el texto crudo de tu CV directamente.",
-                        { duration: 8000 },
-                    );
+                    toast.error(t("readableToast"), { duration: 8000 });
                     window.dispatchEvent(new CustomEvent("cv-pdf-not-readable"));
                 } else {
-                    toast.error(result.error || "Ocurrió un error al procesar el archivo.");
+                    toast.error(result.error || t("errorToast"));
                 }
             }
         } catch (error) {
             console.error("Error al analizar el CV:", error);
-            toast.error("Ocurrió un error inesperado al analizar el CV.");
+            toast.error(t("unexpectedError"));
         } finally {
             setIsLoading(false);
         }
@@ -100,10 +103,8 @@ export default function CVAnalysisPage() {
     return (
         <>
             <div className="mb-8">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">CV Analysis</h1>
-                <p className="mt-1 text-sm text-muted-foreground">
-                    Upload your CV and get AI-powered insights to improve your ATS score
-                </p>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">{t("title")}</h1>
+                <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">

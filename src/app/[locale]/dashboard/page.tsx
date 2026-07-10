@@ -3,6 +3,7 @@ import { DashboardHeader, MetricsGrid, NextAction, HistoricalChart, ContactReque
 import { TalentDashboard } from "@/components/recruiter";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { getTranslations } from "next-intl/server";
 
 const DEFAULT_LIMITS = {
     cvAnalysis: 5,
@@ -171,32 +172,30 @@ export default async function DashboardPage() {
     // 5. Determinar la acción recomendada dinámicamente
     const totalResumes = await db.resume.count({ where: { userId } });
     const totalMatches = await db.jobMatch.count({ where: { userId } });
+    const t = await getTranslations("Dashboard");
 
     let nextAction = {
         type: "upload-cv",
-        title: "Subir Currículum",
-        description:
-            "Diagnostica y optimiza tu perfil con IA. Sube tu currículum en formato PDF o TXT para calcular tu puntuación ATS inicial.",
-        ctaText: "Subir CV",
+        title: t("uploadCvTitle"),
+        description: t("uploadCvDesc"),
+        ctaText: t("uploadCvCta"),
         ctaLink: "/dashboard/cv-analysis",
     };
 
     if (totalResumes > 0 && totalMatches === 0) {
         nextAction = {
             type: "job-match",
-            title: "Comparar con Oferta de Trabajo",
-            description:
-                "Analiza la afinidad de tu currículum con ofertas laborales reales. Copia y pega una descripción de empleo para que la IA evalúe los gaps.",
-            ctaText: "Crear Job Match",
+            title: t("jobMatchTitle"),
+            description: t("jobMatchDesc"),
+            ctaText: t("jobMatchCta"),
             ctaLink: "/dashboard/job-match",
         };
     } else if (totalResumes > 0 && totalMatches > 0) {
         nextAction = {
             type: "mock-interview",
-            title: "Practicar Entrevista Técnica",
-            description:
-                "Entrena tus respuestas. Genera una sesión de entrevista interactiva basada en los stacks y las deficiencias de tu perfil.",
-            ctaText: "Iniciar Simulación",
+            title: t("mockInterviewTitle"),
+            description: t("mockInterviewDesc"),
+            ctaText: t("mockInterviewCta"),
             ctaLink: "/dashboard/interview",
         };
     }

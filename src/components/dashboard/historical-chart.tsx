@@ -45,7 +45,7 @@ export function HistoricalChart({ scores }: HistoricalChartProps) {
 
             if (index === 0) {
                 points = `${x},${y}`;
-                fillPoints = `${x},${height - padding} L${x},${y}`;
+                fillPoints = `M ${x},${height - padding} L${x},${y}`;
             } else {
                 points += ` L${x},${y}`;
                 fillPoints += ` L${x},${y}`;
