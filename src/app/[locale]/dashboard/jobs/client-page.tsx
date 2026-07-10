@@ -16,6 +16,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Flag } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface JobPosting {
     id: string;
@@ -39,6 +40,7 @@ interface JobsClientPageProps {
 }
 
 export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
+    const t = useTranslations("Jobs");
     const [jobs, setJobs] = useState<JobPosting[]>(initialJobs);
     const [search, setSearch] = useState("");
     const [remoteType, setRemoteType] = useState("all");
@@ -62,10 +64,10 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
         if (res.success && res.data) {
             setJobs(res.data);
         } else {
-            toast.error("Error al filtrar las ofertas.");
+            toast.error(t("filterError"));
         }
         setLoading(false);
-    }, [search, remoteType, seniorityLevel]);
+    }, [search, remoteType, seniorityLevel, t]);
 
     // Filtrar ofertas cuando cambien los filtros
     useEffect(() => {
@@ -83,7 +85,7 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
     const handleSendReport = async () => {
         if (!reportingJobId) return;
         if (reportReason.trim().length < 5) {
-            toast.error("El motivo debe tener al menos 5 caracteres.");
+            toast.error(t("reportLengthError"));
             return;
         }
         setIsSubmittingReport(true);
@@ -94,12 +96,12 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
         });
 
         if (res.success) {
-            toast.success("El reporte ha sido enviado. Revisaremos el contenido a la brevedad.");
+            toast.success(t("reportSuccess"));
             setReportingJobId(null);
             setReportReason("");
             void fetchJobs(); // Recargar el listado por si se ocultó la oferta
         } else {
-            toast.error(res.error || "Error al enviar el reporte.");
+            toast.error(res.error || t("reportError"));
         }
         setIsSubmittingReport(false);
     };
@@ -108,10 +110,10 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
         setApplyingId(jobId);
         const res = await applyToJobPostingAction(jobId);
         if (res.success) {
-            toast.success("¡Te has postulado con éxito! Se notificó al reclutador y se añadió a tu Kanban.");
+            toast.success(t("applySuccess"));
             setJobs((prev) => prev.map((job) => (job.id === jobId ? { ...job, hasApplied: true } : job)));
         } else {
-            toast.error(res.error || "Error al postularse.");
+            toast.error(res.error || t("applyError"));
         }
         setApplyingId(null);
     };
@@ -120,10 +122,10 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
         setWithdrawingId(jobId);
         const res = await withdrawApplicationAction(jobId);
         if (res.success) {
-            toast.success("Has retirado tu postulación con éxito.");
+            toast.success(t("withdrawSuccess"));
             setJobs((prev) => prev.map((job) => (job.id === jobId ? { ...job, hasApplied: false } : job)));
         } else {
-            toast.error(res.error || "Error al retirar la postulación.");
+            toast.error(res.error || t("withdrawError"));
         }
         setWithdrawingId(null);
     };
@@ -138,22 +140,24 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">Bolsa de Empleo (Job Board)</h1>
-                <p className="text-sm text-muted-foreground">
-                    Explora ofertas laborales internas de SkillRadar y comprueba tu porcentaje de afinidad con la IA.
-                </p>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("title")}</h1>
+                <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
             </div>
 
             {hasNoResume && (
                 <div className="flex gap-3 p-4 rounded-lg bg-yellow-500/10 text-yellow-600 border border-yellow-500/20 text-sm leading-relaxed items-start">
                     <AlertCircle className="size-5 shrink-0 mt-0.5" />
                     <div>
-                        <span className="font-semibold">¡Aviso importante!</span> Para ver tu porcentaje de afinidad con
-                        las ofertas laborales, debes subir y analizar al menos un currículum (CV) en la sección de{" "}
-                        <Link href="/dashboard/cv-analysis" className="underline font-bold hover:text-yellow-700">
-                            CV Analysis
-                        </Link>
-                        .
+                        {t.rich("noResumeWarning", {
+                            link: () => (
+                                <Link
+                                    href="/dashboard/cv-analysis"
+                                    className="underline font-bold hover:text-yellow-700"
+                                >
+                                    CV Analysis
+                                </Link>
+                            ),
+                        })}
                     </div>
                 </div>
             )}
@@ -164,7 +168,7 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                     <div className="relative col-span-2">
                         <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
                         <Input
-                            placeholder="Buscar por puesto o empresa..."
+                            placeholder={t("searchPlaceholder")}
                             className="pl-9"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -177,10 +181,10 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                             value={remoteType}
                             onChange={(e) => setRemoteType(e.target.value)}
                         >
-                            <option value="all">Todas las modalidades</option>
-                            <option value="remote">Remoto</option>
-                            <option value="hybrid">Híbrido</option>
-                            <option value="onsite">Presencial</option>
+                            <option value="all">{t("allFormats")}</option>
+                            <option value="remote">{t("remote")}</option>
+                            <option value="hybrid">{t("hybrid")}</option>
+                            <option value="onsite">{t("onsite")}</option>
                         </select>
                     </div>
 
@@ -190,11 +194,11 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                             value={seniorityLevel}
                             onChange={(e) => setSeniorityLevel(e.target.value)}
                         >
-                            <option value="all">Todos los seniorities</option>
-                            <option value="junior">Junior</option>
-                            <option value="mid">Semi-Senior / Mid</option>
-                            <option value="senior">Senior</option>
-                            <option value="lead">Lead / Principal</option>
+                            <option value="all">{t("allSeniorities")}</option>
+                            <option value="junior">{t("junior")}</option>
+                            <option value="mid">{t("mid")}</option>
+                            <option value="senior">{t("senior")}</option>
+                            <option value="lead">{t("lead")}</option>
                         </select>
                     </div>
                 </CardContent>
@@ -203,10 +207,12 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
             {/* Listado de Ofertas */}
             <div className="grid gap-5 md:grid-cols-1">
                 {loading && jobs.length === 0 ? (
-                    <div className="p-12 text-center text-muted-foreground text-sm">Cargando ofertas de empleo...</div>
+                    <div className="p-12 text-center text-muted-foreground text-sm">
+                        {t("loading", { default: "Cargando..." })}
+                    </div>
                 ) : jobs.length === 0 ? (
                     <div className="p-12 text-center text-muted-foreground text-sm border-dashed border-2 rounded-lg">
-                        No se encontraron ofertas que coincidan con tu búsqueda.
+                        {t("noOffers")}
                     </div>
                 ) : (
                     jobs.map((job) => {
@@ -236,11 +242,11 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                                         </span>
                                         <span className="flex items-center gap-1 uppercase">
                                             <Briefcase className="size-3.5" />
-                                            {job.remoteType}
+                                            {t(job.remoteType, { default: job.remoteType })}
                                         </span>
                                         <span className="flex items-center gap-1 uppercase">
                                             <Award className="size-3.5" />
-                                            {job.seniorityLevel}
+                                            {t(job.seniorityLevel, { default: job.seniorityLevel })}
                                         </span>
                                     </div>
 
@@ -267,7 +273,7 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                                         >
                                             <span className="text-xl font-extrabold">{job.matchScore}%</span>
                                             <span className="text-[9px] uppercase font-bold tracking-wider">
-                                                Afinidad
+                                                {t("affinity")}
                                             </span>
                                         </div>
                                     )}
@@ -276,7 +282,7 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            title="Reportar esta oferta"
+                                            title={t("report")}
                                             className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
                                             onClick={() => setReportingJobId(job.id)}
                                         >
@@ -291,7 +297,7 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                                                     className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50/5 border-emerald-500/20 w-full md:w-auto"
                                                 >
                                                     <CheckCircle2 className="size-4 text-emerald-500" />
-                                                    <span>Postulado</span>
+                                                    <span>{t("applied")}</span>
                                                 </Button>
                                                 <Button
                                                     variant="destructive"
@@ -301,7 +307,7 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                                                     disabled={withdrawingId !== null}
                                                     className="w-full md:w-auto"
                                                 >
-                                                    {withdrawingId === job.id ? "Retirando..." : "Retirar"}
+                                                    {withdrawingId === job.id ? t("withdrawing") : t("withdraw")}
                                                 </Button>
                                             </div>
                                         ) : (
@@ -312,7 +318,7 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                                                 disabled={applyingId !== null || withdrawingId !== null}
                                                 className="w-full md:w-auto"
                                             >
-                                                {applyingId === job.id ? "Aplicando..." : "Aplicar"}
+                                                {applyingId === job.id ? t("applying") : t("apply")}
                                             </Button>
                                         )}
                                     </div>
@@ -329,15 +335,12 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                     <div className="bg-card border border-border rounded-xl shadow-2xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95 duration-200">
                         <div className="flex items-center gap-2 text-destructive font-semibold">
                             <Flag className="size-5" />
-                            <h3 className="text-lg">Reportar Oferta Laboral</h3>
+                            <h3 className="text-lg">{t("report")}</h3>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                            Por favor, describe de forma concisa por qué consideras que esta oferta es spam, inapropiada
-                            o fraudulenta.
-                        </p>
+                        <p className="text-sm text-muted-foreground">{t("reportDescription")}</p>
                         <textarea
                             className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                            placeholder="Escribe tu motivo aquí (mínimo 5 caracteres)..."
+                            placeholder={t("reportPlaceholder")}
                             value={reportReason}
                             onChange={(e) => setReportReason(e.target.value)}
                             disabled={isSubmittingReport}
@@ -351,7 +354,7 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                                 }}
                                 disabled={isSubmittingReport}
                             >
-                                Cancelar
+                                {t("cancel")}
                             </Button>
                             <Button
                                 variant="destructive"
@@ -360,7 +363,7 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                                 }}
                                 disabled={isSubmittingReport}
                             >
-                                {isSubmittingReport ? "Enviando..." : "Enviar Reporte"}
+                                {isSubmittingReport ? t("submittingReport") : t("submitReport")}
                             </Button>
                         </div>
                     </div>

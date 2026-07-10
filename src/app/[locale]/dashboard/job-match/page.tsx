@@ -11,8 +11,10 @@ import { getUserResumesAction } from "@/features/cv-analysis/actions";
 import { createJobMatchAction } from "@/features/job-match/actions";
 import { toast } from "sonner";
 import type { JobMatchAnalysis } from "@/features/job-match/types";
+import { useTranslations } from "next-intl";
 
 export default function JobMatchPage() {
+    const t = useTranslations("JobMatch");
     const { data: session, status } = useSession();
     const [match, setMatch] = useState<JobMatch | null>(null);
     const [resumes, setResumes] = useState<{ id: string; fileName: string; createdAt: Date }[]>([]);
@@ -81,8 +83,10 @@ export default function JobMatchPage() {
                 const mappedMatch: JobMatch = {
                     id: dbJobMatch.id,
                     userId: dbJobMatch.userId,
-                    jobTitle: `Match para ${dbAnalysis?.seniority ? dbAnalysis.seniority.toUpperCase() : "Perfil"}`,
-                    company: "Oferta de Empleo Analizada",
+                    jobTitle: t("matchFor", {
+                        seniority: dbAnalysis?.seniority ? dbAnalysis.seniority.toUpperCase() : t("profile"),
+                    }),
+                    company: t("analyzedJob"),
                     matchScore: dbJobMatch.matchScore || 0,
                     alignedSkills: aligned,
                     missingSkills: missing,
@@ -93,13 +97,13 @@ export default function JobMatchPage() {
                 };
 
                 setMatch(mappedMatch);
-                toast.success("¡Análisis de Job Match completado con éxito!");
+                toast.success(t("matchSuccess"));
             } else {
                 toast.error(result.error);
             }
         } catch (error) {
             console.error("Error al calcular matching:", error);
-            toast.error("Ocurrió un error inesperado al analizar el matching.");
+            toast.error(t("matchError"));
         } finally {
             setIsLoading(false);
         }
@@ -108,10 +112,8 @@ export default function JobMatchPage() {
     return (
         <>
             <div className="mb-8">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Job Match</h1>
-                <p className="mt-1 text-sm text-muted-foreground">
-                    Paste a job description to see how well your profile matches
-                </p>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">{t("title")}</h1>
+                <p className="mt-1 text-sm text-muted-foreground">{t("description")}</p>
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">

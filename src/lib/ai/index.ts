@@ -121,7 +121,7 @@ export class AIService {
             { provider: "groq", model: "llama-3.3-70b-versatile" },
             {
                 provider: "openrouter",
-                model: "meta-llama/llama-3.1-70b-instruct:free",
+                model: "openrouter/free",
             },
         ];
 
@@ -140,9 +140,15 @@ export class AIService {
                 );
                 const modelInstance = this.getModelInstance(option.provider, option.model, options.userSettings);
 
+                const mode =
+                    option.provider === "groq" || (option.provider === "openrouter" && option.model.includes("free"))
+                        ? "json"
+                        : undefined;
+
                 const { object } = await generateObject({
                     ...options,
                     model: modelInstance,
+                    mode,
                 } as unknown as Parameters<typeof generateObject>[0]);
 
                 console.warn(`✅ [AIService] Inferencia completada con éxito vía "${option.provider}".`);

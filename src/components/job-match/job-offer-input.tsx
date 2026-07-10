@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Sparkles, Loader2, FileText } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 
 interface ResumeOption {
     id: string;
@@ -21,6 +22,7 @@ interface JobOfferInputProps {
 }
 
 export function JobOfferInput({ resumes, onMatch, isLoading = false }: JobOfferInputProps) {
+    const t = useTranslations("JobMatch");
     const [offerText, setOfferText] = useState("");
     const [selectedResumeId, setSelectedResumeId] = useState("");
 
@@ -38,29 +40,32 @@ export function JobOfferInput({ resumes, onMatch, isLoading = false }: JobOfferI
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <Briefcase className="size-5 text-primary" />
-                    Job Offer & CV Match
+                    {t("title")} & CV Match
                 </CardTitle>
-                <CardDescription>
-                    Select a resume from your history and paste the job description to match
-                </CardDescription>
+                <CardDescription>{t("description")}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
                 {/* Resume Selector */}
                 <div className="flex flex-col gap-2">
-                    <Label htmlFor="resume-select" className="flex items-center gap-1.5 font-medium">
+                    <Label
+                        htmlFor={resumes.length > 0 ? "resume-select" : undefined}
+                        className="flex items-center gap-1.5 font-medium"
+                    >
                         <FileText className="size-4 text-primary" />
-                        Select CV from History
+                        {t("selectCv")}
                     </Label>
                     {resumes.length === 0 ? (
                         <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3.5 text-sm text-amber-600 dark:text-amber-400">
-                            No has subido ningún CV aún. Por favor ve a la sección de{" "}
-                            <Link
-                                href="/dashboard/cv-analysis"
-                                className="underline font-semibold hover:text-amber-700"
-                            >
-                                CV Analysis
-                            </Link>{" "}
-                            para cargar tu primer currículum.
+                            {t.rich("noCvs", {
+                                link: () => (
+                                    <Link
+                                        href="/dashboard/cv-analysis"
+                                        className="underline font-semibold hover:text-amber-700"
+                                    >
+                                        CV Analysis
+                                    </Link>
+                                ),
+                            })}
                         </div>
                     ) : (
                         <div className="relative">
@@ -73,7 +78,8 @@ export function JobOfferInput({ resumes, onMatch, isLoading = false }: JobOfferI
                             >
                                 {resumes.map((resume) => (
                                     <option key={resume.id} value={resume.id} className="bg-background text-foreground">
-                                        {resume.fileName} (subido el {new Date(resume.createdAt).toLocaleDateString()})
+                                        {resume.fileName} ({t("uploadedOn", { default: "subido el" })}{" "}
+                                        {new Date(resume.createdAt).toLocaleDateString()})
                                     </option>
                                 ))}
                             </select>
@@ -82,13 +88,10 @@ export function JobOfferInput({ resumes, onMatch, isLoading = false }: JobOfferI
                 </div>
 
                 <div className="flex flex-col gap-2">
-                    <Label htmlFor="job-offer">Job Description</Label>
+                    <Label htmlFor="job-offer">{t("jobDescriptionLabel")}</Label>
                     <Textarea
                         id="job-offer"
-                        placeholder="Paste the full job description here...
-
-Example:
-We are looking for a Senior Frontend Developer with 5+ years of experience in React, TypeScript, and Next.js. You will be responsible for building scalable web applications..."
+                        placeholder={t("jobDescriptionPlaceholder")}
                         value={offerText}
                         onChange={(e) => setOfferText(e.target.value)}
                         className="min-h-[200px] resize-none"
@@ -105,12 +108,12 @@ We are looking for a Senior Frontend Developer with 5+ years of experience in Re
                     {isLoading ? (
                         <>
                             <Loader2 data-icon="inline-start" className="animate-spin" />
-                            Analyzing Match...
+                            {t("analyzingMatch")}
                         </>
                     ) : (
                         <>
                             <Sparkles data-icon="inline-start" />
-                            Analyze Match
+                            {t("analyzeMatch")}
                         </>
                     )}
                 </Button>

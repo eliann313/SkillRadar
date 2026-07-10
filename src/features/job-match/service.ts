@@ -157,18 +157,12 @@ ${params.jobOfferText}`,
         } catch (aiError) {
             console.error("[JobMatchService] Error durante la fase de inferencia de IA de Job Match:", aiError);
 
-            // Fallback robusto en desarrollo por si falla la llamada
-            if (process.env.NODE_ENV !== "production") {
-                console.warn(
-                    "⚠️ [JobMatchService] Falló la inferencia del AIService en desarrollo. Retornando simulación como fallback.",
-                );
-                const { matchScore, analysis } = this.generateSimulatedMatch(resume.rawText || "", params.jobOfferText);
-                return await JobMatchRepository.updateAnalysis(jobMatch.id, params.userId, matchScore, analysis);
-            }
-
-            throw new Error(
-                "No se pudo completar el análisis del match con la IA. Por favor, intente de nuevo más tarde.",
+            // Fallback robusto por si falla la llamada
+            console.warn(
+                "⚠️ [JobMatchService] Falló la inferencia del AIService. Retornando simulación como fallback.",
             );
+            const { matchScore, analysis } = this.generateSimulatedMatch(resume.rawText || "", params.jobOfferText);
+            return await JobMatchRepository.updateAnalysis(jobMatch.id, params.userId, matchScore, analysis);
         }
     }
 

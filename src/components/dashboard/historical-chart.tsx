@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Award } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface ScorePoint {
     date: string;
@@ -14,6 +15,7 @@ interface HistoricalChartProps {
 }
 
 export function HistoricalChart({ scores }: HistoricalChartProps) {
+    const t = useTranslations("Dashboard");
     const hasData = scores && scores.length >= 2;
 
     // Configuración del SVG
@@ -64,14 +66,16 @@ export function HistoricalChart({ scores }: HistoricalChartProps) {
                     <div>
                         <CardTitle className="text-base font-medium flex items-center gap-2">
                             <TrendingUp className="size-4 text-primary" />
-                            ATS Score Evolution
+                            {t("atsEvolution", { default: "ATS Score Evolution" })}
                         </CardTitle>
-                        <CardDescription>Progression of your CV analysis score over time</CardDescription>
+                        <CardDescription>
+                            {t("atsEvolutionDesc", { default: "Progression of your CV analysis score over time" })}
+                        </CardDescription>
                     </div>
                     {hasData && (
                         <div className="flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full font-semibold">
                             <Award className="size-3" />
-                            Latest: {scores[scores.length - 1].score}
+                            {t("latest", { default: "Latest" })}: {scores[scores.length - 1].score}
                         </div>
                     )}
                 </div>
@@ -82,10 +86,14 @@ export function HistoricalChart({ scores }: HistoricalChartProps) {
                         <div className="size-12 rounded-full bg-muted/40 flex items-center justify-center mb-3">
                             <TrendingUp className="size-6 text-muted-foreground/60" />
                         </div>
-                        <p className="text-sm font-semibold text-foreground/80 mb-1">Historial no disponible</p>
+                        <p className="text-sm font-semibold text-foreground/80 mb-1">
+                            {t("historyNotAvailable", { default: "Historial no disponible" })}
+                        </p>
                         <p className="text-xs max-w-sm">
-                            Sube al menos dos versiones de tu CV en la pestaña de CV Analysis para pintar el progreso
-                            histórico de optimización.
+                            {t("historyDesc", {
+                                default:
+                                    "Sube al menos dos versiones de tu CV en la pestaña de CV Analysis para pintar el progreso histórico de optimización.",
+                            })}
                         </p>
                     </div>
                 ) : (

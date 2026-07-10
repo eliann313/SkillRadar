@@ -7,6 +7,7 @@ import {
     updateJobApplicationStatusAction,
     deleteJobApplicationAction,
 } from "@/features/job-tracker/actions";
+import { getTranslations } from "next-intl/server";
 
 export default async function JobTrackerPage() {
     const session = await auth();
@@ -18,6 +19,8 @@ export default async function JobTrackerPage() {
     if (session.user.role !== "developer") {
         redirect("/dashboard");
     }
+
+    const t = await getTranslations("JobTracker");
 
     // Carga inicial de postulaciones desde el servidor
     const applications = await JobTrackerService.getJobApplications(session.user.id);
@@ -41,10 +44,8 @@ export default async function JobTrackerPage() {
     return (
         <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto">
             <div className="flex flex-col gap-1">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Job Tracker</h1>
-                <p className="text-sm text-muted-foreground">
-                    Gestiona y mantén el control de tus postulaciones laborales activas.
-                </p>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">{t("title")}</h1>
+                <p className="text-sm text-muted-foreground">{t("description")}</p>
             </div>
 
             <KanbanBoard
