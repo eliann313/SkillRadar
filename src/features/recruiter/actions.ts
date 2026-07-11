@@ -64,6 +64,21 @@ export async function createContactRequestAction(
             return { success: false, error: "Campos de entrada inválidos." };
         }
 
+        // Asegurar que el usuario reclutador demo existe en DB para cumplir las FKeys
+        if (session.user.id === "guest-recruiter-id") {
+            const { db } = await import("@/lib/db");
+            await db.user.upsert({
+                where: { id: "guest-recruiter-id" },
+                update: {},
+                create: {
+                    id: "guest-recruiter-id",
+                    name: "Demo Recruiter",
+                    email: "recruiter-guest@skillradar.dev",
+                    role: "recruiter",
+                },
+            });
+        }
+
         const request = await RecruiterService.createContactRequest({
             recruiterId: session.user.id,
             developerId,
@@ -104,6 +119,21 @@ export async function toggleShortlistAction(developerId: string): Promise<Action
 
         if (!developerId) {
             return { success: false, error: "ID de desarrollador inválido." };
+        }
+
+        // Asegurar que el usuario reclutador demo existe en DB para cumplir las FKeys
+        if (session.user.id === "guest-recruiter-id") {
+            const { db } = await import("@/lib/db");
+            await db.user.upsert({
+                where: { id: "guest-recruiter-id" },
+                update: {},
+                create: {
+                    id: "guest-recruiter-id",
+                    name: "Demo Recruiter",
+                    email: "recruiter-guest@skillradar.dev",
+                    role: "recruiter",
+                },
+            });
         }
 
         const isShortlisted = await RecruiterService.toggleShortlist({
