@@ -670,7 +670,8 @@ ${demandedSkills.join(", ") || "React, Node.js, TypeScript, Next.js, Docker, AWS
                     analysis: {
                         ...(existingAnalysis || {}),
                         careerRecommendations: result,
-                    },
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    } as any,
                 },
             });
         } catch (dbError) {
