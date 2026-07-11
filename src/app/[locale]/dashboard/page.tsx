@@ -58,6 +58,12 @@ export default async function DashboardPage() {
                     ) as { keywords?: string[]; estimatedSeniority?: "junior" | "mid" | "senior" | "lead" };
                 }
 
+                // Filtrar proactivamente keywords para que sólo se muestren las presentes en el texto del CV
+                const rawText = resume.rawText || "";
+                const filteredSkills = (parsedAnalysis?.keywords || []).filter((kw) =>
+                    rawText.toLowerCase().includes(kw.toLowerCase()),
+                );
+
                 return {
                     id: dev.id,
                     anonymousId: `DEV-${dev.id.slice(-4).toUpperCase()}`,
@@ -73,7 +79,7 @@ export default async function DashboardPage() {
                     estimatedSeniority: (parsedAnalysis?.estimatedSeniority || "mid") as
                         "junior" | "mid" | "senior" | "lead",
                     averageScore: resume.atsScore || 0,
-                    topSkills: parsedAnalysis?.keywords || [],
+                    topSkills: filteredSkills,
                     languages: [],
                     lastActive: new Date(resume.createdAt),
                     contactStatus,

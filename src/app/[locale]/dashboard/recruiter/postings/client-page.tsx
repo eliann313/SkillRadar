@@ -219,7 +219,7 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {postings.length === 0 ? (
                     <Card className="col-span-full border-dashed border-2 py-12 flex flex-col items-center justify-center text-center">
-                        <CardHeader>
+                        <CardHeader className="w-full max-w-md">
                             <CardTitle className="text-muted-foreground font-medium">
                                 No tienes ofertas creadas
                             </CardTitle>

@@ -132,7 +132,7 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                     return {
                         ...original,
                         ...item,
-                        estimatedSeniority: item.seniority,
+                        estimatedSeniority: original?.estimatedSeniority || item.seniority,
                         averageScore: item.matchScore,
                         lastActive: original?.lastActive || new Date(),
                         topSkills: item.skills.length > 0 ? item.skills : original?.topSkills || [],
@@ -383,7 +383,7 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                 </Button>
             </div>
 
-            {activeTab !== "market" && (
+            {activeTab === "pool" && (
                 <>
                     {/* AI Sourcing Suite */}
                     <Card className="border-primary/20 bg-primary/5 dark:bg-primary/5 backdrop-blur-xs shadow-xs">
@@ -521,18 +521,19 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                             )}
                         </CardContent>
                     </Card>
-
-                    {/* Search bar */}
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                            placeholder="Search by skill, name or anonymous ID (e.g., React, DEV-9B1C)..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10 bg-card border-border"
-                        />
-                    </div>
                 </>
+            )}
+
+            {activeTab !== "market" && (
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                        placeholder="Search by skill, name or anonymous ID (e.g., React, DEV-9B1C)..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10 bg-card border-border"
+                    />
+                </div>
             )}
 
             {/* Talent Grid */}
@@ -828,6 +829,7 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                                                         axisLine={false}
                                                     />
                                                     <Tooltip
+                                                        cursor={{ fill: "transparent" }}
                                                         contentStyle={{
                                                             backgroundColor: "var(--popover)",
                                                             borderColor: "var(--border)",
@@ -856,6 +858,11 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                                                 </BarChart>
                                             </ResponsiveContainer>
                                         </div>
+                                        <p className="text-[10px] text-muted-foreground/80 italic mt-2 text-right">
+                                            * Nota: Al no detectarse ofertas locales publicadas en el Job Board, los
+                                            valores de demanda se estiman proporcionalmente con base en tendencias
+                                            promedio del mercado global.
+                                        </p>
                                     </div>
 
                                     {/* Distribución de Seniority y Salarios */}
@@ -901,6 +908,7 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                                                             })}
                                                         </Pie>
                                                         <Tooltip
+                                                            cursor={{ fill: "transparent" }}
                                                             contentStyle={{
                                                                 backgroundColor: "var(--popover)",
                                                                 borderColor: "var(--border)",
@@ -1028,7 +1036,7 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
 
             {/* Dialog para redactar y enviar Propuesta de Contacto (Doble Ciego 12.1) */}
             <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
-                <DialogContent className="sm:max-w-md bg-card border border-border/80">
+                <DialogContent className="sm:max-w-md bg-card border border-border/80 max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <Send className="size-5 text-primary" />
