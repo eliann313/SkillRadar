@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Award } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 
 interface ScorePoint {
     date: string;
@@ -16,47 +18,17 @@ interface HistoricalChartProps {
 
 export function HistoricalChart({ scores }: HistoricalChartProps) {
     const t = useTranslations("Dashboard");
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setMounted(true), 0);
+        return () => clearTimeout(timer);
+    }, []);
+
     const hasData = scores && scores.length >= 2;
 
-    // Configuración del SVG
-    const width = 500;
-    const height = 150;
-    const padding = 20;
-
-    // Generar los puntos para el SVG si hay datos
-    let points = "";
-    let fillPoints = "";
-    const svgPoints: { x: number; y: number; score: number; label: string; name: string }[] = [];
-
-    if (hasData) {
-        const xStep = (width - padding * 2) / (scores.length - 1);
-
-        scores.forEach((pt, index) => {
-            const x = padding + index * xStep;
-            // Invertir Y porque el origen (0,0) del SVG está en la esquina superior izquierda
-            // El score va de 0 a 100
-            const y = height - padding - (pt.score / 100) * (height - padding * 2);
-
-            svgPoints.push({
-                x,
-                y,
-                score: pt.score,
-                label: pt.date,
-                name: pt.name,
-            });
-
-            if (index === 0) {
-                points = `${x},${y}`;
-                fillPoints = `M ${x},${height - padding} L${x},${y}`;
-            } else {
-                points += ` L${x},${y}`;
-                fillPoints += ` L${x},${y}`;
-            }
-
-            if (index === scores.length - 1) {
-                fillPoints += ` L${x},${height - padding} Z`;
-            }
-        });
+    if (!mounted) {
+        return <div className="h-[180px] w-full bg-muted/10 rounded animate-pulse" />;
     }
 
     return (
@@ -97,79 +69,55 @@ export function HistoricalChart({ scores }: HistoricalChartProps) {
                         </p>
                     </div>
                 ) : (
-                    <div className="w-full relative">
-                        {/* SVG Chart */}
-                        <svg
-                            viewBox={`0 0 ${width} ${height}`}
-                            className="w-full h-[150px] overflow-visible"
-                            preserveAspectRatio="none"
-                        >
-                            <defs>
-                                <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.25" />
-                                    <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.0" />
-                                </linearGradient>
-                            </defs>
-
-                            {/* Grid Lines */}
-                            <line
-                                x1={padding}
-                                y1={padding}
-                                x2={width - padding}
-                                y2={padding}
-                                className="stroke-border/20 stroke-1"
-                                strokeDasharray="4 4"
-                            />
-                            <line
-                                x1={padding}
-                                y1={height / 2}
-                                x2={width - padding}
-                                y2={height / 2}
-                                className="stroke-border/20 stroke-1"
-                                strokeDasharray="4 4"
-                            />
-                            <line
-                                x1={padding}
-                                y1={height - padding}
-                                x2={width - padding}
-                                y2={height - padding}
-                                className="stroke-border/40 stroke-1"
-                            />
-
-                            {/* Fill Area */}
-                            <path d={fillPoints} fill="url(#chartGradient)" />
-
-                            {/* Polyline path */}
-                            <path
-                                d={`M ${points}`}
-                                fill="none"
-                                className="stroke-primary stroke-[2.5]"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-
-                            {/* Data points */}
-                            {svgPoints.map((pt, i) => (
-                                <g key={i} className="group cursor-pointer">
-                                    <circle
-                                        cx={pt.x}
-                                        cy={pt.y}
-                                        r="5"
-                                        className="fill-background stroke-primary stroke-2 transition-all duration-200 group-hover:r-[7] group-hover:fill-primary"
-                                    />
-                                    <title>{`${pt.name}\nScore: ${pt.score}\nFecha: ${pt.label}`}</title>
-                                </g>
-                            ))}
-                        </svg>
-
-                        {/* X-Axis labels */}
-                        <div className="flex justify-between text-[10px] text-muted-foreground px-[15px] mt-2">
-                            {scores.map((pt, i) => (
-                                <span key={i} className="max-w-[70px] truncate" title={pt.name}>
-                                    {pt.date}
-                                </span>
-                            ))}
-                        </div>
+                    <div className="h-[150px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={scores} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="historicalColorScore" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" className="stroke-border/20" vertical={false} />
+                                <XAxis
+                                    dataKey="date"
+                                    stroke="var(--muted-foreground)"
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    dy={10}
+                                />
+                                <YAxis
+                                    domain={[0, 100]}
+                                    stroke="var(--muted-foreground)"
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    dx={-5}
+                                />
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: "var(--popover)",
+                                        borderColor: "var(--border)",
+                                        borderRadius: "var(--radius)",
+                                        color: "var(--popover-foreground)",
+                                        fontSize: "12px",
+                                        boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+                                    }}
+                                    labelStyle={{ fontWeight: "bold" }}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="score"
+                                    name="Score ATS"
+                                    stroke="var(--primary)"
+                                    fillOpacity={1}
+                                    fill="url(#historicalColorScore)"
+                                    strokeWidth={2.5}
+                                    activeDot={{ r: 6, strokeWidth: 0 }}
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
                     </div>
                 )}
             </CardContent>

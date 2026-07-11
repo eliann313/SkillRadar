@@ -596,7 +596,7 @@ export class JobPostingService {
     static async updateApplicationStatus(
         recruiterId: string,
         applicationId: string,
-        newStatus: "submitted" | "reviewed" | "rejected" | "shortlisted",
+        newStatus: "submitted" | "reviewed" | "rejected" | "shortlisted" | "interview" | "offer" | "hired",
     ): Promise<JobPostingApplication> {
         const application = await db.jobPostingApplication.findUnique({
             where: { id: applicationId },
@@ -628,6 +628,9 @@ export class JobPostingService {
             reviewed: "En revisión",
             rejected: "No seleccionada",
             shortlisted: "Preseleccionada",
+            interview: "Entrevista",
+            offer: "Oferta de Empleo",
+            hired: "Contratado",
         };
 
         await createNotification({

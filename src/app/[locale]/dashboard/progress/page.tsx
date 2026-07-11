@@ -1,11 +1,11 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getProgressDataAction } from "@/features/cv-analysis/actions";
+import { getProgressDataAction, getCareerRecommendationsAction } from "@/features/cv-analysis/actions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { ProgressRecharts } from "@/components/dashboard";
-import { TrendingUp, Award, CheckCircle2, ArrowRight, FileText, Calendar } from "lucide-react";
+import { TrendingUp, Award, CheckCircle2, ArrowRight, FileText, Calendar, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { getTranslations } from "next-intl/server";
@@ -35,6 +35,7 @@ export default async function ProgressPage({ params }: PageProps) {
     const t = await getTranslations("Progress");
 
     const res = await getProgressDataAction();
+    const recsRes = await getCareerRecommendationsAction();
     if (!res.success || !res.data) {
         return (
             <div className="flex min-h-[400px] flex-col items-center justify-center text-center p-6 border rounded-lg border-destructive/20 bg-destructive/5">
@@ -171,6 +172,157 @@ export default async function ProgressPage({ params }: PageProps) {
                     <ProgressRecharts data={chartData} />
                 </CardContent>
             </Card>
+
+            {/* Career Copilot Recommendations */}
+            {recsRes.success && recsRes.data && (
+                <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-card to-background backdrop-blur-sm shadow-xs overflow-hidden relative">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -z-10" />
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-lg font-bold flex items-center gap-2 text-foreground">
+                            <Sparkles className="size-5 text-primary animate-pulse" />
+                            Career Copilot — Recomendaciones de Crecimiento
+                        </CardTitle>
+                        <CardDescription>
+                            Sugerencias de tecnologías, proyectos y roadmaps para cerrar brechas técnicas frente a las
+                            vacantes del Job Board.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="grid gap-6 md:grid-cols-2">
+                            {/* Tecnologías sugeridas */}
+                            <div className="space-y-3">
+                                <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5 border-b pb-1.5 border-border">
+                                    <Award className="size-4 text-primary" />
+                                    Tecnologías Recomendadas
+                                </h3>
+                                <div className="space-y-3">
+                                    {recsRes.data.technologies.map((tech, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="p-3 rounded-lg border border-border/60 bg-muted/20 flex items-start gap-3"
+                                        >
+                                            <Badge
+                                                variant="outline"
+                                                className={cn(
+                                                    "capitalize shrink-0 text-[10px] font-medium px-2 py-0.5 border-none",
+                                                    tech.importance === "high"
+                                                        ? "bg-rose-500/10 text-rose-500"
+                                                        : tech.importance === "medium"
+                                                          ? "bg-amber-500/10 text-amber-500"
+                                                          : "bg-blue-500/10 text-blue-500",
+                                                )}
+                                            >
+                                                {tech.importance === "high"
+                                                    ? "Alta"
+                                                    : tech.importance === "medium"
+                                                      ? "Media"
+                                                      : "Baja"}
+                                            </Badge>
+                                            <div className="space-y-1">
+                                                <h4 className="text-sm font-bold text-foreground">{tech.name}</h4>
+                                                <p className="text-xs text-muted-foreground leading-normal">
+                                                    {tech.reason}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Roadmaps sugeridos */}
+                            <div className="space-y-3">
+                                <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5 border-b pb-1.5 border-border">
+                                    <Calendar className="size-4 text-primary" />
+                                    Ruta de Aprendizaje Sugerida
+                                </h3>
+                                {recsRes.data.roadmaps.map((map, idx) => (
+                                    <div
+                                        key={idx}
+                                        className="p-4 rounded-lg border border-border bg-card/60 space-y-3 relative overflow-hidden"
+                                    >
+                                        <div className="flex justify-between items-center">
+                                            <h4 className="text-sm font-bold text-foreground">{map.title}</h4>
+                                            <Badge
+                                                variant="outline"
+                                                className="bg-primary/5 text-primary border-primary/10 text-[10px] font-mono"
+                                            >
+                                                {map.duration}
+                                            </Badge>
+                                        </div>
+                                        <ol className="relative border-l border-border/80 ml-2 space-y-3.5 mt-2">
+                                            {map.steps.map((step, sIdx) => (
+                                                <li key={sIdx} className="mb-0 ml-4">
+                                                    <span className="absolute flex items-center justify-center w-5 h-5 bg-background rounded-full -left-2.5 border border-border text-[10px] font-mono font-semibold text-primary">
+                                                        {sIdx + 1}
+                                                    </span>
+                                                    <p className="text-xs text-muted-foreground leading-normal">
+                                                        {step}
+                                                    </p>
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Proyectos sugeridos */}
+                        {recsRes.data.projects && recsRes.data.projects.length > 0 && (
+                            <div className="space-y-3 pt-2">
+                                <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5 border-b pb-1.5 border-border">
+                                    <Sparkles className="size-4 text-primary" />
+                                    Proyectos Sugeridos para Potenciar tu CV
+                                </h3>
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    {recsRes.data.projects.map((proj, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="p-4 rounded-lg border border-border/60 bg-muted/10 flex flex-col justify-between gap-3 hover:border-primary/30 transition-all"
+                                        >
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between items-center gap-2">
+                                                    <h4 className="text-sm font-bold text-foreground">{proj.title}</h4>
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className={cn(
+                                                            "capitalize text-[10px] font-medium border-none",
+                                                            proj.difficulty === "advanced"
+                                                                ? "bg-rose-500/10 text-rose-500"
+                                                                : proj.difficulty === "intermediate"
+                                                                  ? "bg-amber-500/10 text-amber-500"
+                                                                  : "bg-emerald-500/10 text-emerald-500",
+                                                        )}
+                                                    >
+                                                        {proj.difficulty === "beginner"
+                                                            ? "Principiante"
+                                                            : proj.difficulty === "intermediate"
+                                                              ? "Intermedio"
+                                                              : "Avanzado"}
+                                                    </Badge>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground leading-relaxed">
+                                                    {proj.description}
+                                                </p>
+                                            </div>
+                                            <div className="flex flex-wrap gap-1 pt-1">
+                                                {proj.technologies.map((t) => (
+                                                    <Badge
+                                                        key={t}
+                                                        variant="secondary"
+                                                        className="text-[10px] bg-secondary/80 text-secondary-foreground"
+                                                    >
+                                                        {t}
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
 
             <div className="grid gap-6 md:grid-cols-12">
                 {/* Habilidades Cerradas (Logros) */}

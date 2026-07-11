@@ -77,8 +77,12 @@ export function ApplicationsClientPage({
     const [contactMessage, setContactMessage] = useState("");
     const [contactingDevId, setContactingDevId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
 
-    const handleStatusChange = async (appId: string, newStatus: "reviewed" | "rejected" | "shortlisted") => {
+    const handleStatusChange = async (
+        appId: string,
+        newStatus: "submitted" | "reviewed" | "rejected" | "shortlisted" | "interview" | "offer" | "hired",
+    ) => {
         const res = await updateApplicationStatusAction(appId, newStatus);
         if (!res.success) {
             toast.error(res.error || "Error al actualizar estado.");
@@ -179,36 +183,202 @@ export function ApplicationsClientPage({
         }
     };
 
+    const KANBAN_COLUMNS = [
+        { id: "submitted", title: "Aplicados", color: "border-blue-500/20 bg-blue-500/5 dark:bg-blue-955/10" },
+        {
+            id: "reviewed",
+            title: "Filtro Técnico",
+            color: "border-yellow-500/20 bg-yellow-500/5 dark:bg-yellow-955/10",
+        },
+        { id: "interview", title: "Entrevista", color: "border-purple-500/20 bg-purple-500/5 dark:bg-purple-955/10" },
+        { id: "offer", title: "Oferta", color: "border-indigo-500/20 bg-indigo-500/5 dark:bg-indigo-955/10" },
+        { id: "hired", title: "Contratados", color: "border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-955/10" },
+    ];
+
+    const getColumnApps = (colId: string) => {
+        return applications.filter((app) => {
+            if (app.status === "rejected") return false;
+            if (colId === "submitted") return app.status === "submitted" || app.status === "pending" || !app.status;
+            if (colId === "reviewed") return app.status === "reviewed" || app.status === "shortlisted";
+            return app.status === colId;
+        });
+    };
+
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Link href="/dashboard/recruiter/postings">
-                    <Button variant="ghost" size="icon" className="rounded-full">
-                        <ArrowLeft className="size-5" />
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-4">
+                <div className="flex items-center gap-4">
+                    <Link href="/dashboard/recruiter/postings">
+                        <Button variant="ghost" size="icon" className="rounded-full shrink-0">
+                            <ArrowLeft className="size-5" />
+                        </Button>
+                    </Link>
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">{jobTitle}</h1>
+                        <p className="text-sm text-muted-foreground mt-1">
+                            {companyName} — Listado de postulantes ordenados por score de matching con el puesto.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex bg-muted/60 p-0.5 rounded-lg border border-border shrink-0 self-start sm:self-center">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setViewMode("list")}
+                        className={cn(
+                            "text-xs px-3 py-1.5 h-auto rounded-md shadow-none gap-1",
+                            viewMode === "list"
+                                ? "bg-background text-foreground font-semibold"
+                                : "text-muted-foreground hover:text-foreground",
+                        )}
+                    >
+                        📝 Vista Lista
                     </Button>
-                </Link>
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground">{jobTitle}</h1>
-                    <p className="text-sm text-muted-foreground">
-                        {companyName} — Listado de postulantes ordenados por score de matching con el puesto.
-                    </p>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setViewMode("kanban")}
+                        className={cn(
+                            "text-xs px-3 py-1.5 h-auto rounded-md shadow-none gap-1",
+                            viewMode === "kanban"
+                                ? "bg-background text-foreground font-semibold"
+                                : "text-muted-foreground hover:text-foreground",
+                        )}
+                    >
+                        📊 Vista Kanban
+                    </Button>
                 </div>
             </div>
 
-            <div className="grid gap-4">
-                {applications.length === 0 ? (
-                    <Card className="border-dashed border-2 py-12 flex flex-col items-center justify-center text-center">
-                        <CardHeader>
-                            <CardTitle className="text-muted-foreground font-medium">
-                                No se han recibido postulaciones
-                            </CardTitle>
-                            <CardDescription>
-                                Aún ningún desarrollador se ha postulado a esta vacante laboral.
-                            </CardDescription>
-                        </CardHeader>
-                    </Card>
-                ) : (
-                    applications.map((app) => {
+            {applications.length === 0 ? (
+                <Card className="border-dashed border-2 py-12 flex flex-col items-center justify-center text-center">
+                    <CardHeader>
+                        <CardTitle className="text-muted-foreground font-medium">
+                            No se han recibido postulaciones
+                        </CardTitle>
+                        <CardDescription>
+                            Aún ningún desarrollador se ha postulado a esta vacante laboral.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+            ) : viewMode === "kanban" ? (
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-start overflow-x-auto min-h-[500px] pb-6">
+                    {KANBAN_COLUMNS.map((col) => {
+                        const colApps = getColumnApps(col.id);
+                        return (
+                            <div
+                                key={col.id}
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={(e) => {
+                                    const appId = e.dataTransfer.getData("text/plain");
+                                    if (appId) {
+                                        void handleStatusChange(
+                                            appId,
+                                            col.id as
+                                                | "submitted"
+                                                | "reviewed"
+                                                | "rejected"
+                                                | "shortlisted"
+                                                | "interview"
+                                                | "offer"
+                                                | "hired",
+                                        );
+                                    }
+                                }}
+                                className={cn(
+                                    "flex flex-col gap-3 p-3 rounded-xl border min-h-[450px] transition-colors duration-200",
+                                    col.color,
+                                )}
+                            >
+                                <div className="flex items-center justify-between border-b border-border pb-2 mb-1">
+                                    <h3 className="font-semibold text-xs text-foreground uppercase tracking-wider">
+                                        {col.title}
+                                    </h3>
+                                    <Badge
+                                        variant="secondary"
+                                        className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                                    >
+                                        {colApps.length}
+                                    </Badge>
+                                </div>
+                                <div className="flex flex-col gap-2 overflow-y-auto max-h-[600px] pr-1">
+                                    {colApps.length === 0 ? (
+                                        <div className="text-center py-10 text-[10px] text-muted-foreground/60 border border-dashed border-border/60 rounded-lg">
+                                            Arrastra aquí
+                                        </div>
+                                    ) : (
+                                        colApps.map((app) => {
+                                            const dev = app.developer;
+                                            const isRevealed = app.contactStatus === "accepted";
+                                            const score = app.resume?.atsScore ?? app.matchScore;
+                                            return (
+                                                <div
+                                                    key={app.id}
+                                                    draggable
+                                                    onDragStart={(e) => {
+                                                        e.dataTransfer.setData("text/plain", app.id);
+                                                    }}
+                                                    className="bg-card hover:bg-card/80 border border-border p-3.5 rounded-lg shadow-xs cursor-grab active:cursor-grabbing hover:border-primary/40 hover:shadow-xs transition-all space-y-3"
+                                                >
+                                                    <div className="flex justify-between items-start gap-2">
+                                                        <span
+                                                            className="font-bold text-xs text-foreground truncate max-w-[100px]"
+                                                            title={isRevealed ? dev.name || "" : dev.anonymousId}
+                                                        >
+                                                            {isRevealed ? dev.name || "Sin nombre" : dev.anonymousId}
+                                                        </span>
+                                                        <Badge
+                                                            className={cn(
+                                                                "text-[9px] px-1.5 py-0.5 rounded-md border-none",
+                                                                getScoreColor(score),
+                                                            )}
+                                                        >
+                                                            {score}%
+                                                        </Badge>
+                                                    </div>
+                                                    <div className="text-[10px] text-muted-foreground flex flex-col gap-1">
+                                                        <span className="truncate">
+                                                            {app.resume?.fileName || "Sin CV cargado"}
+                                                        </span>
+                                                        <div className="mt-1 flex items-center justify-between">
+                                                            {getContactBadge(app.contactStatus)}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex justify-end gap-1 pt-1.5 border-t border-border/40">
+                                                        <Button
+                                                            onClick={() => openDetails(app)}
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            className="h-6 text-[10px] gap-1 px-2 hover:bg-muted"
+                                                        >
+                                                            <Eye className="size-3" />
+                                                            Ver
+                                                        </Button>
+                                                        {!isRevealed && app.contactStatus === "none" && (
+                                                            <Button
+                                                                onClick={() => openContactDialog(dev.id)}
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                className="h-6 text-[10px] gap-1 px-2 hover:bg-indigo/10 hover:text-indigo-500 text-muted-foreground"
+                                                            >
+                                                                <Mail className="size-3" />
+                                                                Contactar
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            ) : (
+                <div className="grid gap-4">
+                    {applications.map((app) => {
                         const dev = app.developer;
                         const isRevealed = app.contactStatus === "accepted";
                         const skills: string[] = app.resume?.analysis?.keywords || [];
@@ -341,9 +511,9 @@ export function ApplicationsClientPage({
                                 </div>
                             </Card>
                         );
-                    })
-                )}
-            </div>
+                    })}
+                </div>
+            )}
 
             {/* Modal de Detalle de Análisis de IA */}
             <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>

@@ -9,6 +9,9 @@ import type { ActionResult } from "./types";
 import { revalidatePath } from "next/cache";
 import { checkCVRateLimit, getClientIp } from "@/lib/rate-limit";
 import { db } from "@/lib/db";
+import { AIService, type AIServiceOptions } from "@/lib/ai";
+import { z } from "zod";
+import { env } from "@/lib/env";
 
 interface ParseCVInput {
     fileUrl?: string;
@@ -437,5 +440,228 @@ export async function deleteResumeAction(
         const errMessage = error instanceof Error ? error.message : "Error al eliminar el currículum.";
         console.error("[deleteResumeAction] Error:", errMessage);
         return { success: false, error: errMessage };
+    }
+}
+
+export interface CareerRecommendations {
+    technologies: Array<{ name: string; importance: "high" | "medium" | "low"; reason: string }>;
+    roadmaps: Array<{ title: string; steps: string[]; duration: string }>;
+    projects: Array<{
+        title: string;
+        description: string;
+        technologies: string[];
+        difficulty: "beginner" | "intermediate" | "advanced";
+    }>;
+}
+
+/**
+ * Obtiene recomendaciones inteligentes del Career Copilot basadas en el CV del usuario y la demanda laboral.
+ */
+export async function getCareerRecommendationsAction(): Promise<ActionResult<CareerRecommendations>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado. Inicie sesión nuevamente." };
+        }
+
+        const userId = session.user.id;
+
+        // 1. Obtener currículum activo
+        const resume =
+            (await db.resume.findFirst({
+                where: { userId, isActive: true },
+            })) ||
+            (await db.resume.findFirst({
+                where: { userId },
+                orderBy: { createdAt: "desc" },
+            }));
+
+        if (!resume) {
+            return { success: false, error: "Sube un currículum para recibir sugerencias inteligentes de carrera." };
+        }
+
+        // 2. Obtener ofertas publicadas del Job Board
+        const postings = await db.jobPosting.findMany({
+            where: { status: "published" },
+            select: { requiredSkills: true, title: true },
+        });
+
+        // 3. Cargar preferencias de IA del usuario
+        let userSettings: AIServiceOptions["userSettings"] = undefined;
+        try {
+            const user = await db.user.findUnique({
+                where: { id: userId },
+                select: {
+                    geminiApiKey: true,
+                    groqApiKey: true,
+                    openrouterApiKey: true,
+                    openaiApiKey: true,
+                    anthropicApiKey: true,
+                    defaultAiProvider: true,
+                    defaultAiModel: true,
+                },
+            });
+            if (user) {
+                userSettings = {
+                    geminiApiKeyEncrypted: user.geminiApiKey,
+                    groqApiKeyEncrypted: user.groqApiKey,
+                    openrouterApiKeyEncrypted: user.openrouterApiKey,
+                    openaiApiKeyEncrypted: user.openaiApiKey,
+                    anthropicApiKeyEncrypted: user.anthropicApiKey,
+                    preferredProvider: user.defaultAiProvider,
+                    preferredModel: user.defaultAiModel,
+                };
+            }
+        } catch {}
+
+        const hasGlobalKeys = !!(
+            env.GEMINI_API_KEY ||
+            process.env.GROQ_API_KEY ||
+            process.env.OPENROUTER_API_KEY ||
+            process.env.OPENAI_API_KEY ||
+            process.env.ANTHROPIC_API_KEY
+        );
+        const hasUserKeys = !!(
+            userSettings &&
+            (userSettings.geminiApiKeyEncrypted ||
+                userSettings.groqApiKeyEncrypted ||
+                userSettings.openrouterApiKeyEncrypted ||
+                userSettings.openaiApiKeyEncrypted ||
+                userSettings.anthropicApiKeyEncrypted)
+        );
+
+        const careerRecommendationsSchema = z.object({
+            technologies: z.array(
+                z.object({
+                    name: z.string(),
+                    importance: z.enum(["high", "medium", "low"]),
+                    reason: z.string(),
+                }),
+            ),
+            roadmaps: z.array(
+                z.object({
+                    title: z.string(),
+                    steps: z.array(z.string()),
+                    duration: z.string(),
+                }),
+            ),
+            projects: z.array(
+                z.object({
+                    title: z.string(),
+                    description: z.string(),
+                    technologies: z.array(z.string()),
+                    difficulty: z.enum(["beginner", "intermediate", "advanced"]),
+                }),
+            ),
+        });
+
+        if (!hasGlobalKeys && !hasUserKeys) {
+            // Simulación offline
+            const resumeLower = (resume.rawText || "").toLowerCase();
+            const missingTech = [];
+            if (!resumeLower.includes("docker"))
+                missingTech.push({
+                    name: "Docker",
+                    importance: "high" as const,
+                    reason: "Requerido frecuentemente en ofertas del Job Board para el despliegue de aplicaciones.",
+                });
+            if (!resumeLower.includes("aws"))
+                missingTech.push({
+                    name: "AWS",
+                    importance: "medium" as const,
+                    reason: "Altamente valorado en puestos Fullstack y Cloud Native.",
+                });
+            if (!resumeLower.includes("jest") && !resumeLower.includes("testing"))
+                missingTech.push({
+                    name: "Jest / Testing",
+                    importance: "high" as const,
+                    reason: "Esencial para asegurar la calidad de software y requerido en vacantes senior.",
+                });
+            if (!resumeLower.includes("ci/cd"))
+                missingTech.push({
+                    name: "CI/CD",
+                    importance: "medium" as const,
+                    reason: "Práctica estándar en equipos modernos de alto rendimiento.",
+                });
+
+            if (missingTech.length === 0) {
+                missingTech.push({
+                    name: "Kubernetes",
+                    importance: "medium" as const,
+                    reason: "Para escalar tus conocimientos de orquestación a nivel enterprise.",
+                });
+                missingTech.push({
+                    name: "GraphQL",
+                    importance: "low" as const,
+                    reason: "Suma versatilidad a tus habilidades de APIs REST.",
+                });
+            }
+
+            return {
+                success: true,
+                data: {
+                    technologies: missingTech,
+                    roadmaps: [
+                        {
+                            title: `Hoja de Ruta: Especialización en ${missingTech[0].name}`,
+                            steps: [
+                                `Aprender fundamentos teóricos y sintaxis básica de ${missingTech[0].name}.`,
+                                `Implementar ejercicios prácticos aislados y configuración inicial.`,
+                                `Integrar ${missingTech[0].name} en un proyecto Fullstack real.`,
+                                "Configurar pipelines automatizados y monitoreo básico.",
+                            ],
+                            duration: "3 semanas",
+                        },
+                    ],
+                    projects: [
+                        {
+                            title: `Proyecto Integrador con ${missingTech[0].name}`,
+                            description: `Desarrolla una aplicación web que sirva para demostrar tu dominio práctico en ${missingTech[0].name}. Incluye documentación en un archivo README.md explicando el reto y cómo ejecutar la solución.`,
+                            technologies: [missingTech[0].name, "React", "TypeScript"],
+                            difficulty: "intermediate" as const,
+                        },
+                    ],
+                },
+            };
+        }
+
+        // Obtener el stack en demanda del Job Board
+        const demandedSkills = Array.from(
+            new Set(
+                postings.flatMap((p) => {
+                    const skills = p.requiredSkills;
+                    return Array.isArray(skills) ? skills.map((s) => String(s)) : [];
+                }),
+            ),
+        );
+
+        const result = await AIService.generateStructuredObject<CareerRecommendations>({
+            schema: careerRecommendationsSchema,
+            system: `Eres el Career Copilot de SkillRadar. Tu misión es analizar el CV activo del desarrollador y compararlo con las tecnologías solicitadas en el Job Board (o las más demandadas de la industria actual).
+Debes identificar las brechas técnicas (skills ausentes o poco reforzados) y generar recomendaciones personalizadas estructuradas:
+1. Tecnologías específicas a aprender con un nivel de importancia (high, medium, low) y una razón motivadora y real vinculada a la demanda laboral.
+2. Un roadmap sugerido paso a paso para dominar la habilidad prioritaria.
+3. Propuestas de proyectos prácticos (indicando dificultad) que el programador pueda crear y subir a su GitHub para sumar a su CV y capacidad.
+El idioma debe ser español, profesional, constructivo y alentador.`,
+            prompt: `Compara las habilidades del candidato con la demanda laboral y genera las sugerencias:
+
+=== TEXTO COMPLETO DEL CV ===
+${resume.rawText}
+
+=== HABILIDADES DETECTADAS EN OFERTAS DE TRABAJO (JOB BOARD) ===
+${demandedSkills.join(", ") || "React, Node.js, TypeScript, Next.js, Docker, AWS, Testing, CI/CD"}`,
+            userSettings,
+        });
+
+        return {
+            success: true,
+            data: result,
+        };
+    } catch (error: unknown) {
+        console.error("[getCareerRecommendationsAction] Error:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Error al procesar las sugerencias del Career Copilot.",
+        };
     }
 }
