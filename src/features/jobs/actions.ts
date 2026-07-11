@@ -215,7 +215,7 @@ export async function getJobPostingApplicationsAction(jobPostingId: string): Pro
  */
 export async function updateApplicationStatusAction(
     applicationId: string,
-    newStatus: "submitted" | "reviewed" | "rejected" | "shortlisted",
+    newStatus: "submitted" | "reviewed" | "rejected" | "shortlisted" | "interview" | "offer" | "hired",
 ): Promise<ActionResult<JobPostingApplication>> {
     try {
         const session = await auth();

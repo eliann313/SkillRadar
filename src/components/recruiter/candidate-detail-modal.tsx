@@ -13,8 +13,26 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Sparkles, AlertCircle, TrendingUp, HelpCircle, Download, Loader2, Award } from "lucide-react";
-import { generateInterviewQuestionsAction } from "@/features/recruiter/actions";
+import {
+    Sparkles,
+    AlertCircle,
+    TrendingUp,
+    HelpCircle,
+    Download,
+    Loader2,
+    Award,
+    Mail,
+    Copy,
+    Check,
+    FileText,
+} from "lucide-react";
+import {
+    generateInterviewQuestionsAction,
+    generateCandidatePitchSummaryAction,
+    generateCandidateOutreachAction,
+} from "@/features/recruiter/actions";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { jsPDF } from "jspdf";
 import { cn } from "@/lib/utils";
@@ -29,6 +47,69 @@ interface CandidateDetailModalProps {
 export function CandidateDetailModal({ isOpen, onOpenChange, candidate, jobDescription }: CandidateDetailModalProps) {
     const [questions, setQuestions] = useState<{ question: string; expectedResponse: string }[] | null>(null);
     const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
+
+    const [pitchSummary, setPitchSummary] = useState<string | null>(null);
+    const [isGeneratingPitch, setIsGeneratingPitch] = useState(false);
+    const [outreachMessage, setOutreachMessage] = useState<string | null>(null);
+    const [isGeneratingOutreach, setIsGeneratingOutreach] = useState(false);
+    const [outreachJobTitle, setOutreachJobTitle] = useState(
+        jobDescription ? jobDescription.slice(0, 45) : "Desarrollador Web",
+    );
+    const [outreachCompany, setOutreachCompany] = useState("Nuestra Empresa");
+    const [copiedOutreach, setCopiedOutreach] = useState(false);
+    const [copiedPitch, setCopiedPitch] = useState(false);
+
+    const handleGeneratePitch = async () => {
+        if (!candidate) return;
+        setIsGeneratingPitch(true);
+        try {
+            const res = await generateCandidatePitchSummaryAction(candidate.id);
+            if (res.success) {
+                setPitchSummary(res.data);
+                toast.success("¡Resumen ejecutivo generado con éxito!");
+            } else {
+                toast.error(res.error || "Error al generar el resumen.");
+            }
+        } catch {
+            toast.error("Error al conectar con el servidor.");
+        } finally {
+            setIsGeneratingPitch(false);
+        }
+    };
+
+    const handleGenerateOutreach = async () => {
+        if (!candidate) return;
+        setIsGeneratingOutreach(true);
+        try {
+            const res = await generateCandidateOutreachAction(candidate.id, outreachJobTitle, outreachCompany);
+            if (res.success) {
+                setOutreachMessage(res.data);
+                toast.success("¡Propuesta de contacto personalizada generada con éxito!");
+            } else {
+                toast.error(res.error || "Error al generar la propuesta.");
+            }
+        } catch {
+            toast.error("Error al conectar con el servidor.");
+        } finally {
+            setIsGeneratingOutreach(false);
+        }
+    };
+
+    const handleCopyOutreach = () => {
+        if (!outreachMessage) return;
+        void navigator.clipboard.writeText(outreachMessage);
+        setCopiedOutreach(true);
+        toast.success("Copiado al portapapeles");
+        setTimeout(() => setCopiedOutreach(false), 2000);
+    };
+
+    const handleCopyPitch = () => {
+        if (!pitchSummary) return;
+        void navigator.clipboard.writeText(pitchSummary);
+        setCopiedPitch(true);
+        toast.success("Copiado al portapapeles");
+        setTimeout(() => setCopiedPitch(false), 2000);
+    };
 
     if (!candidate) return null;
 
@@ -149,7 +230,13 @@ export function CandidateDetailModal({ isOpen, onOpenChange, candidate, jobDescr
         <Dialog
             open={isOpen}
             onOpenChange={(open) => {
-                if (!open) setQuestions(null); // Limpiar preguntas al cerrar
+                if (!open) {
+                    setQuestions(null);
+                    setPitchSummary(null);
+                    setOutreachMessage(null);
+                    setCopiedOutreach(false);
+                    setCopiedPitch(false);
+                }
                 onOpenChange(open);
             }}
         >
@@ -358,6 +445,146 @@ export function CandidateDetailModal({ isOpen, onOpenChange, candidate, jobDescr
                                 >
                                     <Download className="size-4" />
                                     Descargar Guía de Entrevista en PDF
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+
+                    <Separator />
+
+                    {/* Resumen Ejecutivo IA (AI Candidate Pitch) */}
+                    <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <FileText className="size-4.5 text-primary" />
+                                <h4 className="text-sm font-semibold text-foreground">Resumen Ejecutivo IA (Pitch)</h4>
+                            </div>
+                            {pitchSummary && (
+                                <Button
+                                    onClick={handleCopyPitch}
+                                    size="icon-sm"
+                                    variant="outline"
+                                    className="h-8 w-8 text-primary border-primary/20 hover:bg-primary/10"
+                                >
+                                    {copiedPitch ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+                                </Button>
+                            )}
+                        </div>
+
+                        {!pitchSummary ? (
+                            <div className="rounded-lg border border-dashed border-border/80 bg-muted/10 p-5 text-center flex flex-col items-center gap-3">
+                                <p className="text-xs text-muted-foreground max-w-sm">
+                                    Genera una síntesis ejecutiva en español de los puntos fuertes y perfil técnico del
+                                    desarrollador en segundos.
+                                </p>
+                                <Button
+                                    onClick={() => void handleGeneratePitch()}
+                                    disabled={isGeneratingPitch}
+                                    size="sm"
+                                    className="gap-1.5"
+                                >
+                                    {isGeneratingPitch ? (
+                                        <>
+                                            <Loader2 className="size-3.5 animate-spin" />
+                                            Sintetizando perfil...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sparkles className="size-3.5" />
+                                            Generar Resumen Ejecutivo
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="rounded-lg border border-border bg-primary/5 p-4 text-xs text-foreground/90 leading-relaxed font-sans relative">
+                                {pitchSummary}
+                            </div>
+                        )}
+                    </div>
+
+                    <Separator />
+
+                    {/* AI Outreach Writer */}
+                    <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Mail className="size-4.5 text-primary" />
+                                <h4 className="text-sm font-semibold text-foreground">
+                                    Generador de Mensaje de Contacto (Outreach)
+                                </h4>
+                            </div>
+                            {outreachMessage && (
+                                <Button
+                                    onClick={handleCopyOutreach}
+                                    size="icon-sm"
+                                    variant="outline"
+                                    className="h-8 w-8 text-primary border-primary/20 hover:bg-primary/10"
+                                >
+                                    {copiedOutreach ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+                                </Button>
+                            )}
+                        </div>
+
+                        <div className="grid gap-3 sm:grid-cols-2 p-3.5 rounded-lg border border-border/60 bg-muted/20">
+                            <div className="flex flex-col gap-1">
+                                <label className="text-[10px] font-semibold text-muted-foreground uppercase">
+                                    Título de Vacante
+                                </label>
+                                <Input
+                                    value={outreachJobTitle}
+                                    onChange={(e) => setOutreachJobTitle(e.target.value)}
+                                    className="h-8 text-xs bg-background"
+                                    placeholder="Ej: Senior Frontend Dev"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <label className="text-[10px] font-semibold text-muted-foreground uppercase">
+                                    Empresa / Cliente
+                                </label>
+                                <Input
+                                    value={outreachCompany}
+                                    onChange={(e) => setOutreachCompany(e.target.value)}
+                                    className="h-8 text-xs bg-background"
+                                    placeholder="Ej: Acme Corp"
+                                />
+                            </div>
+                            <div className="sm:col-span-2 flex justify-end pt-1">
+                                <Button
+                                    onClick={() => void handleGenerateOutreach()}
+                                    disabled={isGeneratingOutreach}
+                                    size="sm"
+                                    className="gap-1.5 w-full sm:w-auto"
+                                >
+                                    {isGeneratingOutreach ? (
+                                        <>
+                                            <Loader2 className="size-3.5 animate-spin" />
+                                            Redactando mensaje...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sparkles className="size-3.5" />
+                                            Redactar Propuesta de Contacto
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </div>
+
+                        {outreachMessage && (
+                            <div className="flex flex-col gap-2">
+                                <Textarea
+                                    value={outreachMessage}
+                                    readOnly
+                                    className="min-h-[140px] text-xs font-sans bg-background border-border"
+                                />
+                                <Button
+                                    onClick={handleCopyOutreach}
+                                    variant="outline"
+                                    className="w-full gap-2 border-primary/30 text-primary"
+                                >
+                                    <Copy className="size-4" />
+                                    Copiar Mensaje Personalizado
                                 </Button>
                             </div>
                         )}

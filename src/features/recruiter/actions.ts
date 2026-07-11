@@ -64,6 +64,21 @@ export async function createContactRequestAction(
             return { success: false, error: "Campos de entrada inválidos." };
         }
 
+        // Asegurar que el usuario reclutador demo existe en DB para cumplir las FKeys
+        if (session.user.id === "guest-recruiter-id") {
+            const { db } = await import("@/lib/db");
+            await db.user.upsert({
+                where: { id: "guest-recruiter-id" },
+                update: {},
+                create: {
+                    id: "guest-recruiter-id",
+                    name: "Demo Recruiter",
+                    email: "recruiter-guest@skillradar.dev",
+                    role: "recruiter",
+                },
+            });
+        }
+
         const request = await RecruiterService.createContactRequest({
             recruiterId: session.user.id,
             developerId,
@@ -104,6 +119,21 @@ export async function toggleShortlistAction(developerId: string): Promise<Action
 
         if (!developerId) {
             return { success: false, error: "ID de desarrollador inválido." };
+        }
+
+        // Asegurar que el usuario reclutador demo existe en DB para cumplir las FKeys
+        if (session.user.id === "guest-recruiter-id") {
+            const { db } = await import("@/lib/db");
+            await db.user.upsert({
+                where: { id: "guest-recruiter-id" },
+                update: {},
+                create: {
+                    id: "guest-recruiter-id",
+                    name: "Demo Recruiter",
+                    email: "recruiter-guest@skillradar.dev",
+                    role: "recruiter",
+                },
+            });
         }
 
         const isShortlisted = await RecruiterService.toggleShortlist({
@@ -191,6 +221,141 @@ export async function generateInterviewQuestionsAction(
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al generar la guía de preguntas de entrevista.",
+        };
+    }
+}
+
+/**
+ * Realiza una búsqueda avanzada con IA (Headhunting con IA) sobre el Talent Pool.
+ */
+export async function searchTalentPoolAIAction(query: string): Promise<ActionResult<RankedCandidate[]>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado. Inicie sesión nuevamente." };
+        }
+
+        if (session.user.role !== "recruiter") {
+            return { success: false, error: "Acceso denegado. Se requiere el rol de reclutador." };
+        }
+
+        if (!query.trim()) {
+            return { success: false, error: "La consulta de búsqueda no puede estar vacía." };
+        }
+
+        const rankedCandidates = await RecruiterService.searchTalentPoolAI({
+            recruiterId: session.user.id,
+            query,
+        });
+
+        return {
+            success: true,
+            data: rankedCandidates,
+        };
+    } catch (error: unknown) {
+        console.error("[searchTalentPoolAIAction] Error:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Ocurrió un error en el buscador de IA.",
+        };
+    }
+}
+
+/**
+ * Genera un resumen ejecutivo personalizado por IA (AI Candidate Pitch).
+ */
+export async function generateCandidatePitchSummaryAction(developerId: string): Promise<ActionResult<string>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado." };
+        }
+
+        if (session.user.role !== "recruiter") {
+            return { success: false, error: "Acceso denegado." };
+        }
+
+        const summary = await RecruiterService.generateCandidatePitchSummary({
+            recruiterId: session.user.id,
+            developerId,
+        });
+
+        return {
+            success: true,
+            data: summary,
+        };
+    } catch (error: unknown) {
+        console.error("[generateCandidatePitchSummaryAction] Error:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Error al generar el resumen de IA.",
+        };
+    }
+}
+
+/**
+ * Genera una propuesta de contacto (AI Outreach) personalizada.
+ */
+export async function generateCandidateOutreachAction(
+    developerId: string,
+    jobTitle: string,
+    company: string,
+): Promise<ActionResult<string>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado." };
+        }
+
+        if (session.user.role !== "recruiter") {
+            return { success: false, error: "Acceso denegado." };
+        }
+
+        const message = await RecruiterService.generateCandidateOutreach({
+            recruiterId: session.user.id,
+            developerId,
+            jobTitle,
+            company,
+        });
+
+        return {
+            success: true,
+            data: message,
+        };
+    } catch (error: unknown) {
+        console.error("[generateCandidateOutreachAction] Error:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Error al generar el mensaje de contacto.",
+        };
+    }
+}
+
+/**
+ * Obtiene métricas agregadas e interacciones para el Market Intelligence.
+ */
+export async function getMarketIntelligenceDataAction() {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado." };
+        }
+
+        if (session.user.role !== "recruiter") {
+            return { success: false, error: "Acceso denegado." };
+        }
+
+        const data = await RecruiterService.getMarketIntelligenceData();
+
+        return {
+            success: true,
+            data,
+        };
+    } catch (error: unknown) {
+        console.error("[getMarketIntelligenceDataAction] Error:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Error al obtener Market Intelligence.",
         };
     }
 }

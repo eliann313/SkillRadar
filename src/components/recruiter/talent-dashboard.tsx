@@ -37,10 +37,26 @@ import {
     rankTalentPoolAction,
     createContactRequestAction,
     toggleShortlistAction,
-    getMarketIntelligenceSkillsAction,
+    searchTalentPoolAIAction,
+    getMarketIntelligenceDataAction,
 } from "@/features/recruiter/actions";
 import { toast } from "sonner";
 import { CandidateDetailModal } from "./candidate-detail-modal";
+import {
+    ResponsiveContainer,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    Tooltip,
+    CartesianGrid,
+    Legend,
+    PieChart,
+    Pie,
+    Cell,
+    AreaChart,
+    Area,
+} from "recharts";
 
 interface TalentDashboardProps {
     talents?: TalentCard[];
@@ -94,31 +110,83 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
     const [isMatching, setIsMatching] = useState(false);
     const [isJdApplied, setIsJdApplied] = useState(false);
 
+    const [aiSourcingMode, setAiSourcingMode] = useState<"matching" | "semantic">("matching");
+    const [aiQuery, setAiQuery] = useState("");
+    const [isSourcingAI, setIsSourcingAI] = useState(false);
+    const [isSourcingAIApplied, setIsSourcingAIApplied] = useState(false);
+
+    const handleAISourcingSearch = async () => {
+        if (!aiQuery.trim()) {
+            toast.error("Por favor, ingresa una consulta para la IA.");
+            return;
+        }
+
+        setIsSourcingAI(true);
+        try {
+            const result = await searchTalentPoolAIAction(aiQuery);
+            if (!result.success) {
+                toast.error(result.error || "Error al realizar la búsqueda semántica.");
+            } else {
+                const mappedRanked = result.data.map((item) => {
+                    const original = talents.find((t) => t.id === item.id);
+                    return {
+                        ...original,
+                        ...item,
+                        estimatedSeniority: item.seniority,
+                        averageScore: item.matchScore,
+                        lastActive: original?.lastActive || new Date(),
+                        topSkills: item.skills.length > 0 ? item.skills : original?.topSkills || [],
+                        languages: original?.languages || [],
+                    } as TalentCard;
+                });
+                setTalents(mappedRanked);
+                setIsSourcingAIApplied(true);
+                toast.success("¡Resultados ordenados y filtrados por la IA con éxito!");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Error al conectar con el servidor.");
+        } finally {
+            setIsSourcingAI(false);
+        }
+    };
+
+    const handleClearAISourcing = () => {
+        setAiQuery("");
+        setTalents(initialTalents);
+        setIsSourcingAIApplied(false);
+        toast.info("Búsqueda restaurada al listado general del Talent Pool.");
+    };
+
     const [activeTab, setActiveTab] = useState<"pool" | "shortlist" | "market">("pool");
-    const [marketSkills, setMarketSkills] = useState<{ name: string; value: number }[]>([]);
-    const [isLoadingMarket, setIsLoadingMarket] = useState(false);
+    const [marketData, setMarketData] = useState<{
+        skillsData: Array<{ name: string; supply: number; demand: number }>;
+        seniorityData: Array<{ name: string; value: number }>;
+        salaryData: Array<{ name: string; min: number; max: number; avg: number }>;
+    } | null>(null);
+    const [isLoadingMarketData, setIsLoadingMarketData] = useState(false);
 
     useEffect(() => {
-        if (activeTab === "market") {
-            const fetchMarketSkills = async () => {
-                setIsLoadingMarket(true);
+        if (activeTab === "market" && !marketData) {
+            const fetchMarketData = async () => {
+                setIsLoadingMarketData(true);
                 try {
-                    const result = await getMarketIntelligenceSkillsAction();
-                    if (result.success) {
-                        setMarketSkills(result.data);
+                    const result = await getMarketIntelligenceDataAction();
+                    if (result.success && result.data) {
+                        setMarketData(result.data);
                     } else {
-                        toast.error(result.error || "No se pudieron obtener las estadísticas de habilidades.");
+                        toast.error(result.error || "No se pudieron obtener las estadísticas de Market Intelligence.");
                     }
                 } catch (e) {
                     console.error(e);
                     toast.error("Error al conectar con el servidor.");
                 } finally {
-                    setIsLoadingMarket(false);
+                    setIsLoadingMarketData(false);
                 }
             };
-            void fetchMarketSkills();
+            void fetchMarketData();
         }
-    }, [activeTab]);
+    }, [activeTab, marketData]);
 
     const handleToggleShortlist = async (developerId: string) => {
         try {
@@ -317,60 +385,140 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
 
             {activeTab !== "market" && (
                 <>
-                    {/* AI Reverse Matching Card (11.1) */}
-                    <Card className="border-primary/20 bg-primary/5 dark:bg-primary/5 backdrop-blur-xs glow-emerald">
+                    {/* AI Sourcing Suite */}
+                    <Card className="border-primary/20 bg-primary/5 dark:bg-primary/5 backdrop-blur-xs shadow-xs">
                         <CardHeader className="pb-3">
-                            <CardTitle className="flex items-center gap-2 text-base text-foreground font-semibold">
-                                <Sparkles className="size-5 text-primary" />
-                                AI Reverse Job-Matching
-                            </CardTitle>
-                            <CardDescription>
-                                Paste a Job Description. Gemini will analyze the active Talent Pool and rank developers
-                                by affinity.
-                            </CardDescription>
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                <div>
+                                    <CardTitle className="flex items-center gap-2 text-base text-foreground font-semibold">
+                                        <Sparkles className="size-5 text-primary animate-pulse" />
+                                        AI Sourcing & Search Suite
+                                    </CardTitle>
+                                    <CardDescription>
+                                        Usa la Inteligencia Artificial para buscar perfiles, filtrar habilidades y
+                                        rankear el Talent Pool.
+                                    </CardDescription>
+                                </div>
+                                <div className="flex bg-muted/60 p-0.5 rounded-lg border border-border shrink-0 self-start sm:self-center">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setAiSourcingMode("matching")}
+                                        className={cn(
+                                            "text-xs px-3 py-1.5 h-auto rounded-md shadow-none",
+                                            aiSourcingMode === "matching"
+                                                ? "bg-background text-foreground font-semibold"
+                                                : "text-muted-foreground hover:text-foreground",
+                                        )}
+                                    >
+                                        Reverse Job-Matching
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setAiSourcingMode("semantic")}
+                                        className={cn(
+                                            "text-xs px-3 py-1.5 h-auto rounded-md shadow-none",
+                                            aiSourcingMode === "semantic"
+                                                ? "bg-background text-foreground font-semibold"
+                                                : "text-muted-foreground hover:text-foreground",
+                                        )}
+                                    >
+                                        Buscador Semántico IA
+                                    </Button>
+                                </div>
+                            </div>
                         </CardHeader>
                         <CardContent className="flex flex-col gap-4">
-                            <Textarea
-                                placeholder="Paste Job Description here..."
-                                value={jdText}
-                                onChange={(e) => setJdText(e.target.value)}
-                                className="min-h-[100px] bg-background border-border"
-                                disabled={isMatching}
-                            />
-                            <div className="flex gap-2 justify-end">
-                                {isJdApplied && (
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={handleClearJd}
-                                        className="gap-1.5"
+                            {aiSourcingMode === "matching" ? (
+                                <>
+                                    <Textarea
+                                        placeholder="Pega la Job Description (Descripción del Cargo) aquí..."
+                                        value={jdText}
+                                        onChange={(e) => setJdText(e.target.value)}
+                                        className="min-h-[100px] bg-background border-border text-xs"
                                         disabled={isMatching}
-                                    >
-                                        <X className="size-4" />
-                                        Limpiar Filtro AI
-                                    </Button>
-                                )}
-                                <Button
-                                    onClick={() => {
-                                        void handleReverseMatching();
-                                    }}
-                                    disabled={isMatching || !jdText.trim()}
-                                    size="sm"
-                                    className="gap-1.5"
-                                >
-                                    {isMatching ? (
-                                        <>
-                                            <div className="size-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                                            Buscando y Rankeando...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Sparkles className="size-4" />
-                                            Analizar y Ordenar Candidatos
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
+                                    />
+                                    <div className="flex gap-2 justify-end">
+                                        {isJdApplied && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={handleClearJd}
+                                                className="gap-1.5 text-xs"
+                                                disabled={isMatching}
+                                            >
+                                                <X className="size-4" />
+                                                Limpiar Filtro AI
+                                            </Button>
+                                        )}
+                                        <Button
+                                            onClick={() => {
+                                                void handleReverseMatching();
+                                            }}
+                                            disabled={isMatching || !jdText.trim()}
+                                            size="sm"
+                                            className="gap-1.5 text-xs font-medium"
+                                        >
+                                            {isMatching ? (
+                                                <>
+                                                    <div className="size-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                                                    Rankeando candidatos...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Sparkles className="size-4" />
+                                                    Analizar y Ordenar
+                                                </>
+                                            )}
+                                        </Button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <Input
+                                        placeholder='Ej: "Búscame desarrolladores senior de React y Node que residan en España, con un ATS Score superior a 80 y experiencia en testing"'
+                                        value={aiQuery}
+                                        onChange={(e) => setAiQuery(e.target.value)}
+                                        className="bg-background border-border text-xs py-5"
+                                        disabled={isSourcingAI}
+                                    />
+                                    <div className="flex gap-2 justify-end">
+                                        {isSourcingAIApplied && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={handleClearAISourcing}
+                                                className="gap-1.5 text-xs"
+                                                disabled={isSourcingAI}
+                                            >
+                                                <X className="size-4" />
+                                                Limpiar Búsqueda IA
+                                            </Button>
+                                        )}
+                                        <Button
+                                            onClick={() => {
+                                                void handleAISourcingSearch();
+                                            }}
+                                            disabled={isSourcingAI || !aiQuery.trim()}
+                                            size="sm"
+                                            className="gap-1.5 text-xs font-medium"
+                                        >
+                                            {isSourcingAI ? (
+                                                <>
+                                                    <div className="size-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                                                    Buscando con IA...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Search className="size-4" />
+                                                    Buscar con IA
+                                                </>
+                                            )}
+                                        </Button>
+                                    </div>
+                                </>
+                            )}
                         </CardContent>
                     </Card>
 
@@ -623,132 +771,253 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-base text-foreground font-semibold">
                                 <BarChart3 className="size-5 text-primary" />
-                                Market Intelligence - Habilidades del Talent Pool
+                                Market Intelligence Dashboard
                             </CardTitle>
                             <CardDescription>
-                                Análisis en tiempo real de la abundancia y escasez de habilidades técnicas según los
-                                currículums de los candidatos activos.
+                                Analíticas dinámicas en tiempo real de oferta y demanda de habilidades, distribución de
+                                seniority y estimaciones salariales basadas en datos de la plataforma.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {isLoadingMarket ? (
+                            {isLoadingMarketData ? (
                                 <div className="flex flex-col items-center justify-center py-12 gap-2">
                                     <div className="size-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                                     <p className="text-sm text-muted-foreground">
-                                        Procesando agregados de base de datos...
+                                        Procesando estadísticas de base de datos...
                                     </p>
                                 </div>
-                            ) : marketSkills.length === 0 ? (
+                            ) : !marketData ? (
                                 <div className="text-center py-12 text-muted-foreground text-sm">
-                                    No hay currículums analizados en el Talent Pool para compilar estadísticas.
+                                    No hay currículums analizados en el Talent Pool para compilar estadísticas de
+                                    mercado.
                                 </div>
                             ) : (
                                 <div className="space-y-8">
-                                    {/* Heatmap/Treemap visual en SVG/CSS puro */}
-                                    <div>
-                                        <h3 className="text-sm font-semibold text-foreground mb-4">
-                                            Mapa de Densidad de Habilidades
+                                    {/* Oferta vs Demanda de Stack Técnico */}
+                                    <div className="space-y-3">
+                                        <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+                                            <TrendingUp className="size-4 text-primary" />
+                                            Oferta vs Demanda de Stack Técnico (Top 10 Habilidades)
                                         </h3>
-                                        <div className="flex flex-wrap gap-2.5">
-                                            {marketSkills.map((skill) => {
-                                                const maxVal = Math.max(...marketSkills.map((s) => s.value));
-                                                const pct = maxVal > 0 ? (skill.value / maxVal) * 100 : 0;
-
-                                                // Determine background styles based on intensity
-                                                let intensityClass =
-                                                    "bg-primary/5 text-primary border-primary/10 hover:border-primary/30";
-                                                if (pct > 75)
-                                                    intensityClass =
-                                                        "bg-primary/20 text-primary border-primary/30 font-bold hover:bg-primary/35";
-                                                else if (pct > 40)
-                                                    intensityClass =
-                                                        "bg-primary/15 text-primary border-primary/20 hover:bg-primary/25";
-
-                                                return (
-                                                    <div
-                                                        key={skill.name}
-                                                        className={cn(
-                                                            "px-3.5 py-2 rounded-lg border text-sm transition-all hover:scale-[1.03] flex items-center gap-2 cursor-default select-none shadow-xs",
-                                                            intensityClass,
-                                                        )}
-                                                    >
-                                                        <span>{skill.name}</span>
-                                                        <Badge
-                                                            variant="secondary"
-                                                            className="bg-background/80 text-[10px] px-1.5 py-0.5 rounded-md font-mono border-none text-foreground/80"
-                                                        >
-                                                            {skill.value}
-                                                        </Badge>
-                                                    </div>
-                                                );
-                                            })}
+                                        <p className="text-xs text-muted-foreground">
+                                            Comparativa entre la cantidad de desarrolladores que dominan una habilidad
+                                            (Oferta) y la cantidad de vacantes que la solicitan (Demanda).
+                                        </p>
+                                        <div className="h-[300px] w-full pt-4">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <BarChart
+                                                    data={marketData.skillsData}
+                                                    margin={{ top: 10, right: 10, left: -20, bottom: 5 }}
+                                                >
+                                                    <CartesianGrid
+                                                        strokeDasharray="3 3"
+                                                        className="stroke-border/20"
+                                                        vertical={false}
+                                                    />
+                                                    <XAxis
+                                                        dataKey="name"
+                                                        stroke="var(--muted-foreground)"
+                                                        fontSize={11}
+                                                        tickLine={false}
+                                                        axisLine={false}
+                                                    />
+                                                    <YAxis
+                                                        stroke="var(--muted-foreground)"
+                                                        fontSize={11}
+                                                        tickLine={false}
+                                                        axisLine={false}
+                                                    />
+                                                    <Tooltip
+                                                        contentStyle={{
+                                                            backgroundColor: "var(--popover)",
+                                                            borderColor: "var(--border)",
+                                                            borderRadius: "var(--radius)",
+                                                            color: "var(--popover-foreground)",
+                                                            fontSize: "12px",
+                                                        }}
+                                                    />
+                                                    <Legend
+                                                        verticalAlign="top"
+                                                        height={36}
+                                                        wrapperStyle={{ fontSize: "11px" }}
+                                                    />
+                                                    <Bar
+                                                        dataKey="supply"
+                                                        name="Oferta (Talent Pool)"
+                                                        fill="var(--primary)"
+                                                        radius={[4, 4, 0, 0]}
+                                                    />
+                                                    <Bar
+                                                        dataKey="demand"
+                                                        name="Demanda (Ofertas de Trabajo)"
+                                                        fill="#10b981"
+                                                        radius={[4, 4, 0, 0]}
+                                                    />
+                                                </BarChart>
+                                            </ResponsiveContainer>
                                         </div>
                                     </div>
 
-                                    {/* Comparativa Demandadas vs Escasas */}
-                                    <div className="grid gap-4 md:grid-cols-2">
-                                        <Card className="bg-emerald/5 dark:bg-emerald/5 border-emerald/10 dark:border-emerald/20">
-                                            <CardHeader className="pb-2">
-                                                <CardTitle className="text-sm font-semibold text-emerald flex items-center gap-2">
-                                                    <span className="size-2 rounded-full bg-emerald animate-pulse" />
-                                                    Habilidades Abundantes (Alta Oferta)
-                                                </CardTitle>
-                                            </CardHeader>
-                                            <CardContent className="text-xs space-y-2">
-                                                <p className="text-muted-foreground mb-3">
-                                                    Las tecnologías más comunes que dominan los candidatos de la
-                                                    plataforma:
-                                                </p>
-                                                <div className="flex flex-col gap-2">
-                                                    {marketSkills.slice(0, 5).map((skill) => (
-                                                        <div
-                                                            key={skill.name}
-                                                            className="flex justify-between items-center bg-background/50 p-2 rounded border border-emerald/10"
+                                    {/* Distribución de Seniority y Salarios */}
+                                    <div className="grid gap-6 md:grid-cols-2 border-t border-border pt-6">
+                                        {/* Distribución de Seniority */}
+                                        <div className="flex flex-col">
+                                            <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+                                                <Users className="size-4 text-primary" />
+                                                Distribución de Seniority en el Talent Pool
+                                            </h3>
+                                            <p className="text-xs text-muted-foreground mb-4">
+                                                Proporción de candidatos activos clasificados por nivel de experiencia
+                                                estimado.
+                                            </p>
+                                            <div className="h-[250px] w-full flex items-center justify-center">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={marketData.seniorityData}
+                                                            cx="50%"
+                                                            cy="50%"
+                                                            innerRadius={60}
+                                                            outerRadius={80}
+                                                            paddingAngle={5}
+                                                            dataKey="value"
+                                                            label={({ name, percent }) =>
+                                                                `${name} ${percent !== undefined ? (percent * 100).toFixed(0) : "0"}%`
+                                                            }
                                                         >
-                                                            <span className="font-semibold text-foreground">
-                                                                {skill.name}
-                                                            </span>
-                                                            <span className="text-muted-foreground font-medium">
-                                                                {skill.value} candidatos
-                                                            </span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                                                            {marketData.seniorityData.map((entry, index) => {
+                                                                const COLORS = [
+                                                                    "#6366f1",
+                                                                    "#3b82f6",
+                                                                    "#10b981",
+                                                                    "#f59e0b",
+                                                                ];
+                                                                return (
+                                                                    <Cell
+                                                                        key={`cell-${index}`}
+                                                                        fill={COLORS[index % COLORS.length]}
+                                                                    />
+                                                                );
+                                                            })}
+                                                        </Pie>
+                                                        <Tooltip
+                                                            contentStyle={{
+                                                                backgroundColor: "var(--popover)",
+                                                                borderColor: "var(--border)",
+                                                                borderRadius: "var(--radius)",
+                                                                color: "var(--popover-foreground)",
+                                                                fontSize: "12px",
+                                                            }}
+                                                        />
+                                                    </PieChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        </div>
 
-                                        <Card className="bg-indigo/5 dark:bg-indigo/5 border-indigo/10 dark:border-indigo/20">
-                                            <CardHeader className="pb-2">
-                                                <CardTitle className="text-sm font-semibold text-indigo flex items-center gap-2">
-                                                    <span className="size-2 rounded-full bg-indigo" />
-                                                    Habilidades Escasas / Emergentes
-                                                </CardTitle>
-                                            </CardHeader>
-                                            <CardContent className="text-xs space-y-2">
-                                                <p className="text-muted-foreground mb-3">
-                                                    Tecnologías de nicho o especializadas menos representadas en el
-                                                    pool:
-                                                </p>
-                                                <div className="flex flex-col gap-2">
-                                                    {marketSkills
-                                                        .slice(-5)
-                                                        .reverse()
-                                                        .map((skill) => (
-                                                            <div
-                                                                key={skill.name}
-                                                                className="flex justify-between items-center bg-background/50 p-2 rounded border border-indigo/10"
+                                        {/* Salarios Estimados */}
+                                        <div className="flex flex-col">
+                                            <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+                                                <TrendingUp className="size-4 text-emerald-500" />
+                                                Rangos Salariales Estimados (Mercado Anual EUR)
+                                            </h3>
+                                            <p className="text-xs text-muted-foreground mb-4">
+                                                Curva salarial de referencia basada en la compensación promedio
+                                                observada en ofertas de trabajo publicadas.
+                                            </p>
+                                            <div className="h-[250px] w-full">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <AreaChart
+                                                        data={marketData.salaryData}
+                                                        margin={{ top: 10, right: 10, left: -20, bottom: 5 }}
+                                                    >
+                                                        <defs>
+                                                            <linearGradient
+                                                                id="salaryGradient"
+                                                                x1="0"
+                                                                y1="0"
+                                                                x2="0"
+                                                                y2="1"
                                                             >
-                                                                <span className="font-semibold text-foreground">
-                                                                    {skill.name}
-                                                                </span>
-                                                                <span className="text-muted-foreground font-medium">
-                                                                    {skill.value} candidatos
-                                                                </span>
-                                                            </div>
-                                                        ))}
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                                                                <stop
+                                                                    offset="5%"
+                                                                    stopColor="#10b981"
+                                                                    stopOpacity={0.3}
+                                                                />
+                                                                <stop
+                                                                    offset="95%"
+                                                                    stopColor="#10b981"
+                                                                    stopOpacity={0}
+                                                                />
+                                                            </linearGradient>
+                                                        </defs>
+                                                        <CartesianGrid
+                                                            strokeDasharray="3 3"
+                                                            className="stroke-border/20"
+                                                            vertical={false}
+                                                        />
+                                                        <XAxis
+                                                            dataKey="name"
+                                                            stroke="var(--muted-foreground)"
+                                                            fontSize={11}
+                                                            tickLine={false}
+                                                            axisLine={false}
+                                                        />
+                                                        <YAxis
+                                                            stroke="var(--muted-foreground)"
+                                                            fontSize={11}
+                                                            tickLine={false}
+                                                            axisLine={false}
+                                                            tickFormatter={(v) => `${v / 1000}k`}
+                                                        />
+                                                        <Tooltip
+                                                            contentStyle={{
+                                                                backgroundColor: "var(--popover)",
+                                                                borderColor: "var(--border)",
+                                                                borderRadius: "var(--radius)",
+                                                                color: "var(--popover-foreground)",
+                                                                fontSize: "12px",
+                                                            }}
+                                                            formatter={(value) => [
+                                                                `€${Number(value).toLocaleString()}`,
+                                                                "",
+                                                            ]}
+                                                        />
+                                                        <Legend
+                                                            verticalAlign="top"
+                                                            height={36}
+                                                            wrapperStyle={{ fontSize: "11px" }}
+                                                        />
+                                                        <Area
+                                                            type="monotone"
+                                                            dataKey="avg"
+                                                            name="Salario Promedio"
+                                                            stroke="#10b981"
+                                                            fillOpacity={1}
+                                                            fill="url(#salaryGradient)"
+                                                            strokeWidth={2.5}
+                                                        />
+                                                        <Area
+                                                            type="monotone"
+                                                            dataKey="min"
+                                                            name="Mínimo Estimado"
+                                                            stroke="#3b82f6"
+                                                            fill="none"
+                                                            strokeWidth={1.5}
+                                                            strokeDasharray="3 3"
+                                                        />
+                                                        <Area
+                                                            type="monotone"
+                                                            dataKey="max"
+                                                            name="Máximo Estimado"
+                                                            stroke="#f59e0b"
+                                                            fill="none"
+                                                            strokeWidth={1.5}
+                                                            strokeDasharray="3 3"
+                                                        />
+                                                    </AreaChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             )}
