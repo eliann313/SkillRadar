@@ -480,6 +480,15 @@ export async function getCareerRecommendationsAction(): Promise<ActionResult<Car
             return { success: false, error: "Sube un currículum para recibir sugerencias inteligentes de carrera." };
         }
 
+        // Si ya existen recomendaciones en el análisis de este currículum, las devolvemos inmediatamente
+        const existingAnalysis = resume.analysis as Record<string, unknown> | null;
+        if (existingAnalysis && existingAnalysis.careerRecommendations) {
+            return {
+                success: true,
+                data: existingAnalysis.careerRecommendations as unknown as CareerRecommendations,
+            };
+        }
+
         // 2. Obtener ofertas publicadas del Job Board
         const postings = await db.jobPosting.findMany({
             where: { status: "published" },
@@ -652,6 +661,22 @@ ${resume.rawText}
 ${demandedSkills.join(", ") || "React, Node.js, TypeScript, Next.js, Docker, AWS, Testing, CI/CD"}`,
             userSettings,
         });
+
+        // Guardar el resultado en caché dentro de la propiedad `careerRecommendations` del análisis de este resume
+        try {
+            await db.resume.update({
+                where: { id: resume.id },
+                data: {
+                    analysis: {
+                        ...(existingAnalysis || {}),
+                        careerRecommendations: result,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    } as any,
+                },
+            });
+        } catch (dbError) {
+            console.error("[getCareerRecommendationsAction] Error al guardar en caché:", dbError);
+        }
 
         return {
             success: true,

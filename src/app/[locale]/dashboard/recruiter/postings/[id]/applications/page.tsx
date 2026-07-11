@@ -48,6 +48,7 @@ export default async function JobPostingApplicationsPage({ params }: Props) {
             name: app.developer.name || "Desarrollador Anónimo",
             email: app.developer.email || "",
             image: app.developer.image || null,
+            anonymousId: `DEV-${app.developer.id.slice(-4).toUpperCase()}`,
         },
         resume: app.resume
             ? {

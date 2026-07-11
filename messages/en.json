@@ -327,10 +327,12 @@
         "applySuccess": "Successfully applied! The recruiter has been notified and the job has been added to your Kanban.",
         "applyError": "Error applying to job.",
         "withdrawSuccess": "Successfully withdrew application.",
-        "withdrawError": "Error withdrawing application."
+        "withdrawError": "Error withdrawing application.",
+        "loading": "Loading offers..."
     },
     "JobMatch": {
         "title": "Job Match",
+        "uploadedOn": "Uploaded on",
         "description": "Paste a job description to see how well your profile matches",
         "selectCv": "Select CV from History",
         "noCvs": "You haven't uploaded a resume yet. Please go to the {link} section to load your first CV.",

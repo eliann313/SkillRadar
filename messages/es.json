@@ -327,10 +327,12 @@
         "applySuccess": "¡Te has postulado con éxito! Se notificó al reclutador y se añadió a tu Kanban.",
         "applyError": "Error al postularse.",
         "withdrawSuccess": "Has retirado tu postulación con éxito.",
-        "withdrawError": "Error al retirar la postulación."
+        "withdrawError": "Error al retirar la postulación.",
+        "loading": "Cargando ofertas..."
     },
     "JobMatch": {
         "title": "Job Match",
+        "uploadedOn": "Subido el",
         "description": "Copia y pega una descripción de empleo para ver qué tan bien se adapta tu perfil",
         "selectCv": "Selecciona un CV del historial",
         "noCvs": "No has subido ningún CV aún. Por favor ve a la sección de {link} para cargar tu primer currículum.",

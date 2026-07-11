@@ -202,14 +202,16 @@ export async function generateInterviewQuestionsAction(
             return { success: false, error: "Acceso denegado. Se requiere el rol de reclutador." };
         }
 
-        if (!developerId || !jobDescription.trim()) {
-            return { success: false, error: "Parámetros de entrada inválidos." };
+        if (!developerId) {
+            return { success: false, error: "Parámetros de entrada inválidos. Falta el ID del candidato." };
         }
+
+        const jd = jobDescription?.trim() || "";
 
         const questions = await RecruiterService.generateInterviewQuestions({
             developerId,
             recruiterId: session.user.id,
-            jobDescription,
+            jobDescription: jd,
         });
 
         return {
