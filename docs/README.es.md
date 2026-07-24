@@ -2,7 +2,7 @@
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React 19](https://img.shields.io/badge/React-19.0-blue?style=for-the-badge&logo=react)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Prisma ORM](https://img.shields.io/badge/Prisma-7.x-2C3E50?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
 [![PostgreSQL](https://img.shields.io/badge/Postgres-Neon-336791?style=for-the-badge&logo=postgresql)](https://neon.tech/)
 [![Auth.js](https://img.shields.io/badge/Auth.js-v5-5A29E4?style=for-the-badge&logo=next.js)](https://authjs.dev/)
@@ -35,7 +35,7 @@ graph TD
     subgraph Service [Servicios de Aplicación]
         SSRF -->|Signed URL con expiración de 1h| AI[AI CV Analysis Service]
         AI -->|4. Request estructurado vía Zod| VSDK[Vercel AI SDK]
-        VSDK -->|API Key Primaria| LLM[Google Gemini 2.5 Flash / OpenRouter]
+        VSDK -->|API Key Primaria/BYOK| LLM[Motor Multi-Modelo: Gemini 2.5 Flash / Groq / OpenRouter / BYOK Propio (OpenAI, Claude, etc.)]
         VSDK -->|Offline Fallback| MOCK[Simulador Local de Palabras Clave y Seniority]
         AI -->|5. JSON de CV Estructurado| Prisma[Prisma Client Pooler]
     end
@@ -54,11 +54,13 @@ graph TD
 
 ## 🚀 Características Principales
 
-- **Análisis ATS Estructurado de CV**: Carga currículums en formato PDF de manera segura y obtén análisis estructurados utilizando **Gemini 2.5 Flash** (identificación de fortalezas, mejoras, sugerencias de formato, puntaje ATS y nivel de seniority).
+- **Análisis ATS Estructurado de CV**: Carga currículums en formato PDF de manera segura y obtén análisis estructurados impulsados por **Google Gemini 2.5 Flash** (elegido conscientemente por su costo eficiente, velocidad y alta precisión).
+- **Motor de IA Híbrido y Selección Dinámica en Chat**: Utiliza **Gemini 2.5 Flash** como modelo primario del sistema. En los módulos interactivos (Career Copilot y Entrevista Técnica), los usuarios pueden seleccionar dinámicamente su proveedor y modelo preferido (Google Gemini, Groq `llama-3.3-70b`, OpenAI, Anthropic Claude, OpenRouter o IDs de modelo personalizados) utilizando sus propias API Keys encriptadas **BYOK (Bring Your Own Key)** para evitar límites de cuotas del sistema.
+- **Mecanismo de Fallback en Cascada Multi-Nivel**: El sistema intenta la inferencia estructurada priorizando el proveedor y modelo configurado por el usuario y degrada suavemente a través de las cuotas gratuitas del sistema (Gemini → Groq → OpenRouter) ante tiempo de espera de API o límite de peticiones, garantizando un 99.9% de disponibilidad.
 - **Privacidad de Doble Ciego**: Sanitización estricta en servidor. Los datos de contacto sensibles (`name`, `email`, `githubUsername`, `image`) de los candidatos se eliminan automáticamente para perfiles que no han sido aceptados (`status !== "accepted"`), previniendo sesgos en la fase de reclutamiento.
-- **Entrevista Técnica Interactiva con IA**: Simulación de entrevistas técnicas personalizadas usando Gemini mediante generación dinámica de preguntas basadas en el currículum del candidato, culminando en un reporte de rendimiento detallado.
+- **Entrevista Técnica Interactiva con IA**: Simulación de entrevistas técnicas personalizadas usando LLMs mediante generación dinámica de preguntas basadas en el currículum del candidato, culminando en un reporte de rendimiento detallado.
 - **Defensa Activa contra SSRF y Privacidad de Archivos**: Acceso a archivos CV protegido por sesión. Las descargas se resuelven mediante URLs firmadas temporales (1 hora de validez). Previene ataques SSRF validando nombres de dominio autorizados y forzando protocolos `https:`.
-- **Cifrado Criptográfico de Base de Datos (AES-256-GCM)**: Las claves de API de los usuarios se encriptan en reposo en PostgreSQL como `ivHex:authTagHex:encryptedTextHex`, desencriptándose únicamente en la memoria del servidor.
+- **Cifrado Criptográfico de Base de Datos (AES-256-GCM)**: Las claves de API de los usuarios (OpenAI, Claude, Gemini, Groq, OpenRouter) se encriptan en reposo en PostgreSQL como `ivHex:authTagHex:encryptedTextHex`, desencriptándose únicamente en la memoria del servidor.
 - **Middleware combinado i18n & NextAuth**: Middleware unificado (`src/proxy.ts`) que combina la protección de rutas de **Auth.js v5** con el enrutamiento localizado de **next-intl**, logrando redirecciones automáticas coherentes (ej. `/es/dashboard`).
 - **Diseño Visual Premium**: Modos claro y oscuro, interfaces con estética de cristal (glassmorphic) usando Tailwind CSS v4, animaciones suaves y un selector de idioma localizado y adaptado a Base UI v1 (empleando la propiedad `render` en lugar de `asChild` para los triggers).
 
@@ -66,18 +68,18 @@ graph TD
 
 ## 🛠️ Stack Tecnológico y Versiones
 
-- **Frontend**: Next.js 16.2.10 (App Router con Turbopack) & React 19.0.0.
-- **Estilos**: Tailwind CSS v4.0.0 & shadcn/ui.
-- **Componentes Interactivos**: `@base-ui/react` ^1.5.0 (Base UI v1).
-- **ORM**: Prisma ^7.8.0.
+- **Frontend**: Next.js 16.2.10 (App Router con Turbopack) & React 19.2.7.
+- **Estilos**: Tailwind CSS v4.3.2 & shadcn/ui.
+- **Componentes Interactivos**: `@base-ui/react` ^1.6.0 (Base UI v1).
+- **ORM**: Prisma 7.8.0.
 - **Base de Datos**: Neon PostgreSQL Serverless (con transaction pooling activo).
 - **Autenticación**: Auth.js v5 (NextAuth `5.0.0-beta`) con estrategia basada en JWT.
 - **Seguridad**: `bcryptjs` para hash de contraseñas y `jose` para la firma de JWT de sesión.
 - **Límites de Ratio (Rate Limiting)**: Upstash Redis Web SDK (`@upstash/ratelimit`).
-- **Modelos de IA**: Vercel AI SDK (`ai` v4) con `@google/generative-ai`.
-- **Internacionalización**: `next-intl` ^3.x.
-- **Pruebas Unitarias**: Vitest ^3.0.0 & `@testing-library/react`.
-- **Pruebas E2E**: Playwright ^1.50.0.
+- **Orquestación de IA y Modelos LLM**: Vercel AI SDK (`ai` v7 / `@ai-sdk` v4) con soporte multi-proveedor (Google Gemini, OpenAI, Anthropic Claude, Groq y OpenRouter) y sistema de fallback automático en cascada.
+- **Internacionalización**: `next-intl` ^4.x.
+- **Pruebas Unitarias**: Vitest 4.x & `@testing-library/react`.
+- **Pruebas E2E**: Playwright ^1.61.0.
 
 ---
 
