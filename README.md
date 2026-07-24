@@ -35,7 +35,7 @@ graph TD
     subgraph Service [Application Services]
         SSRF -->|Signed URL 1h expire| AI[AI CV Analysis Service]
         AI -->|4. Structured Request via Zod| VSDK[Vercel AI SDK]
-        VSDK -->|Primary API Key| LLM[Google Gemini 2.5 Flash / OpenRouter]
+        VSDK -->|Primary/BYOK API Key| LLM[Multi-Provider Engine: Gemini 2.5 Flash / Groq / OpenRouter / Custom BYOK (OpenAI, Claude, etc.)]
         VSDK -->|Offline Fallback| MOCK[Local Keywords & Seniority Mock Engine]
         AI -->|5. Structured Resume JSON| Prisma[Prisma Client Pooler]
     end
@@ -54,11 +54,13 @@ graph TD
 
 ## 🚀 Key Features
 
-- **ATS Structured Resume Parsing**: Uploads resumes in PDF format via secure gateways and instantly receives structured feedback powered by **Gemini 2.5 Flash** (identifying strengths, improvement items, formatting suggestions, ATS score, and seniority levels).
+- **ATS Structured Resume Parsing**: Uploads resumes in PDF format via secure gateways and instantly receives structured feedback (identifying strengths, improvement items, formatting suggestions, ATS score, and seniority levels).
+- **Hybrid Multi-Model AI Engine (3 Free Tier Providers + Custom BYOK)**: Out-of-the-box support for 3 free system LLM providers (**Google Gemini 2.5 Flash**, **Groq `llama-3.3-70b`**, and **OpenRouter**). Additionally supports **Bring Your Own Key (BYOK)** allowing candidates and recruiters to supply custom encrypted API keys for **OpenAI** (GPT-4o), **Anthropic** (Claude 3.5 Sonnet / Opus), Gemini, Groq, or OpenRouter to bypass system rate limits.
+- **Cascading Multi-Tier Fallback Mechanism**: System attempts structured inference using the user's preferred provider/model first and seamlessly falls back through system free tiers (Gemini → Groq → OpenRouter) upon API timeouts or rate limits, guaranteeing high availability.
 - **Double-Blind Recruiter Privacy**: Strict server-side sanitization. Sensitive PII fields (`name`, `email`, `githubUsername`, `image`) are automatically stripped for profiles in a non-accepted state (`status !== "accepted"`), preventing bias during the sourcing phase.
-- **In-App Interactive AI Interview**: Simulates technical interviews using Gemini with dynamically generated follow-up questions based on the candidate's CV and generates a detailed performance debrief.
+- **In-App Interactive AI Interview**: Simulates technical interviews using LLMs with dynamically generated follow-up questions based on the candidate's CV and generates a detailed performance debrief.
 - **Active SSRF & CV Privacy Mitigations**: Protects CV document URLs via active session controls, resolving uploads through transient (1-hour expiry) signed URLs. Prevents Server-Side Request Forgery by validating hostnames and enforcing `https:` protocols on server fetches.
-- **Cryptographic Database Encryption (AES-256-GCM)**: Multi-tenant and user-supplied API keys are encrypted at rest in PostgreSQL. Keys are stored as `ivHex:authTagHex:encryptedTextHex`, decrypted strictly in server memory, and never exposed to the client.
+- **Cryptographic Database Encryption (AES-256-GCM)**: Multi-tenant and user-supplied API keys (OpenAI, Claude, Gemini, Groq, OpenRouter) are encrypted at rest in PostgreSQL. Keys are stored as `ivHex:authTagHex:encryptedTextHex`, decrypted strictly in server memory, and never exposed to the client.
 - **Combined i18n & NextAuth Middleware**: A custom proxy middleware (`src/proxy.ts`) combines route protection from **Auth.js v5** with locale-prefixed routing from **next-intl**, ensuring seamless redirections (e.g. `/es/dashboard`).
 - **State-of-the-Art Visual Aesthetics**: Premium dark/light themes, sleek glassmorphic UI elements using Tailwind CSS v4, smooth animations, and a responsive custom localized Language Switcher built on Radix/Base UI v1 (`render` props instead of deprecated `asChild`).
 
@@ -74,7 +76,7 @@ graph TD
 - **Authentication**: Auth.js v5 (NextAuth `5.0.0-beta`) utilizing secure JWT strategy.
 - **Security & Hashing**: `bcryptjs` for password hashing, `jose` for cryptographically signing session JWTs.
 - **Rate Limiting**: Upstash Redis Web SDK (`@upstash/ratelimit`).
-- **AI Orchestration**: Vercel AI SDK (`ai` v4) with `@google/generative-ai`.
+- **AI Orchestration & Multi-Model LLMs**: Vercel AI SDK (`ai` v4) supporting Google Gemini, OpenAI, Anthropic (Claude), Groq, and OpenRouter with automatic cascading fallback.
 - **Internationalization**: `next-intl` ^3.x.
 - **Unit Testing**: Vitest ^3.0.0 & `@testing-library/react`.
 - **E2E Testing**: Playwright ^1.50.0.

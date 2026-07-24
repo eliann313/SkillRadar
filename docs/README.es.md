@@ -35,7 +35,7 @@ graph TD
     subgraph Service [Servicios de Aplicación]
         SSRF -->|Signed URL con expiración de 1h| AI[AI CV Analysis Service]
         AI -->|4. Request estructurado vía Zod| VSDK[Vercel AI SDK]
-        VSDK -->|API Key Primaria| LLM[Google Gemini 2.5 Flash / OpenRouter]
+        VSDK -->|API Key Primaria/BYOK| LLM[Motor Multi-Modelo: Gemini 2.5 Flash / Groq / OpenRouter / BYOK Propio (OpenAI, Claude, etc.)]
         VSDK -->|Offline Fallback| MOCK[Simulador Local de Palabras Clave y Seniority]
         AI -->|5. JSON de CV Estructurado| Prisma[Prisma Client Pooler]
     end
@@ -54,11 +54,13 @@ graph TD
 
 ## 🚀 Características Principales
 
-- **Análisis ATS Estructurado de CV**: Carga currículums en formato PDF de manera segura y obtén análisis estructurados utilizando **Gemini 2.5 Flash** (identificación de fortalezas, mejoras, sugerencias de formato, puntaje ATS y nivel de seniority).
+- **Análisis ATS Estructurado de CV**: Carga currículums en formato PDF de manera segura y obtén análisis estructurados (identificación de fortalezas, mejoras, sugerencias de formato, puntaje ATS y nivel de seniority).
+- **Motor de IA Híbrido Multi-Modelo (3 Proveedores Gratuitos + BYOK Propio)**: Soporte listo para usar con 3 proveedores de IA con cuota gratuita del sistema (**Google Gemini 2.5 Flash**, **Groq `llama-3.3-70b`** y **OpenRouter**). Admite además **BYOK (Bring Your Own Key)** para que los candidatos y reclutadores usen sus propias API Keys encriptadas de **OpenAI** (GPT-4o), **Anthropic** (Claude 3.5 Sonnet / Opus), Gemini, Groq u OpenRouter sin límites de cuota del sistema.
+- **Mecanismo de Fallback en Cascada Multi-Nivel**: El sistema intenta la inferencia estructurada priorizando el proveedor y modelo configurado por el usuario y degrada suavemente a través de las cuotas gratuitas del sistema (Gemini → Groq → OpenRouter) ante tiempo de espera de API o límite de peticiones, garantizando un 99.9% de disponibilidad.
 - **Privacidad de Doble Ciego**: Sanitización estricta en servidor. Los datos de contacto sensibles (`name`, `email`, `githubUsername`, `image`) de los candidatos se eliminan automáticamente para perfiles que no han sido aceptados (`status !== "accepted"`), previniendo sesgos en la fase de reclutamiento.
-- **Entrevista Técnica Interactiva con IA**: Simulación de entrevistas técnicas personalizadas usando Gemini mediante generación dinámica de preguntas basadas en el currículum del candidato, culminando en un reporte de rendimiento detallado.
+- **Entrevista Técnica Interactiva con IA**: Simulación de entrevistas técnicas personalizadas usando LLMs mediante generación dinámica de preguntas basadas en el currículum del candidato, culminando en un reporte de rendimiento detallado.
 - **Defensa Activa contra SSRF y Privacidad de Archivos**: Acceso a archivos CV protegido por sesión. Las descargas se resuelven mediante URLs firmadas temporales (1 hora de validez). Previene ataques SSRF validando nombres de dominio autorizados y forzando protocolos `https:`.
-- **Cifrado Criptográfico de Base de Datos (AES-256-GCM)**: Las claves de API de los usuarios se encriptan en reposo en PostgreSQL como `ivHex:authTagHex:encryptedTextHex`, desencriptándose únicamente en la memoria del servidor.
+- **Cifrado Criptográfico de Base de Datos (AES-256-GCM)**: Las claves de API de los usuarios (OpenAI, Claude, Gemini, Groq, OpenRouter) se encriptan en reposo en PostgreSQL como `ivHex:authTagHex:encryptedTextHex`, desencriptándose únicamente en la memoria del servidor.
 - **Middleware combinado i18n & NextAuth**: Middleware unificado (`src/proxy.ts`) que combina la protección de rutas de **Auth.js v5** con el enrutamiento localizado de **next-intl**, logrando redirecciones automáticas coherentes (ej. `/es/dashboard`).
 - **Diseño Visual Premium**: Modos claro y oscuro, interfaces con estética de cristal (glassmorphic) usando Tailwind CSS v4, animaciones suaves y un selector de idioma localizado y adaptado a Base UI v1 (empleando la propiedad `render` en lugar de `asChild` para los triggers).
 
@@ -74,7 +76,7 @@ graph TD
 - **Autenticación**: Auth.js v5 (NextAuth `5.0.0-beta`) con estrategia basada en JWT.
 - **Seguridad**: `bcryptjs` para hash de contraseñas y `jose` para la firma de JWT de sesión.
 - **Límites de Ratio (Rate Limiting)**: Upstash Redis Web SDK (`@upstash/ratelimit`).
-- **Modelos de IA**: Vercel AI SDK (`ai` v4) con `@google/generative-ai`.
+- **Orquestación de IA y Modelos LLM**: Vercel AI SDK (`ai` v4) con soporte multi-proveedor (Google Gemini, OpenAI, Anthropic Claude, Groq y OpenRouter) y sistema de fallback automático en cascada.
 - **Internacionalización**: `next-intl` ^3.x.
 - **Pruebas Unitarias**: Vitest ^3.0.0 & `@testing-library/react`.
 - **Pruebas E2E**: Playwright ^1.50.0.
