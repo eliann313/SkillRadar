@@ -68,18 +68,18 @@ graph TD
 
 ## 🛠️ Tech Stack & Versioning
 
-- **Frontend**: Next.js 16.2.10 (App Router utilizing Turbopack) & React 19.0.0.
-- **Styling**: Tailwind CSS v4.0.0 & shadcn/ui.
-- **Dynamic Components**: `@base-ui/react` ^1.5.0 (Base UI v1).
-- **ORM**: Prisma ^7.8.0.
+- **Frontend**: Next.js 16.2.10 (App Router utilizing Turbopack) & React 19.2.7.
+- **Styling**: Tailwind CSS v4.3.2 & shadcn/ui.
+- **Dynamic Components**: `@base-ui/react` ^1.6.0 (Base UI v1).
+- **ORM**: Prisma 7.8.0.
 - **Database**: Neon PostgreSQL Serverless (configured with custom transaction pooling).
 - **Authentication**: Auth.js v5 (NextAuth `5.0.0-beta`) utilizing secure JWT strategy.
 - **Security & Hashing**: `bcryptjs` for password hashing, `jose` for cryptographically signing session JWTs.
 - **Rate Limiting**: Upstash Redis Web SDK (`@upstash/ratelimit`).
-- **AI Orchestration & Multi-Model LLMs**: Vercel AI SDK (`ai` v4) supporting Google Gemini, OpenAI, Anthropic (Claude), Groq, and OpenRouter with automatic cascading fallback.
-- **Internationalization**: `next-intl` ^3.x.
-- **Unit Testing**: Vitest ^3.0.0 & `@testing-library/react`.
-- **E2E Testing**: Playwright ^1.50.0.
+- **AI Orchestration & Multi-Model LLMs**: Vercel AI SDK (`ai` v7 / `@ai-sdk` v4) supporting Google Gemini, OpenAI, Anthropic (Claude), Groq, and OpenRouter with automatic cascading fallback.
+- **Internationalization**: `next-intl` ^4.x.
+- **Unit Testing**: Vitest 4.x & `@testing-library/react`.
+- **E2E Testing**: Playwright ^1.61.0.
 
 ---
 

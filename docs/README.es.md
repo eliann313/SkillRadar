@@ -68,18 +68,18 @@ graph TD
 
 ## 🛠️ Stack Tecnológico y Versiones
 
-- **Frontend**: Next.js 16.2.10 (App Router con Turbopack) & React 19.0.0.
-- **Estilos**: Tailwind CSS v4.0.0 & shadcn/ui.
-- **Componentes Interactivos**: `@base-ui/react` ^1.5.0 (Base UI v1).
-- **ORM**: Prisma ^7.8.0.
+- **Frontend**: Next.js 16.2.10 (App Router con Turbopack) & React 19.2.7.
+- **Estilos**: Tailwind CSS v4.3.2 & shadcn/ui.
+- **Componentes Interactivos**: `@base-ui/react` ^1.6.0 (Base UI v1).
+- **ORM**: Prisma 7.8.0.
 - **Base de Datos**: Neon PostgreSQL Serverless (con transaction pooling activo).
 - **Autenticación**: Auth.js v5 (NextAuth `5.0.0-beta`) con estrategia basada en JWT.
 - **Seguridad**: `bcryptjs` para hash de contraseñas y `jose` para la firma de JWT de sesión.
 - **Límites de Ratio (Rate Limiting)**: Upstash Redis Web SDK (`@upstash/ratelimit`).
-- **Orquestación de IA y Modelos LLM**: Vercel AI SDK (`ai` v4) con soporte multi-proveedor (Google Gemini, OpenAI, Anthropic Claude, Groq y OpenRouter) y sistema de fallback automático en cascada.
-- **Internacionalización**: `next-intl` ^3.x.
-- **Pruebas Unitarias**: Vitest ^3.0.0 & `@testing-library/react`.
-- **Pruebas E2E**: Playwright ^1.50.0.
+- **Orquestación de IA y Modelos LLM**: Vercel AI SDK (`ai` v7 / `@ai-sdk` v4) con soporte multi-proveedor (Google Gemini, OpenAI, Anthropic Claude, Groq y OpenRouter) y sistema de fallback automático en cascada.
+- **Internacionalización**: `next-intl` ^4.x.
+- **Pruebas Unitarias**: Vitest 4.x & `@testing-library/react`.
+- **Pruebas E2E**: Playwright ^1.61.0.
 
 ---
 
