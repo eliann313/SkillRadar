@@ -35,7 +35,7 @@ graph TD
     subgraph Service [Servicios de Aplicación]
         SSRF -->|Signed URL con expiración de 1h| AI[AI CV Analysis Service]
         AI -->|4. Request estructurado vía Zod| VSDK[Vercel AI SDK]
-        VSDK -->|API Key Primaria/BYOK| LLM[Motor Multi-Modelo: Gemini 2.5 Flash / Groq / OpenRouter / BYOK Propio (OpenAI, Claude, etc.)]
+        VSDK -->|API Key Primaria/BYOK| LLM["Motor Multi-Modelo: Gemini 2.5 Flash / Groq / OpenRouter / BYOK Propio (OpenAI, Claude, etc.)"]
         VSDK -->|Offline Fallback| MOCK[Simulador Local de Palabras Clave y Seniority]
         AI -->|5. JSON de CV Estructurado| Prisma[Prisma Client Pooler]
     end
