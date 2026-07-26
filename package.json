@@ -42,7 +42,7 @@
         "jspdf": "^4.2.1",
         "lucide-react": "1.23.0",
         "next": "16.2.10",
-        "next-auth": "5.0.0-beta.31",
+        "next-auth": "5.0.0-beta.32",
         "next-intl": "^4.13.2",
         "next-themes": "^0.4.6",
         "pdf-parse": "2.4.5",
