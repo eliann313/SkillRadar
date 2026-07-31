@@ -35,7 +35,7 @@ graph TD
     subgraph Service [Servicios de Aplicación]
         SSRF -->|Signed URL con expiración de 1h| AI[AI CV Analysis Service]
         AI -->|4. Request estructurado vía Zod| VSDK[Vercel AI SDK]
-        VSDK -->|API Key Primaria/BYOK| LLM["Motor Multi-Modelo: Gemini 2.5 Flash / Groq / OpenRouter / BYOK Propio (OpenAI, Claude, etc.)"]
+        VSDK -->|API Key Primaria/BYOK| LLM["Motor Multi-Modelo: Gemini 3.6 Flash / Groq / OpenRouter / BYOK Propio (OpenAI, Claude, etc.)"]
         VSDK -->|Offline Fallback| MOCK[Simulador Local de Palabras Clave y Seniority]
         AI -->|5. JSON de CV Estructurado| Prisma[Prisma Client Pooler]
     end
@@ -54,8 +54,8 @@ graph TD
 
 ## 🚀 Características Principales
 
-- **Análisis ATS Estructurado de CV**: Carga currículums en formato PDF de manera segura y obtén análisis estructurados impulsados por **Google Gemini 2.5 Flash** (elegido conscientemente por su costo eficiente, velocidad y alta precisión).
-- **Motor de IA Híbrido y Selección Dinámica en Chat**: Utiliza **Gemini 2.5 Flash** como modelo primario del sistema. En los módulos interactivos (Career Copilot y Entrevista Técnica), los usuarios pueden seleccionar dinámicamente su proveedor y modelo preferido (Google Gemini, Groq `llama-3.3-70b`, OpenAI, Anthropic Claude, OpenRouter o IDs de modelo personalizados) utilizando sus propias API Keys encriptadas **BYOK (Bring Your Own Key)** para evitar límites de cuotas del sistema.
+- **Análisis ATS Estructurado de CV**: Carga currículums en formato PDF de manera segura y obtén análisis estructurados impulsados por **Google Gemini 3.6 Flash** (elegido conscientemente por su costo eficiente, velocidad y alta precisión).
+- **Motor de IA Híbrido y Selección Dinámica en Chat**: Utiliza **Gemini 3.6 Flash** como modelo primario del sistema. En los módulos interactivos (Career Copilot y Entrevista Técnica), los usuarios pueden seleccionar dinámicamente su proveedor y modelo preferido (Google Gemini, Groq `llama-3.3-70b`, OpenAI, Anthropic Claude, OpenRouter o IDs de modelo personalizados) utilizando sus propias API Keys encriptadas **BYOK (Bring Your Own Key)** para evitar límites de cuotas del sistema.
 - **Mecanismo de Fallback en Cascada Multi-Nivel**: El sistema intenta la inferencia estructurada priorizando el proveedor y modelo configurado por el usuario y degrada suavemente a través de las cuotas gratuitas del sistema (Gemini → Groq → OpenRouter) ante tiempo de espera de API o límite de peticiones, garantizando un 99.9% de disponibilidad.
 - **Privacidad de Doble Ciego**: Sanitización estricta en servidor. Los datos de contacto sensibles (`name`, `email`, `githubUsername`, `image`) de los candidatos se eliminan automáticamente para perfiles que no han sido aceptados (`status !== "accepted"`), previniendo sesgos en la fase de reclutamiento.
 - **Entrevista Técnica Interactiva con IA**: Simulación de entrevistas técnicas personalizadas usando LLMs mediante generación dinámica de preguntas basadas en el currículum del candidato, culminando en un reporte de rendimiento detallado.
