@@ -19,10 +19,8 @@ import { z } from "zod";
 function buildSafeNamePattern(raw: string, word = false, flags = "gi"): RegExp {
     const escaped = raw.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
     const pattern = word ? `\\b${escaped}\\b` : escaped;
-    // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
-    // Justificación: `escaped` es resultado de escapar todos los metacaracteres del input antes de
-    // llegar aquí — no existe vía de inyección de patrón arbitrario.
-    return new RegExp(pattern, flags);
+    // `escaped` tiene todos los metacaracteres de RegExp neutralizados — no hay vía de inyección.
+    return new RegExp(pattern, flags); // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
 }
 
 export interface RankedCandidate {
