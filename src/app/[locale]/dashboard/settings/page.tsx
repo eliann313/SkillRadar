@@ -104,7 +104,7 @@ export default function SettingsPage() {
 
     // Preferencias de inferencia
     const [preferredProvider, setPreferredProvider] = useState("gemini");
-    const [preferredModel, setPreferredModel] = useState("gemini-2.5-flash");
+    const [preferredModel, setPreferredModel] = useState("gemini-3.6-flash");
     const [customModelId, setCustomModelId] = useState("");
     const [isCustomModelSelected, setIsCustomModelSelected] = useState(false);
 
@@ -172,7 +172,7 @@ export default function SettingsPage() {
                 setPreferredProvider(prov);
 
                 // Validar si el modelo guardado es predefinido o personalizado
-                const modelId = d.defaultAiModel || "gemini-2.5-flash";
+                const modelId = d.defaultAiModel || "gemini-3.6-flash";
                 const predefinedModels = getProviderModels(prov);
                 const isPredefined = predefinedModels.some((m) => m.id === modelId);
 
@@ -1035,7 +1035,7 @@ export default function SettingsPage() {
                                                 id="customModelId"
                                                 value={customModelId}
                                                 onChange={(e) => setCustomModelId(e.target.value)}
-                                                placeholder="Ej. claude-4.7-opus, gpt-5.5-preview, gemini-3.5-pro"
+                                                placeholder="Ej. claude-4.7-opus, gpt-5.5-preview, gemini-3.6-flash"
                                                 className="border-primary/45 bg-primary/5 focus:border-primary transition-colors text-sm"
                                                 required
                                             />

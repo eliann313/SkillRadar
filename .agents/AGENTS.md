@@ -21,7 +21,7 @@
 - **DB:** Prisma 7.x + Neon PostgreSQL (WebSocket adapter)
 - **Auth:** Auth.js v5 (NextAuth beta) — JWT strategy
 - **UI:** shadcn/ui + `@base-ui/react ^1.5.0` (Base UI v1)
-- **IA:** Vercel AI SDK + Gemini (`gemini-2.5-flash`) → fallback OpenRouter
+- **IA:** Vercel AI SDK + Gemini (`gemini-3.6-flash`) → fallback OpenRouter
 
 ---
 

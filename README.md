@@ -35,7 +35,7 @@ graph TD
     subgraph Service [Application Services]
         SSRF -->|Signed URL 1h expire| AI[AI CV Analysis Service]
         AI -->|4. Structured Request via Zod| VSDK[Vercel AI SDK]
-        VSDK -->|Primary/BYOK API Key| LLM["Multi-Provider Engine: Gemini 2.5 Flash / Groq / OpenRouter / Custom BYOK (OpenAI, Claude, etc.)"]
+        VSDK -->|Primary/BYOK API Key| LLM["Multi-Provider Engine: Gemini 3.6 Flash / Groq / OpenRouter / Custom BYOK (OpenAI, Claude, etc.)"]
         VSDK -->|Offline Fallback| MOCK[Local Keywords & Seniority Mock Engine]
         AI -->|5. Structured Resume JSON| Prisma[Prisma Client Pooler]
     end
@@ -54,8 +54,8 @@ graph TD
 
 ## 🚀 Key Features
 
-- **ATS Structured Resume Parsing**: Uploads resumes in PDF format via secure gateways and instantly receives structured feedback powered by **Google Gemini 2.5 Flash** (selected for optimal balance of cost, speed, and precision).
-- **Hybrid Multi-Model Engine & Dynamic Chat Selection**: Uses **Gemini 2.5 Flash** as the primary cost-effective system model. For interactive chat features (Career Copilot & AI Interview), candidates and recruiters can dynamically select their preferred provider and model (Google Gemini, Groq `llama-3.3-70b`, OpenAI, Anthropic Claude, OpenRouter, or custom model IDs) using encrypted **Bring Your Own Key (BYOK)** to bypass system rate limits.
+- **ATS Structured Resume Parsing**: Uploads resumes in PDF format via secure gateways and instantly receives structured feedback powered by **Google Gemini 3.6 Flash** (selected for optimal balance of cost, speed, and precision).
+- **Hybrid Multi-Model Engine & Dynamic Chat Selection**: Uses **Gemini 3.6 Flash** as the primary cost-effective system model. For interactive chat features (Career Copilot & AI Interview), candidates and recruiters can dynamically select their preferred provider and model (Google Gemini, Groq `llama-3.3-70b`, OpenAI, Anthropic Claude, OpenRouter, or custom model IDs) using encrypted **Bring Your Own Key (BYOK)** to bypass system rate limits.
 - **Cascading Multi-Tier Fallback Mechanism**: System attempts structured inference using the user's preferred provider/model first and seamlessly falls back through system free tiers (Gemini → Groq → OpenRouter) upon API timeouts or rate limits, guaranteeing high availability.
 - **Double-Blind Recruiter Privacy**: Strict server-side sanitization. Sensitive PII fields (`name`, `email`, `githubUsername`, `image`) are automatically stripped for profiles in a non-accepted state (`status !== "accepted"`), preventing bias during the sourcing phase.
 - **In-App Interactive AI Interview**: Simulates technical interviews using LLMs with dynamically generated follow-up questions based on the candidate's CV and generates a detailed performance debrief.
