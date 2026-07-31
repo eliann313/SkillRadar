@@ -3,6 +3,28 @@ import { env } from "@/lib/env";
 import { AIService, type AIServiceOptions } from "@/lib/ai";
 import { z } from "zod";
 
+/**
+ * Construye un RegExp seguro a partir de un string arbitrario escapando todos
+ * los metacaracteres de RegExp antes de compilar el patrón.
+ * Esto previene ReDoS al garantizar que el input del usuario nunca introduce
+ * cuantificadores o grupos sin escape.
+ *
+ * Uso interno exclusivo: el string `raw` proviene siempre de la DB (campo
+ * `name` del usuario) y se escapa aquí antes de llegar a RegExp().
+ *
+ * @param raw   - Texto sin procesar (p. ej. nombre del candidato).
+ * @param word  - Si true, envuelve el patrón con límites de palabra `\b`.
+ * @param flags - Flags de RegExp (por defecto `"gi"`).
+ */
+function buildSafeNamePattern(raw: string, word = false, flags = "gi"): RegExp {
+    const escaped = raw.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+    const pattern = word ? `\\b${escaped}\\b` : escaped;
+    // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
+    // Justificación: `escaped` es resultado de escapar todos los metacaracteres del input antes de
+    // llegar aquí — no existe vía de inyección de patrón arbitrario.
+    return new RegExp(pattern, flags);
+}
+
 export interface RankedCandidate {
     id: string;
     anonymousId: string;
@@ -538,8 +560,7 @@ ${params.jobDescription ? `\n=== DESCRIPCIÓN DEL CARGO (JOB DESCRIPTION) ===\n$
                     select: { name: true },
                 });
                 if (devUser?.name) {
-                    const nameEscaped = devUser.name.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-                    const fullRegex = new RegExp(nameEscaped, "gi");
+                    const fullRegex = buildSafeNamePattern(devUser.name);
                     const nameParts = devUser.name.split(/\s+/).filter((part) => part.length > 2);
 
                     questions = questions.map((q) => {
@@ -550,8 +571,7 @@ ${params.jobDescription ? `\n=== DESCRIPCIÓN DEL CARGO (JOB DESCRIPTION) ===\n$
                         expectedResponse = expectedResponse.replace(fullRegex, "el candidato");
 
                         nameParts.forEach((part) => {
-                            const partEscaped = part.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-                            const partRegex = new RegExp(`\\b${partEscaped}\\b`, "gi");
+                            const partRegex = buildSafeNamePattern(part, true);
                             question = question.replace(partRegex, "el candidato");
                             expectedResponse = expectedResponse.replace(partRegex, "el candidato");
                         });
@@ -740,14 +760,12 @@ ${querySanitized}`,
             let observations = matchResult.technicalObservations;
 
             if (!isContactAccepted && candidate.name) {
-                const nameEscaped = candidate.name.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-                const fullRegex = new RegExp(nameEscaped, "gi");
+                const fullRegex = buildSafeNamePattern(candidate.name);
                 justification = justification.replace(fullRegex, "el candidato");
 
                 const nameParts = candidate.name.split(/\s+/).filter((part) => part.length > 2);
                 nameParts.forEach((part) => {
-                    const partEscaped = part.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-                    const partRegex = new RegExp(`\\b${partEscaped}\\b`, "gi");
+                    const partRegex = buildSafeNamePattern(part, true);
                     justification = justification.replace(partRegex, "el candidato");
                 });
 
@@ -756,8 +774,7 @@ ${querySanitized}`,
                         let text = obs.observation;
                         text = text.replace(fullRegex, "el candidato");
                         nameParts.forEach((part) => {
-                            const partEscaped = part.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-                            const partRegex = new RegExp(`\\b${partEscaped}\\b`, "gi");
+                            const partRegex = buildSafeNamePattern(part, true);
                             text = text.replace(partRegex, "el candidato");
                         });
                         return { ...obs, observation: text };
