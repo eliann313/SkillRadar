@@ -104,7 +104,7 @@ jobs:
                   PRISMA_SKIP_ENGINE_CHECK: "true"
 
             - name: Upload build artifact
-              uses: actions/upload-artifact@v4 # nosemgrep
+              uses: actions/upload-artifact@v7 # nosemgrep
               with:
                   name: nextjs-build-${{ github.sha }}
                   path: .next/
@@ -184,7 +184,7 @@ jobs:
                   USE_NEON_WEBSOCKETS: "false"
 
             - name: Upload Playwright Report
-              uses: actions/upload-artifact@v4 # nosemgrep
+              uses: actions/upload-artifact@v7 # nosemgrep
               if: always()
               with:
                   name: playwright-report
