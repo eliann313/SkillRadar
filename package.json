@@ -21,7 +21,7 @@
         "@ai-sdk/anthropic": "^4.0.39",
         "@ai-sdk/google": "^4.0.49",
         "@ai-sdk/openai": "^4.0.11",
-        "@ai-sdk/react": "^4.0.68",
+        "@ai-sdk/react": "^4.0.80",
         "@auth/prisma-adapter": "2.11.3",
         "@base-ui/react": "^1.7.0",
         "@neondatabase/serverless": "1.1.0",
