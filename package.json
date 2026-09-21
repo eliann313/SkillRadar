@@ -32,7 +32,7 @@
         "@swc/helpers": "0.5.23",
         "@uploadthing/react": "7.3.3",
         "@upstash/ratelimit": "2.0.8",
-        "@upstash/redis": "1.38.0",
+        "@upstash/redis": "1.38.4",
         "@vercel/analytics": "2.0.1",
         "@vercel/speed-insights": "2.0.0",
         "ai": "^7.0.94",
