@@ -42,7 +42,7 @@
         "dompurify": "^3.4.13",
         "fast-uri": "^4.1.5",
         "jspdf": "^4.2.1",
-        "lucide-react": "^1.24.0",
+        "lucide-react": "^1.46.0",
         "next": "^16.3.5",
         "next-auth": "^5.0.0-beta.32",
         "next-intl": "^4.13.4",
