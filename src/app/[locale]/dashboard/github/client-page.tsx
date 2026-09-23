@@ -93,6 +93,12 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
                     repos: unknown;
                     analysis: unknown;
                     createdAt: Date;
+                    commitFrequency?: string | null;
+                    readmeQualityScore?: number | null;
+                    longestStreakDays?: number | null;
+                    topRepoTopics?: unknown;
+                    senioritySignals?: unknown;
+                    detectedPatterns?: unknown;
                 };
                 error?: string;
             }) => {
@@ -109,6 +115,12 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
                             suggestions: string[];
                         }) || { strengths: [], weaknesses: [], suggestions: [] },
                         createdAt: new Date(res.data.createdAt),
+                        commitFrequency: res.data.commitFrequency ?? null,
+                        readmeQualityScore: res.data.readmeQualityScore ?? null,
+                        longestStreakDays: res.data.longestStreakDays ?? null,
+                        topRepoTopics: (res.data.topRepoTopics as string[] | null) ?? null,
+                        senioritySignals: (res.data.senioritySignals as string[] | null) ?? null,
+                        detectedPatterns: (res.data.detectedPatterns as DetectedPatterns | null) ?? null,
                     };
                     setData(mappedData);
                     setIsLoading(false);

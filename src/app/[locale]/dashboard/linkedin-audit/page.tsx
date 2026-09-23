@@ -1,13 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Sparkles, CheckCircle2, XCircle, TrendingUp } from "lucide-react";
-import { auditLinkedinProfileAction, type LinkedinAuditResult } from "@/features/linkedin-audit/actions";
+import { Sparkles, CheckCircle2, XCircle, TrendingUp, History } from "lucide-react";
+import {
+    auditLinkedinProfileAction,
+    getLinkedinAuditHistoryAction,
+    type LinkedinAuditResult,
+    type LinkedinAuditHistoryItem,
+} from "@/features/linkedin-audit/actions";
 import { cn } from "@/lib/utils";
 
 const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -20,6 +25,15 @@ export default function LinkedinAuditPage() {
     const [profileText, setProfileText] = useState("");
     const [auditResult, setAuditResult] = useState<LinkedinAuditResult | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [history, setHistory] = useState<LinkedinAuditHistoryItem[]>([]);
+
+    useEffect(() => {
+        getLinkedinAuditHistoryAction()
+            .then((res) => {
+                if (res.success) setHistory(res.data);
+            })
+            .catch(() => undefined);
+    }, []);
 
     const handleRunAudit = async () => {
         if (!profileText.trim()) {
@@ -33,6 +47,11 @@ export default function LinkedinAuditPage() {
             if (result.success) {
                 setAuditResult(result.data);
                 toast.success("¡Auditoría de perfil completada con éxito!");
+                getLinkedinAuditHistoryAction()
+                    .then((res) => {
+                        if (res.success) setHistory(res.data);
+                    })
+                    .catch(() => undefined);
             } else {
                 toast.error(result.error || "Error al realizar la auditoría.");
             }
@@ -66,6 +85,25 @@ export default function LinkedinAuditPage() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-12 items-start">
+                {history.length > 0 ? (
+                    <div className="md:col-span-12">
+                        <Card className="border-border/50 bg-card/50">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="flex items-center gap-2 text-sm">
+                                    <History className="size-4 text-primary" />
+                                    Historial (antes / después)
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="flex flex-wrap gap-2">
+                                {history.map((h) => (
+                                    <Badge key={h.id} variant="outline" className="gap-1.5 text-[11px]">
+                                        {new Date(h.createdAt).toLocaleDateString()} · SEO {h.seo}%
+                                    </Badge>
+                                ))}
+                            </CardContent>
+                        </Card>
+                    </div>
+                ) : null}
                 {/* Input Panel */}
                 <div
                     className={cn(

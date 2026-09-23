@@ -28,6 +28,7 @@ import {
 import Link from "next/link";
 import { toast } from "sonner";
 import { getUserResumesAction, setActiveResumeAction, deleteResumeAction } from "@/features/cv-analysis/actions";
+import { ResumeDiff, type DiffableResume } from "@/components/cv-analysis";
 
 interface ResumeItem {
     id: string;
@@ -35,6 +36,7 @@ interface ResumeItem {
     atsScore: number | null;
     createdAt: Date;
     isActive: boolean;
+    analysis: unknown;
 }
 
 export default function ResumesSettingsPage() {
@@ -65,6 +67,7 @@ export default function ResumesSettingsPage() {
                         atsScore: r.atsScore,
                         createdAt: new Date(r.createdAt),
                         isActive: (r as { isActive?: boolean }).isActive || false,
+                        analysis: (r as { analysis?: unknown }).analysis ?? null,
                     }))
                     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
                 setResumes(list);
@@ -202,6 +205,8 @@ export default function ResumesSettingsPage() {
             </div>
 
             <Separator className="border-border/50" />
+
+            {resumes.length >= 2 ? <ResumeDiff resumes={resumes as DiffableResume[]} /> : null}
 
             <div className="grid gap-4">
                 {resumes.length === 0 ? (

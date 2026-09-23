@@ -320,6 +320,10 @@
         "closedSkillsAchievement": "Achievement! You have mastered {count} {count, plural, one {skill} other {skills}}",
         "versionsTitle": "Version History",
         "versionsDesc": "List of uploaded CVs and their scores.",
+        "streakTitle": "{count} versions uploaded: streak going",
+        "streakDesc": "Every version counts. Keep iterating your CV.",
+        "improvementTitle": "{delta} points of total improvement",
+        "improvementDesc": "Difference between your first and latest ATS score.",
         "errorLoading": "Error loading progress data",
         "backToDashboard": "Back to Dashboard"
     },
