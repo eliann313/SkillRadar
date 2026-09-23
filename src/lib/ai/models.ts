@@ -36,8 +36,12 @@ export const PROVIDER_MODELS: Record<string, Array<{ id: string; name: string }>
     ],
     anthropic: [
         {
-            id: "claude-opus-5",
-            name: "Claude Opus 5 (Agentes y código complejo)",
+            id: "claude-opus-5-5",
+            name: "Claude Opus 5.5 (Recomendado - agentes y código)",
+        },
+        {
+            id: "claude-fable-5-1",
+            name: "Claude Fable 5.1 (Top - agentes largos)",
         },
         {
             id: "claude-sonnet-5",
@@ -52,7 +56,11 @@ export const PROVIDER_MODELS: Record<string, Array<{ id: string; name: string }>
     groq: [
         {
             id: "openai/gpt-oss-120b",
-            name: "GPT-OSS 120B (Recomendado Groq)",
+            name: "GPT-OSS 120B (Recomendado Groq - agentes)",
+        },
+        {
+            id: "openai/gpt-oss-20b",
+            name: "GPT-OSS 20B (Ultra rápido, 1000 tps)",
         },
         {
             id: "qwen/qwen3-32b",
@@ -66,12 +74,20 @@ export const PROVIDER_MODELS: Record<string, Array<{ id: string; name: string }>
     ],
     openrouter: [
         {
+            id: "openrouter/free",
+            name: "OpenRouter Free (Router gratuito automático)",
+        },
+        {
             id: "google/gemini-3.8-flash",
             name: "Gemini 3.8 Flash vía OpenRouter",
         },
         {
             id: "google/gemini-3.7-flash",
             name: "Gemini 3.7 Flash (Pago)",
+        },
+        {
+            id: "openai/gpt-oss-120b:free",
+            name: "GPT-OSS 120B Free (Gratuito)",
         },
         {
             id: "meta-llama/llama-3.3-70b-instruct",
