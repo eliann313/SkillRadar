@@ -125,6 +125,8 @@ export default function SettingsPage() {
     const [emailNotifications, setEmailNotifications] = useState(true);
     const [emailNewApplication, setEmailNewApplication] = useState(true);
     const [emailApplicationStatusChanged, setEmailApplicationStatusChanged] = useState(true);
+    const [emailContactUpdates, setEmailContactUpdates] = useState(true);
+    const [emailJobMatches, setEmailJobMatches] = useState(true);
     const [savingNotifications, setSavingNotifications] = useState(false);
 
     // Estados para Eliminación de Cuenta
@@ -192,6 +194,8 @@ export default function SettingsPage() {
                 setEmailApplicationStatusChanged(
                     d.emailApplicationStatusChanged !== undefined ? d.emailApplicationStatusChanged : true,
                 );
+                setEmailContactUpdates(d.emailContactUpdates !== undefined ? d.emailContactUpdates : true);
+                setEmailJobMatches(d.emailJobMatches !== undefined ? d.emailJobMatches : true);
             } else {
                 toast.error(res.error || "No se pudieron obtener los datos de configuración.");
             }
@@ -373,6 +377,8 @@ export default function SettingsPage() {
                 emailNotifications,
                 emailNewApplication,
                 emailApplicationStatusChanged,
+                emailContactUpdates,
+                emailJobMatches,
             });
 
             if (res.success) {
@@ -1413,6 +1419,52 @@ export default function SettingsPage() {
                                                 <p className="text-[10px] text-muted-foreground">
                                                     Recibir un correo cuando un reclutador revise, acepte o actualice tu
                                                     postulación.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-start gap-3">
+                                        <input
+                                            type="checkbox"
+                                            id="emailContactUpdates"
+                                            checked={emailContactUpdates}
+                                            onChange={(e) => setEmailContactUpdates(e.target.checked)}
+                                            className="mt-0.5 size-4 rounded border-border/60 text-primary focus:ring-primary cursor-pointer"
+                                        />
+                                        <div className="space-y-0.5">
+                                            <Label
+                                                htmlFor="emailContactUpdates"
+                                                className="text-xs font-semibold cursor-pointer"
+                                            >
+                                                Respuestas y Mensajes de Contacto
+                                            </Label>
+                                            <p className="text-[10px] text-muted-foreground">
+                                                Recibir un correo cuando acepten o declinen tus solicitudes y cuando
+                                                lleguen mensajes nuevos en tus conversaciones.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {user.role === "developer" && (
+                                        <div className="flex items-start gap-3">
+                                            <input
+                                                type="checkbox"
+                                                id="emailJobMatches"
+                                                checked={emailJobMatches}
+                                                onChange={(e) => setEmailJobMatches(e.target.checked)}
+                                                className="mt-0.5 size-4 rounded border-border/60 text-primary focus:ring-primary cursor-pointer"
+                                            />
+                                            <div className="space-y-0.5">
+                                                <Label
+                                                    htmlFor="emailJobMatches"
+                                                    className="text-xs font-semibold cursor-pointer"
+                                                >
+                                                    Nuevos Matches de Empleo
+                                                </Label>
+                                                <p className="text-[10px] text-muted-foreground">
+                                                    Recibir un correo cuando aparezcan ofertas con alta afinidad a tu
+                                                    perfil.
                                                 </p>
                                             </div>
                                         </div>

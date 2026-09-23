@@ -42,6 +42,13 @@ import {
 } from "@/features/recruiter/actions";
 import { toast } from "sonner";
 import { CandidateDetailModal } from "./candidate-detail-modal";
+import { CandidateCompare } from "./candidate-compare";
+import {
+    listSavedSearchesAction,
+    saveSearchAction,
+    deleteSavedSearchAction,
+    type SavedSearchDTO,
+} from "@/features/saved-searches/actions";
 import {
     ResponsiveContainer,
     BarChart,
@@ -110,6 +117,46 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
     const [minScore, setMinScore] = useState(0);
     const [onlyShortlisted, setOnlyShortlisted] = useState(false);
     const [sortBy, setSortBy] = useState<"score" | "recent">("score");
+    const [compareIds, setCompareIds] = useState<string[]>([]);
+    const [isCompareOpen, setIsCompareOpen] = useState(false);
+    const [savedSearches, setSavedSearches] = useState<SavedSearchDTO[]>([]);
+    const [savedName, setSavedName] = useState("");
+
+    useEffect(() => {
+        listSavedSearchesAction("talent_pool")
+            .then((res) => {
+                if (res.success) setSavedSearches(res.data);
+            })
+            .catch(() => undefined);
+    }, []);
+
+    const applySaved = (s: SavedSearchDTO) => {
+        const f = s.filters;
+        if (typeof f.searchQuery === "string") setSearchQuery(f.searchQuery);
+        if (Array.isArray(f.seniorityFilter))
+            setSeniorityFilter(f.seniorityFilter.filter((x): x is string => typeof x === "string"));
+        if (typeof f.minScore === "number") setMinScore(f.minScore);
+        if (typeof f.onlyShortlisted === "boolean") setOnlyShortlisted(f.onlyShortlisted);
+        if (f.sortBy === "score" || f.sortBy === "recent") setSortBy(f.sortBy);
+        toast.success(`Búsqueda "${s.name}" aplicada.`);
+    };
+
+    const handleSaveSearch = async () => {
+        if (savedName.trim().length < 2) {
+            toast.error("Ponle un nombre a la búsqueda.");
+            return;
+        }
+        const res = await saveSearchAction({
+            name: savedName.trim(),
+            scope: "talent_pool",
+            filters: { searchQuery, seniorityFilter, minScore, onlyShortlisted, sortBy },
+        });
+        if (res.success) {
+            setSavedSearches((prev) => [res.data, ...prev]);
+            setSavedName("");
+            toast.success("Búsqueda guardada.");
+        } else toast.error(res.error);
+    };
     const [jdText, setJdText] = useState("");
     const [isMatching, setIsMatching] = useState(false);
     const [isJdApplied, setIsJdApplied] = useState(false);
@@ -614,6 +661,45 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                             </button>
                         )}
                     </div>
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <Input
+                            value={savedName}
+                            onChange={(e) => setSavedName(e.target.value)}
+                            placeholder="Guardar filtros actuales como..."
+                            maxLength={60}
+                            className="h-8 w-52 bg-card text-xs"
+                        />
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 text-xs"
+                            onClick={() => void handleSaveSearch()}
+                        >
+                            Guardar búsqueda
+                        </Button>
+                        {savedSearches.map((s) => (
+                            <span
+                                key={s.id}
+                                className="flex items-center gap-1 rounded-full border border-border/40 bg-card px-2.5 py-1"
+                            >
+                                <button onClick={() => applySaved(s)} className="hover:text-primary">
+                                    {s.name}
+                                </button>
+                                <button
+                                    onClick={() =>
+                                        void deleteSavedSearchAction(s.id).then((res) => {
+                                            if (res.success)
+                                                setSavedSearches((prev) => prev.filter((x) => x.id !== s.id));
+                                        })
+                                    }
+                                    className="text-muted-foreground hover:text-destructive"
+                                    title="Eliminar"
+                                >
+                                    <X className="size-3" />
+                                </button>
+                            </span>
+                        ))}
+                    </div>
                 </div>
             )}
 
@@ -716,6 +802,21 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                                                         )}
                                                     />
                                                 </Button>
+                                                <input
+                                                    type="checkbox"
+                                                    title="Agregar al comparador"
+                                                    className="size-4 accent-primary"
+                                                    checked={compareIds.includes(talent.id)}
+                                                    onChange={(e) => {
+                                                        e.stopPropagation();
+                                                        setCompareIds((prev) =>
+                                                            e.target.checked
+                                                                ? [...prev, talent.id].slice(0, 4)
+                                                                : prev.filter((id) => id !== talent.id),
+                                                        );
+                                                    }}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                />
                                             </div>
                                         </div>
                                         <div className="flex gap-1.5 mt-2 flex-wrap">
@@ -1181,6 +1282,21 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                 onOpenChange={setIsDetailOpen}
                 candidate={detailCandidate}
                 jobDescription={jdText}
+            />
+
+            {compareIds.length >= 2 ? (
+                <button
+                    onClick={() => setIsCompareOpen(true)}
+                    className="fixed bottom-6 right-6 z-40 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg transition-transform hover:scale-105"
+                >
+                    Comparar ({compareIds.length})
+                </button>
+            ) : null}
+
+            <CandidateCompare
+                talents={talents.filter((t) => compareIds.includes(t.id))}
+                open={isCompareOpen}
+                onOpenChange={setIsCompareOpen}
             />
         </div>
     );

@@ -31,6 +31,8 @@ export async function createNotification(params: {
                     emailNotifications: true,
                     emailNewApplication: true,
                     emailApplicationStatusChanged: true,
+                    emailContactUpdates: true,
+                    emailJobMatches: true,
                 },
             });
 
@@ -40,6 +42,10 @@ export async function createNotification(params: {
                 if (params.type === "new_application" && user.emailNewApplication) {
                     shouldSendEmail = true;
                 } else if (params.type === "application_status_changed" && user.emailApplicationStatusChanged) {
+                    shouldSendEmail = true;
+                } else if (params.type === "contact_status_changed" && user.emailContactUpdates) {
+                    shouldSendEmail = true;
+                } else if (params.type === "new_job_match" && user.emailJobMatches) {
                     shouldSendEmail = true;
                 }
 

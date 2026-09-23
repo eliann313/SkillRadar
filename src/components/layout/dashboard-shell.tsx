@@ -34,6 +34,7 @@ import {
     Sparkles,
     Kanban,
     LineChart,
+    Mail,
 } from "lucide-react";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { CareerCopilot } from "@/components/dashboard/career-copilot";
@@ -113,6 +114,7 @@ const recruiterNavItems = [
     { href: "/dashboard/recruiter/postings", label: "Job Postings", key: "jobPostings", icon: Briefcase },
     { href: "/dashboard/recruiter/pipeline", label: "Pipeline", key: "pipeline", icon: Kanban },
     { href: "/dashboard/recruiter/requests", label: "Inbox", key: "requests", icon: MessageSquare },
+    { href: "/dashboard/recruiter/templates", label: "Templates", key: "templates", icon: Mail },
     { href: "/dashboard/settings", label: "Settings", key: "settings", icon: Settings },
 ];
 

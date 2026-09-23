@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { updateApplicationStatusAction } from "@/features/jobs/actions";
 import { createContactRequestAction } from "@/features/recruiter/actions";
+import { CandidateWorkspace } from "@/components/recruiter/candidate-workspace";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -623,6 +624,13 @@ export function ApplicationsClientPage({
                                     </ul>
                                 </div>
                             )}
+
+                            <div className="space-y-1 border-t border-border pt-3">
+                                <h4 className="text-xs font-bold uppercase text-muted-foreground">
+                                    Espacio de trabajo
+                                </h4>
+                                <CandidateWorkspace applicationId={selectedApp.id} />
+                            </div>
                         </div>
                     )}
 

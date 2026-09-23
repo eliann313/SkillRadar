@@ -189,6 +189,8 @@ export async function getUserApiKeysStatusAction() {
                     emailNotifications: true,
                     emailNewApplication: true,
                     emailApplicationStatusChanged: true,
+                    emailContactUpdates: true,
+                    emailJobMatches: true,
                 },
             };
         }
@@ -206,6 +208,8 @@ export async function getUserApiKeysStatusAction() {
                 emailNotifications: true,
                 emailNewApplication: true,
                 emailApplicationStatusChanged: true,
+                emailContactUpdates: true,
+                emailJobMatches: true,
             },
         });
 
@@ -226,6 +230,8 @@ export async function getUserApiKeysStatusAction() {
                 emailNotifications: user.emailNotifications,
                 emailNewApplication: user.emailNewApplication,
                 emailApplicationStatusChanged: user.emailApplicationStatusChanged,
+                emailContactUpdates: user.emailContactUpdates,
+                emailJobMatches: user.emailJobMatches,
             },
         };
     } catch (error: unknown) {
@@ -440,6 +446,8 @@ export async function exportUserDataAction(): Promise<
                     emailNotifications: true,
                     emailNewApplication: true,
                     emailApplicationStatusChanged: true,
+                    emailContactUpdates: true,
+                    emailJobMatches: true,
                     resumes: [],
                     jobMatches: [],
                     githubAnalyses: [],
@@ -505,6 +513,8 @@ export async function exportUserDataAction(): Promise<
             emailNotifications: userData.emailNotifications,
             emailNewApplication: userData.emailNewApplication,
             emailApplicationStatusChanged: userData.emailApplicationStatusChanged,
+            emailContactUpdates: userData.emailContactUpdates,
+            emailJobMatches: userData.emailJobMatches,
 
             // Relaciones
             resumes: userData.resumes.map((r) => ({
@@ -548,6 +558,8 @@ export interface NotificationPreferencesInput {
     emailNotifications: boolean;
     emailNewApplication: boolean;
     emailApplicationStatusChanged: boolean;
+    emailContactUpdates: boolean;
+    emailJobMatches: boolean;
 }
 
 export async function saveUserNotificationPreferencesAction(input: NotificationPreferencesInput) {
@@ -572,6 +584,8 @@ export async function saveUserNotificationPreferencesAction(input: NotificationP
                 emailNotifications: input.emailNotifications,
                 emailNewApplication: input.emailNewApplication,
                 emailApplicationStatusChanged: input.emailApplicationStatusChanged,
+                emailContactUpdates: input.emailContactUpdates,
+                emailJobMatches: input.emailJobMatches,
             },
         });
 
