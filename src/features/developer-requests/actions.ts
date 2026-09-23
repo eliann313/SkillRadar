@@ -76,6 +76,15 @@ export async function acceptContactRequestAction(requestId: string): Promise<Act
             data: { status: "accepted" },
         });
 
+        const { createNotification } = await import("@/lib/notifications");
+        await createNotification({
+            userId: request.recruiterId,
+            type: "contact_status_changed",
+            title: "Contacto aceptado",
+            message: `Un desarrollador aceptó tu solicitud de contacto. Ya puedes ver su perfil completo.`,
+            link: "/dashboard",
+        });
+
         revalidatePath("/dashboard");
 
         return {
@@ -112,6 +121,15 @@ export async function declineContactRequestAction(requestId: string): Promise<Ac
         await db.contactRequest.update({
             where: { id: requestId },
             data: { status: "declined" },
+        });
+
+        const { createNotification } = await import("@/lib/notifications");
+        await createNotification({
+            userId: request.recruiterId,
+            type: "contact_status_changed",
+            title: "Contacto declinado",
+            message: `Un desarrollador declinó tu solicitud de contacto.`,
+            link: "/dashboard",
         });
 
         revalidatePath("/dashboard");

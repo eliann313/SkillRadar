@@ -4,7 +4,7 @@ import { escapeHtml, isSafeInternalLink } from "@/lib/pii";
 
 export async function createNotification(params: {
     userId: string;
-    type: "new_job_match" | "new_application" | "application_status_changed";
+    type: "new_job_match" | "new_application" | "application_status_changed" | "contact_status_changed";
     title: string;
     message: string;
     link: string;

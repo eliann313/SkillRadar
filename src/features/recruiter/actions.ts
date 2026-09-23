@@ -371,3 +371,54 @@ export async function getMarketIntelligenceDataAction() {
         };
     }
 }
+
+export interface SentContactRequest {
+    id: string;
+    developerId: string;
+    message: string;
+    status: string;
+    createdAt: string;
+    messageCount: number;
+    lastMessageAt: string | null;
+}
+
+/**
+ * Bandeja del recruiter: solicitudes enviadas con conteo de mensajes del thread.
+ */
+export async function getSentContactRequestsAction(): Promise<ActionResult<SentContactRequest[]>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id || session.user.role !== "recruiter") {
+            return { success: false, error: "No autorizado." };
+        }
+        if (session.user.isGuest) {
+            return { success: true, data: [] };
+        }
+
+        const { db } = await import("@/lib/db");
+        const requests = await db.contactRequest.findMany({
+            where: { recruiterId: session.user.id },
+            include: {
+                _count: { select: { messages: true } },
+                messages: { orderBy: { createdAt: "desc" }, take: 1, select: { createdAt: true } },
+            },
+            orderBy: { createdAt: "desc" },
+        });
+
+        return {
+            success: true,
+            data: requests.map((r) => ({
+                id: r.id,
+                developerId: r.developerId,
+                message: r.message,
+                status: r.status,
+                createdAt: r.createdAt.toISOString(),
+                messageCount: r._count.messages,
+                lastMessageAt: r.messages[0]?.createdAt.toISOString() ?? null,
+            })),
+        };
+    } catch (error: unknown) {
+        console.error("[getSentContactRequestsAction] Error:", error);
+        return { success: false, error: "Error al cargar la bandeja." };
+    }
+}

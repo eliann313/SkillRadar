@@ -112,6 +112,7 @@ const recruiterNavItems = [
     { href: "/dashboard", label: "Talent Pool", key: "talentPool", icon: Users },
     { href: "/dashboard/recruiter/postings", label: "Job Postings", key: "jobPostings", icon: Briefcase },
     { href: "/dashboard/recruiter/pipeline", label: "Pipeline", key: "pipeline", icon: Kanban },
+    { href: "/dashboard/recruiter/requests", label: "Inbox", key: "requests", icon: MessageSquare },
     { href: "/dashboard/settings", label: "Settings", key: "settings", icon: Settings },
 ];
 
