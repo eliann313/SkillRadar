@@ -79,6 +79,9 @@ export default function CVAnalysisPage() {
                     estimatedSeniority: mappedSeniority,
                     suggestions: [...(dbAnalysis?.improvements || []), ...(dbAnalysis?.formatIssues || [])],
                     createdAt: new Date(dbResume.createdAt),
+                    atsBreakdown: dbAnalysis?.atsBreakdown ?? undefined,
+                    evidenceQuotes: dbAnalysis?.evidenceQuotes ?? undefined,
+                    isSimulated: dbAnalysis?.isSimulated ?? undefined,
                     explainability: dbAnalysis?.explainability,
                 };
 

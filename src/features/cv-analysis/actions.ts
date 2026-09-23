@@ -459,6 +459,39 @@ export async function getCareerRecommendationsAction(): Promise<ActionResult<Car
 
         const userId = session.user.id;
 
+        // Modo Demo/Guest: mock inmediato sin DB ni IA (el guest nunca persiste CVs)
+        if (session.user.isGuest) {
+            return {
+                success: true,
+                data: {
+                    technologies: [
+                        { name: "Docker", importance: "high", reason: "Demandado en la mayoría de ofertas backend." },
+                        { name: "CI/CD", importance: "high", reason: "Diferenciador clave en despliegues modernos." },
+                        { name: "Testing", importance: "medium", reason: "Mejora la credibilidad técnica del perfil." },
+                    ],
+                    roadmaps: [
+                        {
+                            title: "Ruta DevOps esencial",
+                            steps: [
+                                "Dockeriza un proyecto",
+                                "Automatiza CI con GitHub Actions",
+                                "Despliega en la nube",
+                            ],
+                            duration: "4 semanas",
+                        },
+                    ],
+                    projects: [
+                        {
+                            title: "API con CI/CD completo",
+                            description: "API REST con tests, pipeline y deploy automático.",
+                            technologies: ["Node.js", "Docker", "GitHub Actions"],
+                            difficulty: "intermediate",
+                        },
+                    ],
+                },
+            };
+        }
+
         // 1. Obtener currículum activo
         const resume =
             (await db.resume.findFirst({

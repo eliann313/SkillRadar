@@ -102,7 +102,7 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                             className="h-7 px-2 mt-1 gap-1 text-[11px] text-primary hover:bg-primary/10 hover:text-primary cursor-pointer"
                         >
                             <Eye className="size-3" />
-                            {t("reasoningBtn", { default: "Ver Razonamiento" })}
+                            {t("reasoningBtn")}
                         </Button>
                     </div>
                 </div>
@@ -192,7 +192,7 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                                 <p className="font-medium text-foreground">{t("upskillingCandidate")}</p>
                                 <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
                                     {t("upskillingCandidateDesc", {
-                                        skills: match.missingSkills.slice(0, 2).join(t("and", { default: " and " })),
+                                        skills: match.missingSkills.slice(0, 2).join(t("and")),
                                     })}
                                 </p>
                             </div>
@@ -225,9 +225,7 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                         <div className="flex flex-col gap-4">
                             <div className="flex items-center gap-2">
                                 <TrendingUp className="size-5 text-emerald" />
-                                <h3 className="font-semibold text-foreground">
-                                    {t("growthPath", { default: "Tu Ruta de Crecimiento (Action Plan)" })}
-                                </h3>
+                                <h3 className="font-semibold text-foreground">{t("growthPath")}</h3>
                             </div>
                             <div className="grid gap-4 sm:grid-cols-2">
                                 {match.actionPlan.map((plan, idx) => (
