@@ -1035,7 +1035,7 @@ export default function SettingsPage() {
                                                 id="customModelId"
                                                 value={customModelId}
                                                 onChange={(e) => setCustomModelId(e.target.value)}
-                                                placeholder="Ej. claude-sonnet-5-5, gpt-6-sol, gemini-3.8-flash"
+                                                placeholder="Ej. claude-sonnet-5, gpt-6-sol, gemini-3.8-flash"
                                                 className="border-primary/45 bg-primary/5 focus:border-primary transition-colors text-sm"
                                                 required
                                             />

@@ -13,35 +13,39 @@ export const PROVIDER_MODELS: Record<string, Array<{ id: string; name: string }>
             name: "Gemini 3.5 Flash-Lite (Velocidad extrema y bajo costo)",
         },
         {
-            id: "gemini-3.1-pro",
-            name: "Gemini 3.1 Pro (Razonamiento analítico profundo)",
+            id: "gemini-3.1-pro-preview",
+            name: "Gemini 3.1 Pro Preview (Razonamiento analítico profundo)",
         },
         { id: "custom", name: "➕ Ingresar ID personalizado..." },
     ],
     openai: [
         {
             id: "gpt-6-sol",
-            name: "GPT-6 Sol (Flagship 2026)",
+            name: "GPT-6 Sol (Flagship 2026 - trabajo complejo)",
         },
         {
             id: "gpt-6-luna",
-            name: "GPT-6 Luna (Flagship 2026)",
+            name: "GPT-6 Luna (Flagship 2026 - rápido y económico)",
+        },
+        {
+            id: "gpt-6-astra",
+            name: "GPT-6 Astra (Máxima capacidad)",
         },
         { id: "gpt-4o", name: "GPT-4o (Clásico multipropósito)" },
         { id: "custom", name: "➕ Ingresar ID personalizado..." },
     ],
     anthropic: [
         {
-            id: "claude-opus-5-5",
-            name: "Claude Opus 5.5 (Máxima inteligencia)",
+            id: "claude-opus-5",
+            name: "Claude Opus 5 (Agentes y código complejo)",
         },
         {
-            id: "claude-sonnet-5-5",
-            name: "Claude Sonnet 5.5 (Equilibrio rendimiento/costo)",
+            id: "claude-sonnet-5",
+            name: "Claude Sonnet 5 (Equilibrio velocidad/inteligencia)",
         },
         {
-            id: "claude-haiku-5-5",
-            name: "Claude Haiku 5.5 (Velocidad extrema)",
+            id: "claude-haiku-4-5",
+            name: "Claude Haiku 4.5 (Velocidad extrema)",
         },
         { id: "custom", name: "➕ Ingresar ID personalizado..." },
     ],

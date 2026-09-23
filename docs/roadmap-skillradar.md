@@ -138,7 +138,7 @@ El Vercel AI SDK es la librería estándar del ecosistema para integrar LLMs en 
 - **Structured Outputs**: El SDK incluye `generateObject` que pasa un schema Zod de forma nativa a la API del LLM, forzando la inferencia a cumplir el formato y evitando alucinaciones de parseo.
 - **Soporte Híbrido de Inferencia**:
     - **Free Tier (Global)**: Para el uso por defecto del sistema, nos apoyamos en `gemini-3.8-flash` y en la cascada hacia Groq/OpenRouter.
-    - **API Keys Personales Cifradas (AES-256-GCM)**: Los desarrolladores avanzados pueden ingresar de forma segura y cifrada sus credenciales de Anthropic o OpenAI para usar modelos ultra-premium de vanguardia (Claude Opus 5.5, GPT-6 Sol, GPT-6 Luna) a su propio costo.
+    - **API Keys Personales Cifradas (AES-256-GCM)**: Los desarrolladores avanzados pueden ingresar de forma segura y cifrada sus credenciales de Anthropic o OpenAI para usar modelos ultra-premium de vanguardia (Claude Opus 5, GPT-6 Sol, GPT-6 Luna) a su propio costo.
     - **Exención de Rate Limiting**: Si el usuario configura sus llaves personales en Settings, se omitirá el límite estricto de Upstash de la plataforma para sus análisis, incentivando el uso avanzado sostenible.
 
 #### Docker solo para local

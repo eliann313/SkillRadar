@@ -178,7 +178,7 @@ export function CareerCopilot() {
                                             else if (newProvider === "groq") setModel("openai/gpt-oss-120b");
                                             else if (newProvider === "openrouter") setModel("google/gemini-3.8-flash");
                                             else if (newProvider === "openai") setModel("gpt-6-sol");
-                                            else if (newProvider === "anthropic") setModel("claude-sonnet-5-5");
+                                            else if (newProvider === "anthropic") setModel("claude-sonnet-5");
                                         }}
                                         className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none font-bold text-foreground text-[11px] cursor-pointer hover:text-primary transition-colors pr-1"
                                     >
@@ -242,10 +242,10 @@ export function CareerCopilot() {
                                                     Gemini 3.5 Flash-Lite
                                                 </option>
                                                 <option
-                                                    value="gemini-3.1-pro"
+                                                    value="gemini-3.1-pro-preview"
                                                     className="bg-popover text-popover-foreground"
                                                 >
-                                                    Gemini 3.1 Pro
+                                                    Gemini 3.1 Pro Preview
                                                 </option>
                                             </>
                                         )}
@@ -303,22 +303,22 @@ export function CareerCopilot() {
                                         {provider === "anthropic" && (
                                             <>
                                                 <option
-                                                    value="claude-sonnet-5-5"
+                                                    value="claude-sonnet-5"
                                                     className="bg-popover text-popover-foreground"
                                                 >
-                                                    Claude Sonnet 5.5
+                                                    Claude Sonnet 5
                                                 </option>
                                                 <option
-                                                    value="claude-opus-5-5"
+                                                    value="claude-opus-5"
                                                     className="bg-popover text-popover-foreground"
                                                 >
-                                                    Claude Opus 5.5
+                                                    Claude Opus 5
                                                 </option>
                                                 <option
-                                                    value="claude-haiku-5-5"
+                                                    value="claude-haiku-4-5"
                                                     className="bg-popover text-popover-foreground"
                                                 >
-                                                    Claude Haiku 5.5
+                                                    Claude Haiku 4.5
                                                 </option>
                                             </>
                                         )}
