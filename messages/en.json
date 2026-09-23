@@ -202,6 +202,9 @@
         "greetingEvening": "Good evening"
     },
     "Dashboard": {
+        "privacyTitle": "Double-blind active: your identity is protected",
+        "privacyDesc": "Recruiters see your anonymized profile. You only reveal name and email if you accept. You have {count} pending requests.",
+        "privacyCta": "Manage privacy",
         "uploadCvTitle": "Upload CV",
         "uploadCvDesc": "Diagnose and optimize your profile with AI. Upload your CV in PDF or TXT format to calculate your initial ATS score.",
         "uploadCvCta": "Upload CV",

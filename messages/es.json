@@ -202,6 +202,9 @@
         "greetingEvening": "Buenas noches"
     },
     "Dashboard": {
+        "privacyTitle": "Doble ciego activo: tu identidad está protegida",
+        "privacyDesc": "Los recruiters ven tu perfil anonimizado. Solo revelas nombre y email si aceptas. Tienes {count} solicitudes pendientes.",
+        "privacyCta": "Gestionar privacidad",
         "uploadCvTitle": "Subir Currículum",
         "uploadCvDesc": "Diagnostica y optimiza tu perfil con IA. Sube tu currículum en formato PDF o TXT para calcular tu puntuación ATS inicial.",
         "uploadCvCta": "Subir CV",

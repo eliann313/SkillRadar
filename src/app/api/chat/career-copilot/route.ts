@@ -46,19 +46,42 @@ export async function POST(req: NextRequest) {
                 const latestResume =
                     (await db.resume.findFirst({
                         where: { userId: session.user.id, isActive: true },
-                        select: { rawText: true, atsScore: true },
+                        select: { rawText: true, atsScore: true, analysis: true },
                     })) ||
                     (await db.resume.findFirst({
                         where: { userId: session.user.id },
                         orderBy: { createdAt: "desc" },
-                        select: { rawText: true, atsScore: true },
+                        select: { rawText: true, atsScore: true, analysis: true },
                     }));
                 if (latestResume?.rawText) {
                     cvContext = `CV del usuario (extracto):\n${latestResume.rawText.substring(0, 3000)}`;
                     if (latestResume.atsScore) {
                         cvContext += `\n\nATS Score actual: ${latestResume.atsScore}/100`;
                     }
+                    try {
+                        const analysis =
+                            typeof latestResume.analysis === "string"
+                                ? (JSON.parse(latestResume.analysis) as { missingKeywords?: string[] })
+                                : (latestResume.analysis as { missingKeywords?: string[] } | null);
+                        if (Array.isArray(analysis?.missingKeywords) && analysis.missingKeywords.length > 0) {
+                            cvContext += `\nBrechas detectadas: ${analysis.missingKeywords.slice(0, 8).join(", ")}`;
+                        }
+                    } catch {
+                        // análisis no parseable: se omite
+                    }
                 }
+                const [openTasks, activeApplications] = await Promise.all([
+                    db.roadmapTask.count({ where: { userId: session.user.id, done: false } }).catch(() => 0),
+                    db.jobPostingApplication
+                        .count({
+                            where: {
+                                developerId: session.user.id,
+                                status: { notIn: ["rejected", "withdrawn", "hired"] },
+                            },
+                        })
+                        .catch(() => 0),
+                ]);
+                cvContext += `\nTareas abiertas del roadmap: ${openTasks}. Postulaciones activas: ${activeApplications}.`;
             } catch (dbErr) {
                 console.error("[Career Copilot] Error al cargar CV:", dbErr);
             }
