@@ -139,7 +139,7 @@ describe("Criptosistema AES-256-GCM (Tarjeta 7.3)", () => {
                 passwordResetToken: null,
                 passwordResetExpires: null,
                 defaultAiProvider: "gemini",
-                defaultAiModel: "gemini-3.6-flash",
+                defaultAiModel: "gemini-3.8-flash",
                 isPublicProfile: false,
                 publicUsername: null,
                 showSkills: true,

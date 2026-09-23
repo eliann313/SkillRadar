@@ -2,6 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { trackServerEvent } from "@/lib/analytics";
+import { checkProactiveMatchingRateLimit } from "@/lib/rate-limit";
 import { RecruiterService, type RankedCandidate } from "./service";
 import type { ActionResult } from "@/features/job-match/types";
 import { revalidatePath } from "next/cache";
@@ -23,6 +24,11 @@ export async function rankTalentPoolAction(jobDescription: string): Promise<Acti
 
         if (!jobDescription.trim()) {
             return { success: false, error: "La descripción del empleo no puede estar vacía." };
+        }
+
+        const rl = await checkProactiveMatchingRateLimit(`user:${session.user.id}`);
+        if (!rl.success) {
+            return { success: false, error: "Límite diario de sourcing IA alcanzado. Inténtalo mañana." };
         }
 
         const rankedCandidates = await RecruiterService.rankTalentPool({
@@ -64,19 +70,23 @@ export async function createContactRequestAction(
             return { success: false, error: "Campos de entrada inválidos." };
         }
 
-        // Asegurar que el usuario reclutador demo existe en DB para cumplir las FKeys
-        if (session.user.id === "guest-recruiter-id") {
-            const { db } = await import("@/lib/db");
-            await db.user.upsert({
-                where: { id: "guest-recruiter-id" },
-                update: {},
-                create: {
-                    id: "guest-recruiter-id",
-                    name: "Demo Recruiter",
-                    email: "recruiter-guest@skillradar.dev",
-                    role: "recruiter",
-                },
-            });
+        // Modo Demo/Guest: solo lectura. guest-recruiter-id es compartido entre
+        // todos los visitantes, por lo que nunca debe persistir en la DB real
+        // (evita contaminación cruzada: un demo pide contacto, el dev acepta y
+        // otro visitante vería los datos revelados).
+        if (session.user.isGuest || session.user.id === "guest-recruiter-id") {
+            return {
+                success: true,
+                data: {
+                    id: `demo-contact-${Date.now()}`,
+                    recruiterId: session.user.id,
+                    developerId,
+                    message: message.trim().slice(0, 500),
+                    status: "pending",
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                } as ContactRequest,
+            };
         }
 
         const request = await RecruiterService.createContactRequest({
@@ -121,19 +131,9 @@ export async function toggleShortlistAction(developerId: string): Promise<Action
             return { success: false, error: "ID de desarrollador inválido." };
         }
 
-        // Asegurar que el usuario reclutador demo existe en DB para cumplir las FKeys
-        if (session.user.id === "guest-recruiter-id") {
-            const { db } = await import("@/lib/db");
-            await db.user.upsert({
-                where: { id: "guest-recruiter-id" },
-                update: {},
-                create: {
-                    id: "guest-recruiter-id",
-                    name: "Demo Recruiter",
-                    email: "recruiter-guest@skillradar.dev",
-                    role: "recruiter",
-                },
-            });
+        // Modo Demo/Guest: solo lectura, sin persistencia compartida.
+        if (session.user.isGuest || session.user.id === "guest-recruiter-id") {
+            return { success: true, data: true };
         }
 
         const isShortlisted = await RecruiterService.toggleShortlist({
@@ -208,6 +208,11 @@ export async function generateInterviewQuestionsAction(
 
         const jd = jobDescription?.trim() || "";
 
+        const rl = await checkProactiveMatchingRateLimit(`user:${session.user.id}`);
+        if (!rl.success) {
+            return { success: false, error: "Límite diario de guías de entrevista alcanzado." };
+        }
+
         const questions = await RecruiterService.generateInterviewQuestions({
             developerId,
             recruiterId: session.user.id,
@@ -243,6 +248,11 @@ export async function searchTalentPoolAIAction(query: string): Promise<ActionRes
 
         if (!query.trim()) {
             return { success: false, error: "La consulta de búsqueda no puede estar vacía." };
+        }
+
+        const rl = await checkProactiveMatchingRateLimit(`user:${session.user.id}`);
+        if (!rl.success) {
+            return { success: false, error: "Límite diario de búsqueda IA alcanzado. Inténtalo mañana." };
         }
 
         const rankedCandidates = await RecruiterService.searchTalentPoolAI({

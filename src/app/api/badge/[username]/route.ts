@@ -1,8 +1,15 @@
 import { db } from "@/lib/db";
+import { escapeXml } from "@/lib/pii";
 import type { NextRequest } from "next/server";
+
+const USERNAME_REGEX = /^[a-z0-9-]{3,30}$/;
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ username: string }> }) {
     const { username } = await params;
+
+    if (!USERNAME_REGEX.test(username)) {
+        return new Response("Not Found", { status: 404 });
+    }
 
     // 1. Cargar datos del usuario
     const user = await db.user.findUnique({
@@ -54,12 +61,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }
     }
 
-    const displayName = user.name || username;
+    const displayName = escapeXml(user.name || username);
+    const safeSeniority = escapeXml(seniority);
+    const safeSkills = skills.map((s) => escapeXml(s));
 
     // 3. Calcular dimensiones de píldoras dinámicamente para evitar solapamientos
-    const pill1Width = Math.max(65, skills[0].length * 8 + 22);
-    const pill2Width = skills[1] ? Math.max(65, skills[1].length * 8 + 22) : 0;
-    const pill3Width = skills[2] ? Math.max(65, skills[2].length * 8 + 22) : 0;
+    const pill1Width = Math.max(65, safeSkills[0].length * 8 + 22);
+    const pill2Width = safeSkills[1] ? Math.max(65, safeSkills[1].length * 8 + 22) : 0;
+    const pill3Width = safeSkills[2] ? Math.max(65, safeSkills[2].length * 8 + 22) : 0;
 
     const pill1X = 30;
     const pill2X = pill1X + pill1Width + 12;
@@ -92,7 +101,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         <!-- Información del Desarrollador -->
         <text x="30" y="52" class="title">${displayName}</text>
-        <text x="30" y="74" class="subtitle">${seniority}</text>
+        <text x="30" y="74" class="subtitle">${safeSeniority}</text>
 
         <!-- Sección de Habilidades -->
         <text x="30" y="112" class="label">Top Skills</text>
@@ -101,24 +110,24 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         <g transform="translate(0, 122)">
             <!-- Skill 1 -->
             <rect x="${pill1X}" width="${pill1Width}" height="24" rx="12" fill="#1e1b4b" stroke="#312e81" stroke-width="1" />
-            <text x="${pill1X + pill1Width / 2}" y="15" text-anchor="middle" class="pill-text">${skills[0]}</text>
+            <text x="${pill1X + pill1Width / 2}" y="15" text-anchor="middle" class="pill-text">${safeSkills[0]}</text>
             
             ${
-                skills[1]
+                safeSkills[1]
                     ? `
             <!-- Skill 2 -->
             <rect x="${pill2X}" width="${pill2Width}" height="24" rx="12" fill="#1e1b4b" stroke="#312e81" stroke-width="1" />
-            <text x="${pill2X + pill2Width / 2}" y="15" text-anchor="middle" class="pill-text">${skills[1]}</text>
+            <text x="${pill2X + pill2Width / 2}" y="15" text-anchor="middle" class="pill-text">${safeSkills[1]}</text>
             `
                     : ""
             }
 
             ${
-                skills[2]
+                safeSkills[2]
                     ? `
             <!-- Skill 3 -->
             <rect x="${pill3X}" width="${pill3Width}" height="24" rx="12" fill="#1e1b4b" stroke="#312e81" stroke-width="1" />
-            <text x="${pill3X + pill3Width / 2}" y="15" text-anchor="middle" class="pill-text">${skills[2]}</text>
+            <text x="${pill3X + pill3Width / 2}" y="15" text-anchor="middle" class="pill-text">${safeSkills[2]}</text>
             `
                     : ""
             }
@@ -131,6 +140,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         headers: {
             "Content-Type": "image/svg+xml",
             "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=600",
+            "Content-Security-Policy": "script-src 'none'; object-src 'none'",
+            "X-Content-Type-Options": "nosniff",
         },
     });
 }

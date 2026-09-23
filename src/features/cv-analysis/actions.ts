@@ -64,34 +64,27 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
             return { success: false, error: "Datos de archivo inválidos." };
         }
 
-        // 3. Manejo de Modo Demo/Guest
+        // 3. Manejo de Modo Demo/Guest (acotado: sin DB, sin LLM real, con razonamiento visible)
         if (isGuest) {
             // Simular retraso de análisis de IA para realismo
             await new Promise((resolve) => setTimeout(resolve, 1500));
-            await trackServerEvent("cv_uploaded", session.user.id, { isGuest: true, atsScore: 82 });
+            const { CVAnalysisAIService } = await import("@/features/cv-analysis/ai-service");
+            const simulated = CVAnalysisAIService.generateSimulatedAnalysis(
+                rawText || fileName || "React TypeScript Next.js Node.js",
+            );
+            await trackServerEvent("cv_uploaded", session.user.id, { isGuest: true, atsScore: simulated.atsScore });
             return {
                 success: true,
                 data: {
                     id: "demo-resume-id",
                     fileName: fileName || "curriculum_demo.pdf",
                     fileUrl: fileUrl || "text://raw-input",
-                    atsScore: 82,
+                    atsScore: simulated.atsScore,
                     analysis: {
-                        atsScore: 82,
-                        keywords: ["React", "TypeScript", "Next.js", "Node.js", "Tailwind CSS", "Git"],
-                        missingKeywords: ["CI/CD", "Docker", "AWS", "Testing (Jest/Vitest)"],
+                        ...simulated,
                         formatIssues: rawText
-                            ? ["Entrada directa por texto (sin issues de formato PDF)"]
-                            : ["Falta de enlaces profesionales directos (LinkedIn/GitHub)"],
-                        strengths: [
-                            "Fuerte dominio técnico en el ecosistema moderno de React y TypeScript.",
-                            "Estructura clara y secciones bien organizadas que facilitan el parseo por ATS.",
-                        ],
-                        improvements: [
-                            "Se sugiere enriquecer las descripciones de proyectos utilizando métricas de impacto (metodología STAR).",
-                            "Añadir exposición explícita en prácticas de CI/CD y despliegue en la nube.",
-                        ],
-                        estimatedSeniority: "mid",
+                            ? ["Entrada directa por texto (sin issues de formato PDF)", ...simulated.formatIssues]
+                            : simulated.formatIssues,
                     },
                     createdAt: new Date(),
                 },

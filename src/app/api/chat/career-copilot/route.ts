@@ -12,12 +12,31 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "No autorizado." }, { status: 401 });
     }
 
+    const { checkAIChatRateLimit } = await import("@/lib/rate-limit");
+    const rl = await checkAIChatRateLimit(`user:${session.user.id}`);
+    if (!rl.success) {
+        return NextResponse.json({ error: "Límite diario de chat IA alcanzado." }, { status: 429 });
+    }
+
     try {
         const { messages, provider, model } = (await req.json()) as {
             messages: unknown;
             provider?: string;
             model?: string;
         };
+        const msgArray = Array.isArray(messages) ? messages.slice(-20) : [];
+        const trimmedMessages = msgArray.map((m) => {
+            if (
+                m &&
+                typeof m === "object" &&
+                "content" in m &&
+                typeof (m as { content: unknown }).content === "string"
+            ) {
+                const c = (m as { content: string }).content;
+                return { ...(m as object), content: c.slice(0, 2000) };
+            }
+            return m;
+        });
         const isRecruiter = session.user.role === "recruiter";
 
         // Cargar el CV más reciente del usuario para el contexto del Copilot (solo desarrolladores)
@@ -48,7 +67,7 @@ export async function POST(req: NextRequest) {
         // Obtener llaves API del usuario si no es invitado
         let formattedSettings;
         let preferredProvider = "gemini";
-        let preferredModel = "gemini-3.6-flash";
+        let preferredModel = "gemini-3.8-flash";
 
         if (!session.user.isGuest) {
             try {
@@ -120,8 +139,8 @@ ${cvContext}
             parts?: ClientMessagePart[];
         }
 
-        const formattedMessages = Array.isArray(messages)
-            ? (messages as ClientMessage[]).map((m) => {
+        const formattedMessages = trimmedMessages.length
+            ? (trimmedMessages as ClientMessage[]).map((m) => {
                   let content = "";
                   if (typeof m.content === "string") {
                       content = m.content;

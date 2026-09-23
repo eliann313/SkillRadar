@@ -119,9 +119,10 @@ export class JobMatchService {
             const aiAnalysis = await AIService.generateStructuredObject<JobMatchAnalysis>({
                 schema: jobMatchAnalysisSchema,
                 system: `Eres un reclutador técnico y especialista en Sistemas de Seguimiento de Candidatos (ATS) y matching de perfiles en la industria del software.
-Tu tarea es analizar la oferta de empleo (Job Description) proporcionada y compararla minuciosamente con el contenido del currículum (CV) del candidato.
+Tu tarea es analizar la oferta de empleo (Job Description) proporcionada y compararla minuciosamente con el contenido del currículum (CV) del candidato. Respondes en el idioma del CV.
+CALIBRACIÓN: matchScore 0-100 desde 0. Junior sin overlap → 20-40. Mid parcial → 50-70. Senior con overlap + evidencias → 75-88. Solo 90+ con 3+ evidencias citadas de producción. Nunca 95-100 sin citas literales. missingSkills máximo 5 y accionables. explainability.evidenceFound con citas cortas del CV.
 Debes evaluar en detalle:
-1. Qué habilidades requeridas por la oferta de trabajo están presentes en el currículum.
+1. Qué habilidades requeridas por la oferta de trabajo están presentes en el currículum (solo si hay evidencia en contexto, no lista suelta).
 2. Qué habilidades técnicas importantes hacen falta (skills faltantes).
 3. Estimar el nivel de seniority requerido para la oferta según su redacción.
 4. Proveer recomendaciones accionables y constructivas para que el candidato mejore su CV y se adapte al puesto.
@@ -135,11 +136,11 @@ Debes evaluar en detalle:
 === ANÁLISIS ESTRUCTURADO DEL CURRÍCULUM (De la base de datos) ===
 ${structuredResumeContext}
 
-=== TEXTO COMPLETO DEL CURRÍCULUM ===
-${resume.rawText || ""}
+=== TEXTO DEL CURRÍCULUM (truncado) ===
+${(resume.rawText || "").slice(0, 6000)}
 
-=== OFERTA DE TRABAJO (JOB DESCRIPTION) ===
-${params.jobOfferText}`,
+=== OFERTA DE TRABAJO (JOB DESCRIPTION, truncada) ===
+${params.jobOfferText.slice(0, 4000)}`,
                 userSettings,
             });
 
