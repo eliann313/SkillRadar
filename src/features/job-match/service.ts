@@ -1,6 +1,7 @@
 import { JobMatchRepository } from "./repository";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
+import { safeParseJson } from "@/lib/pii";
 import { AIService, type AIServiceOptions } from "@/lib/ai";
 import { jobMatchAnalysisSchema, type JobMatchAnalysis } from "./types";
 import { z } from "zod";
@@ -82,11 +83,7 @@ export class JobMatchService {
         }
 
         // Extraer el JSON estructurado de habilidades y experiencia del Resume en Postgres
-        const resumeAnalysisJson = resume.analysis
-            ? typeof resume.analysis === "string"
-                ? (JSON.parse(resume.analysis) as ResumeAnalysisData)
-                : (resume.analysis as unknown as ResumeAnalysisData)
-            : null;
+        const resumeAnalysisJson = safeParseJson<ResumeAnalysisData>(resume.analysis, null);
 
         let structuredResumeContext = "No estructurado";
         if (resumeAnalysisJson) {
@@ -297,6 +294,7 @@ ${params.jobOfferText.slice(0, 4000)}`,
                     `Integrar ${skill} en un portafolio de proyectos real para demostrar su uso práctico.`,
                 ],
             })),
+            isSimulated: true,
         };
 
         return {

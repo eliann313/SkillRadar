@@ -3,6 +3,10 @@
 import { db } from "@/lib/db";
 import { assertActiveUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+
+const idSchema = z.string().cuid();
+const suspendSchema = z.object({ userId: z.string().cuid(), reportIdToDismiss: z.string().cuid().optional() });
 
 export type ActionResult<T> = { success: true; data: T } | { success: false; error: string };
 
@@ -50,6 +54,7 @@ export async function getPendingReportsAction(): Promise<ActionResult<unknown[]>
  */
 export async function dismissReportAction(id: string): Promise<ActionResult<boolean>> {
     try {
+        if (!idSchema.safeParse(id).success) return { success: false, error: "Reporte inválido." };
         await assertAdmin();
 
         await db.contentReport.update({
@@ -70,6 +75,8 @@ export async function dismissReportAction(id: string): Promise<ActionResult<bool
  */
 export async function suspendUserAction(userId: string, reportIdToDismiss?: string): Promise<ActionResult<boolean>> {
     try {
+        const parsed = suspendSchema.safeParse({ userId, reportIdToDismiss });
+        if (!parsed.success) return { success: false, error: "Datos inválidos." };
         await assertAdmin();
 
         // No permitir suspenderse a sí mismo o a un administrador principal (por seguridad)
@@ -85,13 +92,13 @@ export async function suspendUserAction(userId: string, reportIdToDismiss?: stri
         // Ejecutar transacción: Suspender usuario y opcionalmente descartar el reporte
         await db.$transaction(async (tx) => {
             await tx.user.update({
-                where: { id: userId },
+                where: { id: parsed.data.userId },
                 data: { isSuspended: true },
             });
 
-            if (reportIdToDismiss) {
+            if (parsed.data.reportIdToDismiss) {
                 await tx.contentReport.update({
-                    where: { id: reportIdToDismiss },
+                    where: { id: parsed.data.reportIdToDismiss },
                     data: { status: "reviewed" },
                 });
             }

@@ -84,6 +84,11 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                         <CardTitle className="flex items-center gap-2">
                             <Target className="size-5 text-primary" />
                             {t("matchResults")}
+                            {match.isSimulated ? (
+                                <Badge variant="outline" className="border-warning/40 text-warning text-[10px]">
+                                    {t("simulatedBadge", { default: "Offline (sin IA)" })}
+                                </Badge>
+                            ) : null}
                         </CardTitle>
                         <CardDescription className="mt-1">
                             {match.jobTitle}

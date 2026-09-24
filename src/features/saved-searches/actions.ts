@@ -49,6 +49,10 @@ export async function listSavedSearchesAction(
 export async function saveSearchAction(input: z.infer<typeof saveSchema>): Promise<ActionResult<SavedSearchDTO>> {
     const session = await requireUser();
     if (!session) return { success: false, error: "No autorizado." };
+    const { checkWriteRateLimit } = await import("@/lib/rate-limit");
+    if (!(await checkWriteRateLimit(`user:${session.user.id}`)).success) {
+        return { success: false, error: "Límite diario de escritura alcanzado." };
+    }
     const parsed = saveSchema.safeParse(input);
     if (!parsed.success) return { success: false, error: "Datos inválidos." };
     const created = await db.savedSearch.create({
@@ -72,6 +76,7 @@ export async function saveSearchAction(input: z.infer<typeof saveSchema>): Promi
 }
 
 export async function deleteSavedSearchAction(id: string): Promise<ActionResult<boolean>> {
+    if (!z.string().cuid().safeParse(id).success) return { success: false, error: "No autorizado." };
     const session = await requireUser();
     if (!session) return { success: false, error: "No autorizado." };
     await db.savedSearch.deleteMany({ where: { id, userId: session.user.id } });

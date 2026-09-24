@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { useDropzone } from "react-dropzone";
+import { useDropzone, type DropzoneRootProps, type DropzoneInputProps } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -126,8 +126,7 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
         disabled: isLoading || isUploading,
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rootProps = getRootProps() as any;
+    const rootProps = getRootProps() as DropzoneRootProps;
     const {
         ref: rootRef,
         role: rootRole,
@@ -143,8 +142,7 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
         onDrop: rootOnDrop,
     } = rootProps;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const inputProps = getInputProps() as any;
+    const inputProps = getInputProps() as DropzoneInputProps & { ref?: React.Ref<HTMLInputElement> };
     const {
         ref: inputRef,
         type: inputType,

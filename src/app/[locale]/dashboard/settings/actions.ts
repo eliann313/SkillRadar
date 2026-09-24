@@ -2,7 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { encrypt } from "@/lib/crypto";
+import { encrypt, API_KEY_PRESET_PLACEHOLDER } from "@/lib/crypto";
 import { revalidatePath } from "next/cache";
 
 export interface ApiKeysInput {
@@ -17,8 +17,6 @@ export interface InferencePreferencesInput {
     defaultAiProvider: string;
     defaultAiModel: string;
 }
-
-const PRESET_PLACEHOLDER = "__API_KEY_PRESET__";
 
 /**
  * Guarda las claves API personales del usuario de forma cifrada en la base de datos.
@@ -59,7 +57,7 @@ export async function saveUserApiKeysAction(input: ApiKeysInput) {
         if (input.geminiApiKey !== undefined) {
             if (input.geminiApiKey === "") {
                 updateData.geminiApiKey = null;
-            } else if (input.geminiApiKey !== PRESET_PLACEHOLDER) {
+            } else if (input.geminiApiKey !== API_KEY_PRESET_PLACEHOLDER) {
                 updateData.geminiApiKey = encrypt(input.geminiApiKey);
             }
         }
@@ -67,7 +65,7 @@ export async function saveUserApiKeysAction(input: ApiKeysInput) {
         if (input.groqApiKey !== undefined) {
             if (input.groqApiKey === "") {
                 updateData.groqApiKey = null;
-            } else if (input.groqApiKey !== PRESET_PLACEHOLDER) {
+            } else if (input.groqApiKey !== API_KEY_PRESET_PLACEHOLDER) {
                 updateData.groqApiKey = encrypt(input.groqApiKey);
             }
         }
@@ -75,7 +73,7 @@ export async function saveUserApiKeysAction(input: ApiKeysInput) {
         if (input.openrouterApiKey !== undefined) {
             if (input.openrouterApiKey === "") {
                 updateData.openrouterApiKey = null;
-            } else if (input.openrouterApiKey !== PRESET_PLACEHOLDER) {
+            } else if (input.openrouterApiKey !== API_KEY_PRESET_PLACEHOLDER) {
                 updateData.openrouterApiKey = encrypt(input.openrouterApiKey);
             }
         }
@@ -83,7 +81,7 @@ export async function saveUserApiKeysAction(input: ApiKeysInput) {
         if (input.openaiApiKey !== undefined) {
             if (input.openaiApiKey === "") {
                 updateData.openaiApiKey = null;
-            } else if (input.openaiApiKey !== PRESET_PLACEHOLDER) {
+            } else if (input.openaiApiKey !== API_KEY_PRESET_PLACEHOLDER) {
                 updateData.openaiApiKey = encrypt(input.openaiApiKey);
             }
         }
@@ -91,7 +89,7 @@ export async function saveUserApiKeysAction(input: ApiKeysInput) {
         if (input.anthropicApiKey !== undefined) {
             if (input.anthropicApiKey === "") {
                 updateData.anthropicApiKey = null;
-            } else if (input.anthropicApiKey !== PRESET_PLACEHOLDER) {
+            } else if (input.anthropicApiKey !== API_KEY_PRESET_PLACEHOLDER) {
                 updateData.anthropicApiKey = encrypt(input.anthropicApiKey);
             }
         }

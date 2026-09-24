@@ -94,6 +94,7 @@ export default function JobMatchPage() {
                     recommendations: dbAnalysis?.recommendations || [],
                     explainability: dbAnalysis?.explainability,
                     actionPlan: dbAnalysis?.actionPlan,
+                    isSimulated: dbAnalysis?.isSimulated ?? undefined,
                 };
 
                 setMatch(mappedMatch);

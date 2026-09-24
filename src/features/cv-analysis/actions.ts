@@ -4,7 +4,7 @@ import { auth, assertActiveUser } from "@/lib/auth";
 import { trackServerEvent } from "@/lib/analytics";
 import { CVAnalysisService } from "./service";
 import { ResumeRepository } from "./repository";
-import type { Resume } from "@prisma/client";
+import type { Resume, Prisma } from "@prisma/client";
 import type { ActionResult } from "./types";
 import { revalidatePath } from "next/cache";
 import { checkCVRateLimit, getClientIp } from "@/lib/rate-limit";
@@ -694,10 +694,11 @@ ${demandedSkills.join(", ") || "React, Node.js, TypeScript, Next.js, Docker, AWS
                 where: { id: resume.id },
                 data: {
                     analysis: {
-                        ...(existingAnalysis || {}),
-                        careerRecommendations: result,
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    } as any,
+                        ...(typeof existingAnalysis === "object" && existingAnalysis !== null
+                            ? (existingAnalysis as Record<string, unknown>)
+                            : {}),
+                        careerRecommendations: JSON.parse(JSON.stringify(result)) as Prisma.InputJsonValue,
+                    },
                 },
             });
         } catch (dbError) {

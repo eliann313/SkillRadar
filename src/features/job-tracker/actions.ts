@@ -5,6 +5,9 @@ import { revalidatePath } from "next/cache";
 import { JobTrackerService } from "./service";
 import { jobApplicationSchema, type ActionResult } from "./types";
 import type { JobApplication } from "@prisma/client";
+import { z } from "zod";
+
+const statusSchema = z.enum(["to_apply", "applied", "interviewing", "offer"]);
 
 export async function getJobApplicationsAction(): Promise<ActionResult<JobApplication[]>> {
     try {
@@ -32,6 +35,11 @@ export async function createJobApplicationAction(input: unknown): Promise<Action
         if (!result.success) {
             const firstError = result.error.issues[0]?.message || "Datos inválidos";
             return { success: false, error: firstError };
+        }
+
+        const { checkWriteRateLimit } = await import("@/lib/rate-limit");
+        if (!(await checkWriteRateLimit(`user:${session.user.id}`)).success) {
+            return { success: false, error: "Límite diario de escritura alcanzado." };
         }
 
         const application = await JobTrackerService.createJobApplication({
@@ -63,7 +71,12 @@ export async function updateJobApplicationStatusAction(
             return { success: false, error: "No autorizado." };
         }
 
-        const updated = await JobTrackerService.updateJobApplicationStatus(id, session.user.id, status);
+        const parsed = statusSchema.safeParse(status);
+        if (!parsed.success) {
+            return { success: false, error: "Estado inválido." };
+        }
+
+        const updated = await JobTrackerService.updateJobApplicationStatus(id, session.user.id, parsed.data);
         revalidatePath("/dashboard/job-tracker");
         return { success: true, data: updated };
     } catch (error: unknown) {

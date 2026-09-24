@@ -7,6 +7,8 @@ import { RecruiterService } from "@/features/recruiter/service";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+const idSchema = z.string().cuid();
+
 export interface CandidateNoteDTO {
     id: string;
     body: string;
@@ -44,6 +46,7 @@ async function requireRecruiter() {
 }
 
 export async function listNotesAction(applicationId: string): Promise<ActionResult<CandidateNoteDTO[]>> {
+    if (!idSchema.safeParse(applicationId).success) return { success: false, error: "No autorizado." };
     const session = await requireRecruiter();
     if (!session || !(await assertOwnership(applicationId, session.user.id))) {
         return { success: false, error: "No autorizado." };
@@ -59,9 +62,14 @@ export async function listNotesAction(applicationId: string): Promise<ActionResu
 }
 
 export async function createNoteAction(applicationId: string, body: string): Promise<ActionResult<CandidateNoteDTO>> {
+    if (!idSchema.safeParse(applicationId).success) return { success: false, error: "No autorizado." };
     const session = await requireRecruiter();
     if (!session || !(await assertOwnership(applicationId, session.user.id))) {
         return { success: false, error: "No autorizado." };
+    }
+    const { checkWriteRateLimit } = await import("@/lib/rate-limit");
+    if (!(await checkWriteRateLimit(`user:${session.user.id}`)).success) {
+        return { success: false, error: "Límite diario de escritura alcanzado." };
     }
     const clean = RecruiterService.sanitize(body).trim().slice(0, 2000);
     if (!clean) return { success: false, error: "La nota no puede estar vacía." };
@@ -71,6 +79,7 @@ export async function createNoteAction(applicationId: string, body: string): Pro
 }
 
 export async function deleteNoteAction(noteId: string): Promise<ActionResult<boolean>> {
+    if (!idSchema.safeParse(noteId).success) return { success: false, error: "No autorizado." };
     const session = await requireRecruiter();
     if (!session) return { success: false, error: "No autorizado." };
     await db.candidateNote.deleteMany({ where: { id: noteId, recruiterId: session.user.id } });
@@ -78,6 +87,7 @@ export async function deleteNoteAction(noteId: string): Promise<ActionResult<boo
 }
 
 export async function getScorecardAction(applicationId: string): Promise<ActionResult<ScorecardDTO | null>> {
+    if (!idSchema.safeParse(applicationId).success) return { success: false, error: "No autorizado." };
     const session = await requireRecruiter();
     if (!session || !(await assertOwnership(applicationId, session.user.id))) {
         return { success: false, error: "No autorizado." };
@@ -101,10 +111,15 @@ export async function saveScorecardAction(
     criteria: Array<{ question: string; score: number; note: string }>,
     comment: string,
 ): Promise<ActionResult<ScorecardDTO>> {
+    if (!idSchema.safeParse(applicationId).success) return { success: false, error: "No autorizado." };
     const session = await requireRecruiter();
     if (!session) return { success: false, error: "No autorizado." };
     const app = await assertOwnership(applicationId, session.user.id);
     if (!app) return { success: false, error: "No autorizado." };
+    const { checkWriteRateLimit } = await import("@/lib/rate-limit");
+    if (!(await checkWriteRateLimit(`user:${session.user.id}`)).success) {
+        return { success: false, error: "Límite diario de escritura alcanzado." };
+    }
     const parsed = criteriaSchema.safeParse(criteria);
     if (!parsed.success) return { success: false, error: "Criterios inválidos (1-5 por pregunta)." };
     const overall = Math.round((parsed.data.reduce((a, c) => a + c.score, 0) / parsed.data.length / 5) * 100);

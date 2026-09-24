@@ -84,6 +84,7 @@ let proactiveMatchingLimiter: Ratelimit | InMemorySlidingWindow | null = null;
 let contentReportLimiter: Ratelimit | InMemorySlidingWindow | null = null;
 let aiSourcingLimiter: Ratelimit | InMemorySlidingWindow | null = null;
 let aiChatLimiter: Ratelimit | InMemorySlidingWindow | null = null;
+let writeLimiter: Ratelimit | InMemorySlidingWindow | null = null;
 
 const CV_LIMIT = 5; // 5 análisis de CV por día
 const JOB_MATCH_LIMIT = 10; // 10 Job Matches por día
@@ -95,6 +96,7 @@ const PROACTIVE_MATCHING_LIMIT = 50; // 50 matches proactivos por día
 const CONTENT_REPORT_LIMIT = 5; // 5 reportes por día
 const AI_SOURCING_LIMIT = 10; // 10 operaciones sourcing/entrevistas IA por día
 const AI_CHAT_LIMIT = 20; // 20 mensajes chat IA por día
+const WRITE_LIMIT = 30; // 30 escrituras CRUD por día (notas, roadmap, templates, thread)
 const WINDOW_DURATION_MS = 24 * 60 * 60 * 1000; // 24 horas
 const LOGIN_WINDOW_MS = 15 * 60 * 1000; // 15 minutos
 
@@ -177,6 +179,13 @@ if (hasUpstashConfig) {
             prefix: "ratelimit:ai-chat",
         });
 
+        writeLimiter = new Ratelimit({
+            redis,
+            limiter: Ratelimit.slidingWindow(WRITE_LIMIT, "24 h"),
+            analytics: true,
+            prefix: "ratelimit:write",
+        });
+
         console.warn("🛡️ [RateLimit] Upstash Redis inicializado correctamente para Rate Limiting.");
     } catch (error) {
         console.error(
@@ -196,6 +205,7 @@ const proactiveMatchingMemoryFallback = new InMemorySlidingWindow(PROACTIVE_MATC
 const contentReportMemoryFallback = new InMemorySlidingWindow(CONTENT_REPORT_LIMIT, WINDOW_DURATION_MS);
 const aiSourcingMemoryFallback = new InMemorySlidingWindow(AI_SOURCING_LIMIT, WINDOW_DURATION_MS);
 const aiChatMemoryFallback = new InMemorySlidingWindow(AI_CHAT_LIMIT, WINDOW_DURATION_MS);
+const writeMemoryFallback = new InMemorySlidingWindow(WRITE_LIMIT, WINDOW_DURATION_MS);
 
 // Inicializar limitadores de memoria si Upstash no está disponible o falló
 if (!cvLimiter) {
@@ -244,6 +254,10 @@ if (!aiSourcingLimiter) {
 
 if (!aiChatLimiter) {
     aiChatLimiter = aiChatMemoryFallback;
+}
+
+if (!writeLimiter) {
+    writeLimiter = writeMemoryFallback;
 }
 
 /**
@@ -586,4 +600,18 @@ export async function checkAIChatRateLimit(identifier: string): Promise<RateLimi
         }
     }
     return await aiChatLimiter!.limitRequest(sanitizedIdentifier);
+}
+
+/** Límite genérico para escrituras CRUD (notas, roadmap, templates, thread, trackers). */
+export async function checkWriteRateLimit(identifier: string): Promise<RateLimitResult> {
+    const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
+    if (writeLimiter instanceof Ratelimit) {
+        try {
+            const result = await writeLimiter.limit(sanitizedIdentifier);
+            return { success: result.success, limit: result.limit, remaining: result.remaining, reset: result.reset };
+        } catch {
+            return await writeMemoryFallback.limitRequest(sanitizedIdentifier);
+        }
+    }
+    return await writeLimiter!.limitRequest(sanitizedIdentifier);
 }

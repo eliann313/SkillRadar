@@ -52,6 +52,10 @@ export async function createTemplateAction(
 ): Promise<ActionResult<OutreachTemplateDTO>> {
     const session = await requireRecruiter();
     if (!session) return { success: false, error: "No autorizado." };
+    const { checkWriteRateLimit } = await import("@/lib/rate-limit");
+    if (!(await checkWriteRateLimit(`user:${session.user.id}`)).success) {
+        return { success: false, error: "Límite diario de escritura alcanzado." };
+    }
     const parsed = templateSchema.safeParse(input);
     if (!parsed.success) return { success: false, error: "Datos inválidos." };
     const created = await db.outreachTemplate.create({

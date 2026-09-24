@@ -327,20 +327,16 @@ ${jdSanitized}`,
 
         resumes.forEach((resume) => {
             if (!resume.analysis) return;
-            try {
-                const analysis = typeof resume.analysis === "string" ? JSON.parse(resume.analysis) : resume.analysis;
-                const keywords = (analysis as { keywords?: string[] })?.keywords;
-                if (Array.isArray(keywords)) {
-                    keywords.forEach((kw) => {
-                        if (!kw) return;
-                        const normalized = kw.trim();
-                        if (!normalized) return;
-                        const key = normalized.charAt(0).toUpperCase() + normalized.slice(1);
-                        skillCounts[key] = (skillCounts[key] || 0) + 1;
-                    });
-                }
-            } catch (e) {
-                console.error("[getMarketIntelligenceSkills] Error parsing JSON:", e);
+            const analysis = safeParseJson<{ keywords?: string[] }>(resume.analysis, null);
+            const keywords = analysis?.keywords;
+            if (Array.isArray(keywords)) {
+                keywords.forEach((kw) => {
+                    if (!kw) return;
+                    const normalized = kw.trim();
+                    if (!normalized) return;
+                    const key = normalized.charAt(0).toUpperCase() + normalized.slice(1);
+                    skillCounts[key] = (skillCounts[key] || 0) + 1;
+                });
             }
         });
 
@@ -1107,27 +1103,26 @@ ${stripPIIForLLM(resume.rawText || "")}`,
         // 1. Procesar Oferta (Resumes)
         resumes.forEach((resume) => {
             if (!resume.analysis) return;
-            try {
-                const analysis = typeof resume.analysis === "string" ? JSON.parse(resume.analysis) : resume.analysis;
+            const analysis = safeParseJson<{ keywords?: string[]; estimatedSeniority?: string }>(resume.analysis, null);
+            if (!analysis) return;
 
-                // Contar skills
-                const keywords = (analysis as { keywords?: string[] })?.keywords;
-                if (Array.isArray(keywords)) {
-                    keywords.forEach((kw) => {
-                        if (!kw) return;
-                        const key = kw.trim().charAt(0).toUpperCase() + kw.trim().slice(1);
-                        supplyCounts[key] = (supplyCounts[key] || 0) + 1;
-                    });
-                }
+            // Contar skills
+            const keywords = analysis.keywords;
+            if (Array.isArray(keywords)) {
+                keywords.forEach((kw) => {
+                    if (!kw) return;
+                    const key = kw.trim().charAt(0).toUpperCase() + kw.trim().slice(1);
+                    supplyCounts[key] = (supplyCounts[key] || 0) + 1;
+                });
+            }
 
-                // Contar seniority
-                const seniority = (analysis as { estimatedSeniority?: string })?.estimatedSeniority?.toLowerCase();
-                if (seniority && seniority in seniorityCounts) {
-                    seniorityCounts[seniority] += 1;
-                } else {
-                    seniorityCounts.mid += 1; // default fallback
-                }
-            } catch {}
+            // Contar seniority
+            const seniority = analysis.estimatedSeniority?.toLowerCase();
+            if (seniority && seniority in seniorityCounts) {
+                seniorityCounts[seniority] += 1;
+            } else {
+                seniorityCounts.mid += 1; // default fallback
+            }
         });
 
         // 2. Procesar Demanda (Job Postings)

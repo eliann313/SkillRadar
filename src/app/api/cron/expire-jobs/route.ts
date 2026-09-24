@@ -2,9 +2,13 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
 export async function GET(request: Request) {
-    // Verificar autenticación mediante cabecera Authorization en producción
+    // Verificar autenticación mediante cabecera Authorization (también en preview/dev si hay secreto)
     const authHeader = request.headers.get("authorization");
-    if (process.env.NODE_ENV === "production" && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    const secret = process.env.CRON_SECRET;
+    if (!secret) {
+        return new NextResponse("Cron no configurado", { status: 503 });
+    }
+    if (authHeader !== `Bearer ${secret}`) {
         return new NextResponse("No autorizado", { status: 401 });
     }
 

@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { safeParseJson } from "@/lib/pii";
 import {
     DashboardHeader,
     MetricsGrid,
@@ -60,9 +61,10 @@ export default async function DashboardPage() {
                     estimatedSeniority?: "junior" | "mid" | "senior" | "lead";
                 } | null = null;
                 if (resume.analysis) {
-                    parsedAnalysis = (
-                        typeof resume.analysis === "string" ? JSON.parse(resume.analysis) : resume.analysis
-                    ) as { keywords?: string[]; estimatedSeniority?: "junior" | "mid" | "senior" | "lead" };
+                    parsedAnalysis = safeParseJson<{
+                        keywords?: string[];
+                        estimatedSeniority?: "junior" | "mid" | "senior" | "lead";
+                    }>(resume.analysis, null);
                 }
 
                 // Filtrar proactivamente keywords para que sólo se muestren las presentes en el texto del CV
