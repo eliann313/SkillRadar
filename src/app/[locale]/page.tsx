@@ -25,8 +25,35 @@ export default async function Home({ params: _params }: { params: Promise<{ loca
 
     const t = await getTranslations("Home");
 
+    const siteUrl = process.env.NEXTAUTH_URL || "https://skillradar.dev";
+
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Organization",
+                name: "SkillRadar",
+                url: siteUrl,
+            },
+            {
+                "@type": "WebSite",
+                name: "SkillRadar",
+                url: siteUrl,
+                inLanguage: ["es", "en"],
+            },
+            {
+                "@type": "SoftwareApplication",
+                name: "SkillRadar",
+                applicationCategory: "BusinessApplication",
+                operatingSystem: "Web",
+                offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+            },
+        ],
+    };
+
     return (
         <div className="min-h-screen flex flex-col bg-background text-foreground overflow-hidden relative">
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
             {/* Background decorative gradients */}
             <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/10 blur-[120px] pointer-events-none" />
             <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-accent/10 blur-[120px] pointer-events-none" />
