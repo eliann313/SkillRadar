@@ -8,3 +8,4 @@ export { ProgressRecharts } from "./progress-recharts";
 export { SkillRadarChart } from "./skill-radar-chart";
 export { RoadmapChecklist } from "./roadmap-checklist";
 export { PrivacyCard } from "./privacy-card";
+export { ExportReportButton } from "./export-report-button";

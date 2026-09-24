@@ -102,6 +102,8 @@ export function RoadmapChecklist() {
                             {task.step}
                         </span>
                         <button
+                            type="button"
+                            aria-label="Eliminar tarea"
                             onClick={() =>
                                 void deleteRoadmapTaskAction(task.id).then((res) => {
                                     if (res.success) setTasks((prev) => prev.filter((x) => x.id !== task.id));

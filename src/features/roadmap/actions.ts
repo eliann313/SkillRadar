@@ -100,3 +100,42 @@ export async function deleteRoadmapTaskAction(id: string): Promise<ActionResult<
     revalidatePath("/dashboard/progress");
     return { success: true, data: true };
 }
+
+/**
+ * Auto-crea tareas desde los missingSkills de un JobMatch (sin duplicar las existentes).
+ */
+export async function importMissingSkillsAction(jobMatchId: string): Promise<ActionResult<number>> {
+    if (!idSchema.safeParse(jobMatchId).success) return { success: false, error: "No autorizado." };
+    const session = await requireUser();
+    if (!session) return { success: false, error: "No autorizado." };
+    const { db: database } = await import("@/lib/db");
+    const match = await database.jobMatch.findFirst({ where: { id: jobMatchId, userId: session.user.id } });
+    if (!match?.analysis || typeof match.analysis !== "object") {
+        return { success: false, error: "Sin análisis para importar." };
+    }
+    const missing = (match.analysis as { missingSkills?: unknown }).missingSkills;
+    if (!Array.isArray(missing) || missing.length === 0) return { success: true, data: 0 };
+
+    const existing = await database.roadmapTask.findMany({
+        where: { userId: session.user.id, done: false },
+        select: { skill: true, step: true },
+    });
+    const seen = new Set(existing.map((t) => `${t.skill.toLowerCase()}|${t.step.toLowerCase()}`));
+
+    const toCreate = missing
+        .filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+        .slice(0, 8)
+        .map((skill) => ({
+            userId: session.user.id,
+            skill: skill.trim().slice(0, 80),
+            step: `Crear un proyecto o estudio enfocado en ${skill.trim().slice(0, 80)}`,
+            source: "job_match",
+        }))
+        .filter((t) => !seen.has(`${t.skill.toLowerCase()}|${t.step.toLowerCase()}`));
+
+    if (toCreate.length > 0) {
+        await database.roadmapTask.createMany({ data: toCreate });
+    }
+    revalidatePath("/dashboard/progress");
+    return { success: true, data: toCreate.length };
+}

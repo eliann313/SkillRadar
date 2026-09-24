@@ -83,7 +83,13 @@ export function ContactThread({ requestId }: { requestId: string }) {
                         if (e.key === "Enter") void handleSend();
                     }}
                 />
-                <Button size="icon" onClick={() => void handleSend()} disabled={sending || !draft.trim()}>
+                <Button
+                    type="button"
+                    size="icon"
+                    aria-label="Enviar mensaje"
+                    onClick={() => void handleSend()}
+                    disabled={sending || !draft.trim()}
+                >
                     <Send className="size-4" />
                 </Button>
             </div>

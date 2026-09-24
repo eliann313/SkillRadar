@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { ProgressRecharts } from "@/components/dashboard";
 import { RoadmapChecklist } from "@/components/dashboard";
+import { ExportReportButton } from "@/components/dashboard";
 import { TrendingUp, Award, CheckCircle2, ArrowRight, FileText, Calendar, Sparkles, Flame } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -105,13 +106,25 @@ export default async function ProgressPage({ params }: PageProps) {
                     <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">{t("title")}</h1>
                     <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
                 </div>
-                <Link
-                    href="/dashboard/cv-analysis"
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex items-center gap-1.5")}
-                >
-                    <FileText className="size-4" />
-                    {t("uploadNewVersion")}
-                </Link>
+                <div className="flex items-center gap-2">
+                    <ExportReportButton
+                        resumes={resumes.map((r) => ({
+                            fileName: r.fileName,
+                            atsScore: r.atsScore,
+                            createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
+                        }))}
+                        averageScore={averageScore}
+                        totalMatches={totalMatches}
+                        closedSkills={closedSkills}
+                    />
+                    <Link
+                        href="/dashboard/cv-analysis"
+                        className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex items-center gap-1.5")}
+                    >
+                        <FileText className="size-4" />
+                        {t("uploadNewVersion")}
+                    </Link>
+                </div>
             </div>
 
             {/* Malla de Métricas */}
