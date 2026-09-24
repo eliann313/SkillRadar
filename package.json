@@ -82,7 +82,7 @@
         "jsdom": "^30.0.1",
         "lint-staged": "17.5.1",
         "prettier": "^3.9.6",
-        "prisma": "7.9.1",
+        "prisma": "7.10.0",
         "semgrep": "^0.0.1",
         "tailwindcss": "4.3.3",
         "typescript": "^6.0.3",
