@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,19 +9,22 @@ import { AnalysisResults } from "@/components/cv-analysis";
 import { MatchScoreCard } from "@/components/job-match/match-score-card";
 import { LanguageChart } from "@/components/github/language-chart";
 import { AnalysisCards } from "@/components/github/analysis-cards";
-import { demoCvAnalysis, demoJobMatch, demoGithubLanguages, demoGithubSignals } from "@/mocks/demo-data";
+import { buildDemoCvAnalysis, buildDemoJobMatch, buildDemoGithubSignals, demoGithubLanguages } from "@/mocks/demo-data";
 import { FlaskConical, ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export default function DemoClient() {
     const t = useTranslations("Home");
+    const cv = useMemo(() => buildDemoCvAnalysis((key) => t(key)), [t]);
+    const match = useMemo(() => buildDemoJobMatch((key) => t(key)), [t]);
+    const signals = useMemo(() => buildDemoGithubSignals((key) => t(key)), [t]);
 
     return (
         <div className="min-h-screen bg-background text-foreground">
             <div className="container mx-auto max-w-5xl px-6 py-10">
                 <div className="mb-8 flex flex-col items-start gap-4">
                     <Badge variant="outline" className="gap-1.5 border-warning/40 text-warning">
-                        <FlaskConical className="size-3.5" />
+                        <FlaskConical className="size-3.5" aria-hidden />
                         {t("demoBadge")}
                     </Badge>
                     <h1 className="text-3xl font-black tracking-tight md:text-4xl">{t("demoTitle")}</h1>
@@ -28,20 +32,20 @@ export default function DemoClient() {
                 </div>
 
                 <Tabs defaultValue="cv" className="w-full">
-                    <TabsList className="mb-6 grid w-full grid-cols-3">
+                    <TabsList className="mb-6 grid w-full grid-cols-3" aria-label={t("demoTitle")}>
                         <TabsTrigger value="cv">{t("demoTabCv")}</TabsTrigger>
                         <TabsTrigger value="match">{t("demoTabMatch")}</TabsTrigger>
                         <TabsTrigger value="github">{t("demoTabGithub")}</TabsTrigger>
                     </TabsList>
                     <TabsContent value="cv">
-                        <AnalysisResults analysis={demoCvAnalysis} />
+                        <AnalysisResults analysis={cv} />
                     </TabsContent>
                     <TabsContent value="match">
-                        <MatchScoreCard match={demoJobMatch} />
+                        <MatchScoreCard match={match} />
                     </TabsContent>
                     <TabsContent value="github" className="flex flex-col gap-6">
                         <LanguageChart languages={demoGithubLanguages} />
-                        <AnalysisCards analysis={demoGithubSignals} />
+                        <AnalysisCards analysis={signals} />
                     </TabsContent>
                 </Tabs>
 
@@ -50,7 +54,7 @@ export default function DemoClient() {
                     <Link href="/login?register=true">
                         <Button size="lg" className="gap-2">
                             {t("startFree")}
-                            <ArrowRight className="size-4" />
+                            <ArrowRight className="size-4" aria-hidden />
                         </Button>
                     </Link>
                 </div>
