@@ -38,6 +38,15 @@ export interface CVAnalysis {
     estimatedSeniority: "junior" | "mid" | "senior" | "lead";
     suggestions: string[];
     createdAt: Date;
+    atsBreakdown?: {
+        contacto: number;
+        secciones: number;
+        legibilidad: number;
+        keywordsContexto: number;
+        cuantificacion: number;
+    };
+    evidenceQuotes?: string[];
+    isSimulated?: boolean;
     explainability?: {
         justification: string;
         evidenceFound: string[];

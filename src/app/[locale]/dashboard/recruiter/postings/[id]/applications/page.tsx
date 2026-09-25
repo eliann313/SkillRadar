@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { JobPostingService } from "@/features/jobs/service";
 import { db } from "@/lib/db";
+import { safeParseJson } from "@/lib/pii";
 import type { Application } from "./client-page";
 import { ApplicationsClientPage } from "./client-page";
 
@@ -53,8 +54,7 @@ export default async function JobPostingApplicationsPage({ params }: Props) {
         resume: app.resume
             ? {
                   ...app.resume,
-                  analysis:
-                      typeof app.resume.analysis === "string" ? JSON.parse(app.resume.analysis) : app.resume.analysis,
+                  analysis: safeParseJson<Record<string, unknown>>(app.resume.analysis, null),
               }
             : null,
     })) as unknown as Application[];

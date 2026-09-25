@@ -34,8 +34,8 @@ export default async function ProgressPage({ params }: PageProps) {
 
     const t = await getTranslations("Progress");
 
-    const res = await getProgressDataAction();
-    const recsRes = await getCareerRecommendationsAction();
+    // En paralelo: las recomendaciones IA no deben bloquear el gráfico ni las métricas
+    const [res, recsRes] = await Promise.all([getProgressDataAction(), getCareerRecommendationsAction()]);
     if (!res.success || !res.data) {
         return (
             <div className="flex min-h-[400px] flex-col items-center justify-center text-center p-6 border rounded-lg border-destructive/20 bg-destructive/5">
@@ -82,13 +82,16 @@ export default async function ProgressPage({ params }: PageProps) {
     // Preparar datos para el gráfico agregando versión sequence index (#1, #2...) para evitar superposición
     const chartData = resumes.map(
         (r: { createdAt: Date | string; atsScore: number | null; fileName: string }, index: number) => {
-            const dateStr = new Date(r.createdAt).toLocaleDateString(locale === "es" ? "es-ES" : "en-US", {
-                day: "numeric",
-                month: "short",
-            });
+            const parsed = new Date(r.createdAt);
+            const dateStr = Number.isNaN(parsed.getTime())
+                ? `#${index + 1}`
+                : parsed.toLocaleDateString(locale === "es" ? "es-ES" : "en-US", {
+                      day: "numeric",
+                      month: "short",
+                  });
             return {
                 date: `${dateStr} (#${index + 1})`,
-                score: r.atsScore || 0,
+                score: r.atsScore ?? 0,
                 name: r.fileName,
             };
         },
@@ -121,7 +124,7 @@ export default async function ProgressPage({ params }: PageProps) {
                     <CardContent>
                         <div className="flex items-baseline gap-2">
                             <span className="text-3xl font-bold text-foreground">
-                                {resumes[resumes.length - 1].atsScore}
+                                {resumes[resumes.length - 1].atsScore ?? 0}
                             </span>
                             <span className="text-xs text-muted-foreground">/ 100</span>
                         </div>

@@ -83,9 +83,35 @@ const developerNavItems = [
     },
 ];
 
+interface NavItem {
+    href: string;
+    label: string;
+    key: string;
+    icon: React.ComponentType<{ className?: string }>;
+}
+
+interface NavGroup {
+    labelKey: string | null;
+    items: NavItem[];
+}
+
+// 5 espacios grandes en lugar de 10 links planos (Overview queda fijo arriba)
+const developerNavGroups: NavGroup[] = [
+    { labelKey: null, items: [developerNavItems[0]] },
+    {
+        labelKey: "groupProfile",
+        items: [developerNavItems[1], developerNavItems[8], developerNavItems[6], developerNavItems[9]],
+    },
+    { labelKey: "groupOpportunities", items: [developerNavItems[2], developerNavItems[3]] },
+    { labelKey: "groupPreparation", items: [developerNavItems[5]] },
+    { labelKey: "groupApplications", items: [developerNavItems[4]] },
+    { labelKey: "groupProgress", items: [developerNavItems[7]] },
+];
+
 const recruiterNavItems = [
     { href: "/dashboard", label: "Talent Pool", key: "talentPool", icon: Users },
     { href: "/dashboard/recruiter/postings", label: "Job Postings", key: "jobPostings", icon: Briefcase },
+    { href: "/dashboard/recruiter/pipeline", label: "Pipeline", key: "pipeline", icon: Kanban },
     { href: "/dashboard/settings", label: "Settings", key: "settings", icon: Settings },
 ];
 
@@ -105,6 +131,44 @@ function SidebarContent({ collapsed, onToggle, isMobile = false }: SidebarProps)
     };
 
     const navItems = user?.role === "recruiter" ? recruiterNavItems : developerNavItems;
+    const navGroups: NavGroup[] =
+        user?.role === "recruiter" ? [{ labelKey: null, items: recruiterNavItems }] : developerNavGroups;
+
+    const renderNavItem = (item: NavItem) => {
+        const isActive = pathname === item.href;
+        const Icon = item.icon;
+
+        const linkContent = (
+            <Link
+                href={item.href}
+                className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    isActive
+                        ? "bg-sidebar-accent text-sidebar-primary"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                    collapsed && "justify-center px-2",
+                )}
+            >
+                <Icon className="size-5 shrink-0" />
+                {!collapsed && <span>{t(item.key)}</span>}
+            </Link>
+        );
+
+        if (collapsed) {
+            return (
+                <li key={item.href}>
+                    <Tooltip>
+                        <TooltipTrigger render={linkContent} />
+                        <TooltipContent side="right" sideOffset={8}>
+                            {t(item.key)}
+                        </TooltipContent>
+                    </Tooltip>
+                </li>
+            );
+        }
+
+        return <li key={item.href}>{linkContent}</li>;
+    };
 
     return (
         <div className="flex h-full flex-col bg-sidebar">
@@ -142,43 +206,24 @@ function SidebarContent({ collapsed, onToggle, isMobile = false }: SidebarProps)
 
             {/* Navigation */}
             <nav className="flex-1 overflow-y-auto p-3 scrollbar-thin">
-                <ul className="flex flex-col gap-1">
-                    {navItems.map((item) => {
-                        const isActive = pathname === item.href;
-                        const Icon = item.icon;
-
-                        const linkContent = (
-                            <Link
-                                href={item.href}
-                                className={cn(
-                                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                                    isActive
-                                        ? "bg-sidebar-accent text-sidebar-primary"
-                                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                                    collapsed && "justify-center px-2",
-                                )}
-                            >
-                                <Icon className="size-5 shrink-0" />
-                                {!collapsed && <span>{t(item.key)}</span>}
-                            </Link>
-                        );
-
-                        if (collapsed) {
-                            return (
-                                <li key={item.href}>
-                                    <Tooltip>
-                                        <TooltipTrigger render={linkContent} />
-                                        <TooltipContent side="right" sideOffset={8}>
-                                            {t(item.key)}
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </li>
-                            );
-                        }
-
-                        return <li key={item.href}>{linkContent}</li>;
-                    })}
-                </ul>
+                {collapsed ? (
+                    <ul className="flex flex-col gap-1">{navItems.map((item) => renderNavItem(item))}</ul>
+                ) : (
+                    <div className="flex flex-col gap-4">
+                        {navGroups.map((group, gi) => (
+                            <div key={group.labelKey ?? `top-${gi}`} className="flex flex-col gap-1">
+                                {group.labelKey ? (
+                                    <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                                        {t(group.labelKey)}
+                                    </p>
+                                ) : null}
+                                <ul className="flex flex-col gap-1">
+                                    {group.items.map((item) => renderNavItem(item))}
+                                </ul>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </nav>
 
             <Separator className="bg-sidebar-border" />

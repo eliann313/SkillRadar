@@ -82,6 +82,8 @@ let jobPostingLimiter: Ratelimit | InMemorySlidingWindow | null = null;
 let jobPostingApplyLimiter: Ratelimit | InMemorySlidingWindow | null = null;
 let proactiveMatchingLimiter: Ratelimit | InMemorySlidingWindow | null = null;
 let contentReportLimiter: Ratelimit | InMemorySlidingWindow | null = null;
+let aiSourcingLimiter: Ratelimit | InMemorySlidingWindow | null = null;
+let aiChatLimiter: Ratelimit | InMemorySlidingWindow | null = null;
 
 const CV_LIMIT = 5; // 5 análisis de CV por día
 const JOB_MATCH_LIMIT = 10; // 10 Job Matches por día
@@ -91,6 +93,8 @@ const JOB_POSTING_LIMIT = 10; // 10 ofertas nuevas por día
 const JOB_POSTING_APPLY_LIMIT = 20; // 20 postulaciones por día
 const PROACTIVE_MATCHING_LIMIT = 50; // 50 matches proactivos por día
 const CONTENT_REPORT_LIMIT = 5; // 5 reportes por día
+const AI_SOURCING_LIMIT = 10; // 10 operaciones sourcing/entrevistas IA por día
+const AI_CHAT_LIMIT = 20; // 20 mensajes chat IA por día
 const WINDOW_DURATION_MS = 24 * 60 * 60 * 1000; // 24 horas
 const LOGIN_WINDOW_MS = 15 * 60 * 1000; // 15 minutos
 
@@ -159,6 +163,20 @@ if (hasUpstashConfig) {
             prefix: "ratelimit:content-report",
         });
 
+        aiSourcingLimiter = new Ratelimit({
+            redis,
+            limiter: Ratelimit.slidingWindow(AI_SOURCING_LIMIT, "24 h"),
+            analytics: true,
+            prefix: "ratelimit:ai-sourcing",
+        });
+
+        aiChatLimiter = new Ratelimit({
+            redis,
+            limiter: Ratelimit.slidingWindow(AI_CHAT_LIMIT, "24 h"),
+            analytics: true,
+            prefix: "ratelimit:ai-chat",
+        });
+
         console.warn("🛡️ [RateLimit] Upstash Redis inicializado correctamente para Rate Limiting.");
     } catch (error) {
         console.error(
@@ -176,6 +194,8 @@ const jobPostingMemoryFallback = new InMemorySlidingWindow(JOB_POSTING_LIMIT, WI
 const jobPostingApplyMemoryFallback = new InMemorySlidingWindow(JOB_POSTING_APPLY_LIMIT, WINDOW_DURATION_MS);
 const proactiveMatchingMemoryFallback = new InMemorySlidingWindow(PROACTIVE_MATCHING_LIMIT, WINDOW_DURATION_MS);
 const contentReportMemoryFallback = new InMemorySlidingWindow(CONTENT_REPORT_LIMIT, WINDOW_DURATION_MS);
+const aiSourcingMemoryFallback = new InMemorySlidingWindow(AI_SOURCING_LIMIT, WINDOW_DURATION_MS);
+const aiChatMemoryFallback = new InMemorySlidingWindow(AI_CHAT_LIMIT, WINDOW_DURATION_MS);
 
 // Inicializar limitadores de memoria si Upstash no está disponible o falló
 if (!cvLimiter) {
@@ -216,6 +236,14 @@ if (!proactiveMatchingLimiter) {
 if (!contentReportLimiter) {
     console.warn("⚠️ [RateLimit] Usando limitador en memoria para reporte de contenido (Límite: 5/día).");
     contentReportLimiter = contentReportMemoryFallback;
+}
+
+if (!aiSourcingLimiter) {
+    aiSourcingLimiter = aiSourcingMemoryFallback;
+}
+
+if (!aiChatLimiter) {
+    aiChatLimiter = aiChatMemoryFallback;
 }
 
 /**
@@ -524,4 +552,38 @@ export async function checkContentReportRateLimit(identifier: string): Promise<R
     } else {
         return await contentReportLimiter!.limitRequest(sanitizedIdentifier);
     }
+}
+
+/** Límite para operaciones costosas de sourcing/entrevistas/pitch/outreach y audits IA. */
+export async function checkAISourcingRateLimit(identifier: string): Promise<RateLimitResult> {
+    if (await checkUserHasApiKeyBypass(identifier)) {
+        return { success: true, limit: 999, remaining: 999, reset: Date.now() + WINDOW_DURATION_MS };
+    }
+    const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
+    if (aiSourcingLimiter instanceof Ratelimit) {
+        try {
+            const result = await aiSourcingLimiter.limit(sanitizedIdentifier);
+            return { success: result.success, limit: result.limit, remaining: result.remaining, reset: result.reset };
+        } catch {
+            return await aiSourcingMemoryFallback.limitRequest(sanitizedIdentifier);
+        }
+    }
+    return await aiSourcingLimiter!.limitRequest(sanitizedIdentifier);
+}
+
+/** Límite para chats IA (career-copilot / interview streaming). */
+export async function checkAIChatRateLimit(identifier: string): Promise<RateLimitResult> {
+    if (await checkUserHasApiKeyBypass(identifier)) {
+        return { success: true, limit: 999, remaining: 999, reset: Date.now() + WINDOW_DURATION_MS };
+    }
+    const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
+    if (aiChatLimiter instanceof Ratelimit) {
+        try {
+            const result = await aiChatLimiter.limit(sanitizedIdentifier);
+            return { success: result.success, limit: result.limit, remaining: result.remaining, reset: result.reset };
+        } catch {
+            return await aiChatMemoryFallback.limitRequest(sanitizedIdentifier);
+        }
+    }
+    return await aiChatLimiter!.limitRequest(sanitizedIdentifier);
 }

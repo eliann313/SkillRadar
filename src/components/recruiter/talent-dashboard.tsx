@@ -106,6 +106,10 @@ const formatLastActive = (date: Date) => {
 export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboardProps) {
     const [talents, setTalents] = useState<TalentCard[]>(initialTalents);
     const [searchQuery, setSearchQuery] = useState("");
+    const [seniorityFilter, setSeniorityFilter] = useState<string[]>([]);
+    const [minScore, setMinScore] = useState(0);
+    const [onlyShortlisted, setOnlyShortlisted] = useState(false);
+    const [sortBy, setSortBy] = useState<"score" | "recent">("score");
     const [jdText, setJdText] = useState("");
     const [isMatching, setIsMatching] = useState(false);
     const [isJdApplied, setIsJdApplied] = useState(false);
@@ -216,17 +220,29 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [detailCandidate, setDetailCandidate] = useState<TalentCard | null>(null);
 
-    // Buscar perfiles de forma tradicional (texto libre)
-    const filteredTalents = talents.filter((talent) => {
-        if (!searchQuery.trim()) return true;
-        const query = searchQuery.toLowerCase();
-        return (
-            talent.topSkills.some((skill) => skill.toLowerCase().includes(query)) ||
-            talent.estimatedSeniority.toLowerCase().includes(query) ||
-            talent.anonymousId.toLowerCase().includes(query) ||
-            (talent.name && talent.name.toLowerCase().includes(query))
+    // Buscar perfiles de forma tradicional (texto libre) + filtros client-side (cero costo IA)
+    const filteredTalents = talents
+        .filter((talent) => {
+            if (searchQuery.trim()) {
+                const query = searchQuery.toLowerCase();
+                const matches =
+                    talent.topSkills.some((skill) => skill.toLowerCase().includes(query)) ||
+                    talent.estimatedSeniority.toLowerCase().includes(query) ||
+                    talent.anonymousId.toLowerCase().includes(query) ||
+                    (talent.name && talent.name.toLowerCase().includes(query));
+                if (!matches) return false;
+            }
+            if (seniorityFilter.length > 0 && !seniorityFilter.includes(talent.estimatedSeniority.toLowerCase()))
+                return false;
+            if ((talent.averageScore ?? 0) < minScore) return false;
+            if (onlyShortlisted && talent.isShortlisted !== true) return false;
+            return true;
+        })
+        .sort((a, b) =>
+            sortBy === "score"
+                ? (b.averageScore ?? 0) - (a.averageScore ?? 0)
+                : new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime(),
         );
-    });
 
     const displayedTalents = filteredTalents.filter((talent) => {
         if (activeTab === "shortlist") {
@@ -525,14 +541,79 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
             )}
 
             {activeTab !== "market" && (
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        placeholder="Search by skill, name or anonymous ID (e.g., React, DEV-9B1C)..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 bg-card border-border"
-                    />
+                <div className="flex flex-col gap-3">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            placeholder="Search by skill, name or anonymous ID (e.g., React, DEV-9B1C)..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10 bg-card border-border"
+                        />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                        {(["junior", "mid", "senior", "lead"] as const).map((level) => (
+                            <label key={level} className="flex cursor-pointer items-center gap-1.5 capitalize">
+                                <input
+                                    type="checkbox"
+                                    className="size-3.5 accent-primary"
+                                    checked={seniorityFilter.includes(level)}
+                                    onChange={(e) =>
+                                        setSeniorityFilter((prev) =>
+                                            e.target.checked ? [...prev, level] : prev.filter((l) => l !== level),
+                                        )
+                                    }
+                                />
+                                {level}
+                            </label>
+                        ))}
+                        <label className="flex items-center gap-1.5">
+                            Score ≥ {minScore}
+                            <input
+                                type="range"
+                                min={0}
+                                max={100}
+                                step={5}
+                                value={minScore}
+                                onChange={(e) => setMinScore(Number(e.target.value))}
+                                className="w-24 accent-primary"
+                            />
+                        </label>
+                        <label className="flex cursor-pointer items-center gap-1.5">
+                            <input
+                                type="checkbox"
+                                className="size-3.5 accent-primary"
+                                checked={onlyShortlisted}
+                                onChange={(e) => setOnlyShortlisted(e.target.checked)}
+                            />
+                            Solo shortlist
+                        </label>
+                        <label className="flex items-center gap-1.5">
+                            Orden:
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value as "score" | "recent")}
+                                className="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground"
+                            >
+                                <option value="score">Mayor score</option>
+                                <option value="recent">Más recientes</option>
+                            </select>
+                        </label>
+                        {(seniorityFilter.length > 0 || minScore > 0 || onlyShortlisted || searchQuery.trim()) && (
+                            <button
+                                onClick={() => {
+                                    setSearchQuery("");
+                                    setSeniorityFilter([]);
+                                    setMinScore(0);
+                                    setOnlyShortlisted(false);
+                                }}
+                                className="ml-auto flex items-center gap-1 text-primary hover:underline"
+                            >
+                                <X className="size-3" />
+                                Limpiar filtros
+                            </button>
+                        )}
+                    </div>
                 </div>
             )}
 

@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { trackServerEvent } from "@/lib/analytics";
+import { checkLoginRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function updateUserRole(role: "developer" | "recruiter") {
     const session = await auth();
@@ -55,6 +56,11 @@ export async function registerUserAction(input: {
     const sanitizedEmail = email.toLowerCase().trim();
 
     try {
+        const rl = await checkLoginRateLimit(`register:${await getClientIp()}`);
+        if (!rl.success) {
+            return { success: false, error: "Demasiados registros. Inténtalo más tarde." };
+        }
+
         const existingUser = await db.user.findUnique({
             where: { email: sanitizedEmail },
         });

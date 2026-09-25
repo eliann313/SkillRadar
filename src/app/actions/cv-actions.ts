@@ -2,6 +2,7 @@
 
 import { UTApi } from "uploadthing/server";
 import { auth } from "@/lib/auth";
+import { checkCVRateLimit } from "@/lib/rate-limit";
 
 export async function getSignedFileUrlAction(
     fileUrl: string,
@@ -56,6 +57,21 @@ export async function getSignedFileUrlAction(
                 success: false,
                 error: "Nombre de archivo contiene caracteres no permitidos.",
             };
+        }
+
+        // Ownership: solo el dueño del resume puede firmar su fileKey (evita IDOR por adivinanza)
+        const { db } = await import("@/lib/db");
+        const owned = await db.resume.findFirst({
+            where: { userId: session.user.id, fileUrl: fileUrl },
+            select: { id: true },
+        });
+        if (!owned) {
+            return { success: false, error: "Archivo no encontrado para este usuario." };
+        }
+
+        const rl = await checkCVRateLimit(`user:${session.user.id}`);
+        if (!rl.success) {
+            return { success: false, error: "Límite diario de descargas alcanzado." };
         }
 
         // Generate short-lived pre-signed URL (1 hour)

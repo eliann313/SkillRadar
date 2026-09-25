@@ -95,13 +95,13 @@ export default async function Home({ params: _params }: { params: Promise<{ loca
                                 {t("startFree")}
                             </Button>
                         </Link>
-                        <Link href="#features" className="w-full sm:w-auto">
+                        <Link href="/demo" className="w-full sm:w-auto">
                             <Button
                                 size="lg"
                                 variant="outline"
                                 className="w-full gap-2 text-base font-semibold border-border/80 hover:bg-muted/40 transition-colors"
                             >
-                                {t("exploreFeatures")}
+                                {t("demoCta")}
                                 <ArrowRight className="size-4" />
                             </Button>
                         </Link>
@@ -141,6 +141,22 @@ export default async function Home({ params: _params }: { params: Promise<{ loca
                                 <p className="text-sm text-muted-foreground leading-relaxed">{t("feature3Desc")}</p>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Pricing: Free vs Pro */}
+                    <div className="w-full text-left mt-16">
+                        <h2 className="text-2xl font-bold tracking-tight text-center mb-6">{t("pricingTitle")}</h2>
+                        <div className="grid gap-6 md:grid-cols-2">
+                            <div className="border border-border/40 bg-card/40 backdrop-blur-sm p-6 rounded-2xl flex flex-col gap-3">
+                                <h3 className="text-lg font-bold">{t("pricingFreeTitle")}</h3>
+                                <p className="text-sm text-muted-foreground leading-relaxed">{t("pricingFreeDesc")}</p>
+                            </div>
+                            <div className="border border-primary/30 bg-primary/5 backdrop-blur-sm p-6 rounded-2xl flex flex-col gap-3">
+                                <h3 className="text-lg font-bold">{t("pricingProTitle")}</h3>
+                                <p className="text-sm text-muted-foreground leading-relaxed">{t("pricingProDesc")}</p>
+                            </div>
+                        </div>
+                        <p className="mt-4 text-center text-xs text-muted-foreground">{t("pricingNote")}</p>
                     </div>
                 </section>
             </main>

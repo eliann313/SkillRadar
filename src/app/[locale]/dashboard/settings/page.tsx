@@ -104,7 +104,7 @@ export default function SettingsPage() {
 
     // Preferencias de inferencia
     const [preferredProvider, setPreferredProvider] = useState("gemini");
-    const [preferredModel, setPreferredModel] = useState("gemini-3.6-flash");
+    const [preferredModel, setPreferredModel] = useState("gemini-3.8-flash");
     const [customModelId, setCustomModelId] = useState("");
     const [isCustomModelSelected, setIsCustomModelSelected] = useState(false);
 
@@ -172,7 +172,7 @@ export default function SettingsPage() {
                 setPreferredProvider(prov);
 
                 // Validar si el modelo guardado es predefinido o personalizado
-                const modelId = d.defaultAiModel || "gemini-3.6-flash";
+                const modelId = d.defaultAiModel || "gemini-3.8-flash";
                 const predefinedModels = getProviderModels(prov);
                 const isPredefined = predefinedModels.some((m) => m.id === modelId);
 
@@ -1035,14 +1035,14 @@ export default function SettingsPage() {
                                                 id="customModelId"
                                                 value={customModelId}
                                                 onChange={(e) => setCustomModelId(e.target.value)}
-                                                placeholder="Ej. claude-4.7-opus, gpt-5.5-preview, gemini-3.6-flash"
+                                                placeholder="Ej. claude-opus-5-5, gpt-6-sol, gemini-3.8-flash"
                                                 className="border-primary/45 bg-primary/5 focus:border-primary transition-colors text-sm"
                                                 required
                                             />
                                             <p className="text-[10px] text-muted-foreground mt-0.5 leading-normal">
                                                 Ingresa el ID del modelo oficial según el proveedor seleccionado (por
-                                                ejemplo, en OpenAI puedes usar <code>o1-pro</code> o{" "}
-                                                <code>gpt-5.5</code> cuando estén disponibles).
+                                                ejemplo, en OpenAI puedes usar <code>gpt-6-sol</code> o{" "}
+                                                <code>gpt-6-luna</code>).
                                             </p>
                                         </div>
                                     )}

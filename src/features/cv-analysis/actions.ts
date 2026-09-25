@@ -64,34 +64,27 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
             return { success: false, error: "Datos de archivo inválidos." };
         }
 
-        // 3. Manejo de Modo Demo/Guest
+        // 3. Manejo de Modo Demo/Guest (acotado: sin DB, sin LLM real, con razonamiento visible)
         if (isGuest) {
             // Simular retraso de análisis de IA para realismo
             await new Promise((resolve) => setTimeout(resolve, 1500));
-            await trackServerEvent("cv_uploaded", session.user.id, { isGuest: true, atsScore: 82 });
+            const { CVAnalysisAIService } = await import("@/features/cv-analysis/ai-service");
+            const simulated = CVAnalysisAIService.generateSimulatedAnalysis(
+                rawText || fileName || "React TypeScript Next.js Node.js",
+            );
+            await trackServerEvent("cv_uploaded", session.user.id, { isGuest: true, atsScore: simulated.atsScore });
             return {
                 success: true,
                 data: {
                     id: "demo-resume-id",
                     fileName: fileName || "curriculum_demo.pdf",
                     fileUrl: fileUrl || "text://raw-input",
-                    atsScore: 82,
+                    atsScore: simulated.atsScore,
                     analysis: {
-                        atsScore: 82,
-                        keywords: ["React", "TypeScript", "Next.js", "Node.js", "Tailwind CSS", "Git"],
-                        missingKeywords: ["CI/CD", "Docker", "AWS", "Testing (Jest/Vitest)"],
+                        ...simulated,
                         formatIssues: rawText
-                            ? ["Entrada directa por texto (sin issues de formato PDF)"]
-                            : ["Falta de enlaces profesionales directos (LinkedIn/GitHub)"],
-                        strengths: [
-                            "Fuerte dominio técnico en el ecosistema moderno de React y TypeScript.",
-                            "Estructura clara y secciones bien organizadas que facilitan el parseo por ATS.",
-                        ],
-                        improvements: [
-                            "Se sugiere enriquecer las descripciones de proyectos utilizando métricas de impacto (metodología STAR).",
-                            "Añadir exposición explícita en prácticas de CI/CD y despliegue en la nube.",
-                        ],
-                        estimatedSeniority: "mid",
+                            ? ["Entrada directa por texto (sin issues de formato PDF)", ...simulated.formatIssues]
+                            : simulated.formatIssues,
                     },
                     createdAt: new Date(),
                 },
@@ -465,6 +458,39 @@ export async function getCareerRecommendationsAction(): Promise<ActionResult<Car
         }
 
         const userId = session.user.id;
+
+        // Modo Demo/Guest: mock inmediato sin DB ni IA (el guest nunca persiste CVs)
+        if (session.user.isGuest) {
+            return {
+                success: true,
+                data: {
+                    technologies: [
+                        { name: "Docker", importance: "high", reason: "Demandado en la mayoría de ofertas backend." },
+                        { name: "CI/CD", importance: "high", reason: "Diferenciador clave en despliegues modernos." },
+                        { name: "Testing", importance: "medium", reason: "Mejora la credibilidad técnica del perfil." },
+                    ],
+                    roadmaps: [
+                        {
+                            title: "Ruta DevOps esencial",
+                            steps: [
+                                "Dockeriza un proyecto",
+                                "Automatiza CI con GitHub Actions",
+                                "Despliega en la nube",
+                            ],
+                            duration: "4 semanas",
+                        },
+                    ],
+                    projects: [
+                        {
+                            title: "API con CI/CD completo",
+                            description: "API REST con tests, pipeline y deploy automático.",
+                            technologies: ["Node.js", "Docker", "GitHub Actions"],
+                            difficulty: "intermediate",
+                        },
+                    ],
+                },
+            };
+        }
 
         // 1. Obtener currículum activo
         const resume =

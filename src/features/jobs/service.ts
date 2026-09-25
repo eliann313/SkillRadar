@@ -533,7 +533,7 @@ export class JobPostingService {
 
                 // Aplicar Doble Ciego: Si el contacto no ha sido aceptado, remover PII en el DTO
                 const isRevealed = contactStatus === "accepted";
-                const devAnonId = `DEV-${app.developer.id.slice(-4).toUpperCase()}`;
+                const devAnonId = `DEV-${contactReq ? contactReq.id.slice(-4).toUpperCase() : app.developer.id.slice(-4).toUpperCase()}`;
 
                 const developerClean = {
                     id: app.developer.id,
@@ -545,8 +545,21 @@ export class JobPostingService {
                     anonymousId: devAnonId,
                 };
 
+                // Nunca exponer fileUrl/analysis crudos sin contacto aceptado: el PDF contiene PII.
+                // El recruiter solo ve metadatos hasta el doble-ciego completo.
+                const resumeSafe = app.resume
+                    ? {
+                          id: app.resume.id,
+                          fileName: isRevealed ? app.resume.fileName : null,
+                          fileUrl: isRevealed ? app.resume.fileUrl : null,
+                          atsScore: app.resume.atsScore,
+                          analysis: isRevealed ? app.resume.analysis : null,
+                      }
+                    : null;
+
                 return {
                     ...app,
+                    resume: resumeSafe,
                     matchScore,
                     analysis,
                     contactStatus,
