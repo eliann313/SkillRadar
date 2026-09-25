@@ -22,7 +22,7 @@ A continuación se detalla el diagrama de arquitectura que describe el flujo de 
 ```mermaid
 graph TD
     subgraph Client [Capa de Cliente - React 19]
-        C[Candidato Developer] -->|1. Sube PDF de CV| UT[UploadThing Button]
+        C[Candidato Developer] -->|1. Sube PDF de CV| BLOB[Subida cliente a Vercel Blob]
         C -->|3. Entrevista Interactiva AI| UT
         R[Reclutador / Admin] -->|7. Visualiza Perfil de Candidato| DBV[Sanitizador de Doble Ciego]
     end
@@ -142,9 +142,8 @@ GITHUB_CLIENT_SECRET="tu_github_client_secret"
 GOOGLE_CLIENT_ID="tu_google_client_id"
 GOOGLE_CLIENT_SECRET="tu_google_client_secret"
 
-# UploadThing (Carga de archivos PDF)
-UPLOADTHING_SECRET="sk_live_..."
-UPLOADTHING_APP_ID="tu_uploadthing_app_id"
+# Vercel Blob (almacenamiento de CVs: Storage -> Blob -> Connect)
+BLOB_READ_WRITE_TOKEN="vercel_blob_rw_..."
 
 # API Keys de Inteligencia Artificial
 GEMINI_API_KEY="tu_gemini_api_key"

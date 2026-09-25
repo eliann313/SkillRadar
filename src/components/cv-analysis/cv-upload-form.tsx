@@ -9,7 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Upload, FileText, ChevronDown, X, Loader2, Sparkles } from "lucide-react";
-import { useUploadThing } from "@/lib/uploadthing-client";
+import { upload } from "@vercel/blob/client";
 import { toast } from "sonner";
 import { getSignedFileUrlAction } from "@/app/actions/cv-actions";
 import { useSession } from "next-auth/react";
@@ -53,50 +53,41 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
         };
     }, []);
 
-    const { startUpload } = useUploadThing("resumeUploader", {
-        onClientUploadComplete: async (res) => {
-            setIsUploading(false);
-            setUploadProgress(0);
-            const uploadedFile = res?.[0];
-            if (uploadedFile) {
-                toast.success(
-                    t("uploadSuccess", {
-                        file: uploadedFile.name,
-                        default: `Archivo "${uploadedFile.name}" subido de forma segura.`,
-                    }),
-                );
+    const handleUploadComplete = async (blobUrl: string, blobName: string) => {
+        setIsUploading(false);
+        setUploadProgress(0);
+        toast.success(
+            t("uploadSuccess", {
+                file: blobName,
+                default: `Archivo "${blobName}" subido de forma segura.`,
+            }),
+        );
 
-                try {
-                    // Generar URL firmada temporal de corta duración
-                    const signedRes = await getSignedFileUrlAction(uploadedFile.url);
-                    if (signedRes.success && signedRes.url) {
-                        // El análisis del backend requiere la URL estable original de UploadThing
-                        // ya que expira de forma controlada y persistida en Neon Postgres.
-                        onAnalyze(uploadedFile.url, uploadedFile.name);
-                    } else {
-                        toast.error(signedRes.error || "No se pudo generar el token de acceso privado.");
-                        onAnalyze(uploadedFile.url, uploadedFile.name);
-                    }
-                } catch (err) {
-                    console.error("Error generating signed URL:", err);
-                    onAnalyze(uploadedFile.url, uploadedFile.name);
-                }
+        try {
+            // Generar URL de vista vía proxy con ownership
+            const signedRes = await getSignedFileUrlAction(blobUrl);
+            if (!signedRes.success) {
+                toast.error(signedRes.error || "No se pudo generar el token de acceso privado.");
             }
-        },
-        onUploadError: (error: Error) => {
-            setIsUploading(false);
-            setUploadProgress(0);
-            toast.error(
-                t("uploadError", {
-                    error: error.message,
-                    default: `Error al subir el archivo: ${error.message}`,
-                }),
-            );
-        },
-        onUploadProgress: (p) => {
-            setUploadProgress(p);
-        },
-    });
+            // El análisis del backend requiere la URL estable original de Blob
+            // ya que expira de forma controlada y persistida en Neon Postgres.
+            onAnalyze(blobUrl, blobName);
+        } catch (err) {
+            console.error("Error generating signed URL:", err);
+            onAnalyze(blobUrl, blobName);
+        }
+    };
+
+    const handleUploadError = (error: Error) => {
+        setIsUploading(false);
+        setUploadProgress(0);
+        toast.error(
+            t("uploadError", {
+                error: error.message,
+                default: `Error al subir el archivo: ${error.message}`,
+            }),
+        );
+    };
 
     const onDrop = useCallback(
         (acceptedFiles: File[]) => {
@@ -165,7 +156,7 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
 
             if (isGuest) {
                 // Simulación local de progreso de subida para el modo Demo/Guest
-                // Esto evita el error 500 de UploadThing si no hay claves configuradas
+                // (los guests no tienen acceso al storage real)
                 for (let progress = 10; progress <= 100; progress += 30) {
                     setUploadProgress(progress);
                     await new Promise((resolve) => setTimeout(resolve, 1500 / 4));
@@ -178,23 +169,25 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
                         default: `Archivo "${file.name}" subido de forma segura (Modo Demo).`,
                     }),
                 );
-                onAnalyze("https://utfs.io/f/demo-resume.pdf", file.name);
+                onAnalyze("demo://guest-cv.pdf", file.name);
                 return;
             }
 
             try {
-                const uploadResult = await startUpload([file]);
-                if (!uploadResult) {
-                    setIsUploading(false);
-                }
+                const userId = session?.user?.id;
+                const blob = await upload(`cvs/${userId}/${file.name}`, file, {
+                    access: "private",
+                    handleUploadUrl: "/api/files/upload",
+                    clientPayload: userId ?? "",
+                    onUploadProgress: ({ percentage }) => {
+                        setUploadProgress(Math.round(percentage));
+                    },
+                });
+                await handleUploadComplete(blob.url, file.name);
             } catch (err) {
                 console.error("Upload error:", err);
                 setIsUploading(false);
-                toast.error(
-                    t("uploadErrorUnexpected", {
-                        default: "Ocurrió un error inesperado al subir el archivo.",
-                    }),
-                );
+                handleUploadError(err instanceof Error ? err : new Error("Upload failed"));
             }
         } else if (textContent.trim()) {
             onAnalyze(textContent);

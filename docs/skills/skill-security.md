@@ -17,16 +17,16 @@ Para que los usuarios puedan configurar sus propias claves de IA de forma ultra-
 
 ### 2. Privacidad de Currículums (CVs)
 
-- **Carga Autorizada:** Todos los routers de subida en `src/lib/uploadthing.ts` están protegidos por middleware que valida la sesión activa (`await auth()`).
-- **URLs Firmadas Temporales (Pre-signed):** No se exponen las URLs estáticas públicas del bucket CDN en el navegador. La acción `getSignedFileUrlAction` se encarga de solicitar a UploadThing una URL firmada temporal con **duración máxima de 1 hora**, limitando radicalmente la exposición pública de los currículums.
+- **Carga Autorizada:** La ruta de subida `src/app/api/files/upload/route.ts` (Vercel Blob) valida la sesión activa (`await auth()`) y rechaza anónimos y guests; el `clientPayload` debe coincidir con la sesión.
+- **Sin URLs crudas persistentes:** No se exponen las URLs de Blob en el navegador de forma permanente. La acción `getSignedFileUrlAction` devuelve la URL del proxy `/api/files`, que verifica ownership en DB antes de retransmitir el PDF.
 
 ### 3. Blindaje contra Server-Side Request Forgery (SSRF)
 
-Cuando el servidor descarga archivos para parsearlos mediante `fetch` (en `cv-analysis/actions.ts`), se aplica un filtro de reconstrucción estática robusto:
+Cuando el servidor descarga archivos para parsearlos mediante `fetch` (en `cv-analysis/actions.ts`), se aplica un filtro de reconstrucción estática robusto (`@/lib/file-storage`):
 
-1.  Se valida la URL con una regex estricta de dominios permitidos (`utfs.io` y `ufs.sh`).
+1.  Se valida la URL con una regex estricta de dominios permitidos (`*.{public,private}.blob.vercel-storage.com`).
 2.  Se valida el protocolo (`https:` estrictamente).
-3.  Se extrae el `fileKey` y se desinfecta con la regex `/^[a-zA-Z0-9\-_.]+$/` para prevenir inyecciones de directorios (_Path Traversal_).
+3.  Se extrae el `fileKey` (permite `/` de carpetas, nunca `..`) y se desinfecta con la regex `/^[a-zA-Z0-9\-_./]+$/` para prevenir inyecciones de directorios (_Path Traversal_).
 4.  Se reconstruye la URL final utilizando plantillas estáticas hardcodeadas en el servidor, bloqueando cualquier alteración del host o bypass de DNS.
 
 ---
