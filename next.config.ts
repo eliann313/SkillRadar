@@ -24,9 +24,9 @@ const nextConfig: NextConfig = {
       default-src 'self';
       script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com;
       style-src 'self' 'unsafe-inline';
-      img-src 'self' blob: data: https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://utfs.io https://ufs.sh;
+      img-src 'self' blob: data: https://avatars.githubusercontent.com https://lh3.googleusercontent.com;
       font-src 'self' data:;
-      connect-src 'self' https://api.github.com https://api.groq.com https://api.openai.com https://openrouter.ai https://api.anthropic.com https://utfs.io https://ufs.sh https://*.blob.vercel-storage.com https://vitals.vercel-insights.com https://vitals.vercel-speed-insights.com;
+      connect-src 'self' https://api.github.com https://api.groq.com https://api.openai.com https://openrouter.ai https://api.anthropic.com https://*.blob.vercel-storage.com https://vitals.vercel-insights.com https://vitals.vercel-speed-insights.com;
       frame-ancestors 'none';
       upgrade-insecure-requests;
     `

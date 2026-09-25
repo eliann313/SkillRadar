@@ -156,7 +156,7 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
 
             if (isGuest) {
                 // Simulación local de progreso de subida para el modo Demo/Guest
-                // Esto evita el error 500 de UploadThing si no hay claves configuradas
+                // (los guests no tienen acceso al storage real)
                 for (let progress = 10; progress <= 100; progress += 30) {
                     setUploadProgress(progress);
                     await new Promise((resolve) => setTimeout(resolve, 1500 / 4));
