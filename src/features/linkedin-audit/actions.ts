@@ -70,7 +70,7 @@ export async function getLinkedinAuditHistoryAction(): Promise<
             }),
         };
     } catch (error: unknown) {
-        console.error("[getLinkedinAuditHistoryAction] Error:", error);
+        logger.error("[getLinkedinAuditHistoryAction] Error:", error);
         return { success: false, error: "Error al cargar el historial." };
     }
 }

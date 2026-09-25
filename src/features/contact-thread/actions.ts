@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { ActionResult } from "@/features/job-match/types";
@@ -54,7 +55,7 @@ export async function getThreadMessagesAction(requestId: string): Promise<Action
             })),
         };
     } catch (error: unknown) {
-        console.error("[getThreadMessagesAction] Error:", error);
+        logger.error("[getThreadMessagesAction] Error:", error);
         return { success: false, error: "Error al cargar la conversación." };
     }
 }
@@ -109,7 +110,7 @@ export async function sendThreadMessageAction(requestId: string, body: string): 
             },
         };
     } catch (error: unknown) {
-        console.error("[sendThreadMessageAction] Error:", error);
+        logger.error("[sendThreadMessageAction] Error:", error);
         return { success: false, error: "Error al enviar el mensaje." };
     }
 }

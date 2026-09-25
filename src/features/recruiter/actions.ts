@@ -419,7 +419,7 @@ export async function getSentContactRequestsAction(): Promise<ActionResult<SentC
             })),
         };
     } catch (error: unknown) {
-        console.error("[getSentContactRequestsAction] Error:", error);
+        logger.error("[getSentContactRequestsAction] Error:", error);
         return { success: false, error: "Error al cargar la bandeja." };
     }
 }

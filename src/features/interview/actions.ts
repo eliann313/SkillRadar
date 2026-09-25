@@ -91,7 +91,7 @@ export async function getInterviewHistoryAction(): Promise<
             }),
         };
     } catch (error: unknown) {
-        console.error("[getInterviewHistoryAction] Error:", error);
+        logger.error("[getInterviewHistoryAction] Error:", error);
         return { success: false, error: "Error al cargar el historial." };
     }
 }
