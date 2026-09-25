@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
     async headers() {
         const cspHeader = `
       default-src 'self';
-      script-src 'self' 'unsafe-eval' 'unsafe-inline';
+      script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com;
       style-src 'self' 'unsafe-inline';
       img-src 'self' blob: data: https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://utfs.io https://ufs.sh;
       font-src 'self' data:;

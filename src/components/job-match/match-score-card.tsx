@@ -16,9 +16,11 @@ import { useTranslations } from "next-intl";
 
 interface MatchScoreCardProps {
     match: JobMatch;
+    /** Demo pública: oculta acciones de servidor (pitch IA) que requieren cuenta. */
+    demo?: boolean;
 }
 
-export function MatchScoreCard({ match }: MatchScoreCardProps) {
+export function MatchScoreCard({ match, demo = false }: MatchScoreCardProps) {
     const t = useTranslations("JobMatch");
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [pitch, setPitch] = useState<string | null>(null);
@@ -279,76 +281,82 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
 
                 <Separator />
 
-                {/* Smart Pitch / Auto-Cover Letter */}
-                <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-2">
-                        <Sparkles className="size-5 text-primary" />
-                        <h3 className="font-semibold text-foreground">{t("smartPitchTitle")}</h3>
+                {/* Smart Pitch / Auto-Cover Letter (requiere cuenta; oculto en demo) */}
+                {demo ? (
+                    <div className="rounded-lg border border-dashed border-border/80 bg-muted/10 p-6 text-center">
+                        <p className="text-xs text-muted-foreground">{t("demoPitchNote")}</p>
                     </div>
-
-                    {!pitch ? (
-                        <div className="rounded-lg border border-dashed border-border/80 bg-muted/10 p-6 text-center flex flex-col items-center gap-3">
-                            <p className="text-xs text-muted-foreground max-w-md">{t("smartPitchDesc")}</p>
-                            <Button
-                                onClick={() => {
-                                    void handleGeneratePitch();
-                                }}
-                                disabled={isGeneratingPitch}
-                                size="sm"
-                                className="cursor-pointer"
-                            >
-                                {isGeneratingPitch ? (
-                                    <>
-                                        <Loader2 className="mr-2 size-3.5 animate-spin" />
-                                        {t("generatingPitch")}
-                                    </>
-                                ) : (
-                                    <>
-                                        <Sparkles className="mr-1.5 size-3.5" />
-                                        {t("generatePitchBtn")}
-                                    </>
-                                )}
-                            </Button>
+                ) : (
+                    <div className="flex flex-col gap-4">
+                        <div className="flex items-center gap-2">
+                            <Sparkles className="size-5 text-primary" />
+                            <h3 className="font-semibold text-foreground">{t("smartPitchTitle")}</h3>
                         </div>
-                    ) : (
-                        <div className="flex flex-col gap-3">
-                            <div className="relative">
-                                <textarea
-                                    value={pitch}
-                                    onChange={(e) => setPitch(e.target.value)}
-                                    className="w-full min-h-[160px] p-3 text-xs bg-muted/20 border border-border/80 rounded-lg text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans leading-relaxed outline-none"
-                                />
-                            </div>
-                            <div className="flex items-center gap-2 justify-end">
+
+                        {!pitch ? (
+                            <div className="rounded-lg border border-dashed border-border/80 bg-muted/10 p-6 text-center flex flex-col items-center gap-3">
+                                <p className="text-xs text-muted-foreground max-w-md">{t("smartPitchDesc")}</p>
                                 <Button
-                                    variant="outline"
-                                    size="sm"
                                     onClick={() => {
                                         void handleGeneratePitch();
                                     }}
                                     disabled={isGeneratingPitch}
-                                    className="h-8 text-[11px] cursor-pointer"
+                                    size="sm"
+                                    className="cursor-pointer"
                                 >
                                     {isGeneratingPitch ? (
-                                        <Loader2 className="size-3 animate-spin" />
+                                        <>
+                                            <Loader2 className="mr-2 size-3.5 animate-spin" />
+                                            {t("generatingPitch")}
+                                        </>
                                     ) : (
-                                        t("regenerateBtn")
+                                        <>
+                                            <Sparkles className="mr-1.5 size-3.5" />
+                                            {t("generatePitchBtn")}
+                                        </>
                                     )}
                                 </Button>
-                                <Button
-                                    size="sm"
-                                    onClick={() => {
-                                        void handleCopy();
-                                    }}
-                                    className="h-8 text-[11px] gap-1 cursor-pointer"
-                                >
-                                    {isCopied ? <Check className="size-3" /> : <Copy className="size-3" />}
-                                    {isCopied ? t("copiedBtn") : t("copyBtn")}
-                                </Button>
                             </div>
-                        </div>
-                    )}
-                </div>
+                        ) : (
+                            <div className="flex flex-col gap-3">
+                                <div className="relative">
+                                    <textarea
+                                        value={pitch}
+                                        onChange={(e) => setPitch(e.target.value)}
+                                        className="w-full min-h-[160px] p-3 text-xs bg-muted/20 border border-border/80 rounded-lg text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans leading-relaxed outline-none"
+                                    />
+                                </div>
+                                <div className="flex items-center gap-2 justify-end">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            void handleGeneratePitch();
+                                        }}
+                                        disabled={isGeneratingPitch}
+                                        className="h-8 text-[11px] cursor-pointer"
+                                    >
+                                        {isGeneratingPitch ? (
+                                            <Loader2 className="size-3 animate-spin" />
+                                        ) : (
+                                            t("regenerateBtn")
+                                        )}
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        onClick={() => {
+                                            void handleCopy();
+                                        }}
+                                        className="h-8 text-[11px] gap-1 cursor-pointer"
+                                    >
+                                        {isCopied ? <Check className="size-3" /> : <Copy className="size-3" />}
+                                        {isCopied ? t("copiedBtn") : t("copyBtn")}
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
             </CardContent>
 
             <ExplainabilityPanel

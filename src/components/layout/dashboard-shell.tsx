@@ -97,17 +97,25 @@ interface NavGroup {
     items: NavItem[];
 }
 
-// 5 espacios grandes en lugar de 10 links planos (Overview queda fijo arriba)
+// Inicio fijo arriba + 2 espacios: Perfil (yo, mi preparación, mi progreso)
+// y Oportunidades (ofertas, match y seguimiento)
 const developerNavGroups: NavGroup[] = [
     { labelKey: null, items: [developerNavItems[0]] },
     {
         labelKey: "groupProfile",
-        items: [developerNavItems[1], developerNavItems[8], developerNavItems[6], developerNavItems[9]],
+        items: [
+            developerNavItems[1],
+            developerNavItems[8],
+            developerNavItems[6],
+            developerNavItems[9],
+            developerNavItems[5],
+            developerNavItems[7],
+        ],
     },
-    { labelKey: "groupOpportunities", items: [developerNavItems[2], developerNavItems[3]] },
-    { labelKey: "groupPreparation", items: [developerNavItems[5]] },
-    { labelKey: "groupApplications", items: [developerNavItems[4]] },
-    { labelKey: "groupProgress", items: [developerNavItems[7]] },
+    {
+        labelKey: "groupOpportunities",
+        items: [developerNavItems[2], developerNavItems[3], developerNavItems[4]],
+    },
 ];
 
 const recruiterNavItems = [
