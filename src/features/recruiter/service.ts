@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { AIService, type AIServiceOptions } from "@/lib/ai";
@@ -134,7 +135,7 @@ export class RecruiterService {
                 };
             }
         } catch (dbError) {
-            console.error("[RecruiterService] Error cargando preferencias del reclutador:", dbError);
+            logger.error("[RecruiterService] Error cargando preferencias del reclutador:", dbError);
         }
 
         const hasGlobalKeys = !!(
@@ -196,7 +197,7 @@ ${jdSanitized}`,
                         userSettings,
                     });
                 } catch (aiError) {
-                    console.error("[RecruiterService] Error en matching IA para candidato", candidate.id, aiError);
+                    logger.error("[RecruiterService] Error en matching IA para candidato", candidate.id, aiError);
                     matchResult = this.generateSimulatedPoolMatch(
                         stripPIIForLLM(activeResume.rawText || ""),
                         jdSanitized,
@@ -468,7 +469,7 @@ ${jdSanitized}`,
                 };
             }
         } catch (dbError) {
-            console.error("[RecruiterService.generateInterviewQuestions] Error consultando preferencias:", dbError);
+            logger.error("[RecruiterService.generateInterviewQuestions] Error consultando preferencias:", dbError);
         }
 
         const hasGlobalKeys = !!(
@@ -488,7 +489,7 @@ ${jdSanitized}`,
         );
 
         if (!hasGlobalKeys && !hasUserKeys) {
-            console.warn("⚠️ [RecruiterService.generateInterviewQuestions] Sin claves. Modo offline.");
+            logger.warn("⚠️ [RecruiterService.generateInterviewQuestions] Sin claves. Modo offline.");
             return [
                 {
                     question:
@@ -591,7 +592,7 @@ ${params.jobDescription ? `\n=== DESCRIPCIÓN DEL CARGO (JOB DESCRIPTION) ===\n$
 
             return questions;
         } catch (aiError) {
-            console.error("[RecruiterService.generateInterviewQuestions] Error en inferencia:", aiError);
+            logger.error("[RecruiterService.generateInterviewQuestions] Error en inferencia:", aiError);
             return [
                 {
                     question:
@@ -675,7 +676,7 @@ ${params.jobDescription ? `\n=== DESCRIPCIÓN DEL CARGO (JOB DESCRIPTION) ===\n$
                 };
             }
         } catch (dbError) {
-            console.error("[RecruiterService.searchTalentPoolAI] Error cargando preferencias:", dbError);
+            logger.error("[RecruiterService.searchTalentPoolAI] Error cargando preferencias:", dbError);
         }
 
         const hasGlobalKeys = !!(
@@ -749,7 +750,7 @@ ${querySanitized}`,
                         userSettings,
                     });
                 } catch (aiError) {
-                    console.error(
+                    logger.error(
                         "[RecruiterService.searchTalentPoolAI] Error en matching IA para candidato",
                         candidate.id,
                         aiError,
@@ -989,7 +990,7 @@ ${stripPIIForLLM(resume.rawText || "")}`,
             });
             return redactPIIFromModelOutput(res.summary);
         } catch (e) {
-            console.error("Error generating pitch summary:", e);
+            logger.error("Error generating pitch summary:", e);
             return `Desarrollador con sólida experiencia en tecnologías frontend y backend. Demuestra dominio principal en React, TypeScript y Node.js, destacando en el desarrollo de arquitecturas de componentes reusables y bases de datos relacionales con Prisma.`;
         }
     }
@@ -1082,7 +1083,7 @@ ${stripPIIForLLM(resume.rawText || "")}`,
             });
             return redactPIIFromModelOutput(res.message);
         } catch (e) {
-            console.error("Error generating outreach message:", e);
+            logger.error("Error generating outreach message:", e);
             return `Hola,\n\nHe estado revisando tu excelente perfil y me parece que coincide muy bien con nuestra vacante de ${params.jobTitle} en ${params.company}. Nos encantaría conversar contigo.`;
         }
     }

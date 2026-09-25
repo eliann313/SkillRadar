@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -58,7 +59,7 @@ function ResetPasswordForm() {
                 toast.error(res.error || "Ocurrió un error.");
             }
         } catch (err) {
-            console.error(err);
+            logger.error(err);
             toast.error("Ocurrió un error inesperado.");
         } finally {
             setIsLoading(false);

@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,7 +108,7 @@ export function LoginForm() {
                 }
             }
         } catch (err: unknown) {
-            console.error("Credentials auth error:", err);
+            logger.error("Credentials auth error:", err);
             toast.error("Ocurrió un error inesperado. Inténtelo de nuevo.");
         } finally {
             setIsAuthLoading(false);
@@ -119,7 +120,7 @@ export function LoginForm() {
         try {
             await signIn(provider, { callbackUrl: `/${locale}/dashboard` });
         } catch (err) {
-            console.error("Provider login error:", err);
+            logger.error("Provider login error:", err);
             toast.error("Fallo al conectar con el proveedor externo.");
         } finally {
             setIsAuthLoading(false);
@@ -132,7 +133,7 @@ export function LoginForm() {
             // Gatilla el credentials provider aislado "guest" para modo simulación
             await signIn("guest", { role, callbackUrl: `/${locale}/dashboard` });
         } catch (err) {
-            console.error("Guest login error:", err);
+            logger.error("Guest login error:", err);
             toast.error("No se pudo iniciar la sesión simulada.");
         } finally {
             setIsAuthLoading(false);

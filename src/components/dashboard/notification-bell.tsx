@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
@@ -29,7 +30,7 @@ export function NotificationBell() {
                 setUnreadCount(result.data.unreadCount);
             }
         } catch (error) {
-            console.error("Error al obtener notificaciones en el cliente:", error);
+            logger.error("Error al obtener notificaciones en el cliente:", error);
         } finally {
             if (!silent) setLoading(false);
         }

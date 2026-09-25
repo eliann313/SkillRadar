@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useEffect, useState } from "react";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,7 +52,7 @@ export default function AdminReportsPage() {
                 toast.error(result.error || "No se pudieron cargar los reportes.");
             }
         } catch (err) {
-            console.error("Error loading reports:", err);
+            logger.error("Error loading reports:", err);
             toast.error("Error al obtener reportes pendientes.");
         } finally {
             setLoading(false);
@@ -76,7 +77,7 @@ export default function AdminReportsPage() {
                 toast.error(result.error || "No se pudo descartar el reporte.");
             }
         } catch (err) {
-            console.error("Error dismissing report:", err);
+            logger.error("Error dismissing report:", err);
             toast.error("Error de servidor.");
         } finally {
             setActionLoading(null);
@@ -102,7 +103,7 @@ export default function AdminReportsPage() {
                 toast.error(result.error || "No se pudo suspender al usuario.");
             }
         } catch (err) {
-            console.error("Error suspending user:", err);
+            logger.error("Error suspending user:", err);
             toast.error("Error al procesar la suspensión.");
         } finally {
             setActionLoading(null);

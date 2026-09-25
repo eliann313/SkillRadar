@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { encrypt, API_KEY_PRESET_PLACEHOLDER } from "@/lib/crypto";
@@ -109,7 +110,7 @@ export async function saveUserApiKeysAction(input: ApiKeysInput) {
         };
     } catch (error: unknown) {
         const errMessage = error instanceof Error ? error.message : "Error al actualizar las claves de API.";
-        console.error("[saveUserApiKeysAction] Error guardando llaves:", errMessage);
+        logger.error("[saveUserApiKeysAction] Error guardando llaves:", errMessage);
         return {
             success: false,
             error: errMessage,
@@ -152,7 +153,7 @@ export async function saveUserInferencePreferencesAction(input: InferencePrefere
         };
     } catch (error: unknown) {
         const errMessage = error instanceof Error ? error.message : "Error al guardar preferencias.";
-        console.error("[saveUserInferencePreferencesAction] Error guardando preferencias:", errMessage);
+        logger.error("[saveUserInferencePreferencesAction] Error guardando preferencias:", errMessage);
         return {
             success: false,
             error: errMessage,
@@ -234,7 +235,7 @@ export async function getUserApiKeysStatusAction() {
         };
     } catch (error: unknown) {
         const errMessage = error instanceof Error ? error.message : "Error al obtener estado de llaves.";
-        console.error("[getUserApiKeysStatusAction] Error recuperando estado:", errMessage);
+        logger.error("[getUserApiKeysStatusAction] Error recuperando estado:", errMessage);
         return {
             success: false,
             error: errMessage,
@@ -296,7 +297,7 @@ export async function getUserPublicProfileSettingsAction() {
         };
     } catch (error: unknown) {
         const errMessage = error instanceof Error ? error.message : "Error al obtener perfil público.";
-        console.error("[getUserPublicProfileSettingsAction] Error:", errMessage);
+        logger.error("[getUserPublicProfileSettingsAction] Error:", errMessage);
         return { success: false, error: errMessage };
     }
 }
@@ -366,7 +367,7 @@ export async function updateUserPublicProfileSettingsAction(input: PublicProfile
         };
     } catch (error: unknown) {
         const errMessage = error instanceof Error ? error.message : "Error al actualizar perfil público.";
-        console.error("[updateUserPublicProfileSettingsAction] Error:", errMessage);
+        logger.error("[updateUserPublicProfileSettingsAction] Error:", errMessage);
         return { success: false, error: errMessage };
     }
 }
@@ -401,7 +402,7 @@ export async function deleteAccountAction(): Promise<{ success: boolean; message
         };
     } catch (error: unknown) {
         const errMessage = error instanceof Error ? error.message : "Error al eliminar la cuenta.";
-        console.error("[deleteAccountAction] Error:", errMessage);
+        logger.error("[deleteAccountAction] Error:", errMessage);
         return {
             success: false,
             error: errMessage,
@@ -544,7 +545,7 @@ export async function exportUserDataAction(): Promise<
         };
     } catch (error: unknown) {
         const errMessage = error instanceof Error ? error.message : "Error al exportar datos del usuario.";
-        console.error("[exportUserDataAction] Error:", errMessage);
+        logger.error("[exportUserDataAction] Error:", errMessage);
         return {
             success: false,
             error: errMessage,
@@ -595,7 +596,7 @@ export async function saveUserNotificationPreferencesAction(input: NotificationP
         };
     } catch (error: unknown) {
         const errMessage = error instanceof Error ? error.message : "Error al guardar preferencias de notificación.";
-        console.error("[saveUserNotificationPreferencesAction] Error:", errMessage);
+        logger.error("[saveUserNotificationPreferencesAction] Error:", errMessage);
         return {
             success: false,
             error: errMessage,

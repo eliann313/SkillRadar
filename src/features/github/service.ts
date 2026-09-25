@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { GitHubConnector } from "@/lib/github";
 import { GithubAnalysisRepository } from "./repository";
 import { githubAnalysisSchema, type GithubAnalysisData } from "./types";
@@ -71,7 +72,7 @@ export class GithubAnalysisService {
                 };
             }
         } catch (dbError) {
-            console.error("[GithubAnalysisService] Error leyendo preferencias del usuario:", dbError);
+            logger.error("[GithubAnalysisService] Error leyendo preferencias del usuario:", dbError);
         }
 
         const hasGlobalKeys = !!(
@@ -99,13 +100,13 @@ export class GithubAnalysisService {
         }));
 
         if (!hasGlobalKeys && !hasUserKeys) {
-            console.warn("⚠️ [GithubAnalysisService] Ejecutando análisis en modo offline (Mock Simulation).");
+            logger.warn("⚠️ [GithubAnalysisService] Ejecutando análisis en modo offline (Mock Simulation).");
             const simulated = this.generateSimulatedAnalysis(sanitizedUsername, repoDataForAI, languages);
             return await GithubAnalysisRepository.createOrUpdate(userId, sanitizedUsername, simulated);
         }
 
         try {
-            console.warn("[GithubAnalysisService] Iniciando análisis estructurado del perfil de GitHub...");
+            logger.warn("[GithubAnalysisService] Iniciando análisis estructurado del perfil de GitHub...");
             const aiAnalysis = await AIService.generateStructuredObject<GithubAnalysisData>({
                 schema: githubAnalysisSchema,
                 system: `Eres un analista de SEÑALES públicas de GitHub (no un evaluador definitivo del desarrollador). Analizarás solo metadatos públicos: nombres, descripciones, lenguajes y topics.
@@ -135,7 +136,7 @@ Devuelve señales basadas solo en lo observable en nombres/descripciones.`,
 
             return await GithubAnalysisRepository.createOrUpdate(userId, sanitizedUsername, aiAnalysis);
         } catch (error) {
-            console.error(
+            logger.error(
                 "[GithubAnalysisService] Error en inferencia de IA para GitHub, usando fallback simulado:",
                 error,
             );

@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -211,7 +212,7 @@ export default function SettingsPage() {
                 });
             }
         } catch (e) {
-            console.error(e);
+            logger.error(e);
             toast.error("Ocurrió un error de red al cargar la configuración.");
         } finally {
             setLoadingConfig(false);

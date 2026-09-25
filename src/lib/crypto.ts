@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import crypto from "crypto";
 
 // Clave secreta de encriptación derivada
@@ -72,7 +73,7 @@ export function decrypt(encryptedText: string | null | undefined): string {
 
         return decrypted;
     } catch (error) {
-        console.error("❌ [Crypto] Error desencriptando API Key:", error);
+        logger.error("❌ [Crypto] Error desencriptando API Key:", error);
         return "";
     }
 }

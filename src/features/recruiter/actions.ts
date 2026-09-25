@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
 import { trackServerEvent } from "@/lib/analytics";
 import { checkProactiveMatchingRateLimit } from "@/lib/rate-limit";
@@ -41,7 +42,7 @@ export async function rankTalentPoolAction(jobDescription: string): Promise<Acti
             data: rankedCandidates,
         };
     } catch (error: unknown) {
-        console.error("[rankTalentPoolAction] Error general:", error);
+        logger.error("[rankTalentPoolAction] Error general:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Ocurrió un error al rankear candidatos.",
@@ -105,7 +106,7 @@ export async function createContactRequestAction(
             data: request,
         };
     } catch (error: unknown) {
-        console.error("[createContactRequestAction] Error general:", error);
+        logger.error("[createContactRequestAction] Error general:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Ocurrió un error al enviar la propuesta.",
@@ -148,7 +149,7 @@ export async function toggleShortlistAction(developerId: string): Promise<Action
             data: isShortlisted,
         };
     } catch (error: unknown) {
-        console.error("[toggleShortlistAction] Error:", error);
+        logger.error("[toggleShortlistAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al actualizar la shortlist.",
@@ -177,7 +178,7 @@ export async function getMarketIntelligenceSkillsAction(): Promise<ActionResult<
             data: skills,
         };
     } catch (error: unknown) {
-        console.error("[getMarketIntelligenceSkillsAction] Error:", error);
+        logger.error("[getMarketIntelligenceSkillsAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al obtener Market Intelligence.",
@@ -224,7 +225,7 @@ export async function generateInterviewQuestionsAction(
             data: questions,
         };
     } catch (error: unknown) {
-        console.error("[generateInterviewQuestionsAction] Error:", error);
+        logger.error("[generateInterviewQuestionsAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al generar la guía de preguntas de entrevista.",
@@ -265,7 +266,7 @@ export async function searchTalentPoolAIAction(query: string): Promise<ActionRes
             data: rankedCandidates,
         };
     } catch (error: unknown) {
-        console.error("[searchTalentPoolAIAction] Error:", error);
+        logger.error("[searchTalentPoolAIAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Ocurrió un error en el buscador de IA.",
@@ -297,7 +298,7 @@ export async function generateCandidatePitchSummaryAction(developerId: string): 
             data: summary,
         };
     } catch (error: unknown) {
-        console.error("[generateCandidatePitchSummaryAction] Error:", error);
+        logger.error("[generateCandidatePitchSummaryAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al generar el resumen de IA.",
@@ -335,7 +336,7 @@ export async function generateCandidateOutreachAction(
             data: message,
         };
     } catch (error: unknown) {
-        console.error("[generateCandidateOutreachAction] Error:", error);
+        logger.error("[generateCandidateOutreachAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al generar el mensaje de contacto.",
@@ -364,7 +365,7 @@ export async function getMarketIntelligenceDataAction() {
             data,
         };
     } catch (error: unknown) {
-        console.error("[getMarketIntelligenceDataAction] Error:", error);
+        logger.error("[getMarketIntelligenceDataAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al obtener Market Intelligence.",

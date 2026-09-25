@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { ActionResult } from "@/features/job-match/types";
@@ -45,7 +46,7 @@ export async function getReceivedContactRequestsAction(): Promise<ActionResult<C
             data: requests as ContactRequestWithRecruiter[],
         };
     } catch (error: unknown) {
-        console.error("[getReceivedContactRequestsAction] Error:", error);
+        logger.error("[getReceivedContactRequestsAction] Error:", error);
         return {
             success: false,
             error: "Error al recuperar solicitudes de contacto.",
@@ -92,7 +93,7 @@ export async function acceptContactRequestAction(requestId: string): Promise<Act
             data: true,
         };
     } catch (error: unknown) {
-        console.error("[acceptContactRequestAction] Error:", error);
+        logger.error("[acceptContactRequestAction] Error:", error);
         return {
             success: false,
             error: "Error al aceptar la solicitud de contacto.",
@@ -139,7 +140,7 @@ export async function declineContactRequestAction(requestId: string): Promise<Ac
             data: true,
         };
     } catch (error: unknown) {
-        console.error("[declineContactRequestAction] Error:", error);
+        logger.error("[declineContactRequestAction] Error:", error);
         return {
             success: false,
             error: "Error al rechazar la solicitud de contacto.",

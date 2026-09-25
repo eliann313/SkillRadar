@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { JobMatchRepository } from "./repository";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
@@ -56,7 +57,7 @@ export class JobMatchService {
                 };
             }
         } catch (dbError) {
-            console.error("[JobMatchService] Error consultando preferencias del usuario en DB:", dbError);
+            logger.error("[JobMatchService] Error consultando preferencias del usuario en DB:", dbError);
         }
 
         // 4. Determinar si existen API keys globales o de usuario
@@ -103,7 +104,7 @@ export class JobMatchService {
         }
 
         if (!hasGlobalKeys && !hasUserKeys) {
-            console.warn(
+            logger.warn(
                 "⚠️ [JobMatchService] No hay claves API globales ni de usuario configuradas. Ejecutando en Modo Simulación Offline (Mock).",
             );
             const { matchScore, analysis } = this.generateSimulatedMatch(resume.rawText || "", params.jobOfferText);
@@ -111,7 +112,7 @@ export class JobMatchService {
         }
 
         try {
-            console.warn("[JobMatchService] Iniciando análisis de coincidencia estructurado con AIService...");
+            logger.warn("[JobMatchService] Iniciando análisis de coincidencia estructurado con AIService...");
 
             const aiAnalysis = await AIService.generateStructuredObject<JobMatchAnalysis>({
                 schema: jobMatchAnalysisSchema,
@@ -141,7 +142,7 @@ ${params.jobOfferText.slice(0, 4000)}`,
                 userSettings,
             });
 
-            console.warn("[JobMatchService] Análisis de matching completado con éxito a través del AIService.");
+            logger.warn("[JobMatchService] Análisis de matching completado con éxito a través del AIService.");
 
             // 5. Actualizar el registro con los resultados de la IA
             const updated = await JobMatchRepository.updateAnalysis(
@@ -153,12 +154,10 @@ ${params.jobOfferText.slice(0, 4000)}`,
 
             return updated;
         } catch (aiError) {
-            console.error("[JobMatchService] Error durante la fase de inferencia de IA de Job Match:", aiError);
+            logger.error("[JobMatchService] Error durante la fase de inferencia de IA de Job Match:", aiError);
 
             // Fallback robusto por si falla la llamada
-            console.warn(
-                "⚠️ [JobMatchService] Falló la inferencia del AIService. Retornando simulación como fallback.",
-            );
+            logger.warn("⚠️ [JobMatchService] Falló la inferencia del AIService. Retornando simulación como fallback.");
             const { matchScore, analysis } = this.generateSimulatedMatch(resume.rawText || "", params.jobOfferText);
             return await JobMatchRepository.updateAnalysis(jobMatch.id, params.userId, matchScore, analysis);
         }
@@ -354,7 +353,7 @@ ${params.jobOfferText.slice(0, 4000)}`,
                 };
             }
         } catch (dbError) {
-            console.error("[JobMatchService.generateSmartPitch] Error consultando preferencias:", dbError);
+            logger.error("[JobMatchService.generateSmartPitch] Error consultando preferencias:", dbError);
         }
 
         const hasGlobalKeys = !!(
@@ -380,7 +379,7 @@ ${params.jobOfferText.slice(0, 4000)}`,
         const alignedSkills = requiredSkills.filter((s) => !missingSkills.includes(s));
 
         if (!hasGlobalKeys && !hasUserKeys) {
-            console.warn("⚠️ [JobMatchService.generateSmartPitch] Sin claves. Modo offline.");
+            logger.warn("⚠️ [JobMatchService.generateSmartPitch] Sin claves. Modo offline.");
             return `Estimado equipo de reclutamiento,\n\nMe pongo en contacto con ustedes con mucho entusiasmo respecto a la vacante. Al revisar los requerimientos del puesto, considero que puedo aportar valor inmediato gracias a mi sólida experiencia práctica con tecnologías clave que ustedes solicitan, en especial ${alignedSkills.slice(0, 3).join(", ") || "desarrollo de software"}.\n\nReconozco honestamente que tengo algunas áreas por fortalecer en mi perfil, específicamente con respecto a ${missingSkills.slice(0, 2).join(" y ") || "tecnologías avanzadas de infraestructura"}. Actualmente me encuentro trabajando activamente en cubrirlas mediante el estudio de documentación oficial y el desarrollo de laboratorios prácticos.\n\nMe encantaría conversar más a fondo sobre cómo mi background técnico y mi capacidad de adaptación constante pueden sumar al equipo. Agradezco de antemano su tiempo y consideración.\n\nAtentamente,\nCandidato de SkillRadar`;
         }
 
@@ -418,7 +417,7 @@ ${jobMatch.jobOfferText}`,
 
             return result.pitch;
         } catch (aiError) {
-            console.error("[JobMatchService.generateSmartPitch] Error en inferencia:", aiError);
+            logger.error("[JobMatchService.generateSmartPitch] Error en inferencia:", aiError);
             return `Estimado equipo de reclutamiento,\n\nMe pongo en contacto con ustedes con mucho entusiasmo respecto a la vacante. Al revisar los requerimientos del puesto, considero que puedo aportar valor inmediato gracias a mi sólida experiencia práctica con tecnologías clave que ustedes solicitan, en especial ${alignedSkills.slice(0, 3).join(", ") || "desarrollo de software"}.\n\nReconozco honestamente que tengo algunas áreas por fortalecer en mi perfil, específicamente con respecto a ${missingSkills.slice(0, 2).join(" y ") || "tecnologías avanzadas de infraestructura"}. Actualmente me encuentro trabajando activamente en cubrirlas mediante el estudio de documentación oficial y el desarrollo de laboratorios prácticos.\n\nMe encantaría conversar más a fondo sobre cómo mi background técnico y mi capacidad de adaptación constante pueden sumar al equipo. Agradezco de antemano su tiempo y consideración.\n\nAtentamente,\nCandidato de SkillRadar`;
         }
     }

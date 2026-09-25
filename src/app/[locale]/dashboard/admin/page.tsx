@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,7 +40,7 @@ export default function AdminDashboardPage() {
                 toast.error(reportsRes.error || "No se pudieron obtener los reportes.");
             }
         } catch (err) {
-            console.error("Error cargando dashboard:", err);
+            logger.error("Error cargando dashboard:", err);
             toast.error("Error al recuperar datos globales del panel.");
         } finally {
             setLoading(false);

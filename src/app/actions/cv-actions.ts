@@ -1,4 +1,5 @@
 "use server";
+import { logger } from "@/lib/logger";
 
 import { auth } from "@/lib/auth";
 import { checkCVRateLimit } from "@/lib/rate-limit";
@@ -45,7 +46,7 @@ export async function getSignedFileUrlAction(
             url: `/api/files?url=${encodeURIComponent(validation.validatedUrl)}`,
         };
     } catch (error) {
-        console.error("[getSignedFileUrlAction] Error:", error);
+        logger.error("[getSignedFileUrlAction] Error:", error);
         return {
             success: false,
             error: "Error al generar la URL de vista para el archivo.",

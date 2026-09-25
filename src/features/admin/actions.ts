@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { db } from "@/lib/db";
 import { assertActiveUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
@@ -44,7 +45,7 @@ export async function getPendingReportsAction(): Promise<ActionResult<unknown[]>
 
         return { success: true, data: reports };
     } catch (error: unknown) {
-        console.error("[getPendingReportsAction] Error:", error);
+        logger.error("[getPendingReportsAction] Error:", error);
         return { success: false, error: error instanceof Error ? error.message : "Error al obtener los reportes." };
     }
 }
@@ -65,7 +66,7 @@ export async function dismissReportAction(id: string): Promise<ActionResult<bool
         revalidatePath("/dashboard/admin/reports");
         return { success: true, data: true };
     } catch (error: unknown) {
-        console.error("[dismissReportAction] Error:", error);
+        logger.error("[dismissReportAction] Error:", error);
         return { success: false, error: error instanceof Error ? error.message : "Error al descartar el reporte." };
     }
 }
@@ -107,7 +108,7 @@ export async function suspendUserAction(userId: string, reportIdToDismiss?: stri
         revalidatePath("/dashboard/admin/reports");
         return { success: true, data: true };
     } catch (error: unknown) {
-        console.error("[suspendUserAction] Error:", error);
+        logger.error("[suspendUserAction] Error:", error);
         return { success: false, error: error instanceof Error ? error.message : "Error al suspender al usuario." };
     }
 }
@@ -165,7 +166,7 @@ export async function getFunnelDataAction(): Promise<
             },
         };
     } catch (error: unknown) {
-        console.error("[getFunnelDataAction] Error:", error);
+        logger.error("[getFunnelDataAction] Error:", error);
         return { success: false, error: error instanceof Error ? error.message : "Error al calcular el funnel." };
     }
 }

@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "@/lib/db";
@@ -53,7 +54,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     if (limitError instanceof Error && limitError.message === "RATE_LIMIT_EXCEEDED") {
                         throw limitError;
                     }
-                    console.warn(
+                    logger.warn(
                         "⚠️ [Auth] Falló validación de rate limit para login, omitiendo por seguridad:",
                         limitError,
                     );
@@ -86,7 +87,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         isSuspended: false,
                     };
                 } catch (error) {
-                    console.error("[Auth] Error en authorize credentials:", error);
+                    logger.error("[Auth] Error en authorize credentials:", error);
                     if (error instanceof Error && error.message === "USER_SUSPENDED") {
                         throw error;
                     }

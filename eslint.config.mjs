@@ -25,7 +25,7 @@ const eslintConfig = defineConfig([
             // ─────────────────────────────────────────
             // General Quality & Clean Code Rules
             // ─────────────────────────────────────────
-            "no-console": ["warn", { allow: ["warn", "error"] }],
+            "no-console": "error",
             "no-debugger": "error",
             "prefer-const": "error",
             "no-var": "error",

@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logger";
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -56,7 +57,7 @@ export default function LinkedinAuditPage() {
                 toast.error(result.error || "Error al realizar la auditoría.");
             }
         } catch (e) {
-            console.error(e);
+            logger.error(e);
             toast.error("Error inesperado al conectar con el servicio de auditoría.");
         } finally {
             setIsAnalyzing(false);

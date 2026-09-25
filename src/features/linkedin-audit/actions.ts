@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { AIService, type AIServiceOptions } from "@/lib/ai";
@@ -169,7 +170,7 @@ ${profileText.slice(0, 6000)}
             data: audit,
         };
     } catch (error: unknown) {
-        console.error("[auditLinkedinProfileAction] Error:", error);
+        logger.error("[auditLinkedinProfileAction] Error:", error);
 
         // Simulación offline en caso de error
         return {

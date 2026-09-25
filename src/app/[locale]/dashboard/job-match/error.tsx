@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertOctagon, RefreshCw, ArrowLeft } from "lucide-react";
@@ -12,7 +13,7 @@ interface ErrorProps {
 
 export default function JobMatchError({ error, reset }: ErrorProps) {
     useEffect(() => {
-        console.error("Job Match Error:", error);
+        logger.error("Job Match Error:", error);
     }, [error]);
 
     return (

@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logger";
 
 import { useState, useCallback, useEffect } from "react";
 import { useDropzone, type DropzoneRootProps, type DropzoneInputProps } from "react-dropzone";
@@ -73,7 +74,7 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
             // ya que expira de forma controlada y persistida en Neon Postgres.
             onAnalyze(blobUrl, blobName);
         } catch (err) {
-            console.error("Error generating signed URL:", err);
+            logger.error("Error generating signed URL:", err);
             onAnalyze(blobUrl, blobName);
         }
     };
@@ -185,7 +186,7 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
                 });
                 await handleUploadComplete(blob.url, file.name);
             } catch (err) {
-                console.error("Upload error:", err);
+                logger.error("Upload error:", err);
                 setIsUploading(false);
                 handleUploadError(err instanceof Error ? err : new Error("Upload failed"));
             }

@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useState, useRef, useEffect } from "react";
 import { useChat, type UIMessage } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
@@ -110,7 +111,7 @@ export function MockInterviewChat() {
                 toast.error(res.error || t("initError"));
             }
         } catch (err) {
-            console.error(err);
+            logger.error(err);
             toast.error(t("unexpectedError"));
         } finally {
             setIsStarting(false);

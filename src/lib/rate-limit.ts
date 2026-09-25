@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { env } from "./env";
@@ -186,9 +187,9 @@ if (hasUpstashConfig) {
             prefix: "ratelimit:write",
         });
 
-        console.warn("🛡️ [RateLimit] Upstash Redis inicializado correctamente para Rate Limiting.");
+        logger.warn("🛡️ [RateLimit] Upstash Redis inicializado correctamente para Rate Limiting.");
     } catch (error) {
-        console.error(
+        logger.error(
             "❌ [RateLimit] Falló la inicialización de Upstash Redis, cayendo en fallback en memoria:",
             error,
         );
@@ -209,42 +210,42 @@ const writeMemoryFallback = new InMemorySlidingWindow(WRITE_LIMIT, WINDOW_DURATI
 
 // Inicializar limitadores de memoria si Upstash no está disponible o falló
 if (!cvLimiter) {
-    console.warn("⚠️ [RateLimit] Usando limitador en memoria para análisis de CV (Límite: 5/día).");
+    logger.warn("⚠️ [RateLimit] Usando limitador en memoria para análisis de CV (Límite: 5/día).");
     cvLimiter = cvMemoryFallback;
 }
 
 if (!jobMatchLimiter) {
-    console.warn("⚠️ [RateLimit] Usando limitador en memoria para Job Match (Límite: 10/día).");
+    logger.warn("⚠️ [RateLimit] Usando limitador en memoria para Job Match (Límite: 10/día).");
     jobMatchLimiter = jobMatchMemoryFallback;
 }
 
 if (!githubLimiter) {
-    console.warn("⚠️ [RateLimit] Usando limitador en memoria para GitHub (Límite: 10/día).");
+    logger.warn("⚠️ [RateLimit] Usando limitador en memoria para GitHub (Límite: 10/día).");
     githubLimiter = githubMemoryFallback;
 }
 
 if (!loginLimiter) {
-    console.warn("⚠️ [RateLimit] Usando limitador en memoria para login (Límite: 5/15min).");
+    logger.warn("⚠️ [RateLimit] Usando limitador en memoria para login (Límite: 5/15min).");
     loginLimiter = loginMemoryFallback;
 }
 
 if (!jobPostingLimiter) {
-    console.warn("⚠️ [RateLimit] Usando limitador en memoria para Job Postings (Límite: 10/día).");
+    logger.warn("⚠️ [RateLimit] Usando limitador en memoria para Job Postings (Límite: 10/día).");
     jobPostingLimiter = jobPostingMemoryFallback;
 }
 
 if (!jobPostingApplyLimiter) {
-    console.warn("⚠️ [RateLimit] Usando limitador en memoria para Job Postings Apply (Límite: 20/día).");
+    logger.warn("⚠️ [RateLimit] Usando limitador en memoria para Job Postings Apply (Límite: 20/día).");
     jobPostingApplyLimiter = jobPostingApplyMemoryFallback;
 }
 
 if (!proactiveMatchingLimiter) {
-    console.warn("⚠️ [RateLimit] Usando limitador en memoria para matching proactivo (Límite: 50/día).");
+    logger.warn("⚠️ [RateLimit] Usando limitador en memoria para matching proactivo (Límite: 50/día).");
     proactiveMatchingLimiter = proactiveMatchingMemoryFallback;
 }
 
 if (!contentReportLimiter) {
-    console.warn("⚠️ [RateLimit] Usando limitador en memoria para reporte de contenido (Límite: 5/día).");
+    logger.warn("⚠️ [RateLimit] Usando limitador en memoria para reporte de contenido (Límite: 5/día).");
     contentReportLimiter = contentReportMemoryFallback;
 }
 
@@ -278,7 +279,7 @@ export async function getClientIp(): Promise<string> {
             if (ip) return ip;
         }
     } catch (e) {
-        console.warn("⚠️ [RateLimit] No se pudieron leer las cabeceras HTTP de Next.js, cayendo en localhost:", e);
+        logger.warn("⚠️ [RateLimit] No se pudieron leer las cabeceras HTTP de Next.js, cayendo en localhost:", e);
     }
     return "127.0.0.1";
 }
@@ -310,13 +311,13 @@ async function checkUserHasApiKeyBypass(identifier: string): Promise<boolean> {
             );
 
             if (hasOwnKey) {
-                console.warn(
+                logger.warn(
                     `🛡️ [RateLimit] Bypass activado para el usuario ${userId} por poseer API Keys personales.`,
                 );
                 return true;
             }
         } catch (dbError) {
-            console.error("❌ [RateLimit] Error consultando API Keys de usuario para bypass:", dbError);
+            logger.error("❌ [RateLimit] Error consultando API Keys de usuario para bypass:", dbError);
         }
     }
     return false;
@@ -348,7 +349,7 @@ export async function checkCVRateLimit(identifier: string): Promise<RateLimitRes
                 reset: result.reset,
             };
         } catch (error) {
-            console.warn(
+            logger.warn(
                 "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para CV, cayendo en fallback en memoria:",
                 error,
             );
@@ -385,7 +386,7 @@ export async function checkJobMatchRateLimit(identifier: string): Promise<RateLi
                 reset: result.reset,
             };
         } catch (error) {
-            console.warn(
+            logger.warn(
                 "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para Job Match, cayendo en fallback en memoria:",
                 error,
             );
@@ -412,7 +413,7 @@ export async function checkLoginRateLimit(identifier: string): Promise<RateLimit
                 reset: result.reset,
             };
         } catch (error) {
-            console.warn(
+            logger.warn(
                 "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para Login, cayendo en fallback en memoria:",
                 error,
             );
@@ -449,7 +450,7 @@ export async function checkGithubRateLimit(identifier: string): Promise<RateLimi
                 reset: result.reset,
             };
         } catch (error) {
-            console.warn(
+            logger.warn(
                 "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para GitHub, cayendo en fallback en memoria:",
                 error,
             );
@@ -476,7 +477,7 @@ export async function checkJobPostingRateLimit(identifier: string): Promise<Rate
                 reset: result.reset,
             };
         } catch (error) {
-            console.warn(
+            logger.warn(
                 "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para Job Postings, cayendo en fallback en memoria:",
                 error,
             );
@@ -503,7 +504,7 @@ export async function checkJobPostingApplyRateLimit(identifier: string): Promise
                 reset: result.reset,
             };
         } catch (error) {
-            console.warn(
+            logger.warn(
                 "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para Job Postings Apply, cayendo en fallback en memoria:",
                 error,
             );
@@ -530,7 +531,7 @@ export async function checkProactiveMatchingRateLimit(identifier: string): Promi
                 reset: result.reset,
             };
         } catch (error) {
-            console.warn(
+            logger.warn(
                 "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para Proactive Matching, cayendo en fallback en memoria:",
                 error,
             );
@@ -557,7 +558,7 @@ export async function checkContentReportRateLimit(identifier: string): Promise<R
                 reset: result.reset,
             };
         } catch (error) {
-            console.warn(
+            logger.warn(
                 "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para Content Report, cayendo en fallback en memoria:",
                 error,
             );
