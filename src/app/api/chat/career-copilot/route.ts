@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
         // Obtener llaves API del usuario si no es invitado
         let formattedSettings;
         let preferredProvider = "gemini";
-        let preferredModel = "gemini-2.5-flash";
+        let preferredModel = "gemini-3.6-flash";
 
         if (!session.user.isGuest) {
             try {

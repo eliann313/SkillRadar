@@ -12,12 +12,14 @@ export default async function LoginPage() {
     }
 
     return (
-        <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-24 bg-background">
-            <Suspense
-                fallback={<div className="text-muted-foreground text-sm animate-pulse">Cargando formulario...</div>}
-            >
-                <LoginForm />
-            </Suspense>
-        </main>
+        <Suspense
+            fallback={
+                <div className="min-h-screen flex items-center justify-center text-muted-foreground text-sm animate-pulse">
+                    Cargando formulario...
+                </div>
+            }
+        >
+            <LoginForm />
+        </Suspense>
     );
 }

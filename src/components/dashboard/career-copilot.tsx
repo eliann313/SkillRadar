@@ -22,7 +22,7 @@ export function CareerCopilot() {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     const [provider, setProvider] = useState("gemini");
-    const [model, setModel] = useState("gemini-2.5-flash");
+    const [model, setModel] = useState("gemini-3.6-flash");
     const [providerKeys, setProviderKeys] = useState({
         gemini: true,
         groq: true,
@@ -174,10 +174,10 @@ export function CareerCopilot() {
                                         onChange={(e) => {
                                             const newProvider = e.target.value;
                                             setProvider(newProvider);
-                                            if (newProvider === "gemini") setModel("gemini-2.5-flash");
+                                            if (newProvider === "gemini") setModel("gemini-3.6-flash");
                                             else if (newProvider === "groq") setModel("llama-3.3-70b-versatile");
                                             else if (newProvider === "openrouter")
-                                                setModel("google/gemini-2.5-flash:free");
+                                                setModel("google/gemini-3.6-flash:free");
                                             else if (newProvider === "openai") setModel("gpt-4o");
                                             else if (newProvider === "anthropic") setModel("claude-4.6-sonnet");
                                         }}
@@ -225,10 +225,10 @@ export function CareerCopilot() {
                                         {provider === "gemini" && (
                                             <>
                                                 <option
-                                                    value="gemini-2.5-flash"
+                                                    value="gemini-3.6-flash"
                                                     className="bg-popover text-popover-foreground"
                                                 >
-                                                    Gemini 2.5 Flash
+                                                    Gemini 3.6 Flash
                                                 </option>
                                                 <option
                                                     value="gemini-2.5-pro"
@@ -269,10 +269,10 @@ export function CareerCopilot() {
                                         {provider === "openrouter" && (
                                             <>
                                                 <option
-                                                    value="google/gemini-2.5-flash:free"
+                                                    value="google/gemini-3.6-flash:free"
                                                     className="bg-popover text-popover-foreground"
                                                 >
-                                                    Gemini 2.5 Free
+                                                    Gemini 3.6 Free
                                                 </option>
                                                 <option
                                                     value="meta-llama/llama-3.1-70b-instruct:free"

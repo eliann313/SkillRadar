@@ -113,11 +113,11 @@ export class AIService {
 
     static async generateStructuredObject<T extends object>(options: AIServiceOptions): Promise<T> {
         const primaryProvider = options.userSettings?.preferredProvider || "gemini";
-        const primaryModel = options.userSettings?.preferredModel || "gemini-2.5-flash";
+        const primaryModel = options.userSettings?.preferredModel || "gemini-3.6-flash";
 
         // Cola de cascada estándar del sistema para fallbacks
         const cascadeQueue = [
-            { provider: "gemini", model: "gemini-2.5-flash" },
+            { provider: "gemini", model: "gemini-3.6-flash" },
             { provider: "groq", model: "llama-3.3-70b-versatile" },
             {
                 provider: "openrouter",

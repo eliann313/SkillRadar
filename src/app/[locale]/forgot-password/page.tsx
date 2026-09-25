@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Mail, Loader2, ArrowLeft } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
+import { LanguageSwitcher, ThemeToggle } from "@/components/layout";
 
 export default function ForgotPasswordPage() {
     const t = useTranslations("Auth");
@@ -39,8 +40,13 @@ export default function ForgotPasswordPage() {
     };
 
     return (
-        <main className="flex min-h-screen items-center justify-center p-4 bg-background">
-            <div className="w-full max-w-md">
+        <main className="min-h-screen flex flex-col items-center justify-center p-4 py-8 sm:py-12 relative w-full bg-background overflow-x-hidden">
+            {/* Top-right controls */}
+            <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex items-center gap-2">
+                <LanguageSwitcher />
+                <ThemeToggle />
+            </div>
+            <div className="w-full max-w-md my-auto">
                 <div className="mb-6 text-center">
                     <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-xl bg-primary/10 glow-emerald transition-all duration-300">
                         <svg

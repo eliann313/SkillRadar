@@ -32,7 +32,7 @@ export async function createJobPostingAction(rawInput: unknown): Promise<ActionR
         if (!validation.success) {
             return {
                 success: false,
-                error: validation.error.errors.map((e) => e.message).join(" "),
+                error: validation.error.issues.map((e) => e.message).join(" "),
             };
         }
 
@@ -102,7 +102,7 @@ export async function updateJobPostingAction(id: string, rawInput: unknown): Pro
         if (!validation.success) {
             return {
                 success: false,
-                error: validation.error.errors.map((e) => e.message).join(" "),
+                error: validation.error.issues.map((e) => e.message).join(" "),
             };
         }
 
@@ -338,7 +338,7 @@ export async function createReportAction(rawInput: unknown): Promise<ActionResul
         if (!validation.success) {
             return {
                 success: false,
-                error: validation.error.errors.map((e) => e.message).join(" "),
+                error: validation.error.issues.map((e) => e.message).join(" "),
             };
         }
 

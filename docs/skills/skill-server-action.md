@@ -48,7 +48,7 @@ export async function analyzeResume(input: AnalyzeResumeInput): Promise<ActionRe
     // B. Validación Zod
     const parsed = analyzeResumeSchema.safeParse(input);
     if (!parsed.success) {
-        const errorMsg = parsed.error.errors.map((e) => e.message).join(", ");
+        const errorMsg = parsed.error.issues.map((e) => e.message).join(", ");
         return { success: false, error: errorMsg };
     }
 

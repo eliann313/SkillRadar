@@ -59,7 +59,7 @@ describe("Linkedin Audit Actions", () => {
             openaiApiKey: null,
             anthropicApiKey: null,
             defaultAiProvider: "gemini",
-            defaultAiModel: "gemini-2.5-flash",
+            defaultAiModel: "gemini-3.6-flash",
         } as any);
 
         const mockAuditResult = {

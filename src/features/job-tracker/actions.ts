@@ -30,7 +30,7 @@ export async function createJobApplicationAction(input: unknown): Promise<Action
 
         const result = jobApplicationSchema.safeParse(input);
         if (!result.success) {
-            const firstError = result.error.errors[0]?.message || "Datos inválidos";
+            const firstError = result.error.issues[0]?.message || "Datos inválidos";
             return { success: false, error: firstError };
         }
 

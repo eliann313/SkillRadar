@@ -1,8 +1,12 @@
 export const PROVIDER_MODELS: Record<string, Array<{ id: string; name: string }>> = {
     gemini: [
         {
-            id: "gemini-3.5-flash",
-            name: "Gemini 3.5 Flash (¡Lanzamiento Reciente I/O 2026! - Agentes/Código)",
+            id: "gemini-3.6-flash",
+            name: "Gemini 3.6 Flash (¡Recomendado oficial! - Agentes/Código/ATS)",
+        },
+        {
+            id: "gemini-3.5-flash-lite",
+            name: "Gemini 3.5 Flash-Lite (Velocidad extrema y bajo costo)",
         },
         {
             id: "gemini-3.1-pro",
@@ -10,11 +14,7 @@ export const PROVIDER_MODELS: Record<string, Array<{ id: string; name: string }>
         },
         {
             id: "gemini-2.5-pro",
-            name: "Gemini 2.5 Pro (Equilibrio perfecto en código)",
-        },
-        {
-            id: "gemini-2.5-flash",
-            name: "Gemini 2.5 Flash (Velocidad estándar de la plataforma)",
+            name: "Gemini 2.5 Pro (Equilibrio en código)",
         },
         { id: "custom", name: "➕ Ingresar ID personalizado..." },
     ],
@@ -70,8 +70,8 @@ export const PROVIDER_MODELS: Record<string, Array<{ id: string; name: string }>
             name: "OpenRouter Free Router (Selecciona el mejor modelo gratuito activo)",
         },
         {
-            id: "google/gemini-2.5-flash",
-            name: "Gemini 2.5 Flash (Pago)",
+            id: "google/gemini-3.6-flash",
+            name: "Gemini 3.6 Flash (Pago)",
         },
         {
             id: "meta-llama/llama-3.1-70b-instruct",

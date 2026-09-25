@@ -147,13 +147,13 @@ export function LoginForm() {
     const isLoading = status === "loading" || isAuthLoading;
 
     return (
-        <main className="flex min-h-screen items-center justify-center p-4 relative w-full">
+        <main className="min-h-screen flex flex-col items-center justify-center p-4 py-8 sm:py-12 relative w-full bg-background overflow-x-hidden">
             {/* Top-right controls */}
-            <div className="absolute top-4 right-4 flex items-center gap-2">
+            <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex items-center gap-2">
                 <LanguageSwitcher />
                 <ThemeToggle />
             </div>
-            <div className="w-full max-w-md">
+            <div className="w-full max-w-md my-auto">
                 {/* Logo */}
                 <div className="mb-6 text-center">
                     <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-xl bg-primary/10 glow-emerald transition-all duration-300 hover:scale-105">
