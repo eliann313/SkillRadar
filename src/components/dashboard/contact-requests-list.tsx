@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,7 +56,7 @@ export function ContactRequestsList({ requests: initialRequests }: ContactReques
                 toast.error(res.error || "Error al enviar el reporte.");
             }
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             toast.error("Error al enviar el reporte.");
         } finally {
             setIsSubmittingReport(false);
@@ -75,7 +76,7 @@ export function ContactRequestsList({ requests: initialRequests }: ContactReques
                 toast.error(result.error || "Ocurrió un error al procesar.");
             }
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             toast.error("Error al procesar la propuesta de contacto.");
         } finally {
             setActionId(null);
@@ -93,7 +94,7 @@ export function ContactRequestsList({ requests: initialRequests }: ContactReques
                 toast.error(result.error || "Ocurrió un error al procesar.");
             }
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             toast.error("Error al procesar.");
         } finally {
             setActionId(null);

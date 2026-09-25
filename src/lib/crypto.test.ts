@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { describe, it, expect, vi } from "vitest";
 import type { User } from "@prisma/client";
 import { encrypt, decrypt } from "./crypto";
@@ -73,7 +74,7 @@ describe("Criptosistema AES-256-GCM (Tarjeta 7.3)", () => {
         const hasDatabaseUrl = !!process.env.DATABASE_URL;
 
         if (hasDatabaseUrl) {
-            console.warn(
+            logger.warn(
                 "🔌 [Crypto Test] Conexión real a base de datos Neon detectada. Ejecutando test de persistencia real...",
             );
 
@@ -110,15 +111,15 @@ describe("Criptosistema AES-256-GCM (Tarjeta 7.3)", () => {
                     where: { id: testUser.id },
                 });
 
-                console.warn(
+                logger.warn(
                     "✅ [Crypto Test] Test de persistencia real en Neon Postgres completado y limpio con éxito.",
                 );
             } catch (dbError) {
-                console.error("❌ [Crypto Test] Falló la persistencia real, procediendo con mock validation:", dbError);
+                logger.error("❌ [Crypto Test] Falló la persistencia real, procediendo con mock validation:", dbError);
                 throw dbError; // Si está configurado el URL pero falla, queremos que falle el test
             }
         } else {
-            console.warn(
+            logger.warn(
                 "ℹ️ [Crypto Test] No se detectó DATABASE_URL en el entorno. Ejecutando simulación segura mediante Mocking de Prisma...",
             );
 
@@ -196,7 +197,7 @@ describe("Criptosistema AES-256-GCM (Tarjeta 7.3)", () => {
 
             // Restaurar mocks originales
             vi.restoreAllMocks();
-            console.warn("✅ [Crypto Test] Simulación de persistencia Prisma completada y verificada exitosamente.");
+            logger.warn("✅ [Crypto Test] Simulación de persistencia Prisma completada y verificada exitosamente.");
         }
     });
 });

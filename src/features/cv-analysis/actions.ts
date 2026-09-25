@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { auth, assertActiveUser } from "@/lib/auth";
 import { trackServerEvent } from "@/lib/analytics";
 import { CVAnalysisService } from "./service";
@@ -166,7 +167,7 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
             },
         };
     } catch (error: unknown) {
-        console.error("[uploadAndParseCVAction] Error general:", error);
+        logger.error("[uploadAndParseCVAction] Error general:", error);
 
         // Manejar el caso de que el PDF no contenga texto legible
         if (error instanceof Error && error.message === "PDF_NOT_READABLE") {
@@ -198,7 +199,7 @@ export async function getUserResumesAction(): Promise<ActionResult<Resume[]>> {
             data: resumes,
         };
     } catch (error) {
-        console.error("[getUserResumesAction] Error recuperando currículums:", error);
+        logger.error("[getUserResumesAction] Error recuperando currículums:", error);
         return { success: false, error: "Error al recuperar tus currículums." };
     }
 }
@@ -297,7 +298,7 @@ export async function getProgressDataAction() {
         };
     } catch (error: unknown) {
         const errMessage = error instanceof Error ? error.message : "Error al obtener datos de progreso.";
-        console.error("[getProgressDataAction] Error:", errMessage);
+        logger.error("[getProgressDataAction] Error:", errMessage);
         return { success: false, error: errMessage };
     }
 }
@@ -316,7 +317,7 @@ export async function setActiveResumeAction(id: string): Promise<ActionResult<bo
         return { success: true, data: true };
     } catch (error: unknown) {
         const errMessage = error instanceof Error ? error.message : "Error al marcar el CV como activo.";
-        console.error("[setActiveResumeAction] Error:", errMessage);
+        logger.error("[setActiveResumeAction] Error:", errMessage);
         return { success: false, error: errMessage };
     }
 }
@@ -380,7 +381,7 @@ export async function deleteResumeAction(
         return { success: true, data: true };
     } catch (error: unknown) {
         const errMessage = error instanceof Error ? error.message : "Error al eliminar el currículum.";
-        console.error("[deleteResumeAction] Error:", errMessage);
+        logger.error("[deleteResumeAction] Error:", errMessage);
         return { success: false, error: errMessage };
     }
 }
@@ -651,7 +652,7 @@ ${demandedSkills.join(", ") || "React, Node.js, TypeScript, Next.js, Docker, AWS
                 },
             });
         } catch (dbError) {
-            console.error("[getCareerRecommendationsAction] Error al guardar en caché:", dbError);
+            logger.error("[getCareerRecommendationsAction] Error al guardar en caché:", dbError);
         }
 
         return {
@@ -659,7 +660,7 @@ ${demandedSkills.join(", ") || "React, Node.js, TypeScript, Next.js, Docker, AWS
             data: result,
         };
     } catch (error: unknown) {
-        console.error("[getCareerRecommendationsAction] Error:", error);
+        logger.error("[getCareerRecommendationsAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al procesar las sugerencias del Career Copilot.",

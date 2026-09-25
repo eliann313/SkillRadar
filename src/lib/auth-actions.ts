@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
@@ -23,7 +24,7 @@ export async function updateUserRole(role: "developer" | "recruiter") {
         revalidatePath("/");
         return { success: true };
     } catch (error: unknown) {
-        console.error("[updateUserRole] Error al actualizar rol:", error);
+        logger.error("[updateUserRole] Error al actualizar rol:", error);
         return { success: false, error: "Error interno al actualizar el rol" };
     }
 }
@@ -89,7 +90,7 @@ export async function registerUserAction(input: {
 
         return { success: true, message: "Usuario registrado con éxito." };
     } catch (error: unknown) {
-        console.error("[registerUserAction] Error registrando usuario:", error);
+        logger.error("[registerUserAction] Error registrando usuario:", error);
         return {
             success: false,
             error: "Ocurrió un error inesperado al registrar el usuario.",
@@ -149,19 +150,19 @@ export async function requestPasswordResetAction(email: string) {
                         html: `<p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace para restablecerla (expira en 15 minutos):</p><p><a href="${resetLink}">${resetLink}</a></p>`,
                     }),
                 });
-                console.warn(`✉️ [Resend] Correo enviado a ${sanitizedEmail}`);
+                logger.warn(`✉️ [Resend] Correo enviado a ${sanitizedEmail}`);
             } catch (mailError) {
-                console.error("❌ Error al enviar email con Resend:", mailError);
+                logger.error("❌ Error al enviar email con Resend:", mailError);
             }
         } else {
-            console.warn(
+            logger.warn(
                 `\n🔑 [Reset Password Simulation] Link de restablecimiento para ${sanitizedEmail}:\n🔗 ${resetLink}\n`,
             );
         }
 
         return { success: true, message: "Si el correo está registrado, se enviarán las instrucciones." };
     } catch (error: unknown) {
-        console.error("[requestPasswordResetAction] Error:", error);
+        logger.error("[requestPasswordResetAction] Error:", error);
         return { success: false, error: "Error al solicitar el restablecimiento." };
     }
 }
@@ -196,7 +197,7 @@ export async function resetPasswordAction(input: z.infer<typeof resetPasswordSch
 
         return { success: true, message: "Tu contraseña ha sido restablecida con éxito." };
     } catch (error: unknown) {
-        console.error("[resetPasswordAction] Error:", error);
+        logger.error("[resetPasswordAction] Error:", error);
         return { success: false, error: "Error al restablecer la contraseña." };
     }
 }

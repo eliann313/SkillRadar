@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
+import { logger } from "@/lib/logger";
 
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -195,7 +196,7 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                 toast.success("¡Resultados ordenados y filtrados por la IA con éxito!");
             }
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             toast.error("Error al conectar con el servidor.");
         } finally {
             setIsSourcingAI(false);
@@ -229,7 +230,7 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                         toast.error(result.error || "No se pudieron obtener las estadísticas de Market Intelligence.");
                     }
                 } catch (e) {
-                    console.error(e);
+                    logger.error(e);
                     toast.error("Error al conectar con el servidor.");
                 } finally {
                     setIsLoadingMarketData(false);
@@ -250,7 +251,7 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                 setTalents((prev) => prev.map((t) => (t.id === developerId ? { ...t, isShortlisted: added } : t)));
             }
         } catch (e) {
-            console.error(e);
+            logger.error(e);
             toast.error("Error al procesar favoritos.");
         }
     };
@@ -329,7 +330,7 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                 toast.success("¡Talent Pool ordenado por afinidad de IA con éxito!");
             }
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             toast.error("Ocurrió un error inesperado al procesar.");
         } finally {
             setIsMatching(false);
@@ -375,7 +376,7 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                 setIsContactDialogOpen(false);
             }
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             toast.error("Error al procesar la propuesta de contacto.");
         } finally {
             setIsSendingPitch(false);

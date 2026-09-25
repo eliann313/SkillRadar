@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { escapeHtml, isSafeInternalLink } from "@/lib/pii";
@@ -82,12 +83,12 @@ export async function createNotification(params: {
                 }
             }
         } catch (mailError) {
-            console.error("[createNotification] Error processing email logic:", mailError);
+            logger.error("[createNotification] Error processing email logic:", mailError);
         }
 
         return notification;
     } catch (error) {
-        console.error("[createNotification] Error creating notification in database:", error);
+        logger.error("[createNotification] Error creating notification in database:", error);
         throw error;
     }
 }

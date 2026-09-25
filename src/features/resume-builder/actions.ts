@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { AIService, type AIServiceOptions } from "@/lib/ai";
@@ -89,7 +90,7 @@ ${experienceText}
             data: analysis,
         };
     } catch (error: unknown) {
-        console.error("[analyzeImpactVerbsAction] Error:", error);
+        logger.error("[analyzeImpactVerbsAction] Error:", error);
 
         // Simulación offline si fallan las API keys o hay algún error
         return {
@@ -165,7 +166,7 @@ export async function saveResumeDataAction(
             data: { resumeId: newResume.id },
         };
     } catch (error: unknown) {
-        console.error("[saveResumeDataAction] Error:", error);
+        logger.error("[saveResumeDataAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al guardar el currículum.",

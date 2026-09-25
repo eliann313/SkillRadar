@@ -1,17 +1,28 @@
-type Level = "info" | "warn" | "error";
+/* eslint-disable no-console */
+/**
+ * Logger centralizado de SkillRadar (único lugar con `console.*` permitido).
+ *
+ * Envoltorio fino sobre `console.*` con prefijo `[SkillRadar]` y niveles
+ * debug/info/warn/error. Firma variádica: `logger.error("ctx", err, meta)`.
+ * - Seguro en cliente, servidor y Edge (sin dependencias Node).
+ * - `debug` se silencia en producción.
+ * - Llama a `console.*` por lookup dinámico en cada llamada para no romper
+ *   spies de tests (`vi.spyOn(console, ...)`).
+ *
+ * Regla: no usar `console.*` directo en `src/` (ver `no-console` en eslint).
+ */
+type LogMethod = "debug" | "info" | "warn" | "error";
 
-function log(level: Level, message: string, meta?: unknown) {
-    // oxlint/no-console: centralizamos el logging aquí; info usa warn para respetar la regla no-console del repo
-    const fn = level === "error" ? console.error : console.warn;
-    if (meta !== undefined) {
-        fn(`[${level.toUpperCase()}] ${message}`, meta);
-    } else {
-        fn(`[${level.toUpperCase()}] ${message}`);
+function emit(method: LogMethod, args: unknown[]): void {
+    if (method === "debug" && process.env.NODE_ENV === "production") {
+        return;
     }
+    console[method]("[SkillRadar]", ...args);
 }
 
 export const logger = {
-    info: (msg: string, meta?: unknown) => log("info", msg, meta),
-    warn: (msg: string, meta?: unknown) => log("warn", msg, meta),
-    error: (msg: string, meta?: unknown) => log("error", msg, meta),
+    debug: (...args: unknown[]): void => emit("debug", args),
+    info: (...args: unknown[]): void => emit("info", args),
+    warn: (...args: unknown[]): void => emit("warn", args),
+    error: (...args: unknown[]): void => emit("error", args),
 };

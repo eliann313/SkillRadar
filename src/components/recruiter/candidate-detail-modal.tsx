@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useState } from "react";
 import type { TalentCard } from "@/lib/types";
 import {
@@ -152,7 +153,7 @@ export function CandidateDetailModal({ isOpen, onOpenChange, candidate, jobDescr
                 toast.error(res.error);
             }
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             toast.error("Ocurrió un error al generar las preguntas");
         } finally {
             setIsGeneratingQuestions(false);
@@ -221,7 +222,7 @@ export function CandidateDetailModal({ isOpen, onOpenChange, candidate, jobDescr
             doc.save(`Guia_Entrevista_${nameSanitized}.pdf`);
             toast.success("PDF descargado correctamente");
         } catch (error) {
-            console.error("Error generando PDF:", error);
+            logger.error("Error generando PDF:", error);
             toast.error("Ocurrió un error al compilar el PDF");
         }
     };

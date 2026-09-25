@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -81,7 +82,7 @@ export async function POST(req: NextRequest) {
                 ]);
                 cvContext += `\nTareas abiertas del roadmap: ${openTasks}. Postulaciones activas: ${activeApplications}.`;
             } catch (dbErr) {
-                console.error("[Career Copilot] Error al cargar CV:", dbErr);
+                logger.error("[Career Copilot] Error al cargar CV:", dbErr);
             }
         }
 
@@ -199,7 +200,7 @@ ${cvContext}
 
             return result.toTextStreamResponse();
         } catch (streamError) {
-            console.warn(
+            logger.warn(
                 "⚠️ [Career Copilot Route] Failed to initialize live stream. Returning offline mock stream response.",
                 streamError,
             );
@@ -239,7 +240,7 @@ ${cvContext}
             });
         }
     } catch (error: unknown) {
-        console.error("[Career Copilot API] Error:", error);
+        logger.error("[Career Copilot API] Error:", error);
         return NextResponse.json({ error: "Error interno del servidor." }, { status: 500 });
     }
 }

@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
@@ -55,7 +56,7 @@ export async function getNotificationsAction(
             },
         };
     } catch (error) {
-        console.error("[getNotificationsAction] Error:", error);
+        logger.error("[getNotificationsAction] Error:", error);
         return { success: false, error: "Error al recuperar las notificaciones." };
     }
 }
@@ -92,7 +93,7 @@ export async function markAsReadAction(notificationId: string): Promise<ActionRe
         revalidatePath("/dashboard");
         return { success: true, data: true };
     } catch (error) {
-        console.error("[markAsReadAction] Error:", error);
+        logger.error("[markAsReadAction] Error:", error);
         return { success: false, error: "Error al marcar la notificación como leída." };
     }
 }
@@ -117,7 +118,7 @@ export async function markAllAsReadAction(): Promise<ActionResult<boolean>> {
         revalidatePath("/dashboard");
         return { success: true, data: true };
     } catch (error) {
-        console.error("[markAllAsReadAction] Error:", error);
+        logger.error("[markAllAsReadAction] Error:", error);
         return { success: false, error: "Error al marcar todas las notificaciones como leídas." };
     }
 }

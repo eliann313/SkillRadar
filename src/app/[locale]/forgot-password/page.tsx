@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +33,7 @@ export default function ForgotPasswordPage() {
                 toast.error(res.error || "Ocurrió un error.");
             }
         } catch (err) {
-            console.error(err);
+            logger.error(err);
             toast.error("Ocurrió un error inesperado.");
         } finally {
             setIsLoading(false);

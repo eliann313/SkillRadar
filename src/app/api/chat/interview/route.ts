@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -137,7 +138,7 @@ export async function POST(req: NextRequest) {
                     apiKey = decrypted;
                 }
             } catch (err) {
-                console.error("[Chat API] Error al desencriptar clave del usuario, usando fallback global:", err);
+                logger.error("[Chat API] Error al desencriptar clave del usuario, usando fallback global:", err);
             }
         }
 
@@ -181,7 +182,7 @@ export async function POST(req: NextRequest) {
             : [];
 
         if (!apiKey) {
-            console.warn("⚠️ [Interview Route] No API Key configured. Returning offline mock stream response.");
+            logger.warn("⚠️ [Interview Route] No API Key configured. Returning offline mock stream response.");
             const encoder = new TextEncoder();
 
             const lastMsg = formattedMessages[formattedMessages.length - 1]?.content || "";
@@ -228,7 +229,7 @@ export async function POST(req: NextRequest) {
 
             return result.toTextStreamResponse();
         } catch (streamError) {
-            console.warn(
+            logger.warn(
                 "⚠️ [Interview Route] Failed to initialize live stream. Returning offline mock stream response.",
                 streamError,
             );
@@ -266,7 +267,7 @@ export async function POST(req: NextRequest) {
             });
         }
     } catch (error: unknown) {
-        console.error("[Interview Chat Endpoint] Error:", error);
+        logger.error("[Interview Chat Endpoint] Error:", error);
         return NextResponse.json({ error: "Error interno del servidor." }, { status: 500 });
     }
 }

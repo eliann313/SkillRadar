@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { AIService, type AIServiceOptions } from "@/lib/ai";
@@ -69,7 +70,7 @@ export async function getLinkedinAuditHistoryAction(): Promise<
             }),
         };
     } catch (error: unknown) {
-        console.error("[getLinkedinAuditHistoryAction] Error:", error);
+        logger.error("[getLinkedinAuditHistoryAction] Error:", error);
         return { success: false, error: "Error al cargar el historial." };
     }
 }
@@ -169,7 +170,7 @@ ${profileText.slice(0, 6000)}
             data: audit,
         };
     } catch (error: unknown) {
-        console.error("[auditLinkedinProfileAction] Error:", error);
+        logger.error("[auditLinkedinProfileAction] Error:", error);
 
         // Simulación offline en caso de error
         return {

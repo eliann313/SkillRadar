@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
 import { trackServerEvent } from "@/lib/analytics";
 import { checkJobMatchRateLimit, getClientIp } from "@/lib/rate-limit";
@@ -62,7 +63,7 @@ export async function createJobMatchAction(input: CreateJobMatchActionInput): Pr
             data: jobMatch,
         };
     } catch (error: unknown) {
-        console.error("[createJobMatchAction] Error general:", error);
+        logger.error("[createJobMatchAction] Error general:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Ocurrió un error inesperado al procesar el matching.",
@@ -80,7 +81,7 @@ export async function getJobMatchesHistoryAction(): Promise<ActionResult<JobMatc
         const history = await JobMatchService.getJobMatchesHistory(session.user.id);
         return { success: true, data: history };
     } catch (error: unknown) {
-        console.error("[getJobMatchesHistoryAction] Error general:", error);
+        logger.error("[getJobMatchesHistoryAction] Error general:", error);
         return { success: false, error: "Error al recuperar historial de matches." };
     }
 }
@@ -97,7 +98,7 @@ export async function deleteJobMatchAction(id: string): Promise<ActionResult<boo
 
         return { success: true, data: true };
     } catch (error: unknown) {
-        console.error("[deleteJobMatchAction] Error general:", error);
+        logger.error("[deleteJobMatchAction] Error general:", error);
         return { success: false, error: "Error al eliminar el registro de matching." };
     }
 }
@@ -112,7 +113,7 @@ export async function generateSmartPitchAction(jobMatchId: string): Promise<Acti
         const pitch = await JobMatchService.generateSmartPitch(jobMatchId, session.user.id);
         return { success: true, data: pitch };
     } catch (error: unknown) {
-        console.error("[generateSmartPitchAction] Error:", error);
+        logger.error("[generateSmartPitchAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al generar el pitch de valor.",

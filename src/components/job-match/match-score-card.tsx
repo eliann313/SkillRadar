@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +39,7 @@ export function MatchScoreCard({ match, demo = false }: MatchScoreCardProps) {
                 toast.error(res.error);
             }
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             toast.error(t("pitchError"));
         } finally {
             setIsGeneratingPitch(false);
@@ -53,7 +54,7 @@ export function MatchScoreCard({ match, demo = false }: MatchScoreCardProps) {
             toast.success(t("copiedSuccess"));
             setTimeout(() => setIsCopied(false), 2000);
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             toast.error(t("copyError"));
         }
     };

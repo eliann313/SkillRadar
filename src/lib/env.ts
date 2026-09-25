@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { z } from "zod";
 
 const isProd = process.env.NODE_ENV === "production";
@@ -37,7 +38,7 @@ let validatedEnv: z.infer<typeof envSchema>;
 if (!parsedEnv.success) {
     if (isBuildTime) {
         // En fase de construcción o CI, permitimos continuar con placeholders para evitar crasheos de compilación/despliegue
-        console.warn(
+        logger.warn(
             "⚠️ [Warning] Faltan variables de entorno requeridas, pero se permiten placeholders por encontrarse en fase de build/CI:",
             parsedEnv.error.format(),
         );
@@ -59,7 +60,7 @@ if (!parsedEnv.success) {
             UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
         };
     } else {
-        console.error("❌ Error en la validación de variables de entorno:", parsedEnv.error.format());
+        logger.error("❌ Error en la validación de variables de entorno:", parsedEnv.error.format());
         throw new Error("Variables de entorno inválidas o faltantes");
     }
 } else {
@@ -75,7 +76,7 @@ if (!isProd && parsedEnv.success) {
     if (!parsedEnv.data.UPSTASH_REDIS_REST_TOKEN) missingApis.push("UPSTASH_REDIS_REST_TOKEN");
 
     if (missingApis.length > 0) {
-        console.warn(
+        logger.warn(
             `⚠️ [Warning] Las siguientes variables de APIs externas no están configuradas en desarrollo: ${missingApis.join(", ")}. Algunas funciones (como la carga de CV y el análisis con IA) no estarán disponibles.`,
         );
     }

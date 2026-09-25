@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
@@ -13,7 +14,7 @@ interface ErrorProps {
 export default function DashboardError({ error, reset }: ErrorProps) {
     useEffect(() => {
         // Registrar el error para observabilidad
-        console.error("Dashboard Error Boundary:", error);
+        logger.error("Dashboard Error Boundary:", error);
     }, [error]);
 
     return (

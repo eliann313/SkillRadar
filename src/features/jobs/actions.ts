@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
 import { trackServerEvent } from "@/lib/analytics";
 import { db } from "@/lib/db";
@@ -82,7 +83,7 @@ export async function createJobPostingAction(rawInput: unknown): Promise<ActionR
         revalidatePath("/dashboard/recruiter/postings");
         return { success: true, data: newJob };
     } catch (error) {
-        console.error("[createJobPostingAction] Error:", error);
+        logger.error("[createJobPostingAction] Error:", error);
         return { success: false, error: (error as Error).message || "Error al crear la oferta de trabajo." };
     }
 }
@@ -115,7 +116,7 @@ export async function updateJobPostingAction(id: string, rawInput: unknown): Pro
         revalidatePath("/dashboard/recruiter/postings");
         return { success: true, data: updatedJob };
     } catch (error) {
-        console.error("[updateJobPostingAction] Error:", error);
+        logger.error("[updateJobPostingAction] Error:", error);
         return { success: false, error: (error as Error).message || "Error al actualizar la oferta de trabajo." };
     }
 }
@@ -143,7 +144,7 @@ export async function publishJobPostingAction(id: string): Promise<ActionResult<
         revalidatePath("/dashboard/jobs");
         return { success: true, data: publishedJob };
     } catch (error) {
-        console.error("[publishJobPostingAction] Error:", error);
+        logger.error("[publishJobPostingAction] Error:", error);
         return { success: false, error: (error as Error).message || "Error al publicar la oferta de trabajo." };
     }
 }
@@ -168,7 +169,7 @@ export async function closeJobPostingAction(id: string): Promise<ActionResult<Jo
         revalidatePath("/dashboard/jobs");
         return { success: true, data: closedJob };
     } catch (error) {
-        console.error("[closeJobPostingAction] Error:", error);
+        logger.error("[closeJobPostingAction] Error:", error);
         return { success: false, error: (error as Error).message || "Error al cerrar la oferta de trabajo." };
     }
 }
@@ -186,7 +187,7 @@ export async function getRecruiterJobPostingsAction(): Promise<ActionResult<JobP
         const jobs = await JobPostingService.getRecruiterJobPostings(session.user.id);
         return { success: true, data: jobs as JobPostingWithCount[] };
     } catch (error) {
-        console.error("[getRecruiterJobPostingsAction] Error:", error);
+        logger.error("[getRecruiterJobPostingsAction] Error:", error);
         return { success: false, error: "Error al cargar las ofertas de trabajo." };
     }
 }
@@ -205,7 +206,7 @@ export async function getJobPostingApplicationsAction(jobPostingId: string): Pro
         const apps = await JobPostingService.getJobPostingApplications(session.user.id, jobPostingId);
         return { success: true, data: apps };
     } catch (error) {
-        console.error("[getJobPostingApplicationsAction] Error:", error);
+        logger.error("[getJobPostingApplicationsAction] Error:", error);
         return { success: false, error: (error as Error).message || "Error al cargar las postulaciones." };
     }
 }
@@ -228,7 +229,7 @@ export async function updateApplicationStatusAction(
         revalidatePath(`/dashboard/recruiter/postings/${updatedApp.jobPostingId}/applications`);
         return { success: true, data: updatedApp };
     } catch (error) {
-        console.error("[updateApplicationStatusAction] Error:", error);
+        logger.error("[updateApplicationStatusAction] Error:", error);
         return {
             success: false,
             error: (error as Error).message || "Error al actualizar el estado de la postulación.",
@@ -253,7 +254,7 @@ export async function getDeveloperJobBoardAction(filters?: {
         const jobs = await JobPostingService.getDeveloperJobBoard(session.user.id, filters);
         return { success: true, data: jobs as JobPostingWithMatch[] };
     } catch (error) {
-        console.error("[getDeveloperJobBoardAction] Error:", error);
+        logger.error("[getDeveloperJobBoardAction] Error:", error);
         return { success: false, error: "Error al cargar las ofertas del Job Board." };
     }
 }
@@ -312,7 +313,7 @@ export async function applyToJobPostingAction(jobPostingId: string): Promise<Act
         revalidatePath("/dashboard/job-tracker");
         return { success: true, data: application };
     } catch (error) {
-        console.error("[applyToJobPostingAction] Error:", error);
+        logger.error("[applyToJobPostingAction] Error:", error);
         return { success: false, error: (error as Error).message || "Error al enviar tu postulación." };
     }
 }
@@ -350,7 +351,7 @@ export async function createReportAction(rawInput: unknown): Promise<ActionResul
         const limitResult = await checkContentReportRateLimit(identifier);
 
         if (!limitResult.success) {
-            console.warn(
+            logger.warn(
                 `🛡️ [RateLimit] Reporte de contenido bloqueado para el usuario ${reporterId}. Excedió límite de 5/día.`,
             );
             const resetTime = new Date(limitResult.reset);
@@ -368,7 +369,7 @@ export async function createReportAction(rawInput: unknown): Promise<ActionResul
         revalidatePath("/dashboard/jobs");
         return { success: true, data: true };
     } catch (error) {
-        console.error("[createReportAction] Error:", error);
+        logger.error("[createReportAction] Error:", error);
         return { success: false, error: (error as Error).message || "Error al enviar el reporte." };
     }
 }
@@ -388,7 +389,7 @@ export async function extendJobPostingExpirationAction(id: string): Promise<Acti
         revalidatePath("/dashboard/recruiter/postings");
         return { success: true, data: updatedJob };
     } catch (error) {
-        console.error("[extendJobPostingExpirationAction] Error:", error);
+        logger.error("[extendJobPostingExpirationAction] Error:", error);
         return {
             success: false,
             error: (error as Error).message || "Error al extender la expiración de la oferta.",
@@ -414,7 +415,7 @@ export async function withdrawApplicationAction(jobPostingId: string): Promise<A
         revalidatePath("/dashboard/job-tracker");
         return { success: true, data: application };
     } catch (error) {
-        console.error("[withdrawApplicationAction] Error:", error);
+        logger.error("[withdrawApplicationAction] Error:", error);
         return { success: false, error: (error as Error).message || "Error al retirar tu postulación." };
     }
 }

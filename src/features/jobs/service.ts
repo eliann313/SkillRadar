@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { db } from "@/lib/db";
 import { createNotification } from "@/lib/notifications";
 import { JobMatchService } from "@/features/job-match/service";
@@ -228,7 +229,7 @@ export class JobPostingService {
                 analysis,
             };
         } catch (error) {
-            console.error(
+            logger.error(
                 "[getOrCalculateMatchScore] Error calculando match para resume y job:",
                 resumeId,
                 jobPostingId,
@@ -382,7 +383,7 @@ export class JobPostingService {
                         },
                     });
                 } catch (kanbanError) {
-                    console.error("[applyToJobPosting] Error creando card en el Kanban del Job Tracker:", kanbanError);
+                    logger.error("[applyToJobPosting] Error creando card en el Kanban del Job Tracker:", kanbanError);
                 }
 
                 return application;
@@ -441,7 +442,7 @@ export class JobPostingService {
             });
         } catch (kanbanError) {
             // Registrar error pero no hacer fallar la postulación completa
-            console.error("[applyToJobPosting] Error creando card en el Kanban del Job Tracker:", kanbanError);
+            logger.error("[applyToJobPosting] Error creando card en el Kanban del Job Tracker:", kanbanError);
         }
 
         return application;
@@ -676,7 +677,7 @@ export class JobPostingService {
             const limiterKey = `proactive-match:${jobPosting.recruiterId}`;
             const limitResult = await checkProactiveMatchingRateLimit(limiterKey);
             if (!limitResult.success) {
-                console.warn(
+                logger.warn(
                     `🛡️ [RateLimit] Matching proactivo bloqueado para el recruiter ${jobPosting.recruiterId}. Excedió límite de 50/día.`,
                 );
                 return;
@@ -725,7 +726,7 @@ export class JobPostingService {
                 }
             }
         } catch (error) {
-            console.error("[triggerProactiveMatching] Error en trigger asíncrono de matching:", error);
+            logger.error("[triggerProactiveMatching] Error en trigger asíncrono de matching:", error);
         }
     }
 
@@ -778,7 +779,7 @@ export class JobPostingService {
                     where: { id: data.targetId },
                     data: { status: "under_review" },
                 });
-                console.warn(
+                logger.warn(
                     `⚠️ [Moderation] La oferta laboral ${data.targetId} ha sido puesta en revisión (under_review) tras acumular ${reportCount} reportes.`,
                 );
             }

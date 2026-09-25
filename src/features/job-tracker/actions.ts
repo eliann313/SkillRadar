@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { JobTrackerService } from "./service";
@@ -19,7 +20,7 @@ export async function getJobApplicationsAction(): Promise<ActionResult<JobApplic
         const data = await JobTrackerService.getJobApplications(session.user.id);
         return { success: true, data };
     } catch (error: unknown) {
-        console.error("[getJobApplicationsAction] Error:", error);
+        logger.error("[getJobApplicationsAction] Error:", error);
         return { success: false, error: "Error al recuperar tus postulaciones." };
     }
 }
@@ -53,7 +54,7 @@ export async function createJobApplicationAction(input: unknown): Promise<Action
         revalidatePath("/dashboard/job-tracker");
         return { success: true, data: application };
     } catch (error: unknown) {
-        console.error("[createJobApplicationAction] Error:", error);
+        logger.error("[createJobApplicationAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al crear la postulación.",
@@ -80,7 +81,7 @@ export async function updateJobApplicationStatusAction(
         revalidatePath("/dashboard/job-tracker");
         return { success: true, data: updated };
     } catch (error: unknown) {
-        console.error("[updateJobApplicationStatusAction] Error:", error);
+        logger.error("[updateJobApplicationStatusAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al actualizar el estado de la postulación.",
@@ -99,7 +100,7 @@ export async function deleteJobApplicationAction(id: string): Promise<ActionResu
         revalidatePath("/dashboard/job-tracker");
         return { success: true, data: true };
     } catch (error: unknown) {
-        console.error("[deleteJobApplicationAction] Error:", error);
+        logger.error("[deleteJobApplicationAction] Error:", error);
         return { success: false, error: "Error al eliminar la postulación." };
     }
 }

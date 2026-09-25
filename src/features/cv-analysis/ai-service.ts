@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { atsAnalysisSchema, type ATSAnalysis } from "./types";
 import { env } from "@/lib/env";
 import { db } from "@/lib/db";
@@ -14,7 +15,7 @@ export class CVAnalysisAIService {
 
         if (userId) {
             try {
-                console.warn(`[CVAnalysisAIService] Cargando API keys y preferencias para usuario ID: ${userId}...`);
+                logger.warn(`[CVAnalysisAIService] Cargando API keys y preferencias para usuario ID: ${userId}...`);
                 const user = await db.user.findUnique({
                     where: { id: userId },
                     select: {
@@ -38,12 +39,12 @@ export class CVAnalysisAIService {
                         preferredProvider: user.defaultAiProvider,
                         preferredModel: user.defaultAiModel,
                     };
-                    console.warn(
+                    logger.warn(
                         `[CVAnalysisAIService] Proveedor preferido: ${userSettings.preferredProvider} (${userSettings.preferredModel})`,
                     );
                 }
             } catch (dbError) {
-                console.error(
+                logger.error(
                     "❌ [CVAnalysisAIService] Error cargando preferencias del usuario de base de datos:",
                     dbError,
                 );
@@ -68,14 +69,14 @@ export class CVAnalysisAIService {
         );
 
         if (!hasGlobalKeys && !hasUserKeys) {
-            console.warn(
+            logger.warn(
                 "⚠️ [CVAnalysisAIService] No hay claves API globales ni de usuario configuradas. Ejecutando en Modo Simulación Offline (Mock).",
             );
             return this.generateSimulatedAnalysis(cvText);
         }
 
         try {
-            console.warn(`[CVAnalysisAIService] Iniciando análisis ATS estructurado con AIService unificado...`);
+            logger.warn(`[CVAnalysisAIService] Iniciando análisis ATS estructurado con AIService unificado...`);
 
             const object = await AIService.generateStructuredObject<ATSAnalysis>({
                 schema: atsAnalysisSchema,
@@ -116,13 +117,13 @@ FORMATO: strengths/improvements/formatIssues concretos y accionables. keywords =
                 userSettings,
             });
 
-            console.warn("[CVAnalysisAIService] Análisis completado con éxito a través del AIService.");
+            logger.warn("[CVAnalysisAIService] Análisis completado con éxito a través del AIService.");
             return this.clampAnalysis(object);
         } catch (error) {
-            console.error("[CVAnalysisAIService] Error durante el análisis con AIService:", error);
+            logger.error("[CVAnalysisAIService] Error durante el análisis con AIService:", error);
 
             // Fallback robusto por si falla la llamada
-            console.warn(
+            logger.warn(
                 "⚠️ [CVAnalysisAIService] Falló la inferencia del AIService. Retornando simulación como fallback.",
             );
             return this.generateSimulatedAnalysis(cvText);

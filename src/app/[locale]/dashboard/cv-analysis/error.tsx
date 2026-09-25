@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { FileWarning, RefreshCw, ArrowLeft } from "lucide-react";
@@ -12,7 +13,7 @@ interface ErrorProps {
 
 export default function CVAnalysisError({ error, reset }: ErrorProps) {
     useEffect(() => {
-        console.error("CV Analysis Error:", error);
+        logger.error("CV Analysis Error:", error);
     }, [error]);
 
     return (

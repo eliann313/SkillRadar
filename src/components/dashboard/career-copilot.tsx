@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useChat, type UIMessage } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
@@ -53,7 +54,7 @@ export function CareerCopilot() {
                     }
                 }
             } catch (err) {
-                console.error("Error fetching API keys status for Career Copilot:", err);
+                logger.error("Error fetching API keys status for Career Copilot:", err);
             }
         };
         void fetchStatus();

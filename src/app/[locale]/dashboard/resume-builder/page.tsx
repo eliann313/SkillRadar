@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logger";
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -271,7 +272,7 @@ export default function ResumeBuilderPage() {
                 toast.error(result.error || "Fallo en el análisis de verbos.");
             }
         } catch (e) {
-            console.error(e);
+            logger.error(e);
             toast.error("Ocurrió un error al procesar el análisis.");
         } finally {
             setIsAnalyzing(false);
@@ -338,7 +339,7 @@ export default function ResumeBuilderPage() {
                 toast.error(result.error || "Fallo al guardar el currículum.");
             }
         } catch (e) {
-            console.error(e);
+            logger.error(e);
             toast.error("Error al guardar el currículum.");
         } finally {
             setIsSaving(false);

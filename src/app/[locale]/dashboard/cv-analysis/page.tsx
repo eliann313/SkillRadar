@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { CVUploadForm, AnalysisResults } from "@/components/cv-analysis";
@@ -96,7 +97,7 @@ export default function CVAnalysisPage() {
                 }
             }
         } catch (error) {
-            console.error("Error al analizar el CV:", error);
+            logger.error("Error al analizar el CV:", error);
             toast.error(t("unexpectedError"));
         } finally {
             setIsLoading(false);

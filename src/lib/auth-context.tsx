@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import type { Session } from "next-auth";
@@ -108,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // which would lead to infinitely nested callbackUrl query strings.
             await signIn(provider, { callbackUrl: "/" });
         } catch (err) {
-            console.error("Provider login error:", err);
+            logger.error("Provider login error:", err);
         } finally {
             setIsLoading(false);
         }
@@ -128,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Guardar en base de datos vía Server Action
             const result = await updateUserRole(role);
             if (!result.success) {
-                console.error("Error updating user role in DB:", result.error);
+                logger.error("Error updating user role in DB:", result.error);
                 return;
             }
 

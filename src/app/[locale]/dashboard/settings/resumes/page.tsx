@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,7 +76,7 @@ export default function ResumesSettingsPage() {
                 toast.error(result.error || "Error al cargar tus currículums.");
             }
         } catch (err) {
-            console.error("Error cargando CVs:", err);
+            logger.error("Error cargando CVs:", err);
             toast.error("Ocurrió un error al obtener la lista de currículums.");
         } finally {
             setLoading(false);
@@ -108,7 +109,7 @@ export default function ResumesSettingsPage() {
                 toast.error(result.error || "No se pudo actualizar el CV activo.");
             }
         } catch (err) {
-            console.error("Error setting active CV:", err);
+            logger.error("Error setting active CV:", err);
             toast.error("Error al realizar la acción.");
         } finally {
             setActionLoading(null);
@@ -139,7 +140,7 @@ export default function ResumesSettingsPage() {
                 toast.error(result.error || "No se pudo eliminar el currículum.");
             }
         } catch (err) {
-            console.error("Error deleting CV:", err);
+            logger.error("Error deleting CV:", err);
             toast.error("Error al procesar la eliminación.");
         } finally {
             setActionLoading(null);
@@ -162,7 +163,7 @@ export default function ResumesSettingsPage() {
                 toast.error(result.error || "Error al forzar la eliminación.");
             }
         } catch (err) {
-            console.error("Error force deleting CV:", err);
+            logger.error("Error force deleting CV:", err);
             toast.error("Error de servidor.");
         } finally {
             setActionLoading(null);
