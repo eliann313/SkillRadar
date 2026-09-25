@@ -15,7 +15,8 @@
         "test:watch": "vitest",
         "security:scan": "semgrep scan --config auto .",
         "postinstall": "prisma generate",
-        "prepare": "husky"
+        "prepare": "husky",
+        "type-check:ts7": "node node_modules/typescript-7/bin/tsc --noEmit"
     },
     "dependencies": {
         "@ai-sdk/anthropic": "^4.0.39",
@@ -85,7 +86,8 @@
         "prisma": "7.10.0",
         "semgrep": "^0.0.1",
         "tailwindcss": "4.3.3",
-        "typescript": "^6.0.3",
+        "typescript": "npm:@typescript/typescript6@^6.0.2",
+        "typescript-7": "npm:typescript@^7.0.2",
         "vitest": "5.0.1"
     },
     "overrides": {
