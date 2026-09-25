@@ -4,9 +4,10 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Shield, Flag } from "lucide-react";
+import { Check, X, Shield, Flag, MessageCircle } from "lucide-react";
 import { acceptContactRequestAction, declineContactRequestAction } from "@/features/developer-requests/actions";
 import { createReportAction } from "@/features/jobs/actions";
+import { ContactThread } from "@/components/recruiter/contact-thread";
 import { toast } from "sonner";
 
 export interface RequestItem {
@@ -29,6 +30,7 @@ export function ContactRequestsList({ requests: initialRequests }: ContactReques
     const [reportingReqId, setReportingReqId] = useState<string | null>(null);
     const [reportReason, setReportReason] = useState("");
     const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+    const [threadReqId, setThreadReqId] = useState<string | null>(null);
 
     const handleSendReport = async () => {
         if (!reportingReqId) return;
@@ -139,8 +141,19 @@ export function ContactRequestsList({ requests: initialRequests }: ContactReques
                                 <div className="rounded-md bg-muted/40 p-3 border border-border/40 text-xs italic text-foreground leading-relaxed">
                                     &ldquo;{req.message}&rdquo;
                                 </div>
+                                {threadReqId === req.id ? <ContactThread requestId={req.id} /> : null}
                             </div>
                             <div className="flex gap-2 shrink-0 justify-end items-center">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    title="Responder por mensaje"
+                                    onClick={() => setThreadReqId((prev) => (prev === req.id ? null : req.id))}
+                                    disabled={isBusy}
+                                    className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 shrink-0"
+                                >
+                                    <MessageCircle className="size-3.5" />
+                                </Button>
                                 <Button
                                     variant="ghost"
                                     size="sm"

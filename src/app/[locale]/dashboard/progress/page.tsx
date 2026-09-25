@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { ProgressRecharts } from "@/components/dashboard";
-import { TrendingUp, Award, CheckCircle2, ArrowRight, FileText, Calendar, Sparkles } from "lucide-react";
+import { RoadmapChecklist } from "@/components/dashboard";
+import { TrendingUp, Award, CheckCircle2, ArrowRight, FileText, Calendar, Sparkles, Flame } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { getTranslations } from "next-intl/server";
@@ -162,6 +163,34 @@ export default async function ProgressPage({ params }: PageProps) {
                 </Card>
             </div>
 
+            {/* Racha y mejora */}
+            <div className="grid gap-4 sm:grid-cols-2">
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                    <CardContent className="flex items-center gap-3 pt-6">
+                        <Flame className="size-8 text-warning" />
+                        <div>
+                            <p className="text-sm font-semibold text-foreground">
+                                {t("streakTitle", { count: resumes.length })}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground">{t("streakDesc")}</p>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                    <CardContent className="flex items-center gap-3 pt-6">
+                        <TrendingUp className="size-8 text-emerald" />
+                        <div>
+                            <p className="text-sm font-semibold text-foreground">
+                                {t("improvementTitle", {
+                                    delta: (resumes[resumes.length - 1].atsScore ?? 0) - (resumes[0].atsScore ?? 0),
+                                })}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground">{t("improvementDesc")}</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
             {/* Gráfico de Progreso */}
             <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
                 <CardHeader>
@@ -175,6 +204,9 @@ export default async function ProgressPage({ params }: PageProps) {
                     <ProgressRecharts data={chartData} />
                 </CardContent>
             </Card>
+
+            {/* Roadmap accionable */}
+            <RoadmapChecklist />
 
             {/* Career Copilot Recommendations */}
             {recsRes.success && recsRes.data && (

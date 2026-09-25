@@ -206,29 +206,31 @@ export function MockInterviewChat() {
                             </div>
                         </div>
 
-                        {/* 18.2: Mode-specific scores */}
-                        {(debrief.structuredThinkingScore !== null || debrief.pressureHandlingScore !== null) && (
+                        {/* 18.2: Mode-specific scores (null y undefined ocultan la tarjeta) */}
+                        {(debrief.structuredThinkingScore ?? debrief.pressureHandlingScore ?? null) !== null && (
                             <div className="grid gap-4 sm:grid-cols-2">
-                                {debrief.structuredThinkingScore !== null && (
-                                    <div className="p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/5 text-center">
-                                        <p className="text-xs font-semibold text-muted-foreground uppercase">
-                                            {t("structuredThinking")}
-                                        </p>
-                                        <p className="text-2xl font-black text-indigo-500 mt-1">
-                                            {debrief.structuredThinkingScore}%
-                                        </p>
-                                    </div>
-                                )}
-                                {debrief.pressureHandlingScore !== null && (
-                                    <div className="p-4 rounded-xl border border-orange-500/20 bg-orange-500/5 text-center">
-                                        <p className="text-xs font-semibold text-muted-foreground uppercase">
-                                            {t("pressureHandling")}
-                                        </p>
-                                        <p className="text-2xl font-black text-orange-500 mt-1">
-                                            {debrief.pressureHandlingScore}%
-                                        </p>
-                                    </div>
-                                )}
+                                {debrief.structuredThinkingScore !== null &&
+                                    debrief.structuredThinkingScore !== undefined && (
+                                        <div className="p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/5 text-center">
+                                            <p className="text-xs font-semibold text-muted-foreground uppercase">
+                                                {t("structuredThinking")}
+                                            </p>
+                                            <p className="text-2xl font-black text-indigo-500 mt-1">
+                                                {debrief.structuredThinkingScore}%
+                                            </p>
+                                        </div>
+                                    )}
+                                {debrief.pressureHandlingScore !== null &&
+                                    debrief.pressureHandlingScore !== undefined && (
+                                        <div className="p-4 rounded-xl border border-orange-500/20 bg-orange-500/5 text-center">
+                                            <p className="text-xs font-semibold text-muted-foreground uppercase">
+                                                {t("pressureHandling")}
+                                            </p>
+                                            <p className="text-2xl font-black text-orange-500 mt-1">
+                                                {debrief.pressureHandlingScore}%
+                                            </p>
+                                        </div>
+                                    )}
                             </div>
                         )}
 

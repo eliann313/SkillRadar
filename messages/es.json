@@ -320,6 +320,10 @@
         "closedSkillsAchievement": "¡Logro! Has dominado {count} {count, plural, one {habilidad} other {habilidades}}",
         "versionsTitle": "Historial de Versiones",
         "versionsDesc": "Listado de currículums subidos y puntuados.",
+        "streakTitle": "{count} versiones subidas: constancia en marcha",
+        "streakDesc": "Cada versión cuenta. Sigue iterando tu CV.",
+        "improvementTitle": "{delta} puntos de mejora total",
+        "improvementDesc": "Diferencia entre tu primer y último score ATS.",
         "errorLoading": "Error al cargar el progreso",
         "backToDashboard": "Volver al Dashboard"
     },

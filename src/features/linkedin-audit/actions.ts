@@ -31,6 +31,49 @@ const linkedinAuditSchema = z.object({
 
 export type LinkedinAuditResult = z.infer<typeof linkedinAuditSchema>;
 
+export interface LinkedinAuditHistoryItem {
+    id: string;
+    seo: number;
+    headline: number;
+    about: number;
+    experience: number;
+    createdAt: string;
+}
+
+/**
+ * Historial de auditorías del usuario (para vista antes/después).
+ */
+export async function getLinkedinAuditHistoryAction(): Promise<
+    { success: true; data: LinkedinAuditHistoryItem[] } | { success: false; error: string }
+> {
+    const session = await auth();
+    if (!session?.user?.id) return { success: false, error: "No autorizado." };
+    try {
+        const items = await db.linkedInAudit.findMany({
+            where: { userId: session.user.id },
+            orderBy: { createdAt: "desc" },
+            take: 10,
+        });
+        return {
+            success: true,
+            data: items.map((i) => {
+                const scores = (i.scores ?? {}) as Record<string, number>;
+                return {
+                    id: i.id,
+                    seo: scores.seo ?? 0,
+                    headline: scores.headline ?? 0,
+                    about: scores.about ?? 0,
+                    experience: scores.experience ?? 0,
+                    createdAt: i.createdAt.toISOString(),
+                };
+            }),
+        };
+    } catch (error: unknown) {
+        console.error("[getLinkedinAuditHistoryAction] Error:", error);
+        return { success: false, error: "Error al cargar el historial." };
+    }
+}
+
 /**
  * Analiza un perfil de LinkedIn (texto libre o pegado)
  * y devuelve una auditoría estructurada con mejoras de SEO e impacto.
@@ -99,6 +142,27 @@ ${profileText.slice(0, 6000)}
 === FIN DEL PERFIL ===`,
             userSettings,
         });
+
+        // Persistir auditoría (no guests) para historial antes/después
+        try {
+            if (!session.user.isGuest) {
+                await db.linkedInAudit.create({
+                    data: {
+                        userId: session.user.id,
+                        scores: {
+                            seo: audit.seoScore,
+                            headline: audit.headlineScore,
+                            about: audit.aboutScore,
+                            experience: audit.experienceScore,
+                        },
+                        suggestions: audit.suggestions,
+                        checklist: audit.checklist,
+                    },
+                });
+            }
+        } catch {
+            // No bloquear el resultado si falla la persistencia
+        }
 
         return {
             success: true,

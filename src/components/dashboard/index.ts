@@ -6,3 +6,4 @@ export { HistoricalChart } from "./historical-chart";
 export { ContactRequestsList } from "./contact-requests-list";
 export { ProgressRecharts } from "./progress-recharts";
 export { SkillRadarChart } from "./skill-radar-chart";
+export { RoadmapChecklist } from "./roadmap-checklist";
