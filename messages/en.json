@@ -33,6 +33,22 @@
         "pricingProDesc": "Connect your own API key (Gemini, OpenAI, Anthropic, Groq or OpenRouter) and run without platform limits.",
         "pricingNote": "No credit card. Your keys are encrypted with AES-256-GCM and never leave the server."
     },
+    "Templates": {
+        "title": "Outreach templates",
+        "subtitle": "Reusable messages for outreach. Use {{puesto}} and {{empresa}} as variables.",
+        "newTemplate": "New template",
+        "namePh": "Name (e.g. Frontend outreach)",
+        "subjectPh": "Subject (optional)",
+        "bodyPh": "Hi, I saw your profile...",
+        "hint": "Available variables: {{puesto}}, {{empresa}}. Replaced on copy.",
+        "save": "Save template",
+        "created": "Template created.",
+        "copy": "Copy",
+        "copied": "Copied to clipboard.",
+        "copyError": "Could not copy.",
+        "delete": "Delete",
+        "empty": "No templates yet."
+    },
     "Inbox": {
         "title": "Contact inbox",
         "subtitle": "Your requests to developers and their replies.",
@@ -75,6 +91,7 @@
         "jobPostings": "Job Postings",
         "pipeline": "Pipeline",
         "requests": "Inbox",
+        "templates": "Templates",
         "settings": "Settings",
         "logout": "Log out",
         "groupProfile": "Profile",

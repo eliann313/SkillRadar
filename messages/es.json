@@ -33,6 +33,22 @@
         "pricingProDesc": "Conecta tu propia API key (Gemini, OpenAI, Anthropic, Groq u OpenRouter) y opera sin límites de plataforma.",
         "pricingNote": "Sin tarjeta. Tus claves se cifran con AES-256-GCM y nunca salen del servidor."
     },
+    "Templates": {
+        "title": "Plantillas de contacto",
+        "subtitle": "Mensajes reutilizables para tus outreach. Usa {{puesto}} y {{empresa}} como variables.",
+        "newTemplate": "Nueva plantilla",
+        "namePh": "Nombre (ej: Outreach frontend)",
+        "subjectPh": "Asunto (opcional)",
+        "bodyPh": "Hola, vi tu perfil...",
+        "hint": "Variables disponibles: {{puesto}}, {{empresa}}. Se reemplazan al copiar.",
+        "save": "Guardar plantilla",
+        "created": "Plantilla creada.",
+        "copy": "Copiar",
+        "copied": "Copiado al portapapeles.",
+        "copyError": "No se pudo copiar.",
+        "delete": "Eliminar",
+        "empty": "Aún no tienes plantillas."
+    },
     "Inbox": {
         "title": "Bandeja de contacto",
         "subtitle": "Tus solicitudes a desarrolladores y sus respuestas.",
@@ -75,6 +91,7 @@
         "jobPostings": "Ofertas de Empleo",
         "pipeline": "Embudo",
         "requests": "Bandeja",
+        "templates": "Plantillas",
         "settings": "Configuración",
         "logout": "Cerrar sesión",
         "groupProfile": "Perfil",

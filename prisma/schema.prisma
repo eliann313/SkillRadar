@@ -68,6 +68,8 @@ model User {
   emailNotifications            Boolean   @default(true)
   emailNewApplication           Boolean   @default(true)
   emailApplicationStatusChanged Boolean   @default(true)
+  emailContactUpdates           Boolean   @default(true)
+  emailJobMatches               Boolean   @default(true)
 }
 
 model Account {
