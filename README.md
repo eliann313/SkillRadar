@@ -22,7 +22,7 @@ Below is the high-level architecture diagram detailing how resume uploads, AI an
 ```mermaid
 graph TD
     subgraph Client [Client Layer - React 19]
-        C[Developer Candidate] -->|1. Upload PDF CV| UT[UploadThing Button]
+        C[Developer Candidate] -->|1. Upload PDF CV| BLOB[Vercel Blob client upload]
         C -->|3. In-App AI Interview| UT
         R[Recruiter / Admin] -->|7. View Candidate Profile| DBV[Double-Blind Sanitizer]
     end
@@ -142,9 +142,8 @@ GITHUB_CLIENT_SECRET="your_github_client_secret"
 GOOGLE_CLIENT_ID="your_google_client_id"
 GOOGLE_CLIENT_SECRET="your_google_client_secret"
 
-# UploadThing (CV upload storage)
-UPLOADTHING_SECRET="sk_live_..."
-UPLOADTHING_APP_ID="your_uploadthing_app_id"
+# Vercel Blob (CV file storage: Storage -> Blob -> Connect)
+BLOB_READ_WRITE_TOKEN="vercel_blob_rw_..."
 
 # AI Provider API Keys
 GEMINI_API_KEY="your_gemini_api_key"

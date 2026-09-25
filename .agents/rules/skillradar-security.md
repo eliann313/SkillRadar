@@ -40,13 +40,13 @@ Este archivo establece las políticas de seguridad obligatorias y convenciones d
 ## 📂 3. PRIVACIDAD DE ARCHIVOS (CVS)
 
 - **Acceso Seguro:**
-    - Todos los endpoints de subida (`uploadthing`) deben validar la sesión de usuario mediante `auth()` y rechazar peticiones anónimas.
-    - No exponer la URL pública estática de UploadThing en el cliente de forma permanente. Utilizar la Server Action `getSignedFileUrlAction` para generar **URLs firmadas de corta duración (máximo 1 hora)**.
+    - La ruta de subida (`/api/files/upload`, Vercel Blob) debe validar la sesión de usuario mediante `auth()` y rechazar peticiones anónimas y guests.
+    - No exponer la URL cruda de Blob en el cliente de forma permanente. Utilizar la Server Action `getSignedFileUrlAction` (proxy `/api/files` con ownership en DB) para vistas de corta duración.
 - **Protección SSRF:**
-    - Cualquier descarga en el servidor vía `fetch` de URLs externas (ej. descargas de archivos de UploadThing) debe aplicar el **filtro de reconstrucción estática**:
-        1. Validar la URL con una regex estricta de hostnames permitidos (`utfs.io`, `ufs.sh`).
-        2. Extraer el `fileKey` y sanitizarlo con la regex `/^[a-zA-Z0-9\-_.]+$/` para prevenir inyecciones de _Path Traversal_.
-        3. Reconstruir la URL de destino final con strings estáticos en el servidor (ej. `https://utfs.io/f/${fileKey}`). **Nunca usar el host proveído por el usuario.**
+    - Cualquier descarga en el servidor vía `fetch` de URLs externas (ej. descargas de archivos de Vercel Blob) debe aplicar el **filtro de reconstrucción estática** (`@/lib/file-storage`):
+        1. Validar la URL con una regex estricta de hostnames permitidos (`*.public.blob.vercel-storage.com`).
+        2. Extraer el `fileKey` (permite `/` de carpetas, nunca `..`) y sanitizarlo con la regex `/^[a-zA-Z0-9\-_./]+$/` para prevenir inyecciones de _Path Traversal_.
+        3. Reconstruir la URL de destino final con strings estáticos en el servidor (ej. `https://${host}/${fileKey}`). **Nunca usar el host proveído por el usuario.**
 
 ---
 

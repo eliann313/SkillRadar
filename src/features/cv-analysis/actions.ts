@@ -116,71 +116,20 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
             };
         }
 
-        // 5. Manejo de PDF mediante URL de UploadThing
-        // SSRF Prevention: Validate that the fileUrl belongs to UploadThing's trusted domains using a strict regex barrier guard.
-        // This is natively recognized by CodeQL static analyzer as a sanitization barrier for SSRF.
-        const UPLOADTHING_URL_REGEX = /^https:\/\/([a-zA-Z0-9-]+\.)?(utfs\.io|ufs\.sh)\/f\/.+/;
-        if (!UPLOADTHING_URL_REGEX.test(fileUrl!)) {
+        // 5. Manejo de PDF mediante URL de Vercel Blob
+        // SSRF Prevention: la URL debe pertenecer a nuestro storage (barrera
+        // anti-SSRF en `@/lib/file-storage`) y se reconstruye con host verificado.
+        const { validateBlobFileUrl } = await import("@/lib/file-storage");
+        const blobValidation = validateBlobFileUrl(fileUrl!);
+        if (!blobValidation.ok) {
             return {
                 success: false,
-                error: "URL de archivo no permitida por razones de seguridad.",
+                error: blobValidation.error,
             };
         }
+        const validatedUrl = blobValidation.validatedUrl;
 
-        // SSRF Prevention: Extract the unique fileKey and reconstruct the target URL using 100% hardcoded secure hosts.
-        // This physically blocks any host-level manipulation (SSRF) and terminates CodeQL's taint propagation.
-        let validatedUrl: string;
-        try {
-            const parsedUrl = new URL(fileUrl!);
-
-            // Only allow HTTPS URLs
-            if (parsedUrl.protocol !== "https:") {
-                return {
-                    success: false,
-                    error: "URL de archivo no permitida por razones de seguridad.",
-                };
-            }
-
-            // Allow-list UploadThing hosts only at structural level
-            const host = parsedUrl.hostname.toLowerCase();
-            const isUfs = host === "ufs.sh" || host.endsWith(".ufs.sh");
-            const isUtfs = host === "utfs.io" || host.endsWith(".utfs.io");
-            if (!isUfs && !isUtfs) {
-                return {
-                    success: false,
-                    error: "URL de archivo no permitida por razones de seguridad.",
-                };
-            }
-
-            // Extract the fileKey which resides after the "/f/" path segments
-            const urlPath = parsedUrl.pathname;
-            if (!urlPath.startsWith("/f/")) {
-                return {
-                    success: false,
-                    error: "Estructura de URL no permitida por razones de seguridad.",
-                };
-            }
-            const fileKey = urlPath.substring(3); // Extracts everything after "/f/"
-
-            // Extremely strict whitelist of safe characters for the fileKey to prevent any path traversal or injection attempts
-            const SAFE_FILE_KEY_REGEX = /^[a-zA-Z0-9\-_.]+$/;
-            if (!SAFE_FILE_KEY_REGEX.test(fileKey)) {
-                return {
-                    success: false,
-                    error: "Nombre de archivo contiene caracteres no permitidos.",
-                };
-            }
-
-            // Reconstruct the URL using 100% static hosts, completely decoupling the request host from user input.
-            validatedUrl = isUfs ? `https://ufs.sh/f/${fileKey}` : `https://utfs.io/f/${fileKey}`;
-        } catch {
-            return {
-                success: false,
-                error: "URL de archivo inválida o no permitida.",
-            };
-        }
-
-        // Descargar el archivo desde la URL de UploadThing para poder parsearlo
+        // Descargar el archivo desde la URL de Vercel Blob para poder parsearlo
         const response = await fetch(validatedUrl);
         if (!response.ok) {
             return {
