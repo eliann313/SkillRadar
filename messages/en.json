@@ -180,7 +180,9 @@
         "groupOpportunities": "Opportunities",
         "groupPreparation": "Preparation",
         "groupApplications": "Applications",
-        "groupProgress": "Progress"
+        "groupProgress": "Progress",
+        "groupManage": "Manage",
+        "groupContact": "Contact"
     },
     "Auth": {
         "signUpTitle": "Create an account",

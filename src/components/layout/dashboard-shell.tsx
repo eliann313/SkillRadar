@@ -35,6 +35,7 @@ import {
     Kanban,
     LineChart,
     Mail,
+    ChevronDown,
 } from "lucide-react";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { CareerCopilot } from "@/components/dashboard/career-copilot";
@@ -118,6 +119,23 @@ const recruiterNavItems = [
     { href: "/dashboard/settings", label: "Settings", key: "settings", icon: Settings },
 ];
 
+const recruiterNavGroups: NavGroup[] = [
+    { labelKey: null, items: [recruiterNavItems[0]] },
+    { labelKey: "groupManage", items: [recruiterNavItems[1], recruiterNavItems[2]] },
+    { labelKey: "groupContact", items: [recruiterNavItems[3], recruiterNavItems[4]] },
+];
+
+const STORAGE_KEY = "sr-sidebar-groups";
+
+function loadOpenGroups(): Record<string, boolean> {
+    if (typeof window === "undefined") return {};
+    try {
+        return JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "{}") as Record<string, boolean>;
+    } catch {
+        return {};
+    }
+}
+
 interface SidebarProps {
     collapsed: boolean;
     onToggle: () => void;
@@ -132,11 +150,29 @@ function SidebarContent({ collapsed, onToggle, isMobile = false }: SidebarProps)
     const logout = () => {
         void signOut({ callbackUrl: "/" });
     };
-
     const navItems = user?.role === "recruiter" ? recruiterNavItems : developerNavItems;
-    const navGroups: NavGroup[] =
-        user?.role === "recruiter" ? [{ labelKey: null, items: recruiterNavItems }] : developerNavGroups;
+    const navGroups: NavGroup[] = user?.role === "recruiter" ? recruiterNavGroups : developerNavGroups;
 
+    const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(loadOpenGroups);
+
+    const toggleGroup = (labelKey: string) => {
+        setOpenGroups((prev) => {
+            const next = { ...prev, [labelKey]: !(prev[labelKey] ?? false) };
+            try {
+                window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+            } catch {
+                // almacenamiento no disponible: se pierde la preferencia
+            }
+            return next;
+        });
+    };
+
+    const isGroupOpen = (group: NavGroup) => {
+        if (!group.labelKey) return true;
+        if (openGroups[group.labelKey] !== undefined) return openGroups[group.labelKey];
+        // Por defecto: solo abierto el grupo que contiene la ruta activa
+        return group.items.some((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
+    };
     const renderNavItem = (item: NavItem) => {
         const isActive = pathname === item.href;
         const Icon = item.icon;
@@ -212,19 +248,54 @@ function SidebarContent({ collapsed, onToggle, isMobile = false }: SidebarProps)
                 {collapsed ? (
                     <ul className="flex flex-col gap-1">{navItems.map((item) => renderNavItem(item))}</ul>
                 ) : (
-                    <div className="flex flex-col gap-4">
-                        {navGroups.map((group, gi) => (
-                            <div key={group.labelKey ?? `top-${gi}`} className="flex flex-col gap-1">
-                                {group.labelKey ? (
-                                    <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <div className="flex flex-col gap-1.5">
+                        {navGroups.map((group, gi) => {
+                            // Grupos de 1 item o sin etiqueta: link directo, sin acordeón
+                            if (!group.labelKey || group.items.length <= 1) {
+                                return (
+                                    <ul key={group.labelKey ?? `top-${gi}`} className="flex flex-col gap-1">
+                                        {group.items.map((item) => renderNavItem(item))}
+                                    </ul>
+                                );
+                            }
+                            const open = isGroupOpen(group);
+                            const hasActive = group.items.some(
+                                (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
+                            );
+                            return (
+                                <div key={group.labelKey} className="flex flex-col">
+                                    <button
+                                        type="button"
+                                        aria-expanded={open}
+                                        onClick={() => toggleGroup(group.labelKey as string)}
+                                        className={cn(
+                                            "flex items-center justify-between rounded-lg px-3 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors",
+                                            hasActive
+                                                ? "text-sidebar-primary"
+                                                : "text-muted-foreground hover:text-sidebar-foreground",
+                                        )}
+                                    >
                                         {t(group.labelKey)}
-                                    </p>
-                                ) : null}
-                                <ul className="flex flex-col gap-1">
-                                    {group.items.map((item) => renderNavItem(item))}
-                                </ul>
-                            </div>
-                        ))}
+                                        <ChevronDown
+                                            className={cn(
+                                                "size-3.5 transition-transform duration-200",
+                                                open && "rotate-180",
+                                            )}
+                                        />
+                                    </button>
+                                    <div
+                                        className={cn(
+                                            "grid transition-all duration-200 ease-in-out",
+                                            open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+                                        )}
+                                    >
+                                        <ul className="flex min-h-0 flex-col gap-1 overflow-hidden">
+                                            {group.items.map((item) => renderNavItem(item))}
+                                        </ul>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </nav>
