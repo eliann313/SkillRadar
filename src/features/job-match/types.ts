@@ -21,6 +21,7 @@ export const jobMatchAnalysisSchema = z.object({
             }),
         )
         .optional(),
+    isSimulated: z.boolean().optional(),
 });
 
 export type JobMatchAnalysis = z.infer<typeof jobMatchAnalysisSchema>;

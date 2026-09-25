@@ -23,6 +23,7 @@ import {
     closeJobPostingAction,
     extendJobPostingExpirationAction,
 } from "@/features/jobs/actions";
+import { safeParseJson } from "@/lib/pii";
 import { toast } from "sonner";
 
 interface JobPosting {
@@ -88,9 +89,7 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
         if (posting.requiredSkills) {
             skills = Array.isArray(posting.requiredSkills)
                 ? posting.requiredSkills
-                : typeof posting.requiredSkills === "string"
-                  ? JSON.parse(posting.requiredSkills)
-                  : [];
+                : (safeParseJson<string[]>(posting.requiredSkills, []) ?? []);
         }
         setRequiredSkills(skills);
         setSeniorityLevel(posting.seniorityLevel);
@@ -237,9 +236,7 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
                     postings.map((posting) => {
                         const skills: string[] = Array.isArray(posting.requiredSkills)
                             ? posting.requiredSkills
-                            : typeof posting.requiredSkills === "string"
-                              ? JSON.parse(posting.requiredSkills)
-                              : [];
+                            : (safeParseJson<string[]>(posting.requiredSkills, []) ?? []);
 
                         return (
                             <Card

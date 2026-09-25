@@ -66,6 +66,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "No autorizado." }, { status: 401 });
     }
 
+    const { checkAIChatRateLimit } = await import("@/lib/rate-limit");
+    const rl = await checkAIChatRateLimit(`user:${session.user.id}`);
+    if (!rl.success) {
+        return NextResponse.json({ error: "Límite diario de chat IA alcanzado." }, { status: 429 });
+    }
+
     try {
         const {
             messages,

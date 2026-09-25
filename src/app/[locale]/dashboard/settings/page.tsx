@@ -47,8 +47,7 @@ import {
     saveUserNotificationPreferencesAction,
 } from "./actions";
 
-const PRESET_PLACEHOLDER = "__API_KEY_PRESET__";
-
+import { API_KEY_PRESET_PLACEHOLDER } from "@/lib/crypto";
 import { PROVIDER_MODELS } from "@/lib/ai/models";
 
 export function getProviderModels(prov: string) {
@@ -162,11 +161,11 @@ export default function SettingsPage() {
 
                 // Setear placeholders en caso de que ya tengan clave
                 setApiKeys({
-                    geminiApiKey: d.hasGeminiKey ? PRESET_PLACEHOLDER : "",
-                    groqApiKey: d.hasGroqKey ? PRESET_PLACEHOLDER : "",
-                    openrouterApiKey: d.hasOpenrouterKey ? PRESET_PLACEHOLDER : "",
-                    openaiApiKey: d.hasOpenaiKey ? PRESET_PLACEHOLDER : "",
-                    anthropicApiKey: d.hasAnthropicKey ? PRESET_PLACEHOLDER : "",
+                    geminiApiKey: d.hasGeminiKey ? API_KEY_PRESET_PLACEHOLDER : "",
+                    groqApiKey: d.hasGroqKey ? API_KEY_PRESET_PLACEHOLDER : "",
+                    openrouterApiKey: d.hasOpenrouterKey ? API_KEY_PRESET_PLACEHOLDER : "",
+                    openaiApiKey: d.hasOpenaiKey ? API_KEY_PRESET_PLACEHOLDER : "",
+                    anthropicApiKey: d.hasAnthropicKey ? API_KEY_PRESET_PLACEHOLDER : "",
                 });
 
                 // Setear proveedor

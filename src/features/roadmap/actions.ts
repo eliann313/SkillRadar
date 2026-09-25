@@ -21,6 +21,8 @@ const createSchema = z.object({
     source: z.enum(["manual", "job_match", "copilot"]).default("manual"),
 });
 
+const idSchema = z.string().cuid();
+
 function toDTO(t: {
     id: string;
     skill: string;
@@ -61,6 +63,10 @@ export async function createRoadmapTaskAction(
 ): Promise<ActionResult<RoadmapTaskDTO>> {
     const session = await requireUser();
     if (!session) return { success: false, error: "No autorizado." };
+    const { checkWriteRateLimit } = await import("@/lib/rate-limit");
+    if (!(await checkWriteRateLimit(`user:${session.user.id}`)).success) {
+        return { success: false, error: "Límite diario de escritura alcanzado." };
+    }
     const parsed = createSchema.safeParse(input);
     if (!parsed.success) return { success: false, error: "Datos inválidos." };
     const created = await db.roadmapTask.create({
@@ -76,6 +82,7 @@ export async function createRoadmapTaskAction(
 }
 
 export async function toggleRoadmapTaskAction(id: string): Promise<ActionResult<RoadmapTaskDTO>> {
+    if (!idSchema.safeParse(id).success) return { success: false, error: "Tarea no encontrada." };
     const session = await requireUser();
     if (!session) return { success: false, error: "No autorizado." };
     const existing = await db.roadmapTask.findFirst({ where: { id, userId: session.user.id } });
@@ -86,6 +93,7 @@ export async function toggleRoadmapTaskAction(id: string): Promise<ActionResult<
 }
 
 export async function deleteRoadmapTaskAction(id: string): Promise<ActionResult<boolean>> {
+    if (!idSchema.safeParse(id).success) return { success: false, error: "Tarea no encontrada." };
     const session = await requireUser();
     if (!session) return { success: false, error: "No autorizado." };
     await db.roadmapTask.deleteMany({ where: { id, userId: session.user.id } });

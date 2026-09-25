@@ -15,6 +15,7 @@ import {
 } from "@/features/jobs/actions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { safeParseJson } from "@/lib/pii";
 import { Flag } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -263,9 +264,7 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                         .map((job) => {
                             const skills: string[] = Array.isArray(job.requiredSkills)
                                 ? job.requiredSkills
-                                : typeof job.requiredSkills === "string"
-                                  ? JSON.parse(job.requiredSkills)
-                                  : [];
+                                : (safeParseJson<string[]>(job.requiredSkills, []) ?? []);
 
                             return (
                                 <Card

@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { streamText } from "ai";
 import { AIService } from "@/lib/ai";
 import { isValidProviderAndModel } from "@/lib/ai/models";
+import { safeParseJson } from "@/lib/pii";
 
 export async function POST(req: NextRequest) {
     const session = await auth();
@@ -59,10 +60,7 @@ export async function POST(req: NextRequest) {
                         cvContext += `\n\nATS Score actual: ${latestResume.atsScore}/100`;
                     }
                     try {
-                        const analysis =
-                            typeof latestResume.analysis === "string"
-                                ? (JSON.parse(latestResume.analysis) as { missingKeywords?: string[] })
-                                : (latestResume.analysis as { missingKeywords?: string[] } | null);
+                        const analysis = safeParseJson<{ missingKeywords?: string[] }>(latestResume.analysis, null);
                         if (Array.isArray(analysis?.missingKeywords) && analysis.missingKeywords.length > 0) {
                             cvContext += `\nBrechas detectadas: ${analysis.missingKeywords.slice(0, 8).join(", ")}`;
                         }

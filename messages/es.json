@@ -542,6 +542,7 @@
         "copyError": "No se pudo copiar",
         "matchFor": "Match para {seniority}",
         "reasoningBtn": "Ver Razonamiento",
+        "simulatedBadge": "Offline (sin IA)",
         "and": " y ",
         "growthPath": "Tu Ruta de Crecimiento (Action Plan)",
         "profile": "Perfil",

@@ -73,6 +73,7 @@ export interface JobMatch {
         skill: string;
         steps: string[];
     }>;
+    isSimulated?: boolean;
 }
 
 export interface TalentCard {
