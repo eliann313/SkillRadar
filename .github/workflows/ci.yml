@@ -39,6 +39,9 @@ jobs:
             - name: TypeScript type check
               run: npm run type-check
 
+            - name: TypeScript 7 compat check
+              run: npm run type-check:ts7
+
             - name: ESLint
               run: npm run lint
 
