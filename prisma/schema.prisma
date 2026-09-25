@@ -38,6 +38,13 @@ model User {
   jobPostings       JobPosting[]       @relation("RecruiterJobPostings")
   jobPostingApplications JobPostingApplication[] @relation("DeveloperApplications")
   reports           ContentReport[]    @relation("UserReports")
+  candidateNotes    CandidateNote[]    @relation("RecruiterNotes")
+  interviewScorecards InterviewScorecard[] @relation("RecruiterScorecards")
+  outreachTemplates OutreachTemplate[]
+  roadmapTasks      RoadmapTask[]
+  savedSearches     SavedSearch[]
+  contactMessages   ContactMessage[]
+  linkedinAudits    LinkedInAudit[]
 
   // Claves de API Personales (Cifradas con AES-256-GCM)
   geminiApiKey       String?   @db.Text
@@ -160,6 +167,8 @@ model InterviewSession {
   userId     String
   resumeId   String?
   jobMatchId String?
+  company    String?
+  jobPostingId String?
   score      Int?     // Calificación global promedio (0-100)
   debrief    Json?    // Calificaciones estructuradas y feedback cualitativo
   messages   Json     // Historial de la conversación [{ role: "user" | "assistant", content: "" }]
@@ -180,6 +189,7 @@ model ContactRequest {
 
   recruiter   User     @relation("RecruiterRequests", fields: [recruiterId], references: [id], onDelete: Cascade)
   developer   User     @relation("DeveloperRequests", fields: [developerId], references: [id], onDelete: Cascade)
+  messages    ContactMessage[]
 }
 
 model Shortlist {
@@ -253,6 +263,8 @@ model JobPostingApplication {
   jobPosting  JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
   developer   User       @relation("DeveloperApplications", fields: [developerId], references: [id], onDelete: Cascade)
   resume      Resume?    @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+  notes       CandidateNote[]
+  scorecard   InterviewScorecard?
 
   @@unique([jobPostingId, developerId])
 }
@@ -292,4 +304,111 @@ model AnalyticsEvent {
   name      String   // cv_uploaded, job_match_completed, public_profile_viewed, contact_request_sent, job_posting_applied, user_registered
   userHash  String?  // Hash SHA-256 del userId para agrupar conversiones sin revelar PII
   createdAt DateTime @default(now())
+}
+
+// Stack-1: notas internas del recruiter por postulación
+model CandidateNote {
+  id            String   @id @default(cuid())
+  applicationId String
+  recruiterId   String
+  body          String   @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  application   JobPostingApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  recruiter     User     @relation("RecruiterNotes", fields: [recruiterId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+}
+
+// Stack-1: scorecards de entrevista persistidos por postulación
+model InterviewScorecard {
+  id            String   @id @default(cuid())
+  applicationId String   @unique
+  recruiterId   String
+  developerId   String
+  jobPostingId  String
+  criteria      Json     // [{ question, score 1-5, note }]
+  overall       Int      // promedio 0-100
+  comment       String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  application   JobPostingApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  recruiter     User     @relation("RecruiterScorecards", fields: [recruiterId], references: [id], onDelete: Cascade)
+
+  @@index([jobPostingId])
+}
+
+// Stack-1: templates de outreach del recruiter
+model OutreachTemplate {
+  id          String   @id @default(cuid())
+  recruiterId String
+  name        String
+  subject     String?
+  body        String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  recruiter   User     @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+
+  @@index([recruiterId])
+}
+
+// Stack-1: checklist accionable de cierre de brechas del developer
+model RoadmapTask {
+  id        String   @id @default(cuid())
+  userId    String
+  skill     String
+  step      String
+  done      Boolean  @default(false)
+  source    String   @default("manual") // "manual" | "job_match" | "copilot"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Stack-1: búsquedas guardadas (pool recruiter + job board dev)
+model SavedSearch {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  scope     String   @default("talent_pool") // "talent_pool" | "job_board"
+  filters   Json     // { query, seniority[], minScore, sort }
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Stack-1: thread de mensajes dentro de un ContactRequest
+model ContactMessage {
+  id        String   @id @default(cuid())
+  requestId String
+  senderId  String
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+
+  request   ContactRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([requestId])
+}
+
+// Stack-1: auditorías LinkedIn persistidas
+model LinkedInAudit {
+  id        String   @id @default(cuid())
+  userId    String
+  scores    Json     // { seo, headline, about, experience }
+  suggestions Json   // array de sugerencias con ejemplos
+  checklist Json?    // checklist SEO
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

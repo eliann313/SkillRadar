@@ -33,6 +33,18 @@
         "pricingProDesc": "Connect your own API key (Gemini, OpenAI, Anthropic, Groq or OpenRouter) and run without platform limits.",
         "pricingNote": "No credit card. Your keys are encrypted with AES-256-GCM and never leave the server."
     },
+    "Inbox": {
+        "title": "Contact inbox",
+        "subtitle": "Your requests to developers and their replies.",
+        "all": "All",
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "declined": "Declined",
+        "messages": "messages",
+        "open": "Open thread",
+        "empty": "You haven't sent any requests yet.",
+        "threadTitle": "Conversation"
+    },
     "Pipeline": {
         "title": "Hiring pipeline",
         "subtitle": "All your applications grouped by stage, with per-posting summary.",
@@ -62,6 +74,7 @@
         "talentPool": "Talent Pool",
         "jobPostings": "Job Postings",
         "pipeline": "Pipeline",
+        "requests": "Inbox",
         "settings": "Settings",
         "logout": "Log out",
         "groupProfile": "Profile",

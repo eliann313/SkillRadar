@@ -33,6 +33,18 @@
         "pricingProDesc": "Conecta tu propia API key (Gemini, OpenAI, Anthropic, Groq u OpenRouter) y opera sin límites de plataforma.",
         "pricingNote": "Sin tarjeta. Tus claves se cifran con AES-256-GCM y nunca salen del servidor."
     },
+    "Inbox": {
+        "title": "Bandeja de contacto",
+        "subtitle": "Tus solicitudes a desarrolladores y sus respuestas.",
+        "all": "Todas",
+        "pending": "Pendientes",
+        "accepted": "Aceptadas",
+        "declined": "Declinadas",
+        "messages": "mensajes",
+        "open": "Abrir conversación",
+        "empty": "Aún no enviaste solicitudes.",
+        "threadTitle": "Conversación"
+    },
     "Pipeline": {
         "title": "Embudo de contratación",
         "subtitle": "Todas tus postulaciones agrupadas por etapa, con resumen por oferta.",
@@ -62,6 +74,7 @@
         "talentPool": "Base de Talentos",
         "jobPostings": "Ofertas de Empleo",
         "pipeline": "Embudo",
+        "requests": "Bandeja",
         "settings": "Configuración",
         "logout": "Cerrar sesión",
         "groupProfile": "Perfil",
