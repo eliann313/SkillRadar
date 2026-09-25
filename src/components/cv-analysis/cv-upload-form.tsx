@@ -176,7 +176,7 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
             try {
                 const userId = session?.user?.id;
                 const blob = await upload(`cvs/${userId}/${file.name}`, file, {
-                    access: "public",
+                    access: "private",
                     handleUploadUrl: "/api/files/upload",
                     clientPayload: userId ?? "",
                     onUploadProgress: ({ percentage }) => {

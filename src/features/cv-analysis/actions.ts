@@ -129,17 +129,17 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
         }
         const validatedUrl = blobValidation.validatedUrl;
 
-        // Descargar el archivo desde la URL de Vercel Blob para poder parsearlo
-        const response = await fetch(validatedUrl);
-        if (!response.ok) {
+        // Descargar el archivo para poder parsearlo. El store es privado: la lectura
+        // se autentica en servidor con el token (nunca fetch anónimo).
+        const { get: getBlob } = await import("@vercel/blob");
+        const result = await getBlob(validatedUrl, { access: "private" });
+        if (!result || result.statusCode !== 200 || !result.stream) {
             return {
                 success: false,
-                error: `No se pudo descargar el archivo para su análisis (Status ${response.status}).`,
+                error: "No se pudo descargar el archivo para su análisis.",
             };
         }
-
-        const arrayBuffer = await response.arrayBuffer();
-        const fileBuffer = Buffer.from(arrayBuffer);
+        const fileBuffer = Buffer.from(await new Response(result.stream).arrayBuffer());
 
         // Procesar y guardar el CV en base de datos
         const resume = await CVAnalysisService.saveParsedCV({
