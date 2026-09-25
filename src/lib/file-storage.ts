@@ -1,12 +1,13 @@
 /**
  * Validación centralizada de URLs de Vercel Blob (barrera anti-SSRF).
  *
- * Solo se aceptan URLs https cuyo host sea `<store>.public.blob.vercel-storage.com`.
+ * Solo se aceptan URLs https cuyo host sea `<store>.public.blob.vercel-storage.com`
+ * o `<store>.private.blob.vercel-storage.com` (el modo lo define el store).
  * La URL validada se reconstruye con el host verificado y un fileKey de
  * caracteres seguros, desacoplando el host destino del input del usuario.
  */
 
-const BLOB_URL_REGEX = /^https:\/\/[a-z0-9-]+\.public\.blob\.vercel-storage\.com\/.+/i;
+const BLOB_URL_REGEX = /^https:\/\/[a-z0-9-]+\.(public|private)\.blob\.vercel-storage\.com\/.+/i;
 // El fileKey de Blob incluye carpetas (`cvs/<userId>/...`), por eso se permite `/`.
 // Se rechaza `..` por separado para bloquear path traversal.
 const SAFE_BLOB_KEY_REGEX = /^[a-zA-Z0-9\-_./]+$/;
@@ -36,7 +37,7 @@ export function validateBlobFileUrl(fileUrl: string): BlobUrlValidation {
     }
 
     const host = parsed.hostname.toLowerCase();
-    if (!/^[a-z0-9-]+\.public\.blob\.vercel-storage\.com$/.test(host)) {
+    if (!/^[a-z0-9-]+\.(public|private)\.blob\.vercel-storage\.com$/.test(host)) {
         return { ok: false, error: "URL de archivo no permitida por razones de seguridad." };
     }
 

@@ -24,7 +24,7 @@ Para que los usuarios puedan configurar sus propias claves de IA de forma ultra-
 
 Cuando el servidor descarga archivos para parsearlos mediante `fetch` (en `cv-analysis/actions.ts`), se aplica un filtro de reconstrucción estática robusto (`@/lib/file-storage`):
 
-1.  Se valida la URL con una regex estricta de dominios permitidos (`*.public.blob.vercel-storage.com`).
+1.  Se valida la URL con una regex estricta de dominios permitidos (`*.{public,private}.blob.vercel-storage.com`).
 2.  Se valida el protocolo (`https:` estrictamente).
 3.  Se extrae el `fileKey` (permite `/` de carpetas, nunca `..`) y se desinfecta con la regex `/^[a-zA-Z0-9\-_./]+$/` para prevenir inyecciones de directorios (_Path Traversal_).
 4.  Se reconstruye la URL final utilizando plantillas estáticas hardcodeadas en el servidor, bloqueando cualquier alteración del host o bypass de DNS.

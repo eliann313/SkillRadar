@@ -40,7 +40,7 @@ These mandatory rules govern any code edits to files inside this repository. Alw
 - **Premium Hybrid Auth:** Standard Email/Password + Google/GitHub OAuth + Passkeys (biometrics) is our authentication standard. Relegate Magic Links strictly to Password Reset ("Forgot Password") via Resend.
 - **Bcrypt Hashing:** Passwords must be hashed via `bcryptjs` (min 10-12 salt rounds). Zod schema must require min 8 chars, uppercase, lowercase, and a number. Protect login with Upstash rate-limiting.
 - **CV File Privacy:** Protect the Blob upload route (`/api/files/upload`) with active sessions (reject guests). Never expose raw Blob URLs persistently in the client; use `getSignedFileUrlAction` (ownership-checked `/api/files` proxy) for file views.
-- **SSRF Prevention:** For all fetch calls to user-supplied URLs, validate hostnames against an allow-list (`*.public.blob.vercel-storage.com`), check `https:` protocol, extract and validate the `fileKey` against `/^[a-zA-Z0-9\-_.\/]+$/` (never `..`), and reconstruct the URL using static strings on the server. Central helper: `src/lib/file-storage.ts`.
+- **SSRF Prevention:** For all fetch calls to user-supplied URLs, validate hostnames against an allow-list (`*.{public,private}.blob.vercel-storage.com`), check `https:` protocol, extract and validate the `fileKey` against `/^[a-zA-Z0-9\-_.\/]+$/` (never `..`), and reconstruct the URL using static strings on the server. Central helper: `src/lib/file-storage.ts`.
 - **Doble Ciego:** Strip PII fields (`name`, `email`, `githubUsername`, `image`) on the server for perfiles where `status !== "accepted"`. Never send them to the client. Sanitizer recruiter pitches against XSS.
 
 <!-- END:skillradar-security-rules -->
