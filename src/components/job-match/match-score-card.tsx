@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ExplainabilityPanel } from "@/components/explainability-panel";
 import { generateSmartPitchAction } from "@/features/job-match/actions";
+import { importMissingSkillsAction } from "@/features/roadmap/actions";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
@@ -231,6 +232,27 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                             <div className="flex items-center gap-2">
                                 <TrendingUp className="size-5 text-emerald" />
                                 <h3 className="font-semibold text-foreground">{t("growthPath")}</h3>
+                                {!match.isSimulated && !match.id.startsWith("demo-") ? (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="ml-auto h-7 text-[11px]"
+                                        onClick={() =>
+                                            void importMissingSkillsAction(match.id).then((res) => {
+                                                if (res.success) {
+                                                    toast.success(
+                                                        t("roadmapImported", {
+                                                            default: "{count} brechas enviadas al roadmap.",
+                                                            count: res.data,
+                                                        }),
+                                                    );
+                                                } else toast.error(res.error);
+                                            })
+                                        }
+                                    >
+                                        {t("sendToRoadmap", { default: "Enviar al roadmap" })}
+                                    </Button>
+                                ) : null}
                             </div>
                             <div className="grid gap-4 sm:grid-cols-2">
                                 {match.actionPlan.map((plan, idx) => (

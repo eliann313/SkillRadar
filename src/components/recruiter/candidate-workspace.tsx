@@ -106,7 +106,12 @@ export function CandidateWorkspace({ applicationId }: { applicationId: string })
                         <p className="text-foreground">{n.body}</p>
                         <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
                             <span>{new Date(n.createdAt).toLocaleString()}</span>
-                            <button onClick={() => void removeNote(n.id)} className="text-destructive hover:underline">
+                            <button
+                                type="button"
+                                aria-label="Eliminar nota"
+                                onClick={() => void removeNote(n.id)}
+                                className="text-destructive hover:underline"
+                            >
                                 Eliminar
                             </button>
                         </div>

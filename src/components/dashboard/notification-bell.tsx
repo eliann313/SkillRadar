@@ -89,7 +89,11 @@ export function NotificationBell() {
         <DropdownMenu modal={false}>
             <DropdownMenuTrigger
                 render={
-                    <button className="relative rounded-full p-2 text-muted-foreground hover:bg-accent hover:text-foreground focus:outline-none transition-colors">
+                    <button
+                        type="button"
+                        aria-label="Notificaciones"
+                        className="relative rounded-full p-2 text-muted-foreground hover:bg-accent hover:text-foreground focus:outline-none transition-colors"
+                    >
                         <Bell className="size-5" />
                         {unreadCount > 0 && (
                             <Badge className="absolute -top-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground p-0 border-2 border-background">
@@ -129,6 +133,7 @@ export function NotificationBell() {
                         notifications.map((notif) => (
                             <button
                                 key={notif.id}
+                                type="button"
                                 onClick={() => {
                                     void handleNotificationClick(notif);
                                 }}
