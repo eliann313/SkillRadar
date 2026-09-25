@@ -27,14 +27,6 @@ export async function POST(request: Request): Promise<Response> {
                     tokenPayload: JSON.stringify({ userId }),
                 };
             },
-            onUploadCompleted: async ({ blob, tokenPayload }) => {
-                try {
-                    const payload = tokenPayload ? (JSON.parse(tokenPayload) as { userId?: string }) : null;
-                    console.log(`[Blob] CV subido por usuario: ${payload?.userId ?? "desconocido"} (${blob.pathname})`);
-                } catch {
-                    // logging best-effort, nunca bloquea la subida
-                }
-            },
         });
 
         return Response.json(jsonResponse);
