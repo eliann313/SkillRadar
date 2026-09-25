@@ -1,5 +1,12 @@
 import { auth } from "@/lib/auth";
-import { DashboardHeader, MetricsGrid, NextAction, HistoricalChart, ContactRequestsList } from "@/components/dashboard";
+import {
+    DashboardHeader,
+    MetricsGrid,
+    NextAction,
+    HistoricalChart,
+    ContactRequestsList,
+    PrivacyCard,
+} from "@/components/dashboard";
 import { TalentDashboard } from "@/components/recruiter";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
@@ -232,6 +239,7 @@ export default async function DashboardPage() {
     return (
         <div className="flex flex-col gap-6">
             <DashboardHeader />
+            <PrivacyCard pendingCount={contactRequests.length} />
             {contactRequests.length > 0 && <ContactRequestsList requests={contactRequests} />}
             <NextAction {...nextAction} />
             <MetricsGrid latestResume={latestResume} latestJobMatch={latestJobMatch} limits={limits} />
