@@ -46,22 +46,6 @@
         "howStep2Desc": "Recruiters see DEV-XXXX with scores and justification. No name, email or photo.",
         "howStep3Title": "3. You reveal if you accept",
         "howStep3Desc": "Your contact details are only enabled when you accept a proposal.",
-        "socialBadge": "Illustrative demo data",
-        "metric1Value": "+1,200",
-        "metric1Label": "CVs analyzed",
-        "metric2Value": "+23",
-        "metric2Label": "Average ATS point improvement",
-        "metric3Value": "340",
-        "metric3Label": "Matches generated",
-        "testi1Text": "The 0-based breakdown showed me exactly what to fix. I gained 31 points in two iterations.",
-        "testi1Name": "M. G.",
-        "testi1Role": "Frontend Developer",
-        "testi2Text": "Double-blind gave me confidence to publish my profile without exposing my email.",
-        "testi2Name": "J. P.",
-        "testi2Role": "Backend Developer",
-        "testi3Text": "BYOK mode with my own key removed the limits. Job matching is accurate.",
-        "testi3Name": "A. R.",
-        "testi3Role": "Full Stack Developer",
         "pricingFreePrice": "$0",
         "pricingProPrice": "$0 + your key",
         "pricingCtaFree": "Start for free",
@@ -92,9 +76,7 @@
         "footerResources": "Resources",
         "footerLegal": "Legal",
         "footerDemo": "Interactive demo",
-        "footerChangelog": "Changelog",
         "footerDocs": "Documentation",
-        "footerStatus": "Service status",
         "footerCookies": "Cookies",
         "footerContact": "Contact",
         "skipToContent": "Skip to content",
@@ -113,7 +95,17 @@
         "demoGhW1": "Signal: no CI/CD workflows visible in descriptions.",
         "demoGhW2": "Signal: few tests detectable by filename.",
         "demoGhSug1": "Add CI and coverage badges to your READMEs.",
-        "demoGhSug2": "Publish a template with Dockerfile + compose for your APIs."
+        "demoGhSug2": "Publish a template with Dockerfile + compose for your APIs.",
+        "trustBadge": "Transparency, not promises",
+        "trustTitle": "What we can actually claim",
+        "trustSubtitle": "No invented metrics, no bought testimonials: these are verifiable properties of the product.",
+        "trust1Title": "Explainable base-0 scoring",
+        "trust1Desc": "Every analysis starts at 0 and adds points with evidence quoted from your CV. You see the full breakdown, not a black box.",
+        "trust2Title": "Privacy by design",
+        "trust2Desc": "Double-blind: your name, email and photo never reach a recruiter browser until you accept the contact. Keys encrypted with AES-256-GCM.",
+        "trust3Title": "BYOK: your keys, your limits",
+        "trust3Desc": "Bring your own API keys from OpenAI, Anthropic, Google or Groq. No single-vendor lock-in, no hidden markups.",
+        "footerGithub": "Source code"
     },
     "Templates": {
         "title": "Outreach templates",
@@ -155,8 +147,7 @@
         "reviewed": "Reviewed",
         "shortlisted": "Shortlisted",
         "interview": "Interview",
-        "offer": "Offer",
-        "hired": "Hired"
+        "offer": "Offer"
     },
     "Sidebar": {
         "overview": "Overview",
@@ -178,9 +169,6 @@
         "logout": "Log out",
         "groupProfile": "Profile",
         "groupOpportunities": "Opportunities",
-        "groupPreparation": "Preparation",
-        "groupApplications": "Applications",
-        "groupProgress": "Progress",
         "groupManage": "Manage",
         "groupContact": "Contact"
     },
@@ -548,7 +536,8 @@
         "profile": "Profile",
         "analyzedJob": "Analyzed Job Offer",
         "matchSuccess": "Job Match analysis completed successfully!",
-        "matchError": "An unexpected error occurred while analyzing the match."
+        "matchError": "An unexpected error occurred while analyzing the match.",
+        "demoPitchNote": "AI cover letters are available with a free account."
     },
     "JobTracker": {
         "title": "Job Search Kanban Board",

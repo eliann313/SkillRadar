@@ -41,7 +41,7 @@ export default function DemoClient() {
                         <AnalysisResults analysis={cv} />
                     </TabsContent>
                     <TabsContent value="match">
-                        <MatchScoreCard match={match} />
+                        <MatchScoreCard match={match} demo />
                     </TabsContent>
                     <TabsContent value="github" className="flex flex-col gap-6">
                         <LanguageChart languages={demoGithubLanguages} />

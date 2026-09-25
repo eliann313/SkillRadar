@@ -13,11 +13,12 @@ import {
     Upload,
     EyeOff,
     KeyRound,
-    Menu,
     Check,
-    FlaskConical,
-    Quote,
+    ListChecks,
+    Lock,
+    Plug,
 } from "lucide-react";
+import { MobileMenu } from "@/components/landing/mobile-menu";
 import { getTranslations } from "next-intl/server";
 import { LanguageSwitcher, ThemeToggle } from "@/components/layout";
 import { ScorePreview } from "@/components/landing/score-preview";
@@ -91,11 +92,11 @@ export default async function Home({ params: _params }: { params: Promise<{ loca
         { icon: KeyRound, title: t("howStep3Title"), desc: t("howStep3Desc") },
     ];
 
-    const testimonials = [1, 2, 3].map((n) => ({
-        text: t(`testi${n}Text`),
-        name: t(`testi${n}Name`),
-        role: t(`testi${n}Role`),
-    }));
+    const trustCards = [
+        { icon: ListChecks, title: t("trust1Title"), desc: t("trust1Desc") },
+        { icon: Lock, title: t("trust2Title"), desc: t("trust2Desc") },
+        { icon: Plug, title: t("trust3Title"), desc: t("trust3Desc") },
+    ];
 
     return (
         <div className="relative flex min-h-screen flex-col overflow-hidden bg-background text-foreground">
@@ -155,37 +156,16 @@ export default async function Home({ params: _params }: { params: Promise<{ loca
                                 {t("getStarted")}
                             </Button>
                         </Link>
-                        <details className="relative md:hidden">
-                            <summary
-                                aria-label="Menu"
-                                className="flex size-9 cursor-pointer list-none items-center justify-center rounded-md hover:bg-muted/80 [&::-webkit-details-marker]:hidden"
-                            >
-                                <Menu className="size-5" aria-hidden />
-                            </summary>
-                            <div className="absolute right-0 top-11 flex w-48 flex-col gap-1 rounded-xl border border-border bg-popover p-2 text-sm shadow-xl">
-                                <Link href="#features" className="rounded-md px-3 py-2 hover:bg-muted">
-                                    {t("navFeatures")}
-                                </Link>
-                                <Link href="/demo" className="rounded-md px-3 py-2 hover:bg-muted">
-                                    {t("navDemo")}
-                                </Link>
-                                <Link href="#pricing" className="rounded-md px-3 py-2 hover:bg-muted">
-                                    {t("navPricing")}
-                                </Link>
-                                <Link href="#faq" className="rounded-md px-3 py-2 hover:bg-muted">
-                                    {t("navFaq")}
-                                </Link>
-                                <Link href="/login" className="rounded-md px-3 py-2 hover:bg-muted">
-                                    {t("signIn")}
-                                </Link>
-                                <Link
-                                    href="/login?register=true"
-                                    className="rounded-md bg-primary px-3 py-2 font-semibold text-primary-foreground"
-                                >
-                                    {t("skipToContent")}
-                                </Link>
-                            </div>
-                        </details>
+                        <MobileMenu
+                            labels={{
+                                navFeatures: t("navFeatures"),
+                                navDemo: t("navDemo"),
+                                navPricing: t("navPricing"),
+                                navFaq: t("navFaq"),
+                                signIn: t("signIn"),
+                                getStarted: t("getStarted"),
+                            }}
+                        />
                     </div>
                 </div>
             </header>
@@ -300,40 +280,32 @@ export default async function Home({ params: _params }: { params: Promise<{ loca
                     </div>
                 </section>
 
-                {/* Social proof (demo data, clearly labeled) */}
+                {/* Transparencia: lo que sí podemos afirmar (sin métricas inventadas) */}
                 <section className="container mx-auto w-full max-w-6xl px-6 py-12">
-                    <div className="mb-6 flex items-center justify-center gap-2 text-center">
-                        <FlaskConical className="size-4 text-warning" aria-hidden />
+                    <div className="mb-3 flex items-center justify-center gap-1.5 text-center">
+                        <ShieldCheck className="size-4 text-primary" aria-hidden />
                         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                            {t("socialBadge")}
+                            {t("trustBadge")}
                         </p>
                     </div>
-                    <div className="mb-8 grid gap-6 text-center sm:grid-cols-3">
-                        {[
-                            { value: t("metric1Value"), label: t("metric1Label") },
-                            { value: t("metric2Value"), label: t("metric2Label") },
-                            { value: t("metric3Value"), label: t("metric3Label") },
-                        ].map((m) => (
-                            <div key={m.label} className="rounded-2xl border border-border/40 bg-card/40 p-6">
-                                <p className="text-3xl font-black text-primary">{m.value}</p>
-                                <p className="mt-1 text-xs text-muted-foreground">{m.label}</p>
-                            </div>
-                        ))}
-                    </div>
+                    <h2 className="mb-2 text-center text-2xl font-bold tracking-tight md:text-3xl">
+                        {t("trustTitle")}
+                    </h2>
+                    <p className="mx-auto mb-8 max-w-2xl text-center text-sm text-muted-foreground md:text-base">
+                        {t("trustSubtitle")}
+                    </p>
                     <div className="grid gap-6 md:grid-cols-3">
-                        {testimonials.map((testi) => (
-                            <figure
-                                key={testi.name}
+                        {trustCards.map((card) => (
+                            <div
+                                key={card.title}
                                 className="flex flex-col gap-3 rounded-2xl border border-border/40 bg-card/40 p-6"
                             >
-                                <Quote className="size-5 text-primary" aria-hidden />
-                                <blockquote className="flex-1 text-sm italic leading-relaxed text-foreground/90">
-                                    &ldquo;{testi.text}&rdquo;
-                                </blockquote>
-                                <figcaption className="text-xs text-muted-foreground">
-                                    <span className="font-bold text-foreground">{testi.name}</span> · {testi.role}
-                                </figcaption>
-                            </figure>
+                                <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                    <card.icon className="size-5" aria-hidden />
+                                </div>
+                                <h3 className="font-bold">{card.title}</h3>
+                                <p className="text-sm leading-relaxed text-muted-foreground">{card.desc}</p>
+                            </div>
                         ))}
                     </div>
                 </section>
@@ -485,15 +457,19 @@ export default async function Home({ params: _params }: { params: Promise<{ loca
                         </p>
                         <ul className="flex flex-col gap-2 text-muted-foreground">
                             <li>
-                                <Link href="/demo" className="transition-colors hover:text-foreground">
+                                <Link href="/docs" className="transition-colors hover:text-foreground">
                                     {t("footerDocs")}
                                 </Link>
                             </li>
                             <li>
-                                <span className="cursor-default">{t("footerChangelog")}</span>
-                            </li>
-                            <li>
-                                <span className="cursor-default">{t("footerStatus")}</span>
+                                <a
+                                    href="https://github.com/eliann313/SkillRadar"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="transition-colors hover:text-foreground"
+                                >
+                                    {t("footerGithub")}
+                                </a>
                             </li>
                         </ul>
                     </nav>
@@ -513,10 +489,19 @@ export default async function Home({ params: _params }: { params: Promise<{ loca
                                 </Link>
                             </li>
                             <li>
-                                <span className="cursor-default">{t("footerCookies")}</span>
+                                <Link href="/cookies" className="transition-colors hover:text-foreground">
+                                    {t("footerCookies")}
+                                </Link>
                             </li>
                             <li>
-                                <span className="cursor-default">{t("footerContact")}</span>
+                                <a
+                                    href="https://github.com/eliann313/SkillRadar/issues"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="transition-colors hover:text-foreground"
+                                >
+                                    {t("footerContact")}
+                                </a>
                             </li>
                         </ul>
                     </nav>
