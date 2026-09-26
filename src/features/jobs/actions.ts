@@ -34,7 +34,7 @@ export async function createJobPostingAction(rawInput: unknown): Promise<ActionR
             where: { id: session.user.id },
             select: { recruiterVerified: true },
         });
-        if (!verifiedUser?.recruiterVerified) {
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
@@ -80,6 +80,7 @@ export async function createJobPostingAction(rawInput: unknown): Promise<ActionR
                 description: validation.data.description,
                 requiredSkills: validation.data.requiredSkills,
                 seniorityLevel: validation.data.seniorityLevel,
+                pipelineStages: validation.data.pipelineStages ?? [],
                 status: "draft",
                 expiresAt: null,
                 createdAt: new Date(),
@@ -111,7 +112,7 @@ export async function updateJobPostingAction(id: string, rawInput: unknown): Pro
             where: { id: session.user.id },
             select: { recruiterVerified: true },
         });
-        if (!verifiedUser?.recruiterVerified) {
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
@@ -151,7 +152,7 @@ export async function publishJobPostingAction(id: string): Promise<ActionResult<
             where: { id: session.user.id },
             select: { recruiterVerified: true },
         });
-        if (!verifiedUser?.recruiterVerified) {
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
@@ -186,7 +187,7 @@ export async function closeJobPostingAction(id: string): Promise<ActionResult<Jo
             where: { id: session.user.id },
             select: { recruiterVerified: true },
         });
-        if (!verifiedUser?.recruiterVerified) {
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
@@ -218,7 +219,7 @@ export async function getRecruiterJobPostingsAction(): Promise<ActionResult<JobP
             where: { id: session.user.id },
             select: { recruiterVerified: true },
         });
-        if (!verifiedUser?.recruiterVerified) {
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
@@ -244,7 +245,7 @@ export async function getJobPostingApplicationsAction(jobPostingId: string): Pro
             where: { id: session.user.id },
             select: { recruiterVerified: true },
         });
-        if (!verifiedUser?.recruiterVerified) {
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
@@ -260,19 +261,22 @@ export async function getJobPostingApplicationsAction(jobPostingId: string): Pro
  */
 export async function updateApplicationStatusAction(
     applicationId: string,
-    newStatus: "submitted" | "reviewed" | "rejected" | "shortlisted" | "interview" | "offer" | "hired",
+    newStatus: string,
 ): Promise<ActionResult<JobPostingApplication>> {
     try {
         const session = await auth();
         if (!session?.user?.id || session.user.role !== "recruiter") {
             return { success: false, error: "No autorizado." };
         }
+        if (!/^[a-z0-9_]{1,24}$/.test(newStatus.trim().toLowerCase())) {
+            return { success: false, error: "Estado inválido." };
+        }
         const { db: verifiedDb } = await import("@/lib/db");
         const verifiedUser = await verifiedDb.user.findUnique({
             where: { id: session.user.id },
             select: { recruiterVerified: true },
         });
-        if (!verifiedUser?.recruiterVerified) {
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
         if (isGuestSession(session)) {
@@ -448,7 +452,7 @@ export async function extendJobPostingExpirationAction(id: string): Promise<Acti
             where: { id: session.user.id },
             select: { recruiterVerified: true },
         });
-        if (!verifiedUser?.recruiterVerified) {
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
         if (isGuestSession(session)) {

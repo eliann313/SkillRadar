@@ -149,7 +149,10 @@
         "reviewed": "Reviewed",
         "shortlisted": "Shortlisted",
         "interview": "Interview",
-        "offer": "Offer"
+        "offer": "Offer",
+        "invalidStage": "That stage does not exist in this posting pipeline.",
+        "funnelTitle": "Hiring funnel",
+        "conversion": "Hired conversion"
     },
     "Sidebar": {
         "overview": "Overview",

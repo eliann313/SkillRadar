@@ -2,6 +2,7 @@
 
 import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
+import { isGuestSession, GUEST_WRITE_ERROR } from "@/lib/guest-guard";
 import { RECRUITER_PENDING_ERROR } from "@/lib/recruiter-guard";
 import { trackServerEvent } from "@/lib/analytics";
 import { checkProactiveMatchingRateLimit } from "@/lib/rate-limit";
@@ -28,7 +29,7 @@ export async function rankTalentPoolAction(jobDescription: string): Promise<Acti
             where: { id: session.user.id },
             select: { recruiterVerified: true },
         });
-        if (!verifiedUser?.recruiterVerified) {
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
@@ -80,7 +81,7 @@ export async function createContactRequestAction(
             where: { id: session.user.id },
             select: { recruiterVerified: true },
         });
-        if (!verifiedUser?.recruiterVerified) {
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
@@ -149,7 +150,7 @@ export async function toggleShortlistAction(developerId: string): Promise<Action
             where: { id: session.user.id },
             select: { recruiterVerified: true },
         });
-        if (!verifiedUser?.recruiterVerified) {
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
@@ -200,7 +201,7 @@ export async function getMarketIntelligenceSkillsAction(): Promise<ActionResult<
             where: { id: session.user.id },
             select: { recruiterVerified: true },
         });
-        if (!verifiedUser?.recruiterVerified) {
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
@@ -240,7 +241,7 @@ export async function generateInterviewQuestionsAction(
             where: { id: session.user.id },
             select: { recruiterVerified: true },
         });
-        if (!verifiedUser?.recruiterVerified) {
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
@@ -292,7 +293,7 @@ export async function searchTalentPoolAIAction(query: string): Promise<ActionRes
             where: { id: session.user.id },
             select: { recruiterVerified: true },
         });
-        if (!verifiedUser?.recruiterVerified) {
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
@@ -341,7 +342,7 @@ export async function generateCandidatePitchSummaryAction(developerId: string): 
             where: { id: session.user.id },
             select: { recruiterVerified: true },
         });
-        if (!verifiedUser?.recruiterVerified) {
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
@@ -359,6 +360,79 @@ export async function generateCandidatePitchSummaryAction(developerId: string): 
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al generar el resumen de IA.",
+        };
+    }
+}
+
+/**
+ * Outreach masivo: envía una plantilla renderizada a varios candidatos.
+ * Solo a developers (doble ciego: crea ContactRequest pendiente, sin PII).
+ * Máximo 20 por llamada + rate-limit de escritura.
+ */
+export async function bulkOutreachAction(input: {
+    templateBody: string;
+    jobTitle: string;
+    company: string;
+    developerIds: string[];
+}): Promise<ActionResult<{ sent: string[]; skipped: string[] }>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado." };
+        }
+
+        if (session.user.role !== "recruiter") {
+            return { success: false, error: "Acceso denegado." };
+        }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
+        }
+        if (isGuestSession(session)) {
+            return { success: false, error: GUEST_WRITE_ERROR };
+        }
+
+        const ids = [...new Set(input.developerIds)].slice(0, 20);
+        if (ids.length === 0 || input.templateBody.trim().length < 10) {
+            return { success: false, error: "Datos inválidos." };
+        }
+
+        const { checkWriteRateLimit } = await import("@/lib/rate-limit");
+        const sent: string[] = [];
+        const skipped: string[] = [];
+        for (const developerId of ids) {
+            const rl = await checkWriteRateLimit(`user:${session.user.id}`);
+            if (!rl.success) break;
+            const message = input.templateBody
+                .replaceAll("{{puesto}}", input.jobTitle)
+                .replaceAll("{{empresa}}", input.company)
+                .replaceAll("{puesto}", input.jobTitle)
+                .replaceAll("{empresa}", input.company)
+                .slice(0, 2000);
+            try {
+                await RecruiterService.createContactRequest({
+                    recruiterId: session.user.id,
+                    developerId,
+                    message,
+                });
+                sent.push(developerId);
+            } catch {
+                skipped.push(developerId);
+            }
+        }
+
+        const { revalidatePath } = await import("next/cache");
+        revalidatePath("/dashboard");
+        return { success: true, data: { sent, skipped } };
+    } catch (error: unknown) {
+        logger.error("[bulkOutreachAction] Error general:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Ocurrió un error en el envío masivo.",
         };
     }
 }
@@ -385,7 +459,7 @@ export async function generateCandidateOutreachAction(
             where: { id: session.user.id },
             select: { recruiterVerified: true },
         });
-        if (!verifiedUser?.recruiterVerified) {
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
@@ -427,7 +501,7 @@ export async function getMarketIntelligenceDataAction() {
             where: { id: session.user.id },
             select: { recruiterVerified: true },
         });
-        if (!verifiedUser?.recruiterVerified) {
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
@@ -470,7 +544,7 @@ export async function getSentContactRequestsAction(): Promise<ActionResult<SentC
             where: { id: session.user.id },
             select: { recruiterVerified: true },
         });
-        if (!verifiedUser?.recruiterVerified) {
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
         if (session.user.isGuest) {

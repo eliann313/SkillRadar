@@ -3,6 +3,10 @@
         {
             "path": "/api/cron/expire-jobs",
             "schedule": "0 0 * * *"
+        },
+        {
+            "path": "/api/cron/talent-alerts",
+            "schedule": "0 6 * * *"
         }
     ]
 }

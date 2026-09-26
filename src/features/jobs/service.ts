@@ -14,6 +14,7 @@ export interface JobPostingData {
     description: string;
     requiredSkills: string[];
     seniorityLevel: string;
+    pipelineStages?: string[];
 }
 
 export class JobPostingService {
@@ -37,6 +38,7 @@ export class JobPostingService {
                 remoteType: data.remoteType,
                 requiredSkills: data.requiredSkills,
                 seniorityLevel: data.seniorityLevel,
+                pipelineStages: data.pipelineStages ?? [],
                 status: "draft",
             },
         });
@@ -67,6 +69,7 @@ export class JobPostingService {
         if (data.remoteType) updateData.remoteType = data.remoteType;
         if (data.requiredSkills) updateData.requiredSkills = data.requiredSkills;
         if (data.seniorityLevel) updateData.seniorityLevel = data.seniorityLevel;
+        if (data.pipelineStages !== undefined) updateData.pipelineStages = data.pipelineStages;
 
         return await db.jobPosting.update({
             where: { id },
@@ -610,7 +613,7 @@ export class JobPostingService {
     static async updateApplicationStatus(
         recruiterId: string,
         applicationId: string,
-        newStatus: "submitted" | "reviewed" | "rejected" | "shortlisted" | "interview" | "offer" | "hired",
+        newStatus: string,
     ): Promise<JobPostingApplication> {
         const application = await db.jobPostingApplication.findUnique({
             where: { id: applicationId },
@@ -625,6 +628,11 @@ export class JobPostingService {
 
         if (application.jobPosting.recruiterId !== recruiterId) {
             throw new Error("Acceso denegado. No eres el propietario de la oferta de esta postulación.");
+        }
+
+        const { isValidStage } = await import("@/lib/pipeline-stages");
+        if (!isValidStage(newStatus, application.jobPosting.pipelineStages)) {
+            throw new Error("Estado no válido para las etapas de esta oferta.");
         }
 
         const updated = await db.jobPostingApplication.update({
@@ -651,7 +659,7 @@ export class JobPostingService {
             userId: updated.developerId,
             type: "application_status_changed",
             title: "Actualización de tu postulación",
-            message: `Tu postulación para ${updated.jobPosting.title} en ${updated.jobPosting.company} cambió a: ${statusMap[newStatus]}.`,
+            message: `Tu postulación para ${updated.jobPosting.title} en ${updated.jobPosting.company} cambió a: ${statusMap[newStatus as keyof typeof statusMap] ?? newStatus}.`,
             link: "/dashboard/jobs", // Redirige al listado de ofertas/jobs
             metadata: { applicationId, newStatus, jobPostingId: updated.jobPostingId },
         });

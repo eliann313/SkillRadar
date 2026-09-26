@@ -64,6 +64,7 @@ describe("Módulo 20 — Tests de Seguridad & Hardening (Job Board)", () => {
                 jobPosting: {
                     id: "job-b-id",
                     recruiterId: "recruiter-b-id", // Pertenece a B, no a A
+                    pipelineStages: [],
                 },
             };
 

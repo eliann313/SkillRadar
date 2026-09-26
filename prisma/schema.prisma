@@ -248,6 +248,7 @@ model JobPosting {
   seniorityLevel String
   status         String   @default("draft") // "draft" | "published" | "closed" | "under_review"
   expiresAt      DateTime?
+  pipelineStages String[] // etapas personalizadas; vacío = DEFAULT_PIPELINE_STAGES
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

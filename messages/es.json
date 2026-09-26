@@ -149,7 +149,10 @@
         "reviewed": "En revisión",
         "shortlisted": "Preseleccionadas",
         "interview": "Entrevista",
-        "offer": "Oferta"
+        "offer": "Oferta",
+        "invalidStage": "Esa etapa no existe en el pipeline de esta oferta.",
+        "funnelTitle": "Embudo de contratación",
+        "conversion": "Conversión a contratado"
     },
     "Sidebar": {
         "overview": "Inicio",

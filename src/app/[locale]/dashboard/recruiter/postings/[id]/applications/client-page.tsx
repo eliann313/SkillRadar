@@ -16,7 +16,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { updateApplicationStatusAction } from "@/features/jobs/actions";
-import { createContactRequestAction } from "@/features/recruiter/actions";
+import { createContactRequestAction, bulkOutreachAction } from "@/features/recruiter/actions";
 import { CandidateWorkspace } from "@/components/recruiter/candidate-workspace";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -79,6 +79,40 @@ export function ApplicationsClientPage({
     const [contactingDevId, setContactingDevId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+    const [bulkArmed, setBulkArmed] = useState(false);
+    const [bulkSending, setBulkSending] = useState(false);
+
+    const bulkTargets = applications.filter((a) => a.contactStatus !== "pending" && a.contactStatus !== "accepted");
+
+    const handleBulkSend = async () => {
+        if (!bulkArmed) {
+            setBulkArmed(true);
+            return;
+        }
+        setBulkSending(true);
+        try {
+            const res = await bulkOutreachAction({
+                templateBody: `Hola, he revisado tu postulación para la vacante de {{puesto}} en {{empresa}} y me gustaría que tengamos una breve entrevista. ¿Te interesa revelar tus datos de contacto?`,
+                jobTitle,
+                company: companyName,
+                developerIds: bulkTargets.map((a) => a.developerId),
+            });
+            if (res.success) {
+                const sentSet = new Set(res.data.sent);
+                setApplications((prev) =>
+                    prev.map((app) =>
+                        sentSet.has(app.developerId) ? { ...app, contactStatus: "pending" as const } : app,
+                    ),
+                );
+                toast.success(`Solicitudes enviadas: ${res.data.sent.length}. Omitidas: ${res.data.skipped.length}.`);
+                setBulkArmed(false);
+            } else {
+                toast.error(res.error || "Error en el envío masivo.");
+            }
+        } finally {
+            setBulkSending(false);
+        }
+    };
 
     const handleStatusChange = async (
         appId: string,
@@ -222,33 +256,50 @@ export function ApplicationsClientPage({
                     </div>
                 </div>
 
-                <div className="flex bg-muted/60 p-0.5 rounded-lg border border-border shrink-0 self-start sm:self-center">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setViewMode("list")}
-                        className={cn(
-                            "text-xs px-3 py-1.5 h-auto rounded-md shadow-none gap-1",
-                            viewMode === "list"
-                                ? "bg-background text-foreground font-semibold"
-                                : "text-muted-foreground hover:text-foreground",
-                        )}
-                    >
-                        📝 Vista Lista
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setViewMode("kanban")}
-                        className={cn(
-                            "text-xs px-3 py-1.5 h-auto rounded-md shadow-none gap-1",
-                            viewMode === "kanban"
-                                ? "bg-background text-foreground font-semibold"
-                                : "text-muted-foreground hover:text-foreground",
-                        )}
-                    >
-                        📊 Vista Kanban
-                    </Button>
+                <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
+                    {bulkTargets.length > 0 && (
+                        <Button
+                            variant={bulkArmed ? "destructive" : "outline"}
+                            size="sm"
+                            disabled={bulkSending}
+                            onClick={() => void handleBulkSend()}
+                            onBlur={() => setBulkArmed(false)}
+                        >
+                            {bulkSending
+                                ? "Enviando..."
+                                : bulkArmed
+                                  ? `Confirmar envío a ${bulkTargets.length}`
+                                  : `Contactar a ${bulkTargets.length}`}
+                        </Button>
+                    )}
+                    <div className="flex bg-muted/60 p-0.5 rounded-lg border border-border">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setViewMode("list")}
+                            className={cn(
+                                "text-xs px-3 py-1.5 h-auto rounded-md shadow-none gap-1",
+                                viewMode === "list"
+                                    ? "bg-background text-foreground font-semibold"
+                                    : "text-muted-foreground hover:text-foreground",
+                            )}
+                        >
+                            📝 Vista Lista
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setViewMode("kanban")}
+                            className={cn(
+                                "text-xs px-3 py-1.5 h-auto rounded-md shadow-none gap-1",
+                                viewMode === "kanban"
+                                    ? "bg-background text-foreground font-semibold"
+                                    : "text-muted-foreground hover:text-foreground",
+                            )}
+                        >
+                            📊 Vista Kanban
+                        </Button>
+                    </div>
                 </div>
             </div>
 
