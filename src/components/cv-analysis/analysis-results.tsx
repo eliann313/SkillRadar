@@ -252,7 +252,7 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
                     </CardHeader>
                     <CardContent>
                         <div className="flex flex-wrap gap-2">
-                            {analysis.detectedKeywords.map((keyword) => (
+                            {[...new Set(analysis.detectedKeywords)].map((keyword) => (
                                 <Badge key={keyword} className="bg-emerald/10 text-emerald hover:bg-emerald/20">
                                     {keyword}
                                 </Badge>
@@ -272,7 +272,7 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
                     </CardHeader>
                     <CardContent>
                         <div className="flex flex-wrap gap-2">
-                            {analysis.missingKeywords.map((keyword) => (
+                            {[...new Set(analysis.missingKeywords)].map((keyword) => (
                                 <Badge key={keyword} variant="outline" className="border-warning/30 text-warning">
                                     {keyword}
                                 </Badge>

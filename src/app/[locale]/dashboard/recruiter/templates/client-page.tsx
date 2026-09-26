@@ -20,6 +20,8 @@ export function TemplatesClientPage({ initial }: { initial: OutreachTemplateDTO[
     const [subject, setSubject] = useState("");
     const [body, setBody] = useState("");
     const [saving, setSaving] = useState(false);
+    const [varPuesto, setVarPuesto] = useState("");
+    const [varEmpresa, setVarEmpresa] = useState("");
 
     const handleCreate = async () => {
         setSaving(true);
@@ -46,8 +48,13 @@ export function TemplatesClientPage({ initial }: { initial: OutreachTemplateDTO[
     };
 
     const copyBody = async (text: string) => {
+        const replaced = text
+            .replaceAll("{{puesto}}", varPuesto)
+            .replaceAll("{{empresa}}", varEmpresa)
+            .replaceAll("{puesto}", varPuesto)
+            .replaceAll("{empresa}", varEmpresa);
         try {
-            await navigator.clipboard.writeText(text);
+            await navigator.clipboard.writeText(replaced);
             toast.success(t("copied"));
         } catch {
             toast.error(t("copyError"));
@@ -95,6 +102,21 @@ export function TemplatesClientPage({ initial }: { initial: OutreachTemplateDTO[
                     </Button>
                 </CardContent>
             </Card>
+
+            <div className="grid gap-4 md:grid-cols-2">
+                <Input
+                    value={varPuesto}
+                    onChange={(e) => setVarPuesto(e.target.value)}
+                    placeholder={t("varPuestoPh")}
+                    maxLength={80}
+                />
+                <Input
+                    value={varEmpresa}
+                    onChange={(e) => setVarEmpresa(e.target.value)}
+                    placeholder={t("varEmpresaPh")}
+                    maxLength={80}
+                />
+            </div>
 
             <div className="grid gap-4 md:grid-cols-2">
                 {items.map((tpl) => (

@@ -153,12 +153,12 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                     <AlertCircle className="size-5 shrink-0 mt-0.5" />
                     <div>
                         {t.rich("noResumeWarning", {
-                            link: () => (
+                            link: (chunks) => (
                                 <Link
                                     href="/dashboard/cv-analysis"
                                     className="underline font-bold hover:text-yellow-700"
                                 >
-                                    CV Analysis
+                                    {chunks}
                                 </Link>
                             ),
                         })}
