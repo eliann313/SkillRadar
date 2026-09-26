@@ -34,6 +34,12 @@ function toDTO(t: {
 async function requireRecruiter() {
     const session = await auth();
     if (!session?.user?.id || session.user.role !== "recruiter" || session.user.isGuest) return null;
+    const { db } = await import("@/lib/db");
+    const user = await db.user.findUnique({
+        where: { id: session.user.id },
+        select: { recruiterVerified: true },
+    });
+    if (!user?.recruiterVerified) return null;
     return session;
 }
 

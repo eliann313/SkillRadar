@@ -8,7 +8,12 @@ import { Separator } from "@/components/ui/separator";
 import { Users, AlertTriangle, ArrowRight, BarChart3, TrendingUp, ShieldAlert, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { getFunnelDataAction, getPendingReportsAction } from "@/features/admin/actions";
+import {
+    getFunnelDataAction,
+    getPendingReportsAction,
+    getPendingVerificationsAction,
+    reviewVerificationAction,
+} from "@/features/admin/actions";
 
 interface FunnelData {
     registered: number;
@@ -17,9 +22,18 @@ interface FunnelData {
     appliedOrContacted: number;
 }
 
+interface PendingVerification {
+    id: string;
+    name: string | null;
+    email: string;
+    verificationNote: string | null;
+    verificationRequestedAt: Date | null;
+}
+
 export default function AdminDashboardPage() {
     const [funnel, setFunnel] = useState<FunnelData | null>(null);
     const [pendingReportsCount, setPendingReportsCount] = useState<number>(0);
+    const [verifications, setVerifications] = useState<PendingVerification[]>([]);
     const [loading, setLoading] = useState(true);
 
     const loadDashboardData = async () => {
@@ -27,6 +41,7 @@ export default function AdminDashboardPage() {
             // Ya es true por defecto
             const funnelRes = await getFunnelDataAction();
             const reportsRes = await getPendingReportsAction();
+            const verifRes = await getPendingVerificationsAction();
 
             if (funnelRes.success) {
                 setFunnel(funnelRes.data);
@@ -38,6 +53,12 @@ export default function AdminDashboardPage() {
                 setPendingReportsCount(reportsRes.data.length);
             } else {
                 toast.error(reportsRes.error || "No se pudieron obtener los reportes.");
+            }
+
+            if (verifRes.success) {
+                setVerifications(verifRes.data as PendingVerification[]);
+            } else {
+                toast.error(verifRes.error || "No se pudieron obtener las verificaciones.");
             }
         } catch (err) {
             logger.error("Error cargando dashboard:", err);
@@ -287,6 +308,63 @@ export default function AdminDashboardPage() {
                     </Button>
                 </Link>
             </div>
+
+            {/* Verificaciones de recruiter pendientes */}
+            {verifications.length > 0 && (
+                <Card className="border-border/50 bg-card/30 backdrop-blur-md shadow-lg overflow-hidden">
+                    <CardHeader className="border-b border-border/40 pb-4 bg-muted/20">
+                        <CardTitle className="text-lg">Verificaciones de recruiter pendientes</CardTitle>
+                        <CardDescription className="text-xs">
+                            Aprobá o rechazá el acceso recruiter de estas cuentas
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex flex-col gap-3 p-6">
+                        {verifications.map((v) => (
+                            <div
+                                key={v.id}
+                                className="flex flex-col gap-2 rounded-xl border border-border/40 p-4 sm:flex-row sm:items-center sm:justify-between"
+                            >
+                                <div>
+                                    <p className="text-sm font-semibold text-foreground">{v.name || v.email}</p>
+                                    <p className="text-xs text-muted-foreground">{v.email}</p>
+                                    {v.verificationNote ? (
+                                        <p className="mt-1 text-xs text-muted-foreground">“{v.verificationNote}”</p>
+                                    ) : null}
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        size="sm"
+                                        onClick={() =>
+                                            void reviewVerificationAction(v.id, true).then((res) => {
+                                                if (res.success) {
+                                                    setVerifications((prev) => prev.filter((x) => x.id !== v.id));
+                                                    toast.success("Recruiter verificado.");
+                                                } else toast.error(res.error);
+                                            })
+                                        }
+                                    >
+                                        Aprobar
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="text-destructive"
+                                        onClick={() =>
+                                            void reviewVerificationAction(v.id, false).then((res) => {
+                                                if (res.success) {
+                                                    setVerifications((prev) => prev.filter((x) => x.id !== v.id));
+                                                } else toast.error(res.error);
+                                            })
+                                        }
+                                    >
+                                        Rechazar
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 }

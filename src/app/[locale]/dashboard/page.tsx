@@ -8,7 +8,7 @@ import {
     ContactRequestsList,
     PrivacyCard,
 } from "@/components/dashboard";
-import { TalentDashboard } from "@/components/recruiter";
+import { TalentDashboard, RecruiterVerificationGate } from "@/components/recruiter";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getTranslations } from "next-intl/server";
@@ -28,6 +28,14 @@ export default async function DashboardPage() {
 
     // Recruiter dashboard
     if (session.user.role === "recruiter") {
+        const recruiter = await db.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true, verificationRequestedAt: true },
+        });
+        if (!recruiter?.recruiterVerified) {
+            return <RecruiterVerificationGate requested={!!recruiter?.verificationRequestedAt} />;
+        }
+
         const [developers, shortlists] = await Promise.all([
             db.user.findMany({
                 where: { role: "developer" },

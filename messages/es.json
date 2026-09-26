@@ -737,5 +737,14 @@
         "keyClearedShort": "Se vació la clave. Guarda cambios para eliminarla.",
         "linkCopied": "Enlace copiado al portapapeles.",
         "markdownCopied": "Snippet de Markdown copiado."
+    },
+    "Recruiter": {
+        "verificationTitle": "Verificación de cuenta recruiter",
+        "verificationDesc": "Para publicar ofertas y contactar candidatos necesitamos verificar que reclutás de verdad. Contanos dónde trabajás.",
+        "verificationNotePh": "Ej: Reclutadora en TechCorp, busco perfiles frontend...",
+        "verificationSubmit": "Solicitar verificación",
+        "verificationSent": "Solicitud enviada. Te avisaremos por email.",
+        "verificationPendingTitle": "Verificación en revisión",
+        "verificationPendingDesc": "Recibimos tu solicitud. Vas a poder usar las funciones de recruiter cuando un administrador la apruebe."
     }
 }

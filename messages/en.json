@@ -737,5 +737,14 @@
         "keyClearedShort": "The key was cleared. Save changes to remove it.",
         "linkCopied": "Link copied to clipboard.",
         "markdownCopied": "Markdown snippet copied."
+    },
+    "Recruiter": {
+        "verificationTitle": "Recruiter account verification",
+        "verificationDesc": "To post jobs and contact candidates we need to verify you actually recruit. Tell us where you work.",
+        "verificationNotePh": "E.g. Recruiter at TechCorp, hiring frontend profiles...",
+        "verificationSubmit": "Request verification",
+        "verificationSent": "Request sent. We will notify you by email.",
+        "verificationPendingTitle": "Verification under review",
+        "verificationPendingDesc": "We received your request. You will unlock recruiter features once an admin approves it."
     }
 }

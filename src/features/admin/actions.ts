@@ -51,8 +51,45 @@ export async function getPendingReportsAction(): Promise<ActionResult<unknown[]>
 }
 
 /**
- * Descarta un reporte de contenido pendiente (lo marca como revisado/dismissed).
+ * Lista recruiters con verificación solicitada y pendiente.
  */
+export async function getPendingVerificationsAction(): Promise<ActionResult<unknown[]>> {
+    try {
+        await assertAdmin();
+
+        const users = await db.user.findMany({
+            where: { role: "recruiter", recruiterVerified: false, verificationRequestedAt: { not: null } },
+            select: { id: true, name: true, email: true, verificationNote: true, verificationRequestedAt: true },
+            orderBy: { verificationRequestedAt: "asc" },
+        });
+
+        return { success: true, data: users };
+    } catch (error: unknown) {
+        logger.error("[getPendingVerificationsAction] Error:", error);
+        return { success: false, error: error instanceof Error ? error.message : "Error al obtener solicitudes." };
+    }
+}
+
+/**
+ * Aprueba o rechaza la verificación de un recruiter.
+ */
+export async function reviewVerificationAction(userId: string, approve: boolean): Promise<ActionResult<boolean>> {
+    try {
+        if (!idSchema.safeParse(userId).success) return { success: false, error: "Usuario inválido." };
+        await assertAdmin();
+
+        await db.user.update({
+            where: { id: userId },
+            data: approve ? { recruiterVerified: true } : { verificationRequestedAt: null, verificationNote: null },
+        });
+
+        revalidatePath("/dashboard/admin");
+        return { success: true, data: true };
+    } catch (error: unknown) {
+        logger.error("[reviewVerificationAction] Error:", error);
+        return { success: false, error: error instanceof Error ? error.message : "Error al revisar la solicitud." };
+    }
+}
 export async function dismissReportAction(id: string): Promise<ActionResult<boolean>> {
     try {
         if (!idSchema.safeParse(id).success) return { success: false, error: "Reporte inválido." };

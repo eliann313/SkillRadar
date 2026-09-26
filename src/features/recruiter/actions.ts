@@ -2,6 +2,7 @@
 
 import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
+import { RECRUITER_PENDING_ERROR } from "@/lib/recruiter-guard";
 import { trackServerEvent } from "@/lib/analytics";
 import { checkProactiveMatchingRateLimit } from "@/lib/rate-limit";
 import { RecruiterService, type RankedCandidate } from "./service";
@@ -21,6 +22,14 @@ export async function rankTalentPoolAction(jobDescription: string): Promise<Acti
 
         if (session.user.role !== "recruiter") {
             return { success: false, error: "Acceso denegado. Se requiere el rol de reclutador." };
+        }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
         if (!jobDescription.trim()) {
@@ -65,6 +74,14 @@ export async function createContactRequestAction(
 
         if (session.user.role !== "recruiter") {
             return { success: false, error: "Acceso denegado. Se requiere el rol de reclutador." };
+        }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
         if (!developerId || !message.trim()) {
@@ -127,6 +144,14 @@ export async function toggleShortlistAction(developerId: string): Promise<Action
         if (session.user.role !== "recruiter") {
             return { success: false, error: "Acceso denegado. Se requiere el rol de reclutador." };
         }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
+        }
 
         if (!developerId) {
             return { success: false, error: "ID de desarrollador inválido." };
@@ -170,6 +195,14 @@ export async function getMarketIntelligenceSkillsAction(): Promise<ActionResult<
         if (session.user.role !== "recruiter") {
             return { success: false, error: "Acceso denegado." };
         }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
+        }
 
         const skills = await RecruiterService.getMarketIntelligenceSkills();
 
@@ -201,6 +234,14 @@ export async function generateInterviewQuestionsAction(
 
         if (session.user.role !== "recruiter") {
             return { success: false, error: "Acceso denegado. Se requiere el rol de reclutador." };
+        }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
         if (!developerId) {
@@ -246,6 +287,14 @@ export async function searchTalentPoolAIAction(query: string): Promise<ActionRes
         if (session.user.role !== "recruiter") {
             return { success: false, error: "Acceso denegado. Se requiere el rol de reclutador." };
         }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
+        }
 
         if (!query.trim()) {
             return { success: false, error: "La consulta de búsqueda no puede estar vacía." };
@@ -287,6 +336,14 @@ export async function generateCandidatePitchSummaryAction(developerId: string): 
         if (session.user.role !== "recruiter") {
             return { success: false, error: "Acceso denegado." };
         }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
+        }
 
         const summary = await RecruiterService.generateCandidatePitchSummary({
             recruiterId: session.user.id,
@@ -323,6 +380,14 @@ export async function generateCandidateOutreachAction(
         if (session.user.role !== "recruiter") {
             return { success: false, error: "Acceso denegado." };
         }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
+        }
 
         const message = await RecruiterService.generateCandidateOutreach({
             recruiterId: session.user.id,
@@ -356,6 +421,14 @@ export async function getMarketIntelligenceDataAction() {
 
         if (session.user.role !== "recruiter") {
             return { success: false, error: "Acceso denegado." };
+        }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
         const data = await RecruiterService.getMarketIntelligenceData();
@@ -391,6 +464,14 @@ export async function getSentContactRequestsAction(): Promise<ActionResult<SentC
         const session = await auth();
         if (!session?.user?.id || session.user.role !== "recruiter") {
             return { success: false, error: "No autorizado." };
+        }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
         }
         if (session.user.isGuest) {
             return { success: true, data: [] };

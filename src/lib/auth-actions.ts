@@ -18,7 +18,10 @@ export async function updateUserRole(role: "developer" | "recruiter") {
     try {
         await db.user.update({
             where: { id: session.user.id },
-            data: { role },
+            data:
+                role === "recruiter"
+                    ? { role, recruiterVerified: false, verificationRequestedAt: null, verificationNote: null }
+                    : { role },
         });
 
         revalidatePath("/");
