@@ -1,0 +1,40 @@
+{
+    "$schema": "https://react.doctor/schema/config.json",
+    "noScore": true,
+    "blocking": "error",
+    "categories": {
+        "Performance": "warn"
+    },
+    "ignore": {
+        "files": [".next/**", "out/**", "build/**", "coverage/**", "playwright-report/**"],
+        "overrides": [
+            // registerUserAction y requestPasswordResetAction DEBEN ser públicas (registro/recupero); protegidas por rate-limit + Zod + bcrypt. Verificado manual 2026-09-26.
+            {
+                "files": ["src/lib/auth-actions.ts"],
+                "rules": ["react-doctor/server-auth-actions"]
+            },
+            // Auth vía helpers que el scanner no reconoce: assertAdmin (admin), requireRecruiter (notes), checks inline + requireUser (thread/roadmap). Verificado manual 2026-09-26.
+            {
+                "files": [
+                    "src/features/admin/actions.ts",
+                    "src/features/application-notes/actions.ts",
+                    "src/features/contact-thread/actions.ts",
+                    "src/features/roadmap/actions.ts"
+                ],
+                "rules": ["react-doctor/server-auth-actions"]
+            },
+            // El timer de cv-upload-form se guarda y se limpia en el cleanup del efecto. Verificado manual 2026-09-26.
+            {
+                "files": ["src/components/cv-analysis/cv-upload-form.tsx"],
+                "rules": ["react-doctor/effect-needs-cleanup"]
+            }
+        ]
+    },
+    "serverAuthFunctionNames": [
+        "assertAdmin",
+        "assertActiveUser",
+        "requireRecruiter",
+        "requireUser",
+        "requireVerifiedRecruiter"
+    ]
+}

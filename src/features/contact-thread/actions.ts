@@ -3,8 +3,8 @@
 import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import type { ActionResult } from "@/features/job-match/types";
-import { RecruiterService } from "@/features/recruiter/service";
+import type { ActionResult } from "@/lib/action-result";
+import { sanitizeText } from "@/lib/sanitize";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -73,7 +73,7 @@ export async function sendThreadMessageAction(requestId: string, body: string): 
         const rl = await checkWriteRateLimit(`user:${session.user.id}`);
         if (!rl.success) return { success: false, error: "Límite diario de mensajes alcanzado." };
 
-        const clean = RecruiterService.sanitize(body).trim().slice(0, 2000);
+        const clean = sanitizeText(body).trim().slice(0, 2000);
         if (!clean) return { success: false, error: "El mensaje no puede estar vacío." };
 
         const request = await assertParticipant(requestId, session.user.id);

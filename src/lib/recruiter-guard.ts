@@ -8,24 +8,7 @@ export const RECRUITER_PENDING_ERROR =
     "Cuenta recruiter pendiente de verificación. Completá la solicitud y te avisaremos por email.";
 
 /**
- * Gate central de recruiter verificado.
- * Sesión + rol recruiter + no guest + recruiterVerified en DB.
- * Devuelve la sesión si pasa, null si no.
- */
-export async function requireVerifiedRecruiter() {
-    const session = await auth();
-    if (!session?.user?.id || session.user.role !== "recruiter" || isGuestSession(session)) {
-        return null;
-    }
-    const user = await db.user.findUnique({
-        where: { id: session.user.id },
-        select: { recruiterVerified: true },
-    });
-    if (!user?.recruiterVerified) return null;
-    return session;
-}
-
-/** Solicitud de verificación (la revisa un admin). */
+ * Solicitud de verificación (la revisa un admin). */
 export async function requestRecruiterVerification(note: string) {
     const session = await auth();
     if (!session?.user?.id || session.user.role !== "recruiter" || isGuestSession(session)) {

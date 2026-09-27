@@ -4,26 +4,12 @@ import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { JobTrackerService } from "./service";
-import { jobApplicationSchema, type ActionResult } from "./types";
+import { jobApplicationSchema } from "./types";
+import type { ActionResult } from "@/lib/action-result";
 import type { JobApplication } from "@prisma/client";
 import { z } from "zod";
 
 const statusSchema = z.enum(["to_apply", "applied", "interviewing", "offer"]);
-
-export async function getJobApplicationsAction(): Promise<ActionResult<JobApplication[]>> {
-    try {
-        const session = await auth();
-        if (!session?.user?.id) {
-            return { success: false, error: "No autorizado. Inicie sesión nuevamente." };
-        }
-
-        const data = await JobTrackerService.getJobApplications(session.user.id);
-        return { success: true, data };
-    } catch (error: unknown) {
-        logger.error("[getJobApplicationsAction] Error:", error);
-        return { success: false, error: "Error al recuperar tus postulaciones." };
-    }
-}
 
 export async function createJobApplicationAction(input: unknown): Promise<ActionResult<JobApplication>> {
     try {

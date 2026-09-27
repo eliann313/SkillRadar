@@ -2,8 +2,8 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import type { ActionResult } from "@/features/job-match/types";
-import { RecruiterService } from "@/features/recruiter/service";
+import type { ActionResult } from "@/lib/action-result";
+import { sanitizeText } from "@/lib/sanitize";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -77,7 +77,7 @@ export async function createNoteAction(applicationId: string, body: string): Pro
     if (!(await checkWriteRateLimit(`user:${session.user.id}`)).success) {
         return { success: false, error: "Límite diario de escritura alcanzado." };
     }
-    const clean = RecruiterService.sanitize(body).trim().slice(0, 2000);
+    const clean = sanitizeText(body).trim().slice(0, 2000);
     if (!clean) return { success: false, error: "La nota no puede estar vacía." };
     const note = await db.candidateNote.create({ data: { applicationId, recruiterId: session.user.id, body: clean } });
     revalidatePath("/dashboard/recruiter/postings");
@@ -138,12 +138,12 @@ export async function saveScorecardAction(
             jobPostingId: app.jobPostingId,
             criteria: parsed.data,
             overall,
-            comment: RecruiterService.sanitize(comment).slice(0, 2000),
+            comment: sanitizeText(comment).slice(0, 2000),
         },
         update: {
             criteria: parsed.data,
             overall,
-            comment: RecruiterService.sanitize(comment).slice(0, 2000),
+            comment: sanitizeText(comment).slice(0, 2000),
         },
     });
     revalidatePath("/dashboard/recruiter/postings");

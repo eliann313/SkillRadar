@@ -1,8 +1,6 @@
 import { z } from "zod";
 import type { JobPosting } from "@prisma/client";
 
-export type ActionResult<T> = { success: true; data: T } | { success: false; error: string };
-
 // Zod Schema para validación de datos de oferta laboral
 export const jobPostingSchema = z.object({
     title: z.string().min(2, "El título es obligatorio y debe tener al menos 2 caracteres.").max(150),

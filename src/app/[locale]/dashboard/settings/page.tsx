@@ -3,7 +3,7 @@
 import { logger } from "@/lib/logger";
 import { useTranslations } from "next-intl";
 import { useSession, signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -119,9 +119,7 @@ export default function SettingsPage() {
         showSeniority: true,
     });
     const [savingPublicSettings, setSavingPublicSettings] = useState(false);
-    const [publicProfileOrigin, setPublicProfileOrigin] = useState(() =>
-        typeof window !== "undefined" ? window.location.origin : "",
-    );
+    const [publicProfileOrigin, setPublicProfileOrigin] = useState("");
 
     // Estados para Preferencias de Notificaciones por Email
     const [emailNotifications, setEmailNotifications] = useState(true);
@@ -148,7 +146,7 @@ export default function SettingsPage() {
         return () => clearTimeout(timer);
     }, []);
 
-    const fetchKeysAndPrefs = async () => {
+    const fetchKeysAndPrefs = useCallback(async () => {
         try {
             const res = await getUserApiKeysStatusAction();
 
@@ -219,7 +217,7 @@ export default function SettingsPage() {
         } finally {
             setLoadingConfig(false);
         }
-    };
+    }, [t]);
 
     useEffect(() => {
         if (status === "authenticated" && session?.user) {
@@ -228,7 +226,8 @@ export default function SettingsPage() {
             }, 0);
             return () => clearTimeout(timer);
         }
-    }, [status, session]);
+        return undefined;
+    }, [status, session, fetchKeysAndPrefs]);
 
     if (status === "loading") {
         return (

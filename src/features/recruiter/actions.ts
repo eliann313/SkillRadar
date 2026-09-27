@@ -7,7 +7,7 @@ import { RECRUITER_PENDING_ERROR } from "@/lib/recruiter-guard";
 import { trackServerEvent } from "@/lib/analytics";
 import { checkProactiveMatchingRateLimit } from "@/lib/rate-limit";
 import { RecruiterService, type RankedCandidate } from "./service";
-import type { ActionResult } from "@/features/job-match/types";
+import type { ActionResult } from "@/lib/action-result";
 import { revalidatePath } from "next/cache";
 import type { ContactRequest } from "@prisma/client";
 
@@ -179,43 +179,6 @@ export async function toggleShortlistAction(developerId: string): Promise<Action
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al actualizar la shortlist.",
-        };
-    }
-}
-
-/**
- * Obtiene el listado de habilidades agregadas para Market Intelligence.
- */
-export async function getMarketIntelligenceSkillsAction(): Promise<ActionResult<{ name: string; value: number }[]>> {
-    try {
-        const session = await auth();
-        if (!session?.user?.id) {
-            return { success: false, error: "No autorizado." };
-        }
-
-        if (session.user.role !== "recruiter") {
-            return { success: false, error: "Acceso denegado." };
-        }
-        const { db: verifiedDb } = await import("@/lib/db");
-        const verifiedUser = await verifiedDb.user.findUnique({
-            where: { id: session.user.id },
-            select: { recruiterVerified: true },
-        });
-        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
-            return { success: false, error: RECRUITER_PENDING_ERROR };
-        }
-
-        const skills = await RecruiterService.getMarketIntelligenceSkills();
-
-        return {
-            success: true,
-            data: skills,
-        };
-    } catch (error: unknown) {
-        logger.error("[getMarketIntelligenceSkillsAction] Error:", error);
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "Error al obtener Market Intelligence.",
         };
     }
 }

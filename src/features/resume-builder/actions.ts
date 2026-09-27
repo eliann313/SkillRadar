@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { AIService, type AIServiceOptions } from "@/lib/ai";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import type { ActionResult } from "@/features/job-match/types";
+import type { ActionResult } from "@/lib/action-result";
 
 // Zod Schema for Impact Verb Analyzer
 const impactVerbAnalysisSchema = z.object({

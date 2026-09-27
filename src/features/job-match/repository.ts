@@ -33,20 +33,4 @@ export class JobMatchRepository {
             },
         });
     }
-
-    static async listByUserId(userId: string) {
-        return await db.jobMatch.findMany({
-            where: { userId },
-            orderBy: { createdAt: "desc" },
-            include: {
-                resume: true,
-            },
-        });
-    }
-
-    static async delete(id: string, userId: string) {
-        return await db.jobMatch.delete({
-            where: { id, userId },
-        });
-    }
 }

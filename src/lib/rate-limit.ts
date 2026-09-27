@@ -189,10 +189,7 @@ if (hasUpstashConfig) {
 
         logger.warn("🛡️ [RateLimit] Upstash Redis inicializado correctamente para Rate Limiting.");
     } catch (error) {
-        logger.error(
-            "❌ [RateLimit] Falló la inicialización de Upstash Redis, cayendo en fallback en memoria:",
-            error,
-        );
+        logger.error("❌ [RateLimit] Falló la inicialización de Upstash Redis, cayendo en fallback en memoria:", error);
     }
 }
 
@@ -311,9 +308,7 @@ async function checkUserHasApiKeyBypass(identifier: string): Promise<boolean> {
             );
 
             if (hasOwnKey) {
-                logger.warn(
-                    `🛡️ [RateLimit] Bypass activado para el usuario ${userId} por poseer API Keys personales.`,
-                );
+                logger.warn(`🛡️ [RateLimit] Bypass activado para el usuario ${userId} por poseer API Keys personales.`);
                 return true;
             }
         } catch (dbError) {

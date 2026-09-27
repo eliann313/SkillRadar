@@ -33,5 +33,3 @@ export interface CreateJobMatchInput {
     matchScore?: number;
     analysis?: JobMatchAnalysis;
 }
-
-export type ActionResult<T> = { success: true; data: T } | { success: false; error: string };

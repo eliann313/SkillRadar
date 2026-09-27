@@ -17,7 +17,8 @@ import {
 import { revalidatePath } from "next/cache";
 import type { JobPosting, JobPostingApplication } from "@prisma/client";
 
-import { type ActionResult, type JobPostingWithCount, type JobPostingWithMatch, jobPostingSchema } from "./types";
+import { type JobPostingWithMatch, jobPostingSchema } from "./types";
+import type { ActionResult } from "@/lib/action-result";
 
 /**
  * Crea una oferta laboral en estado draft (Solo Recruiters).
@@ -203,57 +204,6 @@ export async function closeJobPostingAction(id: string): Promise<ActionResult<Jo
     } catch (error) {
         logger.error("[closeJobPostingAction] Error:", error);
         return { success: false, error: (error as Error).message || "Error al cerrar la oferta de trabajo." };
-    }
-}
-/**
- * Obtiene las ofertas de trabajo creadas por el reclutador autenticado.
- */
-export async function getRecruiterJobPostingsAction(): Promise<ActionResult<JobPostingWithCount[]>> {
-    try {
-        const session = await auth();
-        if (!session?.user?.id || session.user.role !== "recruiter") {
-            return { success: false, error: "No autorizado." };
-        }
-        const { db: verifiedDb } = await import("@/lib/db");
-        const verifiedUser = await verifiedDb.user.findUnique({
-            where: { id: session.user.id },
-            select: { recruiterVerified: true },
-        });
-        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
-            return { success: false, error: RECRUITER_PENDING_ERROR };
-        }
-
-        const jobs = await JobPostingService.getRecruiterJobPostings(session.user.id);
-        return { success: true, data: jobs as JobPostingWithCount[] };
-    } catch (error) {
-        logger.error("[getRecruiterJobPostingsAction] Error:", error);
-        return { success: false, error: "Error al cargar las ofertas de trabajo." };
-    }
-}
-/**
- * Obtiene las postulaciones recibidas para una oferta de trabajo.
- * Valida internamente propiedad para evitar IDOR.
- */
-export async function getJobPostingApplicationsAction(jobPostingId: string): Promise<ActionResult<unknown[]>> {
-    try {
-        const session = await auth();
-        if (!session?.user?.id || session.user.role !== "recruiter") {
-            return { success: false, error: "No autorizado." };
-        }
-        const { db: verifiedDb } = await import("@/lib/db");
-        const verifiedUser = await verifiedDb.user.findUnique({
-            where: { id: session.user.id },
-            select: { recruiterVerified: true },
-        });
-        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
-            return { success: false, error: RECRUITER_PENDING_ERROR };
-        }
-
-        const apps = await JobPostingService.getJobPostingApplications(session.user.id, jobPostingId);
-        return { success: true, data: apps };
-    } catch (error) {
-        logger.error("[getJobPostingApplicationsAction] Error:", error);
-        return { success: false, error: (error as Error).message || "Error al cargar las postulaciones." };
     }
 }
 /**

@@ -5,11 +5,10 @@ import { db } from "@/lib/db";
 import { assertActiveUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import type { ActionResult } from "@/lib/action-result";
 
 const idSchema = z.string().cuid();
 const suspendSchema = z.object({ userId: z.string().cuid(), reportIdToDismiss: z.string().cuid().optional() });
-
-export type ActionResult<T> = { success: true; data: T } | { success: false; error: string };
 
 /**
  * Valida de forma estricta que el usuario tenga rol de Administrador.

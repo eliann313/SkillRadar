@@ -7,7 +7,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { getClientIp, checkLoginRateLimit } from "@/lib/rate-limit";
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export const { handlers, auth } = NextAuth({
     adapter: PrismaAdapter(db),
     session: { strategy: "jwt" },
     secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,

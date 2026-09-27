@@ -1,0 +1,23 @@
+{
+    "$schema": "https://unpkg.com/knip@6/schema.json",
+    "entry": [
+        "src/app/**/page.{ts,tsx}",
+        "src/app/**/route.ts",
+        "src/app/**/layout.tsx",
+        "src/app/**/loading.tsx",
+        "src/app/**/error.tsx",
+        "*.config.{js,mjs,ts,cjs}"
+    ],
+    "project": ["src/**/*.{ts,tsx}"],
+    "ignore": ["src/components/ui/**"],
+    "ignoreDependencies": [
+        "@emnapi/core",
+        "@emnapi/runtime",
+        "@types/bcryptjs",
+        "lint-staged",
+        "semgrep",
+        "tailwindcss",
+        "tw-animate-css"
+    ],
+    "ignoreBinaries": ["semgrep"]
+}

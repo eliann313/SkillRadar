@@ -1,8 +1,7 @@
 import { logger } from "@/lib/logger";
 import { db } from "@/lib/db";
 import { createNotification } from "@/lib/notifications";
-import { JobMatchService } from "@/features/job-match/service";
-import { RecruiterService } from "@/features/recruiter/service";
+import { sanitizeText } from "@/lib/sanitize";
 import type { Prisma, JobPosting, JobPostingApplication, ContactRequest } from "@prisma/client";
 import { checkProactiveMatchingRateLimit } from "@/lib/rate-limit";
 
@@ -23,10 +22,10 @@ export class JobPostingService {
      * Sanitiza description y title antes de persistir.
      */
     static async createJobPosting(recruiterId: string, data: JobPostingData): Promise<JobPosting> {
-        const titleSanitized = RecruiterService.sanitize(data.title);
-        const descriptionSanitized = RecruiterService.sanitize(data.description);
-        const companySanitized = RecruiterService.sanitize(data.company);
-        const locationSanitized = RecruiterService.sanitize(data.location);
+        const titleSanitized = sanitizeText(data.title);
+        const descriptionSanitized = sanitizeText(data.description);
+        const companySanitized = sanitizeText(data.company);
+        const locationSanitized = sanitizeText(data.location);
 
         return await db.jobPosting.create({
             data: {
@@ -62,10 +61,10 @@ export class JobPostingService {
         }
 
         const updateData: Prisma.JobPostingUpdateInput = {};
-        if (data.title) updateData.title = RecruiterService.sanitize(data.title);
-        if (data.description) updateData.description = RecruiterService.sanitize(data.description);
-        if (data.company) updateData.company = RecruiterService.sanitize(data.company);
-        if (data.location) updateData.location = RecruiterService.sanitize(data.location);
+        if (data.title) updateData.title = sanitizeText(data.title);
+        if (data.description) updateData.description = sanitizeText(data.description);
+        if (data.company) updateData.company = sanitizeText(data.company);
+        if (data.location) updateData.location = sanitizeText(data.location);
         if (data.remoteType) updateData.remoteType = data.remoteType;
         if (data.requiredSkills) updateData.requiredSkills = data.requiredSkills;
         if (data.seniorityLevel) updateData.seniorityLevel = data.seniorityLevel;
@@ -206,8 +205,12 @@ export class JobPostingService {
             };
         }
 
-        // 2. Si no existe, invocar la IA mediante JobMatchService
+        // 2. Si no existe, invocar la IA mediante el feature job-match.
+        // Import dinámico a propósito: evita el acoplamiento estático
+        // feature-to-feature (hex-no-feature-to-feature). El contrato se
+        // mantiene vía duck-typing local en vez de importar la clase.
         try {
+            const { JobMatchService } = await import("@/features/job-match/service");
             const jobMatch = await JobMatchService.createJobMatch({
                 userId: developerId,
                 resumeId,

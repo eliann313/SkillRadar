@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const scoreBreakdownSchema = z.object({
+const scoreBreakdownSchema = z.object({
     contacto: z.number().min(0).max(15),
     secciones: z.number().min(0).max(25),
     legibilidad: z.number().min(0).max(20),
@@ -34,5 +34,3 @@ export const atsAnalysisSchema = z.object({
 });
 
 export type ATSAnalysis = z.infer<typeof atsAnalysisSchema>;
-
-export type ActionResult<T> = { success: true; data: T } | { success: false; error: string };

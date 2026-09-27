@@ -5,8 +5,6 @@
 
 export const DEFAULT_PIPELINE_STAGES = ["submitted", "reviewed", "shortlisted", "interview", "offer", "hired"] as const;
 
-export type PipelineStage = (typeof DEFAULT_PIPELINE_STAGES)[number] | (string & {});
-
 const STAGE_KEY_REGEX = /^[a-z0-9_]{1,24}$/;
 
 export function resolveStages(custom: string[] | null | undefined): string[] {

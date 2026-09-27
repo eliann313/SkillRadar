@@ -35,12 +35,13 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
     const t = useTranslations("CVAnalysis");
 
     useEffect(() => {
+        let timer: ReturnType<typeof setTimeout> | undefined;
         const handlePdfNotReadable = () => {
             setIsTextOpen(true);
             setFile(null); // Limpiar el archivo erróneo
             setHasUploadError(true);
             // Timeout para esperar que la animación del Collapsible se complete y enfocar el Textarea
-            setTimeout(() => {
+            timer = setTimeout(() => {
                 const textarea = document.getElementById("cv-text");
                 if (textarea) {
                     textarea.focus();
@@ -51,6 +52,7 @@ export function CVUploadForm({ onAnalyze, isLoading = false }: CVUploadFormProps
         window.addEventListener("cv-pdf-not-readable", handlePdfNotReadable);
         return () => {
             window.removeEventListener("cv-pdf-not-readable", handlePdfNotReadable);
+            if (timer) clearTimeout(timer);
         };
     }, []);
 
