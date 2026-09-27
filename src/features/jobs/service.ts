@@ -2,6 +2,12 @@ import { logger } from "@/lib/logger";
 import { db } from "@/lib/db";
 import { createNotification } from "@/lib/notifications";
 import { sanitizeText } from "@/lib/sanitize";
+import {
+    resolveDefaultMatchProvider,
+    type MatchProvider,
+    type MatchProviderInput,
+    type MatchProviderResult,
+} from "./ports";
 import type { Prisma, JobPosting, JobPostingApplication, ContactRequest } from "@prisma/client";
 import { checkProactiveMatchingRateLimit } from "@/lib/rate-limit";
 
@@ -187,7 +193,8 @@ export class JobPostingService {
         jobPostingId: string,
         jobOfferText: string,
         developerId: string,
-    ) {
+        provider?: MatchProvider,
+    ): Promise<MatchProviderResult> {
         // 1. Intentar obtener de la caché
         const cached = await db.jobPostingMatchCache.findUnique({
             where: {
@@ -205,17 +212,16 @@ export class JobPostingService {
             };
         }
 
-        // 2. Si no existe, invocar la IA mediante el feature job-match.
-        // Import dinámico a propósito: evita el acoplamiento estático
-        // feature-to-feature (hex-no-feature-to-feature). El contrato se
-        // mantiene vía duck-typing local en vez de importar la clase.
+        // 2. Si no existe, invocar la IA vía el puerto MatchProvider
+        // (ver ./ports.ts). Adaptador por defecto: job-match.
         try {
-            const { JobMatchService } = await import("@/features/job-match/service");
-            const jobMatch = await JobMatchService.createJobMatch({
+            const matchProvider = provider ?? (await resolveDefaultMatchProvider());
+            const matchInput: MatchProviderInput = {
                 userId: developerId,
                 resumeId,
                 jobOfferText,
-            });
+            };
+            const jobMatch = await matchProvider.createJobMatch(matchInput);
 
             const score = jobMatch.matchScore || 0;
             const analysis = jobMatch.analysis || {};
@@ -255,6 +261,7 @@ export class JobPostingService {
     static async getDeveloperJobBoard(
         developerId: string,
         filters?: { remoteType?: string; seniorityLevel?: string; search?: string },
+        provider?: MatchProvider,
     ) {
         // 1. Obtener el CV activo del developer
         const latestResume =
@@ -314,6 +321,7 @@ export class JobPostingService {
                         job.id,
                         job.description,
                         developerId,
+                        provider,
                     );
                     matchScore = match.matchScore;
                 }
@@ -723,16 +731,17 @@ export class JobPostingService {
                     jobPosting.description,
                     dev.id,
                 );
+                const score = match.matchScore ?? 0;
 
-                if (match.matchScore >= 75) {
+                if (score >= 75) {
                     // Crear notificación de alta afinidad
                     await createNotification({
                         userId: dev.id,
                         type: "new_job_match",
                         title: "Nueva oferta altamente compatible",
-                        message: `¡Hola ${dev.name || "desarrollador"}! Hemos detectado que tu perfil tiene una afinidad del ${match.matchScore}% con la oferta de ${jobPosting.title} en ${jobPosting.company}.`,
+                        message: `¡Hola ${dev.name || "desarrollador"}! Hemos detectado que tu perfil tiene una afinidad del ${score}% con la oferta de ${jobPosting.title} en ${jobPosting.company}.`,
                         link: "/dashboard/jobs",
-                        metadata: { jobPostingId, matchScore: match.matchScore },
+                        metadata: { jobPostingId, matchScore: score },
                     });
                 }
             }
