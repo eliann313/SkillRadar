@@ -4,9 +4,6 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isGuestSession } from "@/lib/guest-guard";
 
-export const RECRUITER_PENDING_ERROR =
-    "Cuenta recruiter pendiente de verificación. Completá la solicitud y te avisaremos por email.";
-
 /**
  * Solicitud de verificación (la revisa un admin). */
 export async function requestRecruiterVerification(note: string) {

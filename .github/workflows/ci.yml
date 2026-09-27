@@ -100,8 +100,8 @@ jobs:
             - name: Knip (dead code / deps)
               run: npm run knip
 
-            - name: npm audit (high+)
-              run: npm audit --audit-level=high
+            - name: npm audit (high+, allowlist prisma-transitivos en scripts/audit-high.mjs)
+              run: npm run audit:high
 
     # ─────────────────────────────────────────
     # 3. Build

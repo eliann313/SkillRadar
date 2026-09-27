@@ -16,6 +16,7 @@
         "@types/bcryptjs",
         "lint-staged",
         "semgrep",
+        "shadcn",
         "tailwindcss",
         "tw-animate-css"
     ],

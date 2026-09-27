@@ -3,7 +3,7 @@
 import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
 import { isGuestSession, GUEST_WRITE_ERROR } from "@/lib/guest-guard";
-import { RECRUITER_PENDING_ERROR } from "@/lib/recruiter-guard";
+import { RECRUITER_PENDING_ERROR } from "@/lib/recruiter-constants";
 import { trackServerEvent } from "@/lib/analytics";
 import { checkProactiveMatchingRateLimit } from "@/lib/rate-limit";
 import { RecruiterService, type RankedCandidate } from "./service";
