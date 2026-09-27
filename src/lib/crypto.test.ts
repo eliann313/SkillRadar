@@ -152,6 +152,9 @@ describe("Criptosistema AES-256-GCM (Tarjeta 7.3)", () => {
                 emailContactUpdates: true,
                 emailJobMatches: true,
                 isSuspended: false,
+                recruiterVerified: false,
+                verificationRequestedAt: null,
+                verificationNote: null,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             };

@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { AIService, type AIServiceOptions } from "@/lib/ai";
 import { z } from "zod";
-import type { ActionResult } from "@/features/job-match/types";
+import type { ActionResult } from "@/lib/action-result";
 
 // Schema for LinkedIn Audit Results
 const linkedinAuditSchema = z.object({

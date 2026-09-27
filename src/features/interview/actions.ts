@@ -2,6 +2,7 @@
 
 import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
+import { isGuestSession, GUEST_WRITE_ERROR } from "@/lib/guest-guard";
 import { InterviewService } from "./service";
 import { InterviewRepository } from "./repository";
 import { revalidatePath } from "next/cache";
@@ -10,6 +11,9 @@ export async function startInterviewAction() {
     const session = await auth();
     if (!session?.user?.id) {
         return { success: false, error: "No autorizado. Por favor inicia sesión." };
+    }
+    if (isGuestSession(session)) {
+        return { success: false, error: GUEST_WRITE_ERROR };
     }
 
     try {
@@ -25,6 +29,9 @@ export async function saveInterviewMessagesAction(id: string, messages: Array<{ 
     const session = await auth();
     if (!session?.user?.id) {
         return { success: false, error: "No autorizado." };
+    }
+    if (isGuestSession(session)) {
+        return { success: false, error: GUEST_WRITE_ERROR };
     }
 
     try {
@@ -43,6 +50,9 @@ export async function finishInterviewAction(
     const session = await auth();
     if (!session?.user?.id) {
         return { success: false, error: "No autorizado." };
+    }
+    if (isGuestSession(session)) {
+        return { success: false, error: GUEST_WRITE_ERROR };
     }
 
     try {

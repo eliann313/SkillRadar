@@ -75,6 +75,35 @@ jobs:
               continue-on-error: true
 
     # ─────────────────────────────────────────
+    # 2b. Architecture + dependency audit (hexagonal gates)
+    # ─────────────────────────────────────────
+    arch:
+        name: Arch & Audit
+        runs-on: ubuntu-latest
+        needs: quality
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7 # nosemgrep
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v7 # nosemgrep
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Dependency-cruiser (hexagonal, warn-only hasta F4.2)
+              run: npm run arch
+
+            - name: Knip (dead code / deps)
+              run: npm run knip
+
+            - name: npm audit (high+, allowlist prisma-transitivos en scripts/audit-high.mjs)
+              run: npm run audit:high
+
+    # ─────────────────────────────────────────
     # 3. Build
     # ─────────────────────────────────────────
     build:

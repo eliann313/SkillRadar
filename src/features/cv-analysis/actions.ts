@@ -6,7 +6,7 @@ import { trackServerEvent } from "@/lib/analytics";
 import { CVAnalysisService } from "./service";
 import { ResumeRepository } from "./repository";
 import type { Resume, Prisma } from "@prisma/client";
-import type { ActionResult } from "./types";
+import type { ActionResult } from "@/lib/action-result";
 import { revalidatePath } from "next/cache";
 import { checkCVRateLimit, getClientIp } from "@/lib/rate-limit";
 import { db } from "@/lib/db";

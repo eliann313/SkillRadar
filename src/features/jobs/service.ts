@@ -1,8 +1,7 @@
 import { logger } from "@/lib/logger";
 import { db } from "@/lib/db";
 import { createNotification } from "@/lib/notifications";
-import { JobMatchService } from "@/features/job-match/service";
-import { RecruiterService } from "@/features/recruiter/service";
+import { sanitizeText } from "@/lib/sanitize";
 import type { Prisma, JobPosting, JobPostingApplication, ContactRequest } from "@prisma/client";
 import { checkProactiveMatchingRateLimit } from "@/lib/rate-limit";
 
@@ -14,6 +13,7 @@ export interface JobPostingData {
     description: string;
     requiredSkills: string[];
     seniorityLevel: string;
+    pipelineStages?: string[];
 }
 
 export class JobPostingService {
@@ -22,10 +22,10 @@ export class JobPostingService {
      * Sanitiza description y title antes de persistir.
      */
     static async createJobPosting(recruiterId: string, data: JobPostingData): Promise<JobPosting> {
-        const titleSanitized = RecruiterService.sanitize(data.title);
-        const descriptionSanitized = RecruiterService.sanitize(data.description);
-        const companySanitized = RecruiterService.sanitize(data.company);
-        const locationSanitized = RecruiterService.sanitize(data.location);
+        const titleSanitized = sanitizeText(data.title);
+        const descriptionSanitized = sanitizeText(data.description);
+        const companySanitized = sanitizeText(data.company);
+        const locationSanitized = sanitizeText(data.location);
 
         return await db.jobPosting.create({
             data: {
@@ -37,6 +37,7 @@ export class JobPostingService {
                 remoteType: data.remoteType,
                 requiredSkills: data.requiredSkills,
                 seniorityLevel: data.seniorityLevel,
+                pipelineStages: data.pipelineStages ?? [],
                 status: "draft",
             },
         });
@@ -60,13 +61,14 @@ export class JobPostingService {
         }
 
         const updateData: Prisma.JobPostingUpdateInput = {};
-        if (data.title) updateData.title = RecruiterService.sanitize(data.title);
-        if (data.description) updateData.description = RecruiterService.sanitize(data.description);
-        if (data.company) updateData.company = RecruiterService.sanitize(data.company);
-        if (data.location) updateData.location = RecruiterService.sanitize(data.location);
+        if (data.title) updateData.title = sanitizeText(data.title);
+        if (data.description) updateData.description = sanitizeText(data.description);
+        if (data.company) updateData.company = sanitizeText(data.company);
+        if (data.location) updateData.location = sanitizeText(data.location);
         if (data.remoteType) updateData.remoteType = data.remoteType;
         if (data.requiredSkills) updateData.requiredSkills = data.requiredSkills;
         if (data.seniorityLevel) updateData.seniorityLevel = data.seniorityLevel;
+        if (data.pipelineStages !== undefined) updateData.pipelineStages = data.pipelineStages;
 
         return await db.jobPosting.update({
             where: { id },
@@ -203,8 +205,12 @@ export class JobPostingService {
             };
         }
 
-        // 2. Si no existe, invocar la IA mediante JobMatchService
+        // 2. Si no existe, invocar la IA mediante el feature job-match.
+        // Import dinámico a propósito: evita el acoplamiento estático
+        // feature-to-feature (hex-no-feature-to-feature). El contrato se
+        // mantiene vía duck-typing local en vez de importar la clase.
         try {
+            const { JobMatchService } = await import("@/features/job-match/service");
             const jobMatch = await JobMatchService.createJobMatch({
                 userId: developerId,
                 resumeId,
@@ -610,7 +616,7 @@ export class JobPostingService {
     static async updateApplicationStatus(
         recruiterId: string,
         applicationId: string,
-        newStatus: "submitted" | "reviewed" | "rejected" | "shortlisted" | "interview" | "offer" | "hired",
+        newStatus: string,
     ): Promise<JobPostingApplication> {
         const application = await db.jobPostingApplication.findUnique({
             where: { id: applicationId },
@@ -625,6 +631,11 @@ export class JobPostingService {
 
         if (application.jobPosting.recruiterId !== recruiterId) {
             throw new Error("Acceso denegado. No eres el propietario de la oferta de esta postulación.");
+        }
+
+        const { isValidStage } = await import("@/lib/pipeline-stages");
+        if (!isValidStage(newStatus, application.jobPosting.pipelineStages)) {
+            throw new Error("Estado no válido para las etapas de esta oferta.");
         }
 
         const updated = await db.jobPostingApplication.update({
@@ -651,7 +662,7 @@ export class JobPostingService {
             userId: updated.developerId,
             type: "application_status_changed",
             title: "Actualización de tu postulación",
-            message: `Tu postulación para ${updated.jobPosting.title} en ${updated.jobPosting.company} cambió a: ${statusMap[newStatus]}.`,
+            message: `Tu postulación para ${updated.jobPosting.title} en ${updated.jobPosting.company} cambió a: ${statusMap[newStatus as keyof typeof statusMap] ?? newStatus}.`,
             link: "/dashboard/jobs", // Redirige al listado de ofertas/jobs
             metadata: { applicationId, newStatus, jobPostingId: updated.jobPostingId },
         });

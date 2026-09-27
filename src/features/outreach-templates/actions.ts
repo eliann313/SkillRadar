@@ -2,8 +2,8 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import type { ActionResult } from "@/features/job-match/types";
-import { RecruiterService } from "@/features/recruiter/service";
+import type { ActionResult } from "@/lib/action-result";
+import { sanitizeText } from "@/lib/sanitize";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -34,6 +34,12 @@ function toDTO(t: {
 async function requireRecruiter() {
     const session = await auth();
     if (!session?.user?.id || session.user.role !== "recruiter" || session.user.isGuest) return null;
+    const { db } = await import("@/lib/db");
+    const user = await db.user.findUnique({
+        where: { id: session.user.id },
+        select: { recruiterVerified: true },
+    });
+    if (!user?.recruiterVerified) return null;
     return session;
 }
 
@@ -61,9 +67,9 @@ export async function createTemplateAction(
     const created = await db.outreachTemplate.create({
         data: {
             recruiterId: session.user.id,
-            name: RecruiterService.sanitize(parsed.data.name),
-            subject: parsed.data.subject ? RecruiterService.sanitize(parsed.data.subject) : null,
-            body: RecruiterService.sanitize(parsed.data.body),
+            name: sanitizeText(parsed.data.name),
+            subject: parsed.data.subject ? sanitizeText(parsed.data.subject) : null,
+            body: sanitizeText(parsed.data.body),
         },
     });
     revalidatePath("/dashboard/recruiter/templates");

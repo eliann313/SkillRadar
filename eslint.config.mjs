@@ -1,10 +1,12 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import reactCompiler from "eslint-plugin-react-compiler";
 
 const eslintConfig = defineConfig([
     ...nextVitals,
     ...nextTs,
+    reactCompiler.configs.recommended,
     {
         languageOptions: {
             parserOptions: {
@@ -36,9 +38,12 @@ const eslintConfig = defineConfig([
         ".next/**",
         "out/**",
         "build/**",
+        "coverage/**",
         "next-env.d.ts",
         "node_modules/**",
         "eslint.config.mjs",
+        ".dependency-cruiser.cjs",
+        "scripts/**",
         "postcss.config.mjs",
         "vitest.config.ts",
         "next.config.ts",

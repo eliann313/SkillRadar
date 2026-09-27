@@ -4,6 +4,7 @@ import { env } from "@/lib/env";
 import { AIService, type AIServiceOptions } from "@/lib/ai";
 import { z } from "zod";
 import { stripPIIForLLM, redactPIIFromModelOutput, buildAnonymousId, safeParseJson } from "@/lib/pii";
+import { sanitizeText } from "@/lib/sanitize";
 
 /**
  * Construye un RegExp seguro a partir de un string arbitrario escapando todos
@@ -63,15 +64,10 @@ type TalentPoolMatch = z.infer<typeof talentPoolMatchSchema>;
 export class RecruiterService {
     /**
      * Sanitiza el texto contra inyecciones XSS básicas.
+     * @deprecated Usar `sanitizeText` de `@/lib/sanitize` (shared kernel).
      */
     static sanitize(text: string): string {
-        if (!text) return "";
-        return text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#x27;");
+        return sanitizeText(text);
     }
 
     /**
@@ -79,7 +75,7 @@ export class RecruiterService {
      * Aplica la política de Doble Ciego para proteger la PII de los candidatos.
      */
     static async rankTalentPool(params: { recruiterId: string; jobDescription: string }): Promise<RankedCandidate[]> {
-        const jdSanitized = this.sanitize(params.jobDescription).slice(0, 4000);
+        const jdSanitized = sanitizeText(params.jobDescription).slice(0, 4000);
 
         // 1. Obtener desarrolladores que tengan al menos un CV (paginado para evitar costo lineal IA)
         const developers = await db.user.findMany({
@@ -237,7 +233,7 @@ ${jdSanitized}`,
      */
     static async createContactRequest(params: { recruiterId: string; developerId: string; message: string }) {
         // Sanitizar el mensaje para prevenir XSS
-        const messageSanitized = this.sanitize(params.message).slice(0, 2000);
+        const messageSanitized = sanitizeText(params.message).slice(0, 2000);
 
         // Validar que el destinatario exista y sea developer (evita spam a IDs arbitrarios)
         const developer = await db.user.findUnique({
@@ -314,36 +310,6 @@ ${jdSanitized}`,
             select: { developerId: true },
         });
         return entries.map((e) => e.developerId);
-    }
-
-    /**
-     * Compila y agrupa todas las habilidades técnicas (keywords) de los CVs del Talent Pool por frecuencia.
-     */
-    static async getMarketIntelligenceSkills(): Promise<{ name: string; value: number }[]> {
-        const resumes = await db.resume.findMany({
-            select: { analysis: true },
-        });
-
-        const skillCounts: Record<string, number> = {};
-
-        resumes.forEach((resume) => {
-            if (!resume.analysis) return;
-            const analysis = safeParseJson<{ keywords?: string[] }>(resume.analysis, null);
-            const keywords = analysis?.keywords;
-            if (Array.isArray(keywords)) {
-                keywords.forEach((kw) => {
-                    if (!kw) return;
-                    const normalized = kw.trim();
-                    if (!normalized) return;
-                    const key = normalized.charAt(0).toUpperCase() + normalized.slice(1);
-                    skillCounts[key] = (skillCounts[key] || 0) + 1;
-                });
-            }
-        });
-
-        return Object.entries(skillCounts)
-            .map(([name, value]) => ({ name, value }))
-            .sort((a, b) => b.value - a.value);
     }
 
     /**
@@ -555,7 +521,7 @@ Para cada pregunta generada, debes proveer la "Respuesta Esperada" o guía clave
 
 === TEXTO DEL CV DEL CANDIDATO (PII ELIMINADA) ===
 ${stripPIIForLLM(resume.rawText || "")}
-${params.jobDescription ? `\n=== DESCRIPCIÓN DEL CARGO (JOB DESCRIPTION) ===\n${this.sanitize(params.jobDescription).slice(0, 4000)}` : ""}`,
+${params.jobDescription ? `\n=== DESCRIPCIÓN DEL CARGO (JOB DESCRIPTION) ===\n${sanitizeText(params.jobDescription).slice(0, 4000)}` : ""}`,
                 userSettings,
             });
 
@@ -621,7 +587,7 @@ ${params.jobDescription ? `\n=== DESCRIPCIÓN DEL CARGO (JOB DESCRIPTION) ===\n$
      * Aplica estrictamente Doble Ciego.
      */
     static async searchTalentPoolAI(params: { recruiterId: string; query: string }): Promise<RankedCandidate[]> {
-        const querySanitized = this.sanitize(params.query).slice(0, 2000);
+        const querySanitized = sanitizeText(params.query).slice(0, 2000);
 
         // 1. Obtener desarrolladores que tengan al menos un CV (paginado)
         const developers = await db.user.findMany({
@@ -1004,8 +970,8 @@ ${stripPIIForLLM(resume.rawText || "")}`,
         jobTitle: string;
         company: string;
     }): Promise<string> {
-        const jobTitle = this.sanitize(params.jobTitle).slice(0, 120);
-        const company = this.sanitize(params.company).slice(0, 120);
+        const jobTitle = sanitizeText(params.jobTitle).slice(0, 120);
+        const company = sanitizeText(params.company).slice(0, 120);
         const resume =
             (await db.resume.findFirst({
                 where: { userId: params.developerId, isActive: true },

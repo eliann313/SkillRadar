@@ -13,10 +13,18 @@ export default defineConfig({
             "**/{karma,rollup,webpack,vite,vitest}.config.*",
             "**/tests/e2e/**",
         ],
-        // Add coverage configurations if needed
+        // Piso anti-regresión = baseline medido 2026-09-27 (líneas 28.08%,
+        // funciones 35.27%, ramas 21.15%, sentencias 27.4%).
+        // F4.3 sube el piso hacia 40% con tests P0/P1+E2E.
         coverage: {
             provider: "v8",
             reporter: ["text", "json", "html"],
+            thresholds: {
+                lines: 27,
+                functions: 34,
+                branches: 20,
+                statements: 26,
+            },
         },
     },
     resolve: {

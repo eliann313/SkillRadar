@@ -9,6 +9,7 @@ import { LanguageChart } from "@/components/github/language-chart";
 import { RepoList } from "@/components/github/repo-list";
 import { AnalysisCards } from "@/components/github/analysis-cards";
 import { analyzeGithubUserAction } from "@/features/github/actions";
+import type { DetectedPatterns } from "@/features/github/types";
 import { toast } from "sonner";
 import {
     Loader2,
@@ -30,15 +31,6 @@ interface GitHubRepo {
     stars: number;
     language: string | null;
     url: string;
-}
-
-interface DetectedPatterns {
-    hasCI: boolean;
-    hasTesting: boolean;
-    hasDocker: boolean;
-    hasAuthImplementation: boolean;
-    hasCaching: boolean;
-    hasObservability: boolean;
 }
 
 interface GitHubDashboardClientProps {

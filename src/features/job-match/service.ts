@@ -306,14 +306,6 @@ ${params.jobOfferText.slice(0, 4000)}`,
         return await JobMatchRepository.findById(id, userId);
     }
 
-    static async getJobMatchesHistory(userId: string) {
-        return await JobMatchRepository.listByUserId(userId);
-    }
-
-    static async deleteJobMatch(id: string, userId: string) {
-        return await JobMatchRepository.delete(id, userId);
-    }
-
     static async generateSmartPitch(jobMatchId: string, userId: string): Promise<string> {
         const jobMatch = await JobMatchRepository.findById(jobMatchId, userId);
         if (!jobMatch) {

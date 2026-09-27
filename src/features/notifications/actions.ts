@@ -6,8 +6,7 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 import type { Notification } from "@prisma/client";
-
-export type ActionResult<T> = { success: true; data: T } | { success: false; error: string };
+import type { ActionResult } from "@/lib/action-result";
 
 export interface NotificationListResult {
     notifications: Notification[];

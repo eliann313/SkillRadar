@@ -14,10 +14,3 @@ export const interviewDebriefSchema = z.object({
 });
 
 export type InterviewDebriefData = z.infer<typeof interviewDebriefSchema>;
-
-export interface ChatMessage {
-    id: string;
-    role: "user" | "assistant";
-    content: string;
-    timestamp: Date;
-}

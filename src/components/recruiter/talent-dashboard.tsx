@@ -17,6 +17,7 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog";
 import type { TalentCard } from "@/lib/types";
+import { getSeniorityColor } from "@/lib/seniority";
 import { cn } from "@/lib/utils";
 import {
     Search,
@@ -68,29 +69,6 @@ import {
 
 interface TalentDashboardProps {
     talents?: TalentCard[];
-}
-
-const seniorityColors: Record<string, string> = {
-    junior: "bg-indigo/10 text-indigo border-indigo/20",
-    mid: "bg-primary/10 text-primary border-primary/20",
-    senior: "bg-emerald/10 text-emerald border-emerald/20",
-    lead: "bg-warning/10 text-warning border-warning/20",
-};
-
-export function getSeniorityColor(level: string) {
-    const normalized = String(level).toLowerCase();
-    switch (normalized) {
-        case "junior":
-            return seniorityColors.junior;
-        case "mid":
-            return seniorityColors.mid;
-        case "senior":
-            return seniorityColors.senior;
-        case "lead":
-            return seniorityColors.lead;
-        default:
-            return "bg-secondary text-secondary-foreground border-border";
-    }
 }
 
 const getScoreColor = (score: number) => {
@@ -824,7 +802,10 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                                             <Badge
                                                 className={cn(
                                                     "capitalize text-[10px] font-medium px-2 py-0.5",
-                                                    getSeniorityColor(talent.estimatedSeniority),
+                                                    getSeniorityColor(
+                                                        talent.estimatedSeniority,
+                                                        "bg-secondary text-secondary-foreground border-border",
+                                                    ),
                                                 )}
                                                 variant="outline"
                                             >

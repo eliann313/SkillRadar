@@ -3,7 +3,7 @@ import { track } from "@vercel/analytics/server";
 import { db } from "@/lib/db";
 import { createHash } from "crypto";
 
-export function getAnonymousUserHash(userId: string): string {
+function getAnonymousUserHash(userId: string): string {
     return createHash("sha256").update(userId).digest("hex");
 }
 

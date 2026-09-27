@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { JobPostingService } from "@/features/jobs/service";
 import { getTranslations } from "next-intl/server";
+import { resolveStages, unionStages } from "@/lib/pipeline-stages";
 import { PipelineClientPage, type PipelineItem } from "./client-page";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -16,6 +17,12 @@ export default async function RecruiterPipelinePage() {
     if (session.user.role !== "recruiter") redirect("/dashboard");
 
     const postings = await JobPostingService.getRecruiterJobPostings(session.user.id);
+
+    const stagesByPosting: Record<string, string[]> = {};
+    for (const posting of postings) {
+        stagesByPosting[posting.id] = resolveStages(posting.pipelineStages);
+    }
+    const columns = unionStages(Object.values(stagesByPosting));
 
     const items: PipelineItem[] = [];
     for (const posting of postings) {
@@ -46,5 +53,5 @@ export default async function RecruiterPipelinePage() {
         };
     });
 
-    return <PipelineClientPage items={items} summary={summary} />;
+    return <PipelineClientPage items={items} summary={summary} columns={columns} stagesByPosting={stagesByPosting} />;
 }

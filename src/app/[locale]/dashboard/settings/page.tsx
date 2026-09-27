@@ -1,8 +1,9 @@
 "use client";
 
 import { logger } from "@/lib/logger";
+import { useTranslations } from "next-intl";
 import { useSession, signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,6 +71,7 @@ export function getProviderModels(prov: string) {
 
 export default function SettingsPage() {
     const { data: session, status } = useSession();
+    const t = useTranslations("Settings");
 
     // Estados de carga e interfaz
     const [loadingConfig, setLoadingConfig] = useState(true);
@@ -117,9 +119,7 @@ export default function SettingsPage() {
         showSeniority: true,
     });
     const [savingPublicSettings, setSavingPublicSettings] = useState(false);
-    const [publicProfileOrigin, setPublicProfileOrigin] = useState(() =>
-        typeof window !== "undefined" ? window.location.origin : "",
-    );
+    const [publicProfileOrigin, setPublicProfileOrigin] = useState("");
 
     // Estados para Preferencias de Notificaciones por Email
     const [emailNotifications, setEmailNotifications] = useState(true);
@@ -146,7 +146,7 @@ export default function SettingsPage() {
         return () => clearTimeout(timer);
     }, []);
 
-    const fetchKeysAndPrefs = async () => {
+    const fetchKeysAndPrefs = useCallback(async () => {
         try {
             const res = await getUserApiKeysStatusAction();
 
@@ -197,7 +197,7 @@ export default function SettingsPage() {
                 setEmailContactUpdates(d.emailContactUpdates !== undefined ? d.emailContactUpdates : true);
                 setEmailJobMatches(d.emailJobMatches !== undefined ? d.emailJobMatches : true);
             } else {
-                toast.error(res.error || "No se pudieron obtener los datos de configuración.");
+                toast.error(res.error || t("fetchConfigError"));
             }
 
             // Cargar configuración de perfil público
@@ -213,11 +213,11 @@ export default function SettingsPage() {
             }
         } catch (e) {
             logger.error(e);
-            toast.error("Ocurrió un error de red al cargar la configuración.");
+            toast.error(t("networkLoadError"));
         } finally {
             setLoadingConfig(false);
         }
-    };
+    }, [t]);
 
     useEffect(() => {
         if (status === "authenticated" && session?.user) {
@@ -226,7 +226,8 @@ export default function SettingsPage() {
             }, 0);
             return () => clearTimeout(timer);
         }
-    }, [status, session]);
+        return undefined;
+    }, [status, session, fetchKeysAndPrefs]);
 
     if (status === "loading") {
         return (
@@ -286,10 +287,10 @@ export default function SettingsPage() {
                 toast.success(res.message);
                 void fetchKeysAndPrefs(); // Recargar estados
             } else {
-                toast.error(res.error || "Ocurrió un error al guardar las claves.");
+                toast.error(res.error || t("saveKeysError"));
             }
         } catch (err: unknown) {
-            const errMsg = err instanceof Error ? err.message : "Error de red al guardar claves.";
+            const errMsg = err instanceof Error ? err.message : t("networkSaveKeysError");
             toast.error(errMsg);
         } finally {
             setSavingKeys(false);
@@ -304,7 +305,7 @@ export default function SettingsPage() {
         const modelToSave = isCustomModelSelected ? customModelId : preferredModel;
 
         if (isCustomModelSelected && !customModelId.trim()) {
-            toast.error("Por favor, introduce un ID de modelo personalizado válido.");
+            toast.error(t("customModelRequired"));
             setSavingPrefs(false);
             return;
         }
@@ -319,10 +320,10 @@ export default function SettingsPage() {
                 toast.success(res.message);
                 void fetchKeysAndPrefs();
             } else {
-                toast.error(res.error || "Ocurrió un error al guardar las preferencias.");
+                toast.error(res.error || t("savePrefsError"));
             }
         } catch (err: unknown) {
-            const errMsg = err instanceof Error ? err.message : "Error de red al guardar las preferencias.";
+            const errMsg = err instanceof Error ? err.message : t("networkSavePrefsError");
             toast.error(errMsg);
         } finally {
             setSavingPrefs(false);
@@ -344,7 +345,7 @@ export default function SettingsPage() {
             });
 
             if (res.success) {
-                toast.success(res.message || "Configuración del perfil público actualizada.");
+                toast.success(res.message || t("publicSettingsUpdated"));
                 // Recargar
                 const publicRes = await getUserPublicProfileSettingsAction();
                 if (publicRes.success && publicRes.data) {
@@ -357,10 +358,10 @@ export default function SettingsPage() {
                     });
                 }
             } else {
-                toast.error(res.error || "Ocurrió un error al guardar la configuración.");
+                toast.error(res.error || t("saveConfigError"));
             }
         } catch (err: unknown) {
-            const errMsg = err instanceof Error ? err.message : "Error al guardar perfil público.";
+            const errMsg = err instanceof Error ? err.message : t("savePublicProfileError");
             toast.error(errMsg);
         } finally {
             setSavingPublicSettings(false);
@@ -382,12 +383,12 @@ export default function SettingsPage() {
             });
 
             if (res.success) {
-                toast.success(res.message || "Preferencias de notificación guardadas.");
+                toast.success(res.message || t("notificationPrefsSaved"));
             } else {
-                toast.error(res.error || "Error al guardar preferencias de notificación.");
+                toast.error(res.error || t("saveNotificationPrefsError"));
             }
         } catch (err: unknown) {
-            const errMsg = err instanceof Error ? err.message : "Error al guardar notificaciones.";
+            const errMsg = err instanceof Error ? err.message : t("saveNotificationsError");
             toast.error(errMsg);
         } finally {
             setSavingNotifications(false);
@@ -408,12 +409,12 @@ export default function SettingsPage() {
                 linkElement.setAttribute("href", dataUri);
                 linkElement.setAttribute("download", exportFileDefaultName);
                 linkElement.click();
-                toast.success("Tus datos personales han sido exportados correctamente.");
+                toast.success(t("dataExported"));
             } else {
-                toast.error(res.error || "Error al exportar tus datos.");
+                toast.error(res.error || t("exportDataError"));
             }
         } catch (err: unknown) {
-            const errMsg = err instanceof Error ? err.message : "Error de red al exportar datos.";
+            const errMsg = err instanceof Error ? err.message : t("networkExportError");
             toast.error(errMsg);
         } finally {
             setExportingData(false);
@@ -422,8 +423,8 @@ export default function SettingsPage() {
 
     // Eliminar la cuenta permanentemente
     const handleDeleteAccount = async () => {
-        if (deleteConfirmText !== "ELIMINAR") {
-            toast.error("Por favor, escribe ELIMINAR para confirmar.");
+        if (deleteConfirmText !== t("deleteConfirmWord")) {
+            toast.error(t("deleteConfirmRequired"));
             return;
         }
 
@@ -431,15 +432,15 @@ export default function SettingsPage() {
         try {
             const res = await deleteAccountAction();
             if (res.success) {
-                toast.success("Tu cuenta ha sido eliminada. Redirigiendo...");
+                toast.success(t("accountDeleted"));
                 setIsDeleteModalOpen(false);
                 // Cerrar sesión y redirigir
                 await signOut({ callbackUrl: "/" });
             } else {
-                toast.error(res.error || "Ocurrió un error al eliminar tu cuenta.");
+                toast.error(res.error || t("deleteAccountError"));
             }
         } catch (err: unknown) {
-            const errMsg = err instanceof Error ? err.message : "Error al eliminar la cuenta.";
+            const errMsg = err instanceof Error ? err.message : t("deleteAccountNetworkError");
             toast.error(errMsg);
         } finally {
             setDeletingAccount(false);
@@ -468,10 +469,8 @@ export default function SettingsPage() {
     return (
         <>
             <div className="mb-8">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Settings</h1>
-                <p className="mt-1 text-sm text-muted-foreground">
-                    Manage your account settings, API keys and preferences
-                </p>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">{t("title")}</h1>
+                <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
             </div>
 
             <div className="flex flex-col gap-6">
@@ -480,18 +479,18 @@ export default function SettingsPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <UserIcon className="size-5 text-primary" />
-                            Profile
+                            {t("profileTitle")}
                         </CardTitle>
-                        <CardDescription>Your personal information and profile details</CardDescription>
+                        <CardDescription>{t("profileDesc")}</CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-col gap-4">
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="flex flex-col gap-2">
-                                <Label htmlFor="name">Full Name</Label>
+                                <Label htmlFor="name">{t("fullName")}</Label>
                                 <Input id="name" defaultValue={user.name || ""} />
                             </div>
                             <div className="flex flex-col gap-2">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="email">{t("email")}</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -503,11 +502,11 @@ export default function SettingsPage() {
                         </div>
                         {user.role === "recruiter" && (
                             <div className="flex flex-col gap-2">
-                                <Label htmlFor="company">Company</Label>
-                                <Input id="company" defaultValue="TechCorp" placeholder="Enter your company name" />
+                                <Label htmlFor="company">{t("company")}</Label>
+                                <Input id="company" defaultValue="TechCorp" placeholder={t("companyPlaceholder")} />
                             </div>
                         )}
-                        <Button className="w-fit">Save Changes</Button>
+                        <Button className="w-fit">{t("saveChanges")}</Button>
                     </CardContent>
                 </Card>
 
@@ -517,18 +516,15 @@ export default function SettingsPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <FileText className="size-5 text-emerald-500" />
-                                Mis Currículums
+                                {t("resumesTitle")}
                             </CardTitle>
-                            <CardDescription>
-                                Administra tus archivos de CV subidos, cambia tu currículum activo para Job Match o
-                                elimina versiones antiguas.
-                            </CardDescription>
+                            <CardDescription>{t("resumesDesc")}</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Link href="/dashboard/settings/resumes">
                                 <Button variant="secondary" className="gap-2">
                                     <FileText className="size-4" />
-                                    Gestionar CVs
+                                    {t("manageResumes")}
                                 </Button>
                             </Link>
                         </CardContent>
@@ -544,16 +540,13 @@ export default function SettingsPage() {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
                                 <Sparkles className="size-5 text-primary" />
-                                <CardTitle>AI Configuration (Multi-Model Service)</CardTitle>
+                                <CardTitle>{t("aiConfigTitle")}</CardTitle>
                             </div>
                             <Badge className="bg-primary/20 text-primary hover:bg-primary/30 w-fit self-start sm:self-center transition-colors">
-                                ⚡ Power-User Hub
+                                {t("powerUserHub")}
                             </Badge>
                         </div>
-                        <CardDescription>
-                            Configura tus claves de API personales cifradas del lado del servidor y selecciona modelos
-                            premium de vanguardia.
-                        </CardDescription>
+                        <CardDescription>{t("aiConfigDesc")}</CardDescription>
                     </CardHeader>
 
                     <CardContent className="flex flex-col gap-6">
@@ -561,14 +554,10 @@ export default function SettingsPage() {
                         <div className="flex gap-3 rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm text-foreground/90 backdrop-blur-sm">
                             <Info className="size-5 shrink-0 text-primary mt-0.5" />
                             <div className="space-y-1">
-                                <p className="font-semibold text-primary">
-                                    ¡Beneficio Pro / Exención de Límites Activo!
-                                </p>
+                                <p className="font-semibold text-primary">{t("proBenefitTitle")}</p>
                                 <p className="text-muted-foreground text-xs leading-relaxed">
-                                    Si configuras tus propias claves API personales, el rate-limiting diario estricto de
-                                    la plataforma (Upstash) se <strong>omitirá por completo</strong>. Esto te otorgará
-                                    acceso a análisis estructurados ilimitados utilizando tus propios recursos sin
-                                    costes para SkillRadar.
+                                    {t("proBenefitDescPrefix")} <strong>{t("proBenefitDescStrong")}</strong>
+                                    {t("proBenefitDescSuffix")}
                                 </p>
                             </div>
                         </div>
@@ -591,7 +580,7 @@ export default function SettingsPage() {
                                 >
                                     <h3 className="font-semibold text-sm text-foreground/90 flex items-center gap-2 mb-2">
                                         <Key className="size-4 text-primary" />
-                                        Tus Claves de API Personales (Cifrado AES-256-GCM)
+                                        {t("apiKeysTitle")}
                                     </h3>
 
                                     {/* Google Gemini */}
@@ -607,14 +596,14 @@ export default function SettingsPage() {
                                                         variant="outline"
                                                         className="h-5 px-1.5 bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px]"
                                                     >
-                                                        <CheckCircle2 className="size-2.5 mr-1" /> Configurado
+                                                        <CheckCircle2 className="size-2.5 mr-1" /> {t("configured")}
                                                     </Badge>
                                                 ) : (
                                                     <Badge
                                                         variant="outline"
                                                         className="h-5 px-1.5 bg-amber-500/10 text-amber-500 border-amber-500/20 text-[10px]"
                                                     >
-                                                        No Configurado
+                                                        {t("notConfigured")}
                                                     </Badge>
                                                 )}
                                             </Label>
@@ -626,13 +615,11 @@ export default function SettingsPage() {
                                                             ...prev,
                                                             geminiApiKey: "",
                                                         }));
-                                                        toast.info(
-                                                            "Se vació la clave. Guarda cambios para eliminarla de la base de datos.",
-                                                        );
+                                                        toast.info(t("keyClearedFull"));
                                                     }}
                                                     className="text-[10px] text-destructive hover:underline cursor-pointer"
                                                 >
-                                                    Eliminar
+                                                    {t("delete")}
                                                 </button>
                                             )}
                                         </div>
@@ -681,14 +668,14 @@ export default function SettingsPage() {
                                                         variant="outline"
                                                         className="h-5 px-1.5 bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px]"
                                                     >
-                                                        <CheckCircle2 className="size-2.5 mr-1" /> Configurado
+                                                        <CheckCircle2 className="size-2.5 mr-1" /> {t("configured")}
                                                     </Badge>
                                                 ) : (
                                                     <Badge
                                                         variant="outline"
                                                         className="h-5 px-1.5 bg-amber-500/10 text-amber-500 border-amber-500/20 text-[10px]"
                                                     >
-                                                        No Configurado
+                                                        {t("notConfigured")}
                                                     </Badge>
                                                 )}
                                             </Label>
@@ -700,13 +687,11 @@ export default function SettingsPage() {
                                                             ...prev,
                                                             openaiApiKey: "",
                                                         }));
-                                                        toast.info(
-                                                            "Se vació la clave. Guarda cambios para eliminarla.",
-                                                        );
+                                                        toast.info(t("keyClearedShort"));
                                                     }}
                                                     className="text-[10px] text-destructive hover:underline cursor-pointer"
                                                 >
-                                                    Eliminar
+                                                    {t("delete")}
                                                 </button>
                                             )}
                                         </div>
@@ -755,14 +740,14 @@ export default function SettingsPage() {
                                                         variant="outline"
                                                         className="h-5 px-1.5 bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px]"
                                                     >
-                                                        <CheckCircle2 className="size-2.5 mr-1" /> Configurado
+                                                        <CheckCircle2 className="size-2.5 mr-1" /> {t("configured")}
                                                     </Badge>
                                                 ) : (
                                                     <Badge
                                                         variant="outline"
                                                         className="h-5 px-1.5 bg-amber-500/10 text-amber-500 border-amber-500/20 text-[10px]"
                                                     >
-                                                        No Configurado
+                                                        {t("notConfigured")}
                                                     </Badge>
                                                 )}
                                             </Label>
@@ -774,13 +759,11 @@ export default function SettingsPage() {
                                                             ...prev,
                                                             anthropicApiKey: "",
                                                         }));
-                                                        toast.info(
-                                                            "Se vació la clave. Guarda cambios para eliminarla.",
-                                                        );
+                                                        toast.info(t("keyClearedShort"));
                                                     }}
                                                     className="text-[10px] text-destructive hover:underline cursor-pointer"
                                                 >
-                                                    Eliminar
+                                                    {t("delete")}
                                                 </button>
                                             )}
                                         </div>
@@ -829,14 +812,14 @@ export default function SettingsPage() {
                                                         variant="outline"
                                                         className="h-5 px-1.5 bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px]"
                                                     >
-                                                        <CheckCircle2 className="size-2.5 mr-1" /> Configurado
+                                                        <CheckCircle2 className="size-2.5 mr-1" /> {t("configured")}
                                                     </Badge>
                                                 ) : (
                                                     <Badge
                                                         variant="outline"
                                                         className="h-5 px-1.5 bg-amber-500/10 text-amber-500 border-amber-500/20 text-[10px]"
                                                     >
-                                                        No Configurado
+                                                        {t("notConfigured")}
                                                     </Badge>
                                                 )}
                                             </Label>
@@ -845,13 +828,11 @@ export default function SettingsPage() {
                                                     type="button"
                                                     onClick={() => {
                                                         setApiKeys((prev) => ({ ...prev, groqApiKey: "" }));
-                                                        toast.info(
-                                                            "Se vació la clave. Guarda cambios para eliminarla.",
-                                                        );
+                                                        toast.info(t("keyClearedShort"));
                                                     }}
                                                     className="text-[10px] text-destructive hover:underline cursor-pointer"
                                                 >
-                                                    Eliminar
+                                                    {t("delete")}
                                                 </button>
                                             )}
                                         </div>
@@ -900,14 +881,14 @@ export default function SettingsPage() {
                                                         variant="outline"
                                                         className="h-5 px-1.5 bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px]"
                                                     >
-                                                        <CheckCircle2 className="size-2.5 mr-1" /> Configurado
+                                                        <CheckCircle2 className="size-2.5 mr-1" /> {t("configured")}
                                                     </Badge>
                                                 ) : (
                                                     <Badge
                                                         variant="outline"
                                                         className="h-5 px-1.5 bg-amber-500/10 text-amber-500 border-amber-500/20 text-[10px]"
                                                     >
-                                                        No Configurado
+                                                        {t("notConfigured")}
                                                     </Badge>
                                                 )}
                                             </Label>
@@ -919,13 +900,11 @@ export default function SettingsPage() {
                                                             ...prev,
                                                             openrouterApiKey: "",
                                                         }));
-                                                        toast.info(
-                                                            "Se vació la clave. Guarda cambios para eliminarla.",
-                                                        );
+                                                        toast.info(t("keyClearedShort"));
                                                     }}
                                                     className="text-[10px] text-destructive hover:underline cursor-pointer"
                                                 >
-                                                    Eliminar
+                                                    {t("delete")}
                                                 </button>
                                             )}
                                         </div>
@@ -969,10 +948,10 @@ export default function SettingsPage() {
                                         {savingKeys ? (
                                             <>
                                                 <span className="size-4 border-2 border-background border-t-transparent rounded-full animate-spin mr-2" />
-                                                Guardando Llaves...
+                                                {t("savingKeys")}
                                             </>
                                         ) : (
-                                            "Guardar Claves de API"
+                                            t("saveApiKeys")
                                         )}
                                     </Button>
                                 </form>
@@ -987,13 +966,13 @@ export default function SettingsPage() {
                                 >
                                     <h3 className="font-semibold text-sm text-foreground/90 flex items-center gap-2 mb-2">
                                         <Sparkles className="size-4 text-primary" />
-                                        Preferencias de Inferencia Activa
+                                        {t("inferencePrefsTitle")}
                                     </h3>
 
                                     {/* Selector de Proveedor */}
                                     <div className="flex flex-col gap-1.5">
                                         <Label htmlFor="preferredProvider" className="text-xs font-semibold">
-                                            Proveedor de Inferencia Preferido
+                                            {t("preferredProvider")}
                                         </Label>
                                         <select
                                             id="preferredProvider"
@@ -1001,18 +980,18 @@ export default function SettingsPage() {
                                             onChange={(e) => handleProviderChange(e.target.value)}
                                             className="flex h-9 w-full rounded-md border border-border/60 bg-background/50 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                                         >
-                                            <option value="gemini">Google Gemini</option>
-                                            <option value="openai">OpenAI (Solo con clave propia)</option>
-                                            <option value="anthropic">Anthropic (Solo con clave propia)</option>
-                                            <option value="groq">Groq (Llama-3)</option>
-                                            <option value="openrouter">OpenRouter (Híbrido multiproveedor)</option>
+                                            <option value="gemini">{t("providerGemini")}</option>
+                                            <option value="openai">{t("providerOpenai")}</option>
+                                            <option value="anthropic">{t("providerAnthropic")}</option>
+                                            <option value="groq">{t("providerGroq")}</option>
+                                            <option value="openrouter">{t("providerOpenrouter")}</option>
                                         </select>
                                     </div>
 
                                     {/* Selector de Modelo */}
                                     <div className="flex flex-col gap-1.5">
                                         <Label htmlFor="preferredModel" className="text-xs font-semibold">
-                                            Modelo Preferido
+                                            {t("preferredModel")}
                                         </Label>
                                         <select
                                             id="preferredModel"
@@ -1035,20 +1014,20 @@ export default function SettingsPage() {
                                                 htmlFor="customModelId"
                                                 className="text-xs font-semibold text-primary"
                                             >
-                                                Escribe el ID del Modelo Oficial Personalizado
+                                                {t("customModelLabel")}
                                             </Label>
                                             <Input
                                                 id="customModelId"
                                                 value={customModelId}
                                                 onChange={(e) => setCustomModelId(e.target.value)}
-                                                placeholder="Ej. claude-opus-5-5, gpt-6-sol, gemini-3.8-flash"
+                                                placeholder={t("customModelPlaceholder")}
                                                 className="border-primary/45 bg-primary/5 focus:border-primary transition-colors text-sm"
                                                 required
                                             />
                                             <p className="text-[10px] text-muted-foreground mt-0.5 leading-normal">
-                                                Ingresa el ID del modelo oficial según el proveedor seleccionado (por
-                                                ejemplo, en OpenAI puedes usar <code>gpt-6-sol</code> o{" "}
-                                                <code>gpt-6-luna</code>).
+                                                {t("customModelHelpPrefix")} <code>gpt-6-sol</code>{" "}
+                                                {t("customModelHelpOr")} <code>gpt-6-luna</code>
+                                                {t("customModelHelpSuffix")}
                                             </p>
                                         </div>
                                     )}
@@ -1061,10 +1040,10 @@ export default function SettingsPage() {
                                         {savingPrefs ? (
                                             <>
                                                 <span className="size-4 border-2 border-background border-t-transparent rounded-full animate-spin mr-2" />
-                                                Guardando Preferencias...
+                                                {t("savingPreferences")}
                                             </>
                                         ) : (
-                                            "Guardar Preferencias"
+                                            t("savePreferences")
                                         )}
                                     </Button>
                                 </form>
@@ -1078,12 +1057,9 @@ export default function SettingsPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Globe className="size-5 text-primary" />
-                            Perfil Público
+                            {t("publicProfileTitle")}
                         </CardTitle>
-                        <CardDescription>
-                            Configura tu perfil público para que recruiters puedan visualizar tus habilidades sin
-                            necesidad de iniciar sesión.
-                        </CardDescription>
+                        <CardDescription>{t("publicProfileDesc")}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <form
@@ -1096,12 +1072,9 @@ export default function SettingsPage() {
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-lg border border-border/60 bg-background/30 p-4">
                                 <div className="space-y-0.5">
                                     <Label className="text-sm font-semibold flex items-center gap-2">
-                                        Activar Perfil Público
+                                        {t("enablePublicProfile")}
                                     </Label>
-                                    <p className="text-xs text-muted-foreground">
-                                        Permite que cualquier persona que tenga tu link acceda a tu skill radar chart y
-                                        datos profesionales.
-                                    </p>
+                                    <p className="text-xs text-muted-foreground">{t("enablePublicProfileDesc")}</p>
                                 </div>
                                 <div className="flex items-center">
                                     <input
@@ -1121,7 +1094,7 @@ export default function SettingsPage() {
 
                             <div className="flex flex-col gap-2">
                                 <Label htmlFor="publicUsername" className="text-xs font-semibold">
-                                    Nombre de usuario público (Username)
+                                    {t("publicUsername")}
                                 </Label>
                                 <div className="flex gap-2">
                                     <span className="flex items-center h-9 rounded-md border border-border/60 bg-muted/30 px-3 text-sm text-muted-foreground select-none">
@@ -1141,14 +1114,14 @@ export default function SettingsPage() {
                                     />
                                 </div>
                                 <p className="text-[10px] text-muted-foreground mt-0.5 leading-normal">
-                                    Solo letras minúsculas, números, guiones y guiones bajos (mínimo 3 caracteres).
+                                    {t("usernameRule")}
                                 </p>
                             </div>
 
                             {publicSettings.isPublicProfile && (
                                 <div className="flex flex-col gap-4 border-t border-border/50 pt-4 animate-in fade-in duration-300">
                                     <h3 className="font-semibold text-xs text-foreground/90 uppercase tracking-wider">
-                                        Datos Visibles en tu Perfil Público
+                                        {t("visibleDataTitle")}
                                     </h3>
 
                                     <div className="grid gap-3 sm:grid-cols-3">
@@ -1165,9 +1138,9 @@ export default function SettingsPage() {
                                                 className="size-4 rounded border-border/60 text-primary focus:ring-primary"
                                             />
                                             <div className="flex flex-col">
-                                                <span className="text-xs font-medium">Mostrar Skills</span>
+                                                <span className="text-xs font-medium">{t("showSkills")}</span>
                                                 <span className="text-[10px] text-muted-foreground">
-                                                    Listado de top habilidades
+                                                    {t("showSkillsDesc")}
                                                 </span>
                                             </div>
                                         </label>
@@ -1185,9 +1158,9 @@ export default function SettingsPage() {
                                                 className="size-4 rounded border-border/60 text-primary focus:ring-primary"
                                             />
                                             <div className="flex flex-col">
-                                                <span className="text-xs font-medium">Mostrar GitHub</span>
+                                                <span className="text-xs font-medium">{t("showGithub")}</span>
                                                 <span className="text-[10px] text-muted-foreground">
-                                                    Lenguajes de programación
+                                                    {t("showGithubDesc")}
                                                 </span>
                                             </div>
                                         </label>
@@ -1205,9 +1178,9 @@ export default function SettingsPage() {
                                                 className="size-4 rounded border-border/60 text-primary focus:ring-primary"
                                             />
                                             <div className="flex flex-col">
-                                                <span className="text-xs font-medium">Mostrar Seniority</span>
+                                                <span className="text-xs font-medium">{t("showSeniority")}</span>
                                                 <span className="text-[10px] text-muted-foreground">
-                                                    Estimación de seniority
+                                                    {t("showSeniorityDesc")}
                                                 </span>
                                             </div>
                                         </label>
@@ -1217,7 +1190,7 @@ export default function SettingsPage() {
                                         <div className="flex flex-col gap-4 border-t border-border/50 pt-4">
                                             <div className="flex flex-col gap-1.5">
                                                 <Label className="text-xs font-semibold flex items-center gap-1.5 text-primary">
-                                                    <Share2 className="size-3.5" /> Enlace de tu Perfil Público
+                                                    <Share2 className="size-3.5" /> {t("publicLinkLabel")}
                                                 </Label>
                                                 <div className="flex gap-2">
                                                     <Input
@@ -1233,20 +1206,19 @@ export default function SettingsPage() {
                                                             void navigator.clipboard.writeText(
                                                                 `${publicProfileOrigin}/u/${publicSettings.publicUsername}`,
                                                             );
-                                                            toast.success("Enlace copiado al portapapeles.");
+                                                            toast.success(t("linkCopied"));
                                                         }}
                                                         className="flex items-center gap-1.5 px-3"
                                                     >
                                                         <Copy className="size-3.5" />
-                                                        Copiar
+                                                        {t("copy")}
                                                     </Button>
                                                 </div>
                                             </div>
 
                                             <div className="flex flex-col gap-1.5">
                                                 <Label className="text-xs font-semibold flex items-center gap-1.5 text-primary">
-                                                    <Sparkles className="size-3.5" /> Badge Embebible para tu GitHub
-                                                    README
+                                                    <Sparkles className="size-3.5" /> {t("badgeLabel")}
                                                 </Label>
                                                 <div className="flex gap-2">
                                                     <Input
@@ -1262,29 +1234,28 @@ export default function SettingsPage() {
                                                             void navigator.clipboard.writeText(
                                                                 `[![SkillRadar](${publicProfileOrigin}/api/badge/${publicSettings.publicUsername})](${publicProfileOrigin}/u/${publicSettings.publicUsername})`,
                                                             );
-                                                            toast.success("Snippet de Markdown copiado.");
+                                                            toast.success(t("markdownCopied"));
                                                         }}
                                                         className="flex items-center gap-1.5 px-3"
                                                     >
                                                         <Copy className="size-3.5" />
-                                                        Copiar
+                                                        {t("copy")}
                                                     </Button>
                                                 </div>
                                                 <p className="text-[10px] text-muted-foreground mt-0.5">
-                                                    Copia este Markdown y pégalo en tu <code>README.md</code> de GitHub
-                                                    para mostrar un badge visual interactivo.
+                                                    {t("badgeHelpPrefix")} <code>README.md</code> {t("badgeHelpSuffix")}
                                                 </p>
 
                                                 {/* Previsualización del Badge */}
                                                 <div className="mt-3 p-3 rounded-lg border border-border/40 bg-background/25 flex flex-col items-center gap-2">
                                                     <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
-                                                        Previsualización del Badge:
+                                                        {t("badgePreview")}
                                                     </span>
                                                     <div className="max-w-full overflow-x-auto p-1 bg-white dark:bg-card border border-border/20 rounded-md">
                                                         {/* eslint-disable-next-line @next/next/no-img-element */}
                                                         <img
                                                             src={`${publicProfileOrigin}/api/badge/${publicSettings.publicUsername}`}
-                                                            alt="SkillRadar Badge Preview"
+                                                            alt={t("badgePreviewAlt")}
                                                             className="max-h-24 h-auto"
                                                         />
                                                     </div>
@@ -1303,10 +1274,10 @@ export default function SettingsPage() {
                                 {savingPublicSettings ? (
                                     <>
                                         <span className="size-4 border-2 border-background border-t-transparent rounded-full animate-spin mr-2" />
-                                        Guardando Perfil...
+                                        {t("savingProfile")}
                                     </>
                                 ) : (
-                                    "Guardar Configuración de Perfil"
+                                    t("savePublicSettings")
                                 )}
                             </Button>
                         </form>
@@ -1318,9 +1289,9 @@ export default function SettingsPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Building className="size-5 text-primary" />
-                            Account Type
+                            {t("accountTypeTitle")}
                         </CardTitle>
-                        <CardDescription>Your current plan and role</CardDescription>
+                        <CardDescription>{t("accountTypeDesc")}</CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-col gap-4">
                         <div className="flex items-center justify-between">
@@ -1328,9 +1299,13 @@ export default function SettingsPage() {
                                 <Badge variant="outline" className="capitalize">
                                     {user.role}
                                 </Badge>
-                                <Badge className="bg-primary/10 text-primary hover:bg-primary/20">Free Plan</Badge>
+                                <Badge className="bg-primary/10 text-primary hover:bg-primary/20">
+                                    {t("freePlan")}
+                                </Badge>
                             </div>
-                            <Button variant="outline">Upgrade to Pro</Button>
+                            <Link href="/#pricing">
+                                <Button variant="outline">{t("upgradeToPro")}</Button>
+                            </Link>
                         </div>
                     </CardContent>
                 </Card>
@@ -1340,11 +1315,9 @@ export default function SettingsPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Bell className="size-5 text-primary" />
-                            Preferencias de Notificaciones por Email
+                            {t("notificationsTitle")}
                         </CardTitle>
-                        <CardDescription>
-                            Configura cuándo deseas recibir correos electrónicos de SkillRadar
-                        </CardDescription>
+                        <CardDescription>{t("notificationsDesc")}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <form
@@ -1366,11 +1339,9 @@ export default function SettingsPage() {
                                         htmlFor="emailNotifications"
                                         className="text-sm font-semibold cursor-pointer"
                                     >
-                                        Activar Notificaciones por Email
+                                        {t("enableEmailNotifications")}
                                     </Label>
-                                    <p className="text-xs text-muted-foreground">
-                                        Permitir que SkillRadar te envíe correos electrónicos para eventos importantes.
-                                    </p>
+                                    <p className="text-xs text-muted-foreground">{t("enableEmailNotificationsDesc")}</p>
                                 </div>
                             </div>
 
@@ -1390,11 +1361,10 @@ export default function SettingsPage() {
                                                     htmlFor="emailNewApplication"
                                                     className="text-xs font-semibold cursor-pointer"
                                                 >
-                                                    Nuevas Postulaciones Recibidas (Crítico)
+                                                    {t("newApplications")}
                                                 </Label>
                                                 <p className="text-[10px] text-muted-foreground">
-                                                    Recibir un correo cada vez que un desarrollador se postule a tus
-                                                    ofertas publicadas.
+                                                    {t("newApplicationsDesc")}
                                                 </p>
                                             </div>
                                         </div>
@@ -1414,11 +1384,10 @@ export default function SettingsPage() {
                                                     htmlFor="emailApplicationStatusChanged"
                                                     className="text-xs font-semibold cursor-pointer"
                                                 >
-                                                    Cambios de Estado en Postulaciones (Crítico)
+                                                    {t("statusChanges")}
                                                 </Label>
                                                 <p className="text-[10px] text-muted-foreground">
-                                                    Recibir un correo cuando un reclutador revise, acepte o actualice tu
-                                                    postulación.
+                                                    {t("statusChangesDesc")}
                                                 </p>
                                             </div>
                                         </div>
@@ -1437,11 +1406,10 @@ export default function SettingsPage() {
                                                 htmlFor="emailContactUpdates"
                                                 className="text-xs font-semibold cursor-pointer"
                                             >
-                                                Respuestas y Mensajes de Contacto
+                                                {t("contactReplies")}
                                             </Label>
                                             <p className="text-[10px] text-muted-foreground">
-                                                Recibir un correo cuando acepten o declinen tus solicitudes y cuando
-                                                lleguen mensajes nuevos en tus conversaciones.
+                                                {t("contactRepliesDesc")}
                                             </p>
                                         </div>
                                     </div>
@@ -1460,11 +1428,10 @@ export default function SettingsPage() {
                                                     htmlFor="emailJobMatches"
                                                     className="text-xs font-semibold cursor-pointer"
                                                 >
-                                                    Nuevos Matches de Empleo
+                                                    {t("jobMatches")}
                                                 </Label>
                                                 <p className="text-[10px] text-muted-foreground">
-                                                    Recibir un correo cuando aparezcan ofertas con alta afinidad a tu
-                                                    perfil.
+                                                    {t("jobMatchesDesc")}
                                                 </p>
                                             </div>
                                         </div>
@@ -1480,10 +1447,10 @@ export default function SettingsPage() {
                                 {savingNotifications ? (
                                     <>
                                         <span className="size-4 border-2 border-background border-t-transparent rounded-full animate-spin mr-2" />
-                                        Guardando Preferencias...
+                                        {t("savingPreferences")}
                                     </>
                                 ) : (
-                                    "Guardar Preferencias de Notificación"
+                                    t("saveNotificationPrefs")
                                 )}
                             </Button>
                         </form>
@@ -1495,19 +1462,16 @@ export default function SettingsPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Shield className="size-5 text-primary" />
-                            Seguridad y Privacidad (GDPR)
+                            {t("securityTitle")}
                         </CardTitle>
-                        <CardDescription>Gestiona tus datos personales y configuración de privacidad</CardDescription>
+                        <CardDescription>{t("securityDesc")}</CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-col gap-4">
                         {/* GDPR Data Portability (Export) */}
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="font-medium text-foreground">Portabilidad de Datos (Exportar Datos)</p>
-                                <p className="text-sm text-muted-foreground">
-                                    Descarga una copia completa de toda tu información personal almacenada en SkillRadar
-                                    en formato JSON.
-                                </p>
+                                <p className="font-medium text-foreground">{t("dataPortability")}</p>
+                                <p className="text-sm text-muted-foreground">{t("dataPortabilityDesc")}</p>
                             </div>
                             <Button
                                 variant="outline"
@@ -1517,7 +1481,7 @@ export default function SettingsPage() {
                                 }}
                                 disabled={exportingData}
                             >
-                                {exportingData ? "Exportando..." : "Exportar Datos"}
+                                {exportingData ? t("exporting") : t("exportData")}
                             </Button>
                         </div>
                         <Separator />
@@ -1525,15 +1489,12 @@ export default function SettingsPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="font-medium text-foreground text-destructive">
-                                    Eliminar Cuenta (Derecho al Olvido)
+                                    {t("deleteAccountTitle")}
                                 </p>
-                                <p className="text-sm text-muted-foreground">
-                                    Elimina permanentemente tu cuenta y todos tus datos (CVs, matches, historial de
-                                    entrevistas, postulaciones, etc.) de forma irreversible.
-                                </p>
+                                <p className="text-sm text-muted-foreground">{t("deleteAccountDesc")}</p>
                             </div>
                             <Button variant="destructive" size="sm" onClick={() => setIsDeleteModalOpen(true)}>
-                                Eliminar Cuenta
+                                {t("deleteAccount")}
                             </Button>
                         </div>
                     </CardContent>
@@ -1545,23 +1506,24 @@ export default function SettingsPage() {
                         <DialogHeader>
                             <DialogTitle className="text-destructive flex items-center gap-2 font-bold">
                                 <Shield className="size-5" />
-                                ¿Confirmas que deseas eliminar tu cuenta?
+                                {t("deleteModalTitle")}
                             </DialogTitle>
                             <DialogDescription className="text-sm text-muted-foreground">
-                                Esta acción es <strong>definitiva e irreversible</strong>. Se eliminarán permanentemente
-                                todos tus archivos y registros del sistema (CVs, análisis, postulaciones).
+                                {t("deleteModalDescPrefix")} <strong>{t("deleteModalDescStrong")}</strong>
+                                {t("deleteModalDescSuffix")}
                             </DialogDescription>
                         </DialogHeader>
 
                         <div className="space-y-4 py-2">
                             <div className="space-y-2">
                                 <Label htmlFor="delete-confirm-input" className="text-xs font-semibold">
-                                    Escribe <span className="font-bold text-destructive">ELIMINAR</span> para confirmar
-                                    la eliminación permanente:
+                                    {t("deleteConfirmLabelPrefix")}{" "}
+                                    <span className="font-bold text-destructive">{t("deleteConfirmWord")}</span>{" "}
+                                    {t("deleteConfirmLabelSuffix")}
                                 </Label>
                                 <Input
                                     id="delete-confirm-input"
-                                    placeholder="ELIMINAR"
+                                    placeholder={t("deleteConfirmWord")}
                                     value={deleteConfirmText}
                                     onChange={(e) => setDeleteConfirmText(e.target.value)}
                                     className="border-destructive/40 focus:border-destructive text-sm"
@@ -1578,16 +1540,16 @@ export default function SettingsPage() {
                                 }}
                                 disabled={deletingAccount}
                             >
-                                Cancelar
+                                {t("cancel")}
                             </Button>
                             <Button
                                 variant="destructive"
                                 onClick={() => {
                                     void handleDeleteAccount();
                                 }}
-                                disabled={deletingAccount || deleteConfirmText !== "ELIMINAR"}
+                                disabled={deletingAccount || deleteConfirmText !== t("deleteConfirmWord")}
                             >
-                                {deletingAccount ? "Eliminando Cuenta..." : "Eliminar Cuenta Permanentemente"}
+                                {deletingAccount ? t("deletingAccount") : t("deleteAccountPermanent")}
                             </Button>
                         </DialogFooter>
                     </DialogContent>

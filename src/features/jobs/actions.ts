@@ -2,6 +2,8 @@
 
 import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
+import { isGuestSession, GUEST_WRITE_ERROR } from "@/lib/guest-guard";
+import { RECRUITER_PENDING_ERROR } from "@/lib/recruiter-constants";
 import { trackServerEvent } from "@/lib/analytics";
 import { db } from "@/lib/db";
 import { z } from "zod";
@@ -15,7 +17,8 @@ import {
 import { revalidatePath } from "next/cache";
 import type { JobPosting, JobPostingApplication } from "@prisma/client";
 
-import { type ActionResult, type JobPostingWithCount, type JobPostingWithMatch, jobPostingSchema } from "./types";
+import { type JobPostingWithMatch, jobPostingSchema } from "./types";
+import type { ActionResult } from "@/lib/action-result";
 
 /**
  * Crea una oferta laboral en estado draft (Solo Recruiters).
@@ -26,6 +29,14 @@ export async function createJobPostingAction(rawInput: unknown): Promise<ActionR
         const session = await auth();
         if (!session?.user?.id || session.user.role !== "recruiter") {
             return { success: false, error: "No autorizado. Solo reclutadores pueden realizar esta acción." };
+        }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
         // Validar input con Zod
@@ -70,6 +81,7 @@ export async function createJobPostingAction(rawInput: unknown): Promise<ActionR
                 description: validation.data.description,
                 requiredSkills: validation.data.requiredSkills,
                 seniorityLevel: validation.data.seniorityLevel,
+                pipelineStages: validation.data.pipelineStages ?? [],
                 status: "draft",
                 expiresAt: null,
                 createdAt: new Date(),
@@ -87,7 +99,6 @@ export async function createJobPostingAction(rawInput: unknown): Promise<ActionR
         return { success: false, error: (error as Error).message || "Error al crear la oferta de trabajo." };
     }
 }
-
 /**
  * Actualiza una oferta de trabajo existente (Solo Recruiters).
  */
@@ -96,6 +107,14 @@ export async function updateJobPostingAction(id: string, rawInput: unknown): Pro
         const session = await auth();
         if (!session?.user?.id || session.user.role !== "recruiter") {
             return { success: false, error: "No autorizado." };
+        }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
         // Validar input parcial con Zod
@@ -120,7 +139,6 @@ export async function updateJobPostingAction(id: string, rawInput: unknown): Pro
         return { success: false, error: (error as Error).message || "Error al actualizar la oferta de trabajo." };
     }
 }
-
 /**
  * Publica una oferta de trabajo cambiando su estado a "published" (Solo Recruiters).
  */
@@ -129,6 +147,14 @@ export async function publishJobPostingAction(id: string): Promise<ActionResult<
         const session = await auth();
         if (!session?.user?.id || session.user.role !== "recruiter") {
             return { success: false, error: "No autorizado." };
+        }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
         // Modo Demo/Guest: el posting tampoco existe en la DB (ver createJobPostingAction),
@@ -148,7 +174,6 @@ export async function publishJobPostingAction(id: string): Promise<ActionResult<
         return { success: false, error: (error as Error).message || "Error al publicar la oferta de trabajo." };
     }
 }
-
 /**
  * Cierra una oferta de trabajo cambiando su estado a "closed" (Solo Recruiters).
  */
@@ -157,6 +182,14 @@ export async function closeJobPostingAction(id: string): Promise<ActionResult<Jo
         const session = await auth();
         if (!session?.user?.id || session.user.role !== "recruiter") {
             return { success: false, error: "No autorizado." };
+        }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
         if (session.user.isGuest === true) {
@@ -173,55 +206,31 @@ export async function closeJobPostingAction(id: string): Promise<ActionResult<Jo
         return { success: false, error: (error as Error).message || "Error al cerrar la oferta de trabajo." };
     }
 }
-
-/**
- * Obtiene las ofertas de trabajo creadas por el reclutador autenticado.
- */
-export async function getRecruiterJobPostingsAction(): Promise<ActionResult<JobPostingWithCount[]>> {
-    try {
-        const session = await auth();
-        if (!session?.user?.id || session.user.role !== "recruiter") {
-            return { success: false, error: "No autorizado." };
-        }
-
-        const jobs = await JobPostingService.getRecruiterJobPostings(session.user.id);
-        return { success: true, data: jobs as JobPostingWithCount[] };
-    } catch (error) {
-        logger.error("[getRecruiterJobPostingsAction] Error:", error);
-        return { success: false, error: "Error al cargar las ofertas de trabajo." };
-    }
-}
-
-/**
- * Obtiene las postulaciones recibidas para una oferta de trabajo.
- * Valida internamente propiedad para evitar IDOR.
- */
-export async function getJobPostingApplicationsAction(jobPostingId: string): Promise<ActionResult<unknown[]>> {
-    try {
-        const session = await auth();
-        if (!session?.user?.id || session.user.role !== "recruiter") {
-            return { success: false, error: "No autorizado." };
-        }
-
-        const apps = await JobPostingService.getJobPostingApplications(session.user.id, jobPostingId);
-        return { success: true, data: apps };
-    } catch (error) {
-        logger.error("[getJobPostingApplicationsAction] Error:", error);
-        return { success: false, error: (error as Error).message || "Error al cargar las postulaciones." };
-    }
-}
-
 /**
  * Actualiza el estado de una postulación (Solo Recruiters).
  */
 export async function updateApplicationStatusAction(
     applicationId: string,
-    newStatus: "submitted" | "reviewed" | "rejected" | "shortlisted" | "interview" | "offer" | "hired",
+    newStatus: string,
 ): Promise<ActionResult<JobPostingApplication>> {
     try {
         const session = await auth();
         if (!session?.user?.id || session.user.role !== "recruiter") {
             return { success: false, error: "No autorizado." };
+        }
+        if (!/^[a-z0-9_]{1,24}$/.test(newStatus.trim().toLowerCase())) {
+            return { success: false, error: "Estado inválido." };
+        }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
+        }
+        if (isGuestSession(session)) {
+            return { success: false, error: GUEST_WRITE_ERROR };
         }
 
         const updatedApp = await JobPostingService.updateApplicationStatus(session.user.id, applicationId, newStatus);
@@ -258,7 +267,6 @@ export async function getDeveloperJobBoardAction(filters?: {
         return { success: false, error: "Error al cargar las ofertas del Job Board." };
     }
 }
-
 /**
  * Permite a un desarrollador postularse a una oferta laboral activa.
  * Aplica Rate Limiting de Upstash (máx 20 postulaciones por día).
@@ -268,6 +276,9 @@ export async function applyToJobPostingAction(jobPostingId: string): Promise<Act
         const session = await auth();
         if (!session?.user?.id || session.user.role !== "developer") {
             return { success: false, error: "No autorizado. Solo desarrolladores pueden postularse." };
+        }
+        if (isGuestSession(session)) {
+            return { success: false, error: GUEST_WRITE_ERROR };
         }
 
         const developerId = session.user.id;
@@ -328,6 +339,9 @@ export async function createReportAction(rawInput: unknown): Promise<ActionResul
         if (!session?.user?.id) {
             return { success: false, error: "No autorizado." };
         }
+        if (isGuestSession(session)) {
+            return { success: false, error: GUEST_WRITE_ERROR };
+        }
 
         const reportSchema = z.object({
             targetType: z.enum(["job_posting", "contact_request"]),
@@ -383,6 +397,17 @@ export async function extendJobPostingExpirationAction(id: string): Promise<Acti
         if (!session?.user?.id || session.user.role !== "recruiter") {
             return { success: false, error: "No autorizado." };
         }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
+        }
+        if (isGuestSession(session)) {
+            return { success: false, error: GUEST_WRITE_ERROR };
+        }
 
         const updatedJob = await JobPostingService.extendJobPostingExpiration(session.user.id, id);
 
@@ -405,6 +430,9 @@ export async function withdrawApplicationAction(jobPostingId: string): Promise<A
         const session = await auth();
         if (!session?.user?.id || session.user.role !== "developer") {
             return { success: false, error: "No autorizado. Solo desarrolladores pueden retirar sus postulaciones." };
+        }
+        if (isGuestSession(session)) {
+            return { success: false, error: GUEST_WRITE_ERROR };
         }
 
         const developerId = session.user.id;

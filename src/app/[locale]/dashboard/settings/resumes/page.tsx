@@ -90,6 +90,7 @@ export default function ResumesSettingsPage() {
             }, 0);
             return () => clearTimeout(timer);
         }
+        return undefined;
     }, [status, session]);
 
     const handleSetActive = async (id: string) => {

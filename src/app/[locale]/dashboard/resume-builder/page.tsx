@@ -187,8 +187,7 @@ export default function ResumeBuilderPage() {
         return () => {
             cancelled = true;
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [session?.user?.id]);
+    }, [session?.user?.id, session?.user?.name, session?.user?.email]);
     const [newSkill, setNewSkill] = useState("");
 
     // IA Verb analysis state

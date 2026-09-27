@@ -4,17 +4,15 @@ import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
 import { trackServerEvent } from "@/lib/analytics";
 import { checkJobMatchRateLimit, getClientIp } from "@/lib/rate-limit";
-import type { JobMatch, Resume } from "@prisma/client";
+import type { JobMatch } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { JobMatchService } from "./service";
-import type { ActionResult } from "./types";
+import type { ActionResult } from "@/lib/action-result";
 
 interface CreateJobMatchActionInput {
     resumeId: string;
     jobOfferText: string;
 }
-
-export type JobMatchWithResume = JobMatch & { resume: Resume | null };
 
 export async function createJobMatchAction(input: CreateJobMatchActionInput): Promise<ActionResult<JobMatch>> {
     try {
@@ -68,38 +66,6 @@ export async function createJobMatchAction(input: CreateJobMatchActionInput): Pr
             success: false,
             error: error instanceof Error ? error.message : "Ocurrió un error inesperado al procesar el matching.",
         };
-    }
-}
-
-export async function getJobMatchesHistoryAction(): Promise<ActionResult<JobMatchWithResume[]>> {
-    try {
-        const session = await auth();
-        if (!session?.user?.id) {
-            return { success: false, error: "No autorizado." };
-        }
-
-        const history = await JobMatchService.getJobMatchesHistory(session.user.id);
-        return { success: true, data: history };
-    } catch (error: unknown) {
-        logger.error("[getJobMatchesHistoryAction] Error general:", error);
-        return { success: false, error: "Error al recuperar historial de matches." };
-    }
-}
-
-export async function deleteJobMatchAction(id: string): Promise<ActionResult<boolean>> {
-    try {
-        const session = await auth();
-        if (!session?.user?.id) {
-            return { success: false, error: "No autorizado." };
-        }
-
-        await JobMatchService.deleteJobMatch(id, session.user.id);
-        revalidatePath("/dashboard/job-match");
-
-        return { success: true, data: true };
-    } catch (error: unknown) {
-        logger.error("[deleteJobMatchAction] Error general:", error);
-        return { success: false, error: "Error al eliminar el registro de matching." };
     }
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore, useReducer } from "react";
 import { Link } from "@/i18n/routing";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -97,25 +97,19 @@ interface NavGroup {
     items: NavItem[];
 }
 
-// Inicio fijo arriba + 2 espacios: Perfil (yo, mi preparación, mi progreso)
-// y Oportunidades (ofertas, match y seguimiento)
+// Inicio fijo arriba + 4 espacios: Perfil, Preparación, Oportunidades, Progreso
 const developerNavGroups: NavGroup[] = [
     { labelKey: null, items: [developerNavItems[0]] },
     {
         labelKey: "groupProfile",
-        items: [
-            developerNavItems[1],
-            developerNavItems[8],
-            developerNavItems[6],
-            developerNavItems[9],
-            developerNavItems[5],
-            developerNavItems[7],
-        ],
+        items: [developerNavItems[1], developerNavItems[8], developerNavItems[6], developerNavItems[9]],
     },
+    { labelKey: "groupPreparation", items: [developerNavItems[5]] },
     {
         labelKey: "groupOpportunities",
         items: [developerNavItems[2], developerNavItems[3], developerNavItems[4]],
     },
+    { labelKey: "groupProgress", items: [developerNavItems[7]] },
 ];
 
 const recruiterNavItems = [
@@ -128,8 +122,7 @@ const recruiterNavItems = [
 ];
 
 const recruiterNavGroups: NavGroup[] = [
-    { labelKey: null, items: [recruiterNavItems[0]] },
-    { labelKey: "groupManage", items: [recruiterNavItems[1], recruiterNavItems[2]] },
+    { labelKey: "groupManage", items: [recruiterNavItems[0], recruiterNavItems[1], recruiterNavItems[2]] },
     { labelKey: "groupContact", items: [recruiterNavItems[3], recruiterNavItems[4]] },
 ];
 
@@ -141,6 +134,34 @@ function loadOpenGroups(): Record<string, boolean> {
         return JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "{}") as Record<string, boolean>;
     } catch {
         return {};
+    }
+}
+
+// Caché estable para useSyncExternalStore (el snapshot debe mantener referencia)
+let groupsCache: Record<string, boolean> | null = null;
+
+function getGroupsSnapshot(): Record<string, boolean> {
+    if (!groupsCache) groupsCache = loadOpenGroups();
+    return groupsCache;
+}
+
+function subscribeGroups(onChange: () => void): () => void {
+    groupsCache = null; // releer en el próximo snapshot (montaje)
+    if (typeof window === "undefined") return () => {};
+    window.addEventListener("storage", onChange);
+    return () => window.removeEventListener("storage", onChange);
+}
+
+function getServerGroupsSnapshot(): Record<string, boolean> {
+    return {};
+}
+
+function persistGroups(next: Record<string, boolean>) {
+    groupsCache = next;
+    try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch {
+        // almacenamiento no disponible: se pierde la preferencia
     }
 }
 
@@ -161,18 +182,15 @@ function SidebarContent({ collapsed, onToggle, isMobile = false }: SidebarProps)
     const navItems = user?.role === "recruiter" ? recruiterNavItems : developerNavItems;
     const navGroups: NavGroup[] = user?.role === "recruiter" ? recruiterNavGroups : developerNavGroups;
 
-    const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(loadOpenGroups);
+    // Hidratación sin mismatch: el servidor usa {} y el cliente hidrata con el
+    // snapshot de localStorage vía useSyncExternalStore (sin setState en efecto).
+    const openGroups = useSyncExternalStore(subscribeGroups, getGroupsSnapshot, getServerGroupsSnapshot);
+    const [, bumpGroups] = useReducer((v: number) => v + 1, 0);
 
     const toggleGroup = (labelKey: string) => {
-        setOpenGroups((prev) => {
-            const next = { ...prev, [labelKey]: !(prev[labelKey] ?? false) };
-            try {
-                window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-            } catch {
-                // almacenamiento no disponible: se pierde la preferencia
-            }
-            return next;
-        });
+        const next = { ...openGroups, [labelKey]: !(openGroups[labelKey] ?? false) };
+        persistGroups(next);
+        bumpGroups();
     };
 
     const isGroupOpen = (group: NavGroup) => {
@@ -258,8 +276,9 @@ function SidebarContent({ collapsed, onToggle, isMobile = false }: SidebarProps)
                 ) : (
                     <div className="flex flex-col gap-1.5">
                         {navGroups.map((group, gi) => {
-                            // Grupos de 1 item o sin etiqueta: link directo, sin acordeón
-                            if (!group.labelKey || group.items.length <= 1) {
+                            // Solo Inicio (sin etiqueta) es link directo; todo grupo
+                            // etiquetado se muestra como acordeón aunque tenga 1 item
+                            if (!group.labelKey) {
                                 return (
                                     <ul key={group.labelKey ?? `top-${gi}`} className="flex flex-col gap-1">
                                         {group.items.map((item) => renderNavItem(item))}

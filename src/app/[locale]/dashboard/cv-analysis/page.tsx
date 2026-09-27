@@ -120,7 +120,11 @@ export default function CVAnalysisPage() {
                 />
 
                 {isLoading ? (
-                    <AnalysisSkeleton />
+                    <div className="flex justify-center lg:col-span-2">
+                        <div className="w-full max-w-2xl">
+                            <AnalysisSkeleton />
+                        </div>
+                    </div>
                 ) : analysis ? (
                     <div className="lg:col-span-2">
                         <AnalysisResults analysis={analysis} />
