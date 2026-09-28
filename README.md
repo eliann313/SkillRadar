@@ -86,7 +86,7 @@ Domain logic lives in `src/features/*` as hexagonal modules (`domain/` types + p
 - **Rate Limiting**: Upstash Redis Web SDK (`@upstash/ratelimit`).
 - **AI Orchestration & Multi-Model LLMs**: Vercel AI SDK (`ai` v7 / `@ai-sdk` v4) supporting Google Gemini, OpenAI, Anthropic Claude, Groq and OpenRouter with automatic cascading fallback.
 - **Internationalization**: `next-intl` ^4.x.
-- **Unit Testing**: Vitest 4.x & `@testing-library/react` (135 tests, ~40% line coverage with anti-regression floor).
+- **Unit Testing**: Vitest 4.x & `@testing-library/react` (139 tests, ~40% line coverage with anti-regression floor).
 - **E2E Testing**: Playwright ^1.61.0.
 - **Architecture & Dead Code**: dependency-cruiser 18 (hexagonal gates) + Knip.
 
@@ -221,7 +221,7 @@ cmd /c npm run format:check
 # Static analysis and linter (ESLint + React Compiler)
 cmd /c npm run lint
 
-# Run Unit & Integration tests with coverage floor (Vitest, 135 tests / ~40% lines)
+# Run Unit & Integration tests with coverage floor (Vitest, 139 tests / ~40% lines)
 cmd /c npm run test -- --coverage
 
 # Hexagonal architecture gates (dependency-cruiser, error severity)
