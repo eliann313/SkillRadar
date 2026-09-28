@@ -28,6 +28,7 @@ describe("Módulo 20 — Tests de Seguridad & Hardening (Job Board)", () => {
         // Evitar que Prisma intente conectarse a Neon real durante los tests
         vi.spyOn(db.user, "findUnique").mockResolvedValue({
             id: "some-user-id",
+            recruiterVerified: true,
             geminiApiKey: null,
             groqApiKey: null,
             openrouterApiKey: null,
@@ -63,6 +64,7 @@ describe("Módulo 20 — Tests de Seguridad & Hardening (Job Board)", () => {
                 jobPosting: {
                     id: "job-b-id",
                     recruiterId: "recruiter-b-id", // Pertenece a B, no a A
+                    pipelineStages: [],
                 },
             };
 
@@ -241,6 +243,73 @@ describe("Módulo 20 — Tests de Seguridad & Hardening (Job Board)", () => {
             if (!result.success) {
                 expect(result.error).toContain("No eres el propietario");
             }
+        });
+    });
+
+    describe("Aislamiento guest: ningún guest persiste en la DB real", () => {
+        it("guest recruiter no puede cambiar estados del pipeline", async () => {
+            vi.mocked(auth).mockResolvedValue({
+                user: { id: "guest-recruiter-id", role: "recruiter", isGuest: true },
+            } as any);
+            const spy = vi.spyOn(db.jobPostingApplication, "update").mockResolvedValue({} as any);
+
+            const result = await updateApplicationStatusAction("app-1", "shortlisted");
+
+            expect(result.success).toBe(false);
+            expect(spy).not.toHaveBeenCalled();
+        });
+
+        it("guest developer no puede postularse", async () => {
+            vi.mocked(auth).mockResolvedValue({
+                user: { id: "guest-developer-id", role: "developer", isGuest: true },
+            } as any);
+            const spy = vi.spyOn(db.jobPostingApplication, "create").mockResolvedValue({} as any);
+
+            const result = await applyToJobPostingAction("job-1");
+
+            expect(result.success).toBe(false);
+            expect(spy).not.toHaveBeenCalled();
+        });
+
+        it("guest no puede reportar contenido", async () => {
+            vi.mocked(auth).mockResolvedValue({
+                user: { id: "guest-developer-id", role: "developer", isGuest: true },
+            } as any);
+            const spy = vi.spyOn(db.contentReport, "create").mockResolvedValue({} as any);
+
+            const result = await createReportAction({
+                targetType: "job_posting",
+                targetId: "job-1",
+                reason: "spam spam spam",
+            });
+
+            expect(result.success).toBe(false);
+            expect(spy).not.toHaveBeenCalled();
+        });
+
+        it("guest recruiter no puede extender ofertas", async () => {
+            vi.mocked(auth).mockResolvedValue({
+                user: { id: "guest-recruiter-id", role: "recruiter", isGuest: true },
+            } as any);
+            const spy = vi.spyOn(db.jobPosting, "update").mockResolvedValue({} as any);
+
+            const result = await extendJobPostingExpirationAction("job-1");
+
+            expect(result.success).toBe(false);
+            expect(spy).not.toHaveBeenCalled();
+        });
+
+        it("recruiter no verificado no puede operar (requiere verificación)", async () => {
+            vi.mocked(auth).mockResolvedValue({
+                user: { id: "rec-new", role: "recruiter" },
+            } as any);
+            vi.spyOn(db.user, "findUnique").mockResolvedValue({ id: "rec-new", recruiterVerified: false } as any);
+            const spy = vi.spyOn(db.jobPosting, "update").mockResolvedValue({} as any);
+
+            const result = await extendJobPostingExpirationAction("job-1");
+
+            expect(result.success).toBe(false);
+            expect(spy).not.toHaveBeenCalled();
         });
     });
 });

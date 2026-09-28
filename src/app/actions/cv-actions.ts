@@ -1,7 +1,9 @@
 "use server";
+import { logger } from "@/lib/logger";
 
-import { UTApi } from "uploadthing/server";
 import { auth } from "@/lib/auth";
+import { checkCVRateLimit } from "@/lib/rate-limit";
+import { validateBlobFileUrl } from "@/lib/file-storage";
 
 export async function getSignedFileUrlAction(
     fileUrl: string,
@@ -16,61 +18,38 @@ export async function getSignedFileUrlAction(
             };
         }
 
-        if (!fileUrl) {
-            return { success: false, error: "URL de archivo no proporcionada" };
+        // 2. Validar que la URL pertenece a nuestro storage (barrera anti-SSRF)
+        const validation = validateBlobFileUrl(fileUrl);
+        if (!validation.ok) {
+            return { success: false, error: validation.error };
         }
 
-        // SSRF / Path Traversal Prevention: Validate that the fileUrl belongs to UploadThing's trusted domains using a strict regex barrier guard.
-        const UPLOADTHING_URL_REGEX = /^https:\/\/([a-zA-Z0-9-]+\.)?(utfs\.io|ufs\.sh)\/f\/.+/;
-        if (!UPLOADTHING_URL_REGEX.test(fileUrl)) {
-            return {
-                success: false,
-                error: "URL de archivo no permitida por razones de seguridad.",
-            };
+        // 3. Ownership: solo el dueño del resume puede ver su archivo (evita IDOR)
+        const { db } = await import("@/lib/db");
+        const owned = await db.resume.findFirst({
+            where: { userId: session.user.id, fileUrl: validation.validatedUrl },
+            select: { id: true },
+        });
+        if (!owned) {
+            return { success: false, error: "Archivo no encontrado para este usuario." };
         }
 
-        const parsedUrl = new URL(fileUrl);
-        const host = parsedUrl.hostname.toLowerCase();
-        const isUfs = host === "ufs.sh" || host.endsWith(".ufs.sh");
-        const isUtfs = host === "utfs.io" || host.endsWith(".utfs.io");
-        if (!isUfs && !isUtfs) {
-            return {
-                success: false,
-                error: "URL de archivo no permitida por razones de seguridad.",
-            };
+        const rl = await checkCVRateLimit(`user:${session.user.id}`);
+        if (!rl.success) {
+            return { success: false, error: "Límite diario de descargas alcanzado." };
         }
 
-        const urlPath = parsedUrl.pathname;
-        if (!urlPath.startsWith("/f/")) {
-            return {
-                success: false,
-                error: "Estructura de URL no permitida por razones de seguridad.",
-            };
-        }
-        const fileKey = urlPath.substring(3); // Extracts everything after "/f/"
-
-        // Strict validation of the fileKey
-        const SAFE_FILE_KEY_REGEX = /^[a-zA-Z0-9\-_.]+$/;
-        if (!SAFE_FILE_KEY_REGEX.test(fileKey)) {
-            return {
-                success: false,
-                error: "Nombre de archivo contiene caracteres no permitidos.",
-            };
-        }
-
-        // Generate short-lived pre-signed URL (1 hour)
-        const utapi = new UTApi();
-        const signedData = await utapi.getSignedURL(fileKey);
-
+        // 4. URL de vista vía proxy con ownership: la URL cruda de Blob nunca
+        // se expone de forma persistente al cliente.
         return {
             success: true,
-            url: signedData.url,
+            url: `/api/files?url=${encodeURIComponent(validation.validatedUrl)}`,
         };
     } catch (error) {
-        console.error("[getSignedFileUrlAction] Error:", error);
+        logger.error("[getSignedFileUrlAction] Error:", error);
         return {
             success: false,
-            error: "Error al generar la URL firmada para el archivo.",
+            error: "Error al generar la URL de vista para el archivo.",
         };
     }
 }

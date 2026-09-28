@@ -1,11 +1,12 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { auth, assertActiveUser } from "@/lib/auth";
 import { trackServerEvent } from "@/lib/analytics";
 import { CVAnalysisService } from "./service";
 import { ResumeRepository } from "./repository";
-import type { Resume } from "@prisma/client";
-import type { ActionResult } from "./types";
+import type { Resume, Prisma } from "@prisma/client";
+import type { ActionResult } from "@/lib/action-result";
 import { revalidatePath } from "next/cache";
 import { checkCVRateLimit, getClientIp } from "@/lib/rate-limit";
 import { db } from "@/lib/db";
@@ -64,34 +65,27 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
             return { success: false, error: "Datos de archivo inválidos." };
         }
 
-        // 3. Manejo de Modo Demo/Guest
+        // 3. Manejo de Modo Demo/Guest (acotado: sin DB, sin LLM real, con razonamiento visible)
         if (isGuest) {
             // Simular retraso de análisis de IA para realismo
             await new Promise((resolve) => setTimeout(resolve, 1500));
-            await trackServerEvent("cv_uploaded", session.user.id, { isGuest: true, atsScore: 82 });
+            const { CVAnalysisAIService } = await import("@/features/cv-analysis/ai-service");
+            const simulated = CVAnalysisAIService.generateSimulatedAnalysis(
+                rawText || fileName || "React TypeScript Next.js Node.js",
+            );
+            await trackServerEvent("cv_uploaded", session.user.id, { isGuest: true, atsScore: simulated.atsScore });
             return {
                 success: true,
                 data: {
                     id: "demo-resume-id",
                     fileName: fileName || "curriculum_demo.pdf",
                     fileUrl: fileUrl || "text://raw-input",
-                    atsScore: 82,
+                    atsScore: simulated.atsScore,
                     analysis: {
-                        atsScore: 82,
-                        keywords: ["React", "TypeScript", "Next.js", "Node.js", "Tailwind CSS", "Git"],
-                        missingKeywords: ["CI/CD", "Docker", "AWS", "Testing (Jest/Vitest)"],
+                        ...simulated,
                         formatIssues: rawText
-                            ? ["Entrada directa por texto (sin issues de formato PDF)"]
-                            : ["Falta de enlaces profesionales directos (LinkedIn/GitHub)"],
-                        strengths: [
-                            "Fuerte dominio técnico en el ecosistema moderno de React y TypeScript.",
-                            "Estructura clara y secciones bien organizadas que facilitan el parseo por ATS.",
-                        ],
-                        improvements: [
-                            "Se sugiere enriquecer las descripciones de proyectos utilizando métricas de impacto (metodología STAR).",
-                            "Añadir exposición explícita en prácticas de CI/CD y despliegue en la nube.",
-                        ],
-                        estimatedSeniority: "mid",
+                            ? ["Entrada directa por texto (sin issues de formato PDF)", ...simulated.formatIssues]
+                            : simulated.formatIssues,
                     },
                     createdAt: new Date(),
                 },
@@ -123,81 +117,30 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
             };
         }
 
-        // 5. Manejo de PDF mediante URL de UploadThing
-        // SSRF Prevention: Validate that the fileUrl belongs to UploadThing's trusted domains using a strict regex barrier guard.
-        // This is natively recognized by CodeQL static analyzer as a sanitization barrier for SSRF.
-        const UPLOADTHING_URL_REGEX = /^https:\/\/([a-zA-Z0-9-]+\.)?(utfs\.io|ufs\.sh)\/f\/.+/;
-        if (!UPLOADTHING_URL_REGEX.test(fileUrl!)) {
+        // 5. Manejo de PDF mediante URL de Vercel Blob
+        // SSRF Prevention: la URL debe pertenecer a nuestro storage (barrera
+        // anti-SSRF en `@/lib/file-storage`) y se reconstruye con host verificado.
+        const { validateBlobFileUrl } = await import("@/lib/file-storage");
+        const blobValidation = validateBlobFileUrl(fileUrl!);
+        if (!blobValidation.ok) {
             return {
                 success: false,
-                error: "URL de archivo no permitida por razones de seguridad.",
+                error: blobValidation.error,
             };
         }
+        const validatedUrl = blobValidation.validatedUrl;
 
-        // SSRF Prevention: Extract the unique fileKey and reconstruct the target URL using 100% hardcoded secure hosts.
-        // This physically blocks any host-level manipulation (SSRF) and terminates CodeQL's taint propagation.
-        let validatedUrl: string;
-        try {
-            const parsedUrl = new URL(fileUrl!);
-
-            // Only allow HTTPS URLs
-            if (parsedUrl.protocol !== "https:") {
-                return {
-                    success: false,
-                    error: "URL de archivo no permitida por razones de seguridad.",
-                };
-            }
-
-            // Allow-list UploadThing hosts only at structural level
-            const host = parsedUrl.hostname.toLowerCase();
-            const isUfs = host === "ufs.sh" || host.endsWith(".ufs.sh");
-            const isUtfs = host === "utfs.io" || host.endsWith(".utfs.io");
-            if (!isUfs && !isUtfs) {
-                return {
-                    success: false,
-                    error: "URL de archivo no permitida por razones de seguridad.",
-                };
-            }
-
-            // Extract the fileKey which resides after the "/f/" path segments
-            const urlPath = parsedUrl.pathname;
-            if (!urlPath.startsWith("/f/")) {
-                return {
-                    success: false,
-                    error: "Estructura de URL no permitida por razones de seguridad.",
-                };
-            }
-            const fileKey = urlPath.substring(3); // Extracts everything after "/f/"
-
-            // Extremely strict whitelist of safe characters for the fileKey to prevent any path traversal or injection attempts
-            const SAFE_FILE_KEY_REGEX = /^[a-zA-Z0-9\-_.]+$/;
-            if (!SAFE_FILE_KEY_REGEX.test(fileKey)) {
-                return {
-                    success: false,
-                    error: "Nombre de archivo contiene caracteres no permitidos.",
-                };
-            }
-
-            // Reconstruct the URL using 100% static hosts, completely decoupling the request host from user input.
-            validatedUrl = isUfs ? `https://ufs.sh/f/${fileKey}` : `https://utfs.io/f/${fileKey}`;
-        } catch {
+        // Descargar el archivo para poder parsearlo. El store es privado: la lectura
+        // se autentica en servidor con el token (nunca fetch anónimo).
+        const { get: getBlob } = await import("@vercel/blob");
+        const result = await getBlob(validatedUrl, { access: "private" });
+        if (!result || result.statusCode !== 200 || !result.stream) {
             return {
                 success: false,
-                error: "URL de archivo inválida o no permitida.",
+                error: "No se pudo descargar el archivo para su análisis.",
             };
         }
-
-        // Descargar el archivo desde la URL de UploadThing para poder parsearlo
-        const response = await fetch(validatedUrl);
-        if (!response.ok) {
-            return {
-                success: false,
-                error: `No se pudo descargar el archivo para su análisis (Status ${response.status}).`,
-            };
-        }
-
-        const arrayBuffer = await response.arrayBuffer();
-        const fileBuffer = Buffer.from(arrayBuffer);
+        const fileBuffer = Buffer.from(await new Response(result.stream).arrayBuffer());
 
         // Procesar y guardar el CV en base de datos
         const resume = await CVAnalysisService.saveParsedCV({
@@ -224,7 +167,7 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
             },
         };
     } catch (error: unknown) {
-        console.error("[uploadAndParseCVAction] Error general:", error);
+        logger.error("[uploadAndParseCVAction] Error general:", error);
 
         // Manejar el caso de que el PDF no contenga texto legible
         if (error instanceof Error && error.message === "PDF_NOT_READABLE") {
@@ -256,7 +199,7 @@ export async function getUserResumesAction(): Promise<ActionResult<Resume[]>> {
             data: resumes,
         };
     } catch (error) {
-        console.error("[getUserResumesAction] Error recuperando currículums:", error);
+        logger.error("[getUserResumesAction] Error recuperando currículums:", error);
         return { success: false, error: "Error al recuperar tus currículums." };
     }
 }
@@ -355,7 +298,7 @@ export async function getProgressDataAction() {
         };
     } catch (error: unknown) {
         const errMessage = error instanceof Error ? error.message : "Error al obtener datos de progreso.";
-        console.error("[getProgressDataAction] Error:", errMessage);
+        logger.error("[getProgressDataAction] Error:", errMessage);
         return { success: false, error: errMessage };
     }
 }
@@ -374,7 +317,7 @@ export async function setActiveResumeAction(id: string): Promise<ActionResult<bo
         return { success: true, data: true };
     } catch (error: unknown) {
         const errMessage = error instanceof Error ? error.message : "Error al marcar el CV como activo.";
-        console.error("[setActiveResumeAction] Error:", errMessage);
+        logger.error("[setActiveResumeAction] Error:", errMessage);
         return { success: false, error: errMessage };
     }
 }
@@ -438,7 +381,7 @@ export async function deleteResumeAction(
         return { success: true, data: true };
     } catch (error: unknown) {
         const errMessage = error instanceof Error ? error.message : "Error al eliminar el currículum.";
-        console.error("[deleteResumeAction] Error:", errMessage);
+        logger.error("[deleteResumeAction] Error:", errMessage);
         return { success: false, error: errMessage };
     }
 }
@@ -465,6 +408,39 @@ export async function getCareerRecommendationsAction(): Promise<ActionResult<Car
         }
 
         const userId = session.user.id;
+
+        // Modo Demo/Guest: mock inmediato sin DB ni IA (el guest nunca persiste CVs)
+        if (session.user.isGuest) {
+            return {
+                success: true,
+                data: {
+                    technologies: [
+                        { name: "Docker", importance: "high", reason: "Demandado en la mayoría de ofertas backend." },
+                        { name: "CI/CD", importance: "high", reason: "Diferenciador clave en despliegues modernos." },
+                        { name: "Testing", importance: "medium", reason: "Mejora la credibilidad técnica del perfil." },
+                    ],
+                    roadmaps: [
+                        {
+                            title: "Ruta DevOps esencial",
+                            steps: [
+                                "Dockeriza un proyecto",
+                                "Automatiza CI con GitHub Actions",
+                                "Despliega en la nube",
+                            ],
+                            duration: "4 semanas",
+                        },
+                    ],
+                    projects: [
+                        {
+                            title: "API con CI/CD completo",
+                            description: "API REST con tests, pipeline y deploy automático.",
+                            technologies: ["Node.js", "Docker", "GitHub Actions"],
+                            difficulty: "intermediate",
+                        },
+                    ],
+                },
+            };
+        }
 
         // 1. Obtener currículum activo
         const resume =
@@ -668,14 +644,15 @@ ${demandedSkills.join(", ") || "React, Node.js, TypeScript, Next.js, Docker, AWS
                 where: { id: resume.id },
                 data: {
                     analysis: {
-                        ...(existingAnalysis || {}),
-                        careerRecommendations: result,
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    } as any,
+                        ...(typeof existingAnalysis === "object" && existingAnalysis !== null
+                            ? (existingAnalysis as Record<string, unknown>)
+                            : {}),
+                        careerRecommendations: JSON.parse(JSON.stringify(result)) as Prisma.InputJsonValue,
+                    },
                 },
             });
         } catch (dbError) {
-            console.error("[getCareerRecommendationsAction] Error al guardar en caché:", dbError);
+            logger.error("[getCareerRecommendationsAction] Error al guardar en caché:", dbError);
         }
 
         return {
@@ -683,7 +660,7 @@ ${demandedSkills.join(", ") || "React, Node.js, TypeScript, Next.js, Docker, AWS
             data: result,
         };
     } catch (error: unknown) {
-        console.error("[getCareerRecommendationsAction] Error:", error);
+        logger.error("[getCareerRecommendationsAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al procesar las sugerencias del Career Copilot.",

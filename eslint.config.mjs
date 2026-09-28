@@ -1,6 +1,7 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import reactCompiler from "eslint-plugin-react-compiler";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
@@ -11,6 +12,7 @@ const { version: installedReactVersion } = require("react/package.json");
 const eslintConfig = defineConfig([
     ...nextVitals,
     ...nextTs,
+    reactCompiler.configs.recommended,
     {
         languageOptions: {
             parserOptions: {
@@ -34,7 +36,7 @@ const eslintConfig = defineConfig([
             // ─────────────────────────────────────────
             // General Quality & Clean Code Rules
             // ─────────────────────────────────────────
-            "no-console": ["warn", { allow: ["warn", "error"] }],
+            "no-console": "error",
             "no-debugger": "error",
             "prefer-const": "error",
             "no-var": "error",
@@ -45,9 +47,12 @@ const eslintConfig = defineConfig([
         ".next/**",
         "out/**",
         "build/**",
+        "coverage/**",
         "next-env.d.ts",
         "node_modules/**",
         "eslint.config.mjs",
+        ".dependency-cruiser.cjs",
+        "scripts/**",
         "postcss.config.mjs",
         "vitest.config.ts",
         "next.config.ts",

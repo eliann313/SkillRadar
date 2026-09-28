@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { MockInterviewChat } from "@/components/interview";
+import { MockInterviewChat, InterviewHistory } from "@/components/interview";
 import { redirect } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslations } from "next-intl";
@@ -35,8 +35,9 @@ export default function InterviewPage() {
                 <p className="mt-1 text-sm text-muted-foreground">{t("description")}</p>
             </div>
 
-            <div className="mx-auto max-w-3xl">
+            <div className="mx-auto flex max-w-3xl flex-col gap-6">
                 <MockInterviewChat />
+                <InterviewHistory />
             </div>
         </>
     );

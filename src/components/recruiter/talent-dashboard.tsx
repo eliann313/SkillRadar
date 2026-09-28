@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
+import { logger } from "@/lib/logger";
 
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog";
 import type { TalentCard } from "@/lib/types";
+import { getSeniorityColor } from "@/lib/seniority";
 import { cn } from "@/lib/utils";
 import {
     Search,
@@ -42,6 +44,13 @@ import {
 } from "@/features/recruiter/actions";
 import { toast } from "sonner";
 import { CandidateDetailModal } from "./candidate-detail-modal";
+import { CandidateCompare } from "./candidate-compare";
+import {
+    listSavedSearchesAction,
+    saveSearchAction,
+    deleteSavedSearchAction,
+    type SavedSearchDTO,
+} from "@/features/saved-searches/actions";
 import {
     ResponsiveContainer,
     BarChart,
@@ -60,29 +69,6 @@ import {
 
 interface TalentDashboardProps {
     talents?: TalentCard[];
-}
-
-const seniorityColors: Record<string, string> = {
-    junior: "bg-indigo/10 text-indigo border-indigo/20",
-    mid: "bg-primary/10 text-primary border-primary/20",
-    senior: "bg-emerald/10 text-emerald border-emerald/20",
-    lead: "bg-warning/10 text-warning border-warning/20",
-};
-
-export function getSeniorityColor(level: string) {
-    const normalized = String(level).toLowerCase();
-    switch (normalized) {
-        case "junior":
-            return seniorityColors.junior;
-        case "mid":
-            return seniorityColors.mid;
-        case "senior":
-            return seniorityColors.senior;
-        case "lead":
-            return seniorityColors.lead;
-        default:
-            return "bg-secondary text-secondary-foreground border-border";
-    }
 }
 
 const getScoreColor = (score: number) => {
@@ -106,6 +92,50 @@ const formatLastActive = (date: Date) => {
 export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboardProps) {
     const [talents, setTalents] = useState<TalentCard[]>(initialTalents);
     const [searchQuery, setSearchQuery] = useState("");
+    const [seniorityFilter, setSeniorityFilter] = useState<string[]>([]);
+    const [minScore, setMinScore] = useState(0);
+    const [onlyShortlisted, setOnlyShortlisted] = useState(false);
+    const [sortBy, setSortBy] = useState<"score" | "recent">("score");
+    const [compareIds, setCompareIds] = useState<string[]>([]);
+    const [isCompareOpen, setIsCompareOpen] = useState(false);
+    const [savedSearches, setSavedSearches] = useState<SavedSearchDTO[]>([]);
+    const [savedName, setSavedName] = useState("");
+
+    useEffect(() => {
+        listSavedSearchesAction("talent_pool")
+            .then((res) => {
+                if (res.success) setSavedSearches(res.data);
+            })
+            .catch(() => undefined);
+    }, []);
+
+    const applySaved = (s: SavedSearchDTO) => {
+        const f = s.filters;
+        if (typeof f.searchQuery === "string") setSearchQuery(f.searchQuery);
+        if (Array.isArray(f.seniorityFilter))
+            setSeniorityFilter(f.seniorityFilter.filter((x): x is string => typeof x === "string"));
+        if (typeof f.minScore === "number") setMinScore(f.minScore);
+        if (typeof f.onlyShortlisted === "boolean") setOnlyShortlisted(f.onlyShortlisted);
+        if (f.sortBy === "score" || f.sortBy === "recent") setSortBy(f.sortBy);
+        toast.success(`Búsqueda "${s.name}" aplicada.`);
+    };
+
+    const handleSaveSearch = async () => {
+        if (savedName.trim().length < 2) {
+            toast.error("Ponle un nombre a la búsqueda.");
+            return;
+        }
+        const res = await saveSearchAction({
+            name: savedName.trim(),
+            scope: "talent_pool",
+            filters: { searchQuery, seniorityFilter, minScore, onlyShortlisted, sortBy },
+        });
+        if (res.success) {
+            setSavedSearches((prev) => [res.data, ...prev]);
+            setSavedName("");
+            toast.success("Búsqueda guardada.");
+        } else toast.error(res.error);
+    };
     const [jdText, setJdText] = useState("");
     const [isMatching, setIsMatching] = useState(false);
     const [isJdApplied, setIsJdApplied] = useState(false);
@@ -144,7 +174,7 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                 toast.success("¡Resultados ordenados y filtrados por la IA con éxito!");
             }
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             toast.error("Error al conectar con el servidor.");
         } finally {
             setIsSourcingAI(false);
@@ -178,7 +208,7 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                         toast.error(result.error || "No se pudieron obtener las estadísticas de Market Intelligence.");
                     }
                 } catch (e) {
-                    console.error(e);
+                    logger.error(e);
                     toast.error("Error al conectar con el servidor.");
                 } finally {
                     setIsLoadingMarketData(false);
@@ -199,7 +229,7 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                 setTalents((prev) => prev.map((t) => (t.id === developerId ? { ...t, isShortlisted: added } : t)));
             }
         } catch (e) {
-            console.error(e);
+            logger.error(e);
             toast.error("Error al procesar favoritos.");
         }
     };
@@ -216,17 +246,29 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [detailCandidate, setDetailCandidate] = useState<TalentCard | null>(null);
 
-    // Buscar perfiles de forma tradicional (texto libre)
-    const filteredTalents = talents.filter((talent) => {
-        if (!searchQuery.trim()) return true;
-        const query = searchQuery.toLowerCase();
-        return (
-            talent.topSkills.some((skill) => skill.toLowerCase().includes(query)) ||
-            talent.estimatedSeniority.toLowerCase().includes(query) ||
-            talent.anonymousId.toLowerCase().includes(query) ||
-            (talent.name && talent.name.toLowerCase().includes(query))
+    // Buscar perfiles de forma tradicional (texto libre) + filtros client-side (cero costo IA)
+    const filteredTalents = talents
+        .filter((talent) => {
+            if (searchQuery.trim()) {
+                const query = searchQuery.toLowerCase();
+                const matches =
+                    talent.topSkills.some((skill) => skill.toLowerCase().includes(query)) ||
+                    talent.estimatedSeniority.toLowerCase().includes(query) ||
+                    talent.anonymousId.toLowerCase().includes(query) ||
+                    (talent.name && talent.name.toLowerCase().includes(query));
+                if (!matches) return false;
+            }
+            if (seniorityFilter.length > 0 && !seniorityFilter.includes(talent.estimatedSeniority.toLowerCase()))
+                return false;
+            if ((talent.averageScore ?? 0) < minScore) return false;
+            if (onlyShortlisted && talent.isShortlisted !== true) return false;
+            return true;
+        })
+        .sort((a, b) =>
+            sortBy === "score"
+                ? (b.averageScore ?? 0) - (a.averageScore ?? 0)
+                : new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime(),
         );
-    });
 
     const displayedTalents = filteredTalents.filter((talent) => {
         if (activeTab === "shortlist") {
@@ -266,7 +308,7 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                 toast.success("¡Talent Pool ordenado por afinidad de IA con éxito!");
             }
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             toast.error("Ocurrió un error inesperado al procesar.");
         } finally {
             setIsMatching(false);
@@ -312,7 +354,7 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                 setIsContactDialogOpen(false);
             }
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             toast.error("Error al procesar la propuesta de contacto.");
         } finally {
             setIsSendingPitch(false);
@@ -525,14 +567,118 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
             )}
 
             {activeTab !== "market" && (
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        placeholder="Search by skill, name or anonymous ID (e.g., React, DEV-9B1C)..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 bg-card border-border"
-                    />
+                <div className="flex flex-col gap-3">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            placeholder="Search by skill, name or anonymous ID (e.g., React, DEV-9B1C)..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10 bg-card border-border"
+                        />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                        {(["junior", "mid", "senior", "lead"] as const).map((level) => (
+                            <label key={level} className="flex cursor-pointer items-center gap-1.5 capitalize">
+                                <input
+                                    type="checkbox"
+                                    className="size-3.5 accent-primary"
+                                    checked={seniorityFilter.includes(level)}
+                                    onChange={(e) =>
+                                        setSeniorityFilter((prev) =>
+                                            e.target.checked ? [...prev, level] : prev.filter((l) => l !== level),
+                                        )
+                                    }
+                                />
+                                {level}
+                            </label>
+                        ))}
+                        <label className="flex items-center gap-1.5">
+                            Score ≥ {minScore}
+                            <input
+                                type="range"
+                                min={0}
+                                max={100}
+                                step={5}
+                                value={minScore}
+                                onChange={(e) => setMinScore(Number(e.target.value))}
+                                className="w-24 accent-primary"
+                            />
+                        </label>
+                        <label className="flex cursor-pointer items-center gap-1.5">
+                            <input
+                                type="checkbox"
+                                className="size-3.5 accent-primary"
+                                checked={onlyShortlisted}
+                                onChange={(e) => setOnlyShortlisted(e.target.checked)}
+                            />
+                            Solo shortlist
+                        </label>
+                        <label className="flex items-center gap-1.5">
+                            Orden:
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value as "score" | "recent")}
+                                className="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground"
+                            >
+                                <option value="score">Mayor score</option>
+                                <option value="recent">Más recientes</option>
+                            </select>
+                        </label>
+                        {(seniorityFilter.length > 0 || minScore > 0 || onlyShortlisted || searchQuery.trim()) && (
+                            <button
+                                onClick={() => {
+                                    setSearchQuery("");
+                                    setSeniorityFilter([]);
+                                    setMinScore(0);
+                                    setOnlyShortlisted(false);
+                                }}
+                                className="ml-auto flex items-center gap-1 text-primary hover:underline"
+                            >
+                                <X className="size-3" />
+                                Limpiar filtros
+                            </button>
+                        )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <Input
+                            value={savedName}
+                            onChange={(e) => setSavedName(e.target.value)}
+                            placeholder="Guardar filtros actuales como..."
+                            maxLength={60}
+                            className="h-8 w-52 bg-card text-xs"
+                        />
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 text-xs"
+                            onClick={() => void handleSaveSearch()}
+                        >
+                            Guardar búsqueda
+                        </Button>
+                        {savedSearches.map((s) => (
+                            <span
+                                key={s.id}
+                                className="flex items-center gap-1 rounded-full border border-border/40 bg-card px-2.5 py-1"
+                            >
+                                <button onClick={() => applySaved(s)} className="hover:text-primary">
+                                    {s.name}
+                                </button>
+                                <button
+                                    onClick={() =>
+                                        void deleteSavedSearchAction(s.id).then((res) => {
+                                            if (res.success)
+                                                setSavedSearches((prev) => prev.filter((x) => x.id !== s.id));
+                                        })
+                                    }
+                                    className="text-muted-foreground hover:text-destructive"
+                                    title="Eliminar"
+                                >
+                                    <X className="size-3" />
+                                </button>
+                            </span>
+                        ))}
+                    </div>
                 </div>
             )}
 
@@ -635,13 +781,31 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                                                         )}
                                                     />
                                                 </Button>
+                                                <input
+                                                    type="checkbox"
+                                                    title="Agregar al comparador"
+                                                    className="size-4 accent-primary"
+                                                    checked={compareIds.includes(talent.id)}
+                                                    onChange={(e) => {
+                                                        e.stopPropagation();
+                                                        setCompareIds((prev) =>
+                                                            e.target.checked
+                                                                ? [...prev, talent.id].slice(0, 4)
+                                                                : prev.filter((id) => id !== talent.id),
+                                                        );
+                                                    }}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                />
                                             </div>
                                         </div>
                                         <div className="flex gap-1.5 mt-2 flex-wrap">
                                             <Badge
                                                 className={cn(
                                                     "capitalize text-[10px] font-medium px-2 py-0.5",
-                                                    getSeniorityColor(talent.estimatedSeniority),
+                                                    getSeniorityColor(
+                                                        talent.estimatedSeniority,
+                                                        "bg-secondary text-secondary-foreground border-border",
+                                                    ),
                                                 )}
                                                 variant="outline"
                                             >
@@ -1100,6 +1264,21 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                 onOpenChange={setIsDetailOpen}
                 candidate={detailCandidate}
                 jobDescription={jdText}
+            />
+
+            {compareIds.length >= 2 ? (
+                <button
+                    onClick={() => setIsCompareOpen(true)}
+                    className="fixed bottom-6 right-6 z-40 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg transition-transform hover:scale-105"
+                >
+                    Comparar ({compareIds.length})
+                </button>
+            ) : null}
+
+            <CandidateCompare
+                talents={talents.filter((t) => compareIds.includes(t.id))}
+                open={isCompareOpen}
+                onOpenChange={setIsCompareOpen}
             />
         </div>
     );

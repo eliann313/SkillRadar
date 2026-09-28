@@ -1,9 +1,13 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
+import { isGuestSession, GUEST_WRITE_ERROR } from "@/lib/guest-guard";
+import { RECRUITER_PENDING_ERROR } from "@/lib/recruiter-constants";
 import { trackServerEvent } from "@/lib/analytics";
+import { checkProactiveMatchingRateLimit } from "@/lib/rate-limit";
 import { RecruiterService, type RankedCandidate } from "./service";
-import type { ActionResult } from "@/features/job-match/types";
+import type { ActionResult } from "@/lib/action-result";
 import { revalidatePath } from "next/cache";
 import type { ContactRequest } from "@prisma/client";
 
@@ -20,9 +24,22 @@ export async function rankTalentPoolAction(jobDescription: string): Promise<Acti
         if (session.user.role !== "recruiter") {
             return { success: false, error: "Acceso denegado. Se requiere el rol de reclutador." };
         }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
+        }
 
         if (!jobDescription.trim()) {
             return { success: false, error: "La descripción del empleo no puede estar vacía." };
+        }
+
+        const rl = await checkProactiveMatchingRateLimit(`user:${session.user.id}`);
+        if (!rl.success) {
+            return { success: false, error: "Límite diario de sourcing IA alcanzado. Inténtalo mañana." };
         }
 
         const rankedCandidates = await RecruiterService.rankTalentPool({
@@ -35,7 +52,7 @@ export async function rankTalentPoolAction(jobDescription: string): Promise<Acti
             data: rankedCandidates,
         };
     } catch (error: unknown) {
-        console.error("[rankTalentPoolAction] Error general:", error);
+        logger.error("[rankTalentPoolAction] Error general:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Ocurrió un error al rankear candidatos.",
@@ -59,24 +76,36 @@ export async function createContactRequestAction(
         if (session.user.role !== "recruiter") {
             return { success: false, error: "Acceso denegado. Se requiere el rol de reclutador." };
         }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
+        }
 
         if (!developerId || !message.trim()) {
             return { success: false, error: "Campos de entrada inválidos." };
         }
 
-        // Asegurar que el usuario reclutador demo existe en DB para cumplir las FKeys
-        if (session.user.id === "guest-recruiter-id") {
-            const { db } = await import("@/lib/db");
-            await db.user.upsert({
-                where: { id: "guest-recruiter-id" },
-                update: {},
-                create: {
-                    id: "guest-recruiter-id",
-                    name: "Demo Recruiter",
-                    email: "recruiter-guest@skillradar.dev",
-                    role: "recruiter",
-                },
-            });
+        // Modo Demo/Guest: solo lectura. guest-recruiter-id es compartido entre
+        // todos los visitantes, por lo que nunca debe persistir en la DB real
+        // (evita contaminación cruzada: un demo pide contacto, el dev acepta y
+        // otro visitante vería los datos revelados).
+        if (session.user.isGuest || session.user.id === "guest-recruiter-id") {
+            return {
+                success: true,
+                data: {
+                    id: `demo-contact-${Date.now()}`,
+                    recruiterId: session.user.id,
+                    developerId,
+                    message: message.trim().slice(0, 500),
+                    status: "pending",
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                } as ContactRequest,
+            };
         }
 
         const request = await RecruiterService.createContactRequest({
@@ -95,7 +124,7 @@ export async function createContactRequestAction(
             data: request,
         };
     } catch (error: unknown) {
-        console.error("[createContactRequestAction] Error general:", error);
+        logger.error("[createContactRequestAction] Error general:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Ocurrió un error al enviar la propuesta.",
@@ -116,24 +145,22 @@ export async function toggleShortlistAction(developerId: string): Promise<Action
         if (session.user.role !== "recruiter") {
             return { success: false, error: "Acceso denegado. Se requiere el rol de reclutador." };
         }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
+        }
 
         if (!developerId) {
             return { success: false, error: "ID de desarrollador inválido." };
         }
 
-        // Asegurar que el usuario reclutador demo existe en DB para cumplir las FKeys
-        if (session.user.id === "guest-recruiter-id") {
-            const { db } = await import("@/lib/db");
-            await db.user.upsert({
-                where: { id: "guest-recruiter-id" },
-                update: {},
-                create: {
-                    id: "guest-recruiter-id",
-                    name: "Demo Recruiter",
-                    email: "recruiter-guest@skillradar.dev",
-                    role: "recruiter",
-                },
-            });
+        // Modo Demo/Guest: solo lectura, sin persistencia compartida.
+        if (session.user.isGuest || session.user.id === "guest-recruiter-id") {
+            return { success: true, data: true };
         }
 
         const isShortlisted = await RecruiterService.toggleShortlist({
@@ -148,39 +175,10 @@ export async function toggleShortlistAction(developerId: string): Promise<Action
             data: isShortlisted,
         };
     } catch (error: unknown) {
-        console.error("[toggleShortlistAction] Error:", error);
+        logger.error("[toggleShortlistAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al actualizar la shortlist.",
-        };
-    }
-}
-
-/**
- * Obtiene el listado de habilidades agregadas para Market Intelligence.
- */
-export async function getMarketIntelligenceSkillsAction(): Promise<ActionResult<{ name: string; value: number }[]>> {
-    try {
-        const session = await auth();
-        if (!session?.user?.id) {
-            return { success: false, error: "No autorizado." };
-        }
-
-        if (session.user.role !== "recruiter") {
-            return { success: false, error: "Acceso denegado." };
-        }
-
-        const skills = await RecruiterService.getMarketIntelligenceSkills();
-
-        return {
-            success: true,
-            data: skills,
-        };
-    } catch (error: unknown) {
-        console.error("[getMarketIntelligenceSkillsAction] Error:", error);
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "Error al obtener Market Intelligence.",
         };
     }
 }
@@ -201,12 +199,25 @@ export async function generateInterviewQuestionsAction(
         if (session.user.role !== "recruiter") {
             return { success: false, error: "Acceso denegado. Se requiere el rol de reclutador." };
         }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
+        }
 
         if (!developerId) {
             return { success: false, error: "Parámetros de entrada inválidos. Falta el ID del candidato." };
         }
 
         const jd = jobDescription?.trim() || "";
+
+        const rl = await checkProactiveMatchingRateLimit(`user:${session.user.id}`);
+        if (!rl.success) {
+            return { success: false, error: "Límite diario de guías de entrevista alcanzado." };
+        }
 
         const questions = await RecruiterService.generateInterviewQuestions({
             developerId,
@@ -219,7 +230,7 @@ export async function generateInterviewQuestionsAction(
             data: questions,
         };
     } catch (error: unknown) {
-        console.error("[generateInterviewQuestionsAction] Error:", error);
+        logger.error("[generateInterviewQuestionsAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al generar la guía de preguntas de entrevista.",
@@ -240,9 +251,22 @@ export async function searchTalentPoolAIAction(query: string): Promise<ActionRes
         if (session.user.role !== "recruiter") {
             return { success: false, error: "Acceso denegado. Se requiere el rol de reclutador." };
         }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
+        }
 
         if (!query.trim()) {
             return { success: false, error: "La consulta de búsqueda no puede estar vacía." };
+        }
+
+        const rl = await checkProactiveMatchingRateLimit(`user:${session.user.id}`);
+        if (!rl.success) {
+            return { success: false, error: "Límite diario de búsqueda IA alcanzado. Inténtalo mañana." };
         }
 
         const rankedCandidates = await RecruiterService.searchTalentPoolAI({
@@ -255,7 +279,7 @@ export async function searchTalentPoolAIAction(query: string): Promise<ActionRes
             data: rankedCandidates,
         };
     } catch (error: unknown) {
-        console.error("[searchTalentPoolAIAction] Error:", error);
+        logger.error("[searchTalentPoolAIAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Ocurrió un error en el buscador de IA.",
@@ -276,6 +300,14 @@ export async function generateCandidatePitchSummaryAction(developerId: string): 
         if (session.user.role !== "recruiter") {
             return { success: false, error: "Acceso denegado." };
         }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
+        }
 
         const summary = await RecruiterService.generateCandidatePitchSummary({
             recruiterId: session.user.id,
@@ -287,10 +319,83 @@ export async function generateCandidatePitchSummaryAction(developerId: string): 
             data: summary,
         };
     } catch (error: unknown) {
-        console.error("[generateCandidatePitchSummaryAction] Error:", error);
+        logger.error("[generateCandidatePitchSummaryAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al generar el resumen de IA.",
+        };
+    }
+}
+
+/**
+ * Outreach masivo: envía una plantilla renderizada a varios candidatos.
+ * Solo a developers (doble ciego: crea ContactRequest pendiente, sin PII).
+ * Máximo 20 por llamada + rate-limit de escritura.
+ */
+export async function bulkOutreachAction(input: {
+    templateBody: string;
+    jobTitle: string;
+    company: string;
+    developerIds: string[];
+}): Promise<ActionResult<{ sent: string[]; skipped: string[] }>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado." };
+        }
+
+        if (session.user.role !== "recruiter") {
+            return { success: false, error: "Acceso denegado." };
+        }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
+        }
+        if (isGuestSession(session)) {
+            return { success: false, error: GUEST_WRITE_ERROR };
+        }
+
+        const ids = [...new Set(input.developerIds)].slice(0, 20);
+        if (ids.length === 0 || input.templateBody.trim().length < 10) {
+            return { success: false, error: "Datos inválidos." };
+        }
+
+        const { checkWriteRateLimit } = await import("@/lib/rate-limit");
+        const sent: string[] = [];
+        const skipped: string[] = [];
+        for (const developerId of ids) {
+            const rl = await checkWriteRateLimit(`user:${session.user.id}`);
+            if (!rl.success) break;
+            const message = input.templateBody
+                .replaceAll("{{puesto}}", input.jobTitle)
+                .replaceAll("{{empresa}}", input.company)
+                .replaceAll("{puesto}", input.jobTitle)
+                .replaceAll("{empresa}", input.company)
+                .slice(0, 2000);
+            try {
+                await RecruiterService.createContactRequest({
+                    recruiterId: session.user.id,
+                    developerId,
+                    message,
+                });
+                sent.push(developerId);
+            } catch {
+                skipped.push(developerId);
+            }
+        }
+
+        const { revalidatePath } = await import("next/cache");
+        revalidatePath("/dashboard");
+        return { success: true, data: { sent, skipped } };
+    } catch (error: unknown) {
+        logger.error("[bulkOutreachAction] Error general:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Ocurrió un error en el envío masivo.",
         };
     }
 }
@@ -312,6 +417,14 @@ export async function generateCandidateOutreachAction(
         if (session.user.role !== "recruiter") {
             return { success: false, error: "Acceso denegado." };
         }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
+        }
 
         const message = await RecruiterService.generateCandidateOutreach({
             recruiterId: session.user.id,
@@ -325,7 +438,7 @@ export async function generateCandidateOutreachAction(
             data: message,
         };
     } catch (error: unknown) {
-        console.error("[generateCandidateOutreachAction] Error:", error);
+        logger.error("[generateCandidateOutreachAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al generar el mensaje de contacto.",
@@ -346,6 +459,14 @@ export async function getMarketIntelligenceDataAction() {
         if (session.user.role !== "recruiter") {
             return { success: false, error: "Acceso denegado." };
         }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
+        }
 
         const data = await RecruiterService.getMarketIntelligenceData();
 
@@ -354,10 +475,69 @@ export async function getMarketIntelligenceDataAction() {
             data,
         };
     } catch (error: unknown) {
-        console.error("[getMarketIntelligenceDataAction] Error:", error);
+        logger.error("[getMarketIntelligenceDataAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al obtener Market Intelligence.",
         };
+    }
+}
+
+export interface SentContactRequest {
+    id: string;
+    developerId: string;
+    message: string;
+    status: string;
+    createdAt: string;
+    messageCount: number;
+    lastMessageAt: string | null;
+}
+
+/**
+ * Bandeja del recruiter: solicitudes enviadas con conteo de mensajes del thread.
+ */
+export async function getSentContactRequestsAction(): Promise<ActionResult<SentContactRequest[]>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id || session.user.role !== "recruiter") {
+            return { success: false, error: "No autorizado." };
+        }
+        const { db: verifiedDb } = await import("@/lib/db");
+        const verifiedUser = await verifiedDb.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true },
+        });
+        if (!verifiedUser?.recruiterVerified && !isGuestSession(session)) {
+            return { success: false, error: RECRUITER_PENDING_ERROR };
+        }
+        if (session.user.isGuest) {
+            return { success: true, data: [] };
+        }
+
+        const { db } = await import("@/lib/db");
+        const requests = await db.contactRequest.findMany({
+            where: { recruiterId: session.user.id },
+            include: {
+                _count: { select: { messages: true } },
+                messages: { orderBy: { createdAt: "desc" }, take: 1, select: { createdAt: true } },
+            },
+            orderBy: { createdAt: "desc" },
+        });
+
+        return {
+            success: true,
+            data: requests.map((r) => ({
+                id: r.id,
+                developerId: r.developerId,
+                message: r.message,
+                status: r.status,
+                createdAt: r.createdAt.toISOString(),
+                messageCount: r._count.messages,
+                lastMessageAt: r.messages[0]?.createdAt.toISOString() ?? null,
+            })),
+        };
+    } catch (error: unknown) {
+        logger.error("[getSentContactRequestsAction] Error:", error);
+        return { success: false, error: "Error al cargar la bandeja." };
     }
 }

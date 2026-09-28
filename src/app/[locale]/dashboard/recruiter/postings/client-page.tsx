@@ -23,6 +23,7 @@ import {
     closeJobPostingAction,
     extendJobPostingExpirationAction,
 } from "@/features/jobs/actions";
+import { safeParseJson } from "@/lib/pii";
 import { toast } from "sonner";
 
 interface JobPosting {
@@ -35,6 +36,7 @@ interface JobPosting {
     description: string;
     requiredSkills: unknown; // array de strings
     seniorityLevel: string;
+    pipelineStages?: string[];
     status: string;
     expiresAt?: string | Date | null;
     createdAt: string | Date;
@@ -63,6 +65,7 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
     const [skillInput, setSkillInput] = useState("");
     const [requiredSkills, setRequiredSkills] = useState<string[]>([]);
     const [seniorityLevel, setSeniorityLevel] = useState("senior");
+    const [stagesInput, setStagesInput] = useState("");
 
     const openCreateDialog = () => {
         setEditingPosting(null);
@@ -73,6 +76,7 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
         setDescription("");
         setRequiredSkills([]);
         setSeniorityLevel("senior");
+        setStagesInput("");
         setIsDialogOpen(true);
     };
 
@@ -88,12 +92,11 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
         if (posting.requiredSkills) {
             skills = Array.isArray(posting.requiredSkills)
                 ? posting.requiredSkills
-                : typeof posting.requiredSkills === "string"
-                  ? JSON.parse(posting.requiredSkills)
-                  : [];
+                : (safeParseJson<string[]>(posting.requiredSkills, []) ?? []);
         }
         setRequiredSkills(skills);
         setSeniorityLevel(posting.seniorityLevel);
+        setStagesInput(Array.isArray(posting.pipelineStages) ? posting.pipelineStages.join(", ") : "");
         setIsDialogOpen(true);
     };
 
@@ -120,6 +123,14 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
         }
 
         setLoading(true);
+        const pipelineStages = [
+            ...new Set(
+                stagesInput
+                    .split(",")
+                    .map((s) => s.trim().toLowerCase())
+                    .filter((s) => /^[a-z0-9_]{1,24}$/.test(s)),
+            ),
+        ].slice(0, 12);
         const payload = {
             title,
             company,
@@ -128,6 +139,7 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
             description,
             requiredSkills,
             seniorityLevel,
+            pipelineStages,
         };
 
         if (editingPosting) {
@@ -237,9 +249,7 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
                     postings.map((posting) => {
                         const skills: string[] = Array.isArray(posting.requiredSkills)
                             ? posting.requiredSkills
-                            : typeof posting.requiredSkills === "string"
-                              ? JSON.parse(posting.requiredSkills)
-                              : [];
+                            : (safeParseJson<string[]>(posting.requiredSkills, []) ?? []);
 
                         return (
                             <Card
@@ -469,6 +479,15 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
                                 ))}
                             </div>
                         )}
+
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold">Etapas del pipeline (separadas por coma)</label>
+                            <Input
+                                placeholder="Vacío = submitted, reviewed, shortlisted, interview, offer, hired"
+                                value={stagesInput}
+                                onChange={(e) => setStagesInput(e.target.value)}
+                            />
+                        </div>
 
                         <div className="space-y-1.5">
                             <label className="text-xs font-semibold">Descripción del Puesto *</label>

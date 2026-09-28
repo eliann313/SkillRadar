@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { JobOfferInput, MatchScoreCard } from "@/components/job-match";
@@ -36,7 +37,7 @@ export default function JobMatchPage() {
                         );
                     }
                 } catch (error) {
-                    console.error("Error al cargar historial de CVs:", error);
+                    logger.error("Error al cargar historial de CVs:", error);
                 }
             };
             void loadResumes();
@@ -94,6 +95,7 @@ export default function JobMatchPage() {
                     recommendations: dbAnalysis?.recommendations || [],
                     explainability: dbAnalysis?.explainability,
                     actionPlan: dbAnalysis?.actionPlan,
+                    isSimulated: dbAnalysis?.isSimulated ?? undefined,
                 };
 
                 setMatch(mappedMatch);
@@ -102,7 +104,7 @@ export default function JobMatchPage() {
                 toast.error(result.error);
             }
         } catch (error) {
-            console.error("Error al calcular matching:", error);
+            logger.error("Error al calcular matching:", error);
             toast.error(t("matchError"));
         } finally {
             setIsLoading(false);

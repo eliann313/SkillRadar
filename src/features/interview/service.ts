@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { db } from "@/lib/db";
 import { InterviewRepository } from "./repository";
 import { interviewDebriefSchema, type InterviewDebriefData } from "./types";
@@ -75,7 +76,7 @@ export class InterviewService {
                 };
             }
         } catch (dbError) {
-            console.error("[InterviewService] Error leyendo preferencias:", dbError);
+            logger.error("[InterviewService] Error leyendo preferencias:", dbError);
         }
 
         const hasGlobalKeys = !!(
@@ -95,7 +96,7 @@ export class InterviewService {
         );
 
         if (!hasGlobalKeys && !hasUserKeys) {
-            console.warn("⚠️ [InterviewService] Sin API Keys. Ejecutando Debrief en modo simulación (Mock).");
+            logger.warn("⚠️ [InterviewService] Sin API Keys. Ejecutando Debrief en modo simulación (Mock).");
             const simulated = this.generateSimulatedDebrief(messages, mode);
             await InterviewRepository.saveDebrief(id, userId, simulated.score, simulated);
             return simulated;
@@ -123,7 +124,7 @@ No rellenes structuredThinkingScore.`,
         };
 
         try {
-            console.warn("[InterviewService] Iniciando análisis de debrief de la entrevista con IA...");
+            logger.warn("[InterviewService] Iniciando análisis de debrief de la entrevista con IA...");
             const aiDebrief = await AIService.generateStructuredObject<InterviewDebriefData>({
                 schema: interviewDebriefSchema,
                 system: `Eres un entrevistador técnico experto y psicólogo organizacional. Tu tarea es analizar una simulación de entrevista (historial de mensajes) y calificar al candidato.
@@ -148,7 +149,7 @@ ${JSON.stringify(
             await InterviewRepository.saveDebrief(id, userId, aiDebrief.score, aiDebrief);
             return aiDebrief;
         } catch (error) {
-            console.error("[InterviewService] Falló debrief estructurado con IA, usando fallback simulado:", error);
+            logger.error("[InterviewService] Falló debrief estructurado con IA, usando fallback simulado:", error);
             const simulated = this.generateSimulatedDebrief(messages);
             await InterviewRepository.saveDebrief(id, userId, simulated.score, simulated);
             return simulated;

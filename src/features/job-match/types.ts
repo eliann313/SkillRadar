@@ -21,6 +21,7 @@ export const jobMatchAnalysisSchema = z.object({
             }),
         )
         .optional(),
+    isSimulated: z.boolean().optional(),
 });
 
 export type JobMatchAnalysis = z.infer<typeof jobMatchAnalysisSchema>;
@@ -32,5 +33,3 @@ export interface CreateJobMatchInput {
     matchScore?: number;
     analysis?: JobMatchAnalysis;
 }
-
-export type ActionResult<T> = { success: true; data: T } | { success: false; error: string };

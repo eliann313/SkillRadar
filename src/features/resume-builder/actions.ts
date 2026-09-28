@@ -1,11 +1,12 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { AIService, type AIServiceOptions } from "@/lib/ai";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import type { ActionResult } from "@/features/job-match/types";
+import type { ActionResult } from "@/lib/action-result";
 
 // Zod Schema for Impact Verb Analyzer
 const impactVerbAnalysisSchema = z.object({
@@ -89,7 +90,7 @@ ${experienceText}
             data: analysis,
         };
     } catch (error: unknown) {
-        console.error("[analyzeImpactVerbsAction] Error:", error);
+        logger.error("[analyzeImpactVerbsAction] Error:", error);
 
         // Simulación offline si fallan las API keys o hay algún error
         return {
@@ -165,7 +166,7 @@ export async function saveResumeDataAction(
             data: { resumeId: newResume.id },
         };
     } catch (error: unknown) {
-        console.error("[saveResumeDataAction] Error:", error);
+        logger.error("[saveResumeDataAction] Error:", error);
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al guardar el currículum.",

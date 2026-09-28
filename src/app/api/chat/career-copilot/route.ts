@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -5,11 +6,18 @@ import { db } from "@/lib/db";
 import { streamText } from "ai";
 import { AIService } from "@/lib/ai";
 import { isValidProviderAndModel } from "@/lib/ai/models";
+import { safeParseJson } from "@/lib/pii";
 
 export async function POST(req: NextRequest) {
     const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: "No autorizado." }, { status: 401 });
+    }
+
+    const { checkAIChatRateLimit } = await import("@/lib/rate-limit");
+    const rl = await checkAIChatRateLimit(`user:${session.user.id}`);
+    if (!rl.success) {
+        return NextResponse.json({ error: "Límite diario de chat IA alcanzado." }, { status: 429 });
     }
 
     try {
@@ -18,6 +26,19 @@ export async function POST(req: NextRequest) {
             provider?: string;
             model?: string;
         };
+        const msgArray = Array.isArray(messages) ? messages.slice(-20) : [];
+        const trimmedMessages = msgArray.map((m) => {
+            if (
+                m &&
+                typeof m === "object" &&
+                "content" in m &&
+                typeof (m as { content: unknown }).content === "string"
+            ) {
+                const c = (m as { content: string }).content;
+                return { ...(m as object), content: c.slice(0, 2000) };
+            }
+            return m;
+        });
         const isRecruiter = session.user.role === "recruiter";
 
         // Cargar el CV más reciente del usuario para el contexto del Copilot (solo desarrolladores)
@@ -27,28 +48,48 @@ export async function POST(req: NextRequest) {
                 const latestResume =
                     (await db.resume.findFirst({
                         where: { userId: session.user.id, isActive: true },
-                        select: { rawText: true, atsScore: true },
+                        select: { rawText: true, atsScore: true, analysis: true },
                     })) ||
                     (await db.resume.findFirst({
                         where: { userId: session.user.id },
                         orderBy: { createdAt: "desc" },
-                        select: { rawText: true, atsScore: true },
+                        select: { rawText: true, atsScore: true, analysis: true },
                     }));
                 if (latestResume?.rawText) {
                     cvContext = `CV del usuario (extracto):\n${latestResume.rawText.substring(0, 3000)}`;
                     if (latestResume.atsScore) {
                         cvContext += `\n\nATS Score actual: ${latestResume.atsScore}/100`;
                     }
+                    try {
+                        const analysis = safeParseJson<{ missingKeywords?: string[] }>(latestResume.analysis, null);
+                        if (Array.isArray(analysis?.missingKeywords) && analysis.missingKeywords.length > 0) {
+                            cvContext += `\nBrechas detectadas: ${analysis.missingKeywords.slice(0, 8).join(", ")}`;
+                        }
+                    } catch {
+                        // análisis no parseable: se omite
+                    }
                 }
+                const [openTasks, activeApplications] = await Promise.all([
+                    db.roadmapTask.count({ where: { userId: session.user.id, done: false } }).catch(() => 0),
+                    db.jobPostingApplication
+                        .count({
+                            where: {
+                                developerId: session.user.id,
+                                status: { notIn: ["rejected", "withdrawn", "hired"] },
+                            },
+                        })
+                        .catch(() => 0),
+                ]);
+                cvContext += `\nTareas abiertas del roadmap: ${openTasks}. Postulaciones activas: ${activeApplications}.`;
             } catch (dbErr) {
-                console.error("[Career Copilot] Error al cargar CV:", dbErr);
+                logger.error("[Career Copilot] Error al cargar CV:", dbErr);
             }
         }
 
         // Obtener llaves API del usuario si no es invitado
         let formattedSettings;
         let preferredProvider = "gemini";
-        let preferredModel = "gemini-3.6-flash";
+        let preferredModel = "gemini-3.8-flash";
 
         if (!session.user.isGuest) {
             try {
@@ -120,8 +161,8 @@ ${cvContext}
             parts?: ClientMessagePart[];
         }
 
-        const formattedMessages = Array.isArray(messages)
-            ? (messages as ClientMessage[]).map((m) => {
+        const formattedMessages = trimmedMessages.length
+            ? (trimmedMessages as ClientMessage[]).map((m) => {
                   let content = "";
                   if (typeof m.content === "string") {
                       content = m.content;
@@ -159,7 +200,7 @@ ${cvContext}
 
             return result.toTextStreamResponse();
         } catch (streamError) {
-            console.warn(
+            logger.warn(
                 "⚠️ [Career Copilot Route] Failed to initialize live stream. Returning offline mock stream response.",
                 streamError,
             );
@@ -199,7 +240,7 @@ ${cvContext}
             });
         }
     } catch (error: unknown) {
-        console.error("[Career Copilot API] Error:", error);
+        logger.error("[Career Copilot API] Error:", error);
         return NextResponse.json({ error: "Error interno del servidor." }, { status: 500 });
     }
 }

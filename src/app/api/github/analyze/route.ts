@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: true, data: analysis });
     } catch (error: unknown) {
-        console.error("[GitHub Analyze Route] Error:", error);
+        logger.error("[GitHub Analyze Route] Error:", error);
         const message = error instanceof Error ? error.message : "Error interno del servidor.";
         return NextResponse.json({ error: message }, { status: 500 });
     }

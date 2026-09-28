@@ -5,7 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { ProgressRecharts } from "@/components/dashboard";
-import { TrendingUp, Award, CheckCircle2, ArrowRight, FileText, Calendar, Sparkles } from "lucide-react";
+import { RoadmapChecklist } from "@/components/dashboard";
+import { ExportReportButton } from "@/components/dashboard";
+import { TrendingUp, Award, CheckCircle2, ArrowRight, FileText, Calendar, Sparkles, Flame } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { getTranslations } from "next-intl/server";
@@ -34,8 +36,8 @@ export default async function ProgressPage({ params }: PageProps) {
 
     const t = await getTranslations("Progress");
 
-    const res = await getProgressDataAction();
-    const recsRes = await getCareerRecommendationsAction();
+    // En paralelo: las recomendaciones IA no deben bloquear el gráfico ni las métricas
+    const [res, recsRes] = await Promise.all([getProgressDataAction(), getCareerRecommendationsAction()]);
     if (!res.success || !res.data) {
         return (
             <div className="flex min-h-[400px] flex-col items-center justify-center text-center p-6 border rounded-lg border-destructive/20 bg-destructive/5">
@@ -82,13 +84,16 @@ export default async function ProgressPage({ params }: PageProps) {
     // Preparar datos para el gráfico agregando versión sequence index (#1, #2...) para evitar superposición
     const chartData = resumes.map(
         (r: { createdAt: Date | string; atsScore: number | null; fileName: string }, index: number) => {
-            const dateStr = new Date(r.createdAt).toLocaleDateString(locale === "es" ? "es-ES" : "en-US", {
-                day: "numeric",
-                month: "short",
-            });
+            const parsed = new Date(r.createdAt);
+            const dateStr = Number.isNaN(parsed.getTime())
+                ? `#${index + 1}`
+                : parsed.toLocaleDateString(locale === "es" ? "es-ES" : "en-US", {
+                      day: "numeric",
+                      month: "short",
+                  });
             return {
                 date: `${dateStr} (#${index + 1})`,
-                score: r.atsScore || 0,
+                score: r.atsScore ?? 0,
                 name: r.fileName,
             };
         },
@@ -101,13 +106,25 @@ export default async function ProgressPage({ params }: PageProps) {
                     <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">{t("title")}</h1>
                     <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
                 </div>
-                <Link
-                    href="/dashboard/cv-analysis"
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex items-center gap-1.5")}
-                >
-                    <FileText className="size-4" />
-                    {t("uploadNewVersion")}
-                </Link>
+                <div className="flex items-center gap-2">
+                    <ExportReportButton
+                        resumes={resumes.map((r) => ({
+                            fileName: r.fileName,
+                            atsScore: r.atsScore,
+                            createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
+                        }))}
+                        averageScore={averageScore}
+                        totalMatches={totalMatches}
+                        closedSkills={closedSkills}
+                    />
+                    <Link
+                        href="/dashboard/cv-analysis"
+                        className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex items-center gap-1.5")}
+                    >
+                        <FileText className="size-4" />
+                        {t("uploadNewVersion")}
+                    </Link>
+                </div>
             </div>
 
             {/* Malla de Métricas */}
@@ -121,7 +138,7 @@ export default async function ProgressPage({ params }: PageProps) {
                     <CardContent>
                         <div className="flex items-baseline gap-2">
                             <span className="text-3xl font-bold text-foreground">
-                                {resumes[resumes.length - 1].atsScore}
+                                {resumes[resumes.length - 1].atsScore ?? 0}
                             </span>
                             <span className="text-xs text-muted-foreground">/ 100</span>
                         </div>
@@ -159,6 +176,34 @@ export default async function ProgressPage({ params }: PageProps) {
                 </Card>
             </div>
 
+            {/* Racha y mejora */}
+            <div className="grid gap-4 sm:grid-cols-2">
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                    <CardContent className="flex items-center gap-3 pt-6">
+                        <Flame className="size-8 text-warning" />
+                        <div>
+                            <p className="text-sm font-semibold text-foreground">
+                                {t("streakTitle", { count: resumes.length })}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground">{t("streakDesc")}</p>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                    <CardContent className="flex items-center gap-3 pt-6">
+                        <TrendingUp className="size-8 text-emerald" />
+                        <div>
+                            <p className="text-sm font-semibold text-foreground">
+                                {t("improvementTitle", {
+                                    delta: (resumes[resumes.length - 1].atsScore ?? 0) - (resumes[0].atsScore ?? 0),
+                                })}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground">{t("improvementDesc")}</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
             {/* Gráfico de Progreso */}
             <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
                 <CardHeader>
@@ -172,6 +217,9 @@ export default async function ProgressPage({ params }: PageProps) {
                     <ProgressRecharts data={chartData} />
                 </CardContent>
             </Card>
+
+            {/* Roadmap accionable */}
+            <RoadmapChecklist />
 
             {/* Career Copilot Recommendations */}
             {recsRes.success && recsRes.data && (

@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 export async function sendEmail(params: { to: string; subject: string; html: string }) {
     const resendApiKey = process.env.RESEND_API_KEY;
     if (resendApiKey) {
@@ -18,18 +19,18 @@ export async function sendEmail(params: { to: string; subject: string; html: str
 
             if (!response.ok) {
                 const errText = await response.text();
-                console.error("❌ [Mail] Resend error response:", errText);
+                logger.error("❌ [Mail] Resend error response:", errText);
                 return { success: false, error: errText };
             }
 
-            console.warn(`✉️ [Mail] Email successfully sent to ${params.to} using Resend`);
+            logger.warn(`✉️ [Mail] Email successfully sent to ${params.to} using Resend`);
             return { success: true };
         } catch (mailError) {
-            console.error("❌ [Mail] Error sending email with Resend:", mailError);
+            logger.error("❌ [Mail] Error sending email with Resend:", mailError);
             return { success: false, error: String(mailError) };
         }
     } else {
-        console.warn(
+        logger.warn(
             `\n✉️ [Mail Simulation] Email would be sent to ${params.to}:\nSubject: ${params.subject}\nHTML: ${params.html}\n`,
         );
         return { success: true };

@@ -1,10 +1,14 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { db } from "@/lib/db";
 import { assertActiveUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import type { ActionResult } from "@/lib/action-result";
 
-export type ActionResult<T> = { success: true; data: T } | { success: false; error: string };
+const idSchema = z.string().cuid();
+const suspendSchema = z.object({ userId: z.string().cuid(), reportIdToDismiss: z.string().cuid().optional() });
 
 /**
  * Valida de forma estricta que el usuario tenga rol de Administrador.
@@ -40,16 +44,54 @@ export async function getPendingReportsAction(): Promise<ActionResult<unknown[]>
 
         return { success: true, data: reports };
     } catch (error: unknown) {
-        console.error("[getPendingReportsAction] Error:", error);
+        logger.error("[getPendingReportsAction] Error:", error);
         return { success: false, error: error instanceof Error ? error.message : "Error al obtener los reportes." };
     }
 }
 
 /**
- * Descarta un reporte de contenido pendiente (lo marca como revisado/dismissed).
+ * Lista recruiters con verificación solicitada y pendiente.
  */
+export async function getPendingVerificationsAction(): Promise<ActionResult<unknown[]>> {
+    try {
+        await assertAdmin();
+
+        const users = await db.user.findMany({
+            where: { role: "recruiter", recruiterVerified: false, verificationRequestedAt: { not: null } },
+            select: { id: true, name: true, email: true, verificationNote: true, verificationRequestedAt: true },
+            orderBy: { verificationRequestedAt: "asc" },
+        });
+
+        return { success: true, data: users };
+    } catch (error: unknown) {
+        logger.error("[getPendingVerificationsAction] Error:", error);
+        return { success: false, error: error instanceof Error ? error.message : "Error al obtener solicitudes." };
+    }
+}
+
+/**
+ * Aprueba o rechaza la verificación de un recruiter.
+ */
+export async function reviewVerificationAction(userId: string, approve: boolean): Promise<ActionResult<boolean>> {
+    try {
+        if (!idSchema.safeParse(userId).success) return { success: false, error: "Usuario inválido." };
+        await assertAdmin();
+
+        await db.user.update({
+            where: { id: userId },
+            data: approve ? { recruiterVerified: true } : { verificationRequestedAt: null, verificationNote: null },
+        });
+
+        revalidatePath("/dashboard/admin");
+        return { success: true, data: true };
+    } catch (error: unknown) {
+        logger.error("[reviewVerificationAction] Error:", error);
+        return { success: false, error: error instanceof Error ? error.message : "Error al revisar la solicitud." };
+    }
+}
 export async function dismissReportAction(id: string): Promise<ActionResult<boolean>> {
     try {
+        if (!idSchema.safeParse(id).success) return { success: false, error: "Reporte inválido." };
         await assertAdmin();
 
         await db.contentReport.update({
@@ -60,7 +102,7 @@ export async function dismissReportAction(id: string): Promise<ActionResult<bool
         revalidatePath("/dashboard/admin/reports");
         return { success: true, data: true };
     } catch (error: unknown) {
-        console.error("[dismissReportAction] Error:", error);
+        logger.error("[dismissReportAction] Error:", error);
         return { success: false, error: error instanceof Error ? error.message : "Error al descartar el reporte." };
     }
 }
@@ -70,6 +112,8 @@ export async function dismissReportAction(id: string): Promise<ActionResult<bool
  */
 export async function suspendUserAction(userId: string, reportIdToDismiss?: string): Promise<ActionResult<boolean>> {
     try {
+        const parsed = suspendSchema.safeParse({ userId, reportIdToDismiss });
+        if (!parsed.success) return { success: false, error: "Datos inválidos." };
         await assertAdmin();
 
         // No permitir suspenderse a sí mismo o a un administrador principal (por seguridad)
@@ -85,13 +129,13 @@ export async function suspendUserAction(userId: string, reportIdToDismiss?: stri
         // Ejecutar transacción: Suspender usuario y opcionalmente descartar el reporte
         await db.$transaction(async (tx) => {
             await tx.user.update({
-                where: { id: userId },
+                where: { id: parsed.data.userId },
                 data: { isSuspended: true },
             });
 
-            if (reportIdToDismiss) {
+            if (parsed.data.reportIdToDismiss) {
                 await tx.contentReport.update({
-                    where: { id: reportIdToDismiss },
+                    where: { id: parsed.data.reportIdToDismiss },
                     data: { status: "reviewed" },
                 });
             }
@@ -100,7 +144,7 @@ export async function suspendUserAction(userId: string, reportIdToDismiss?: stri
         revalidatePath("/dashboard/admin/reports");
         return { success: true, data: true };
     } catch (error: unknown) {
-        console.error("[suspendUserAction] Error:", error);
+        logger.error("[suspendUserAction] Error:", error);
         return { success: false, error: error instanceof Error ? error.message : "Error al suspender al usuario." };
     }
 }
@@ -158,7 +202,7 @@ export async function getFunnelDataAction(): Promise<
             },
         };
     } catch (error: unknown) {
-        console.error("[getFunnelDataAction] Error:", error);
+        logger.error("[getFunnelDataAction] Error:", error);
         return { success: false, error: error instanceof Error ? error.message : "Error al calcular el funnel." };
     }
 }

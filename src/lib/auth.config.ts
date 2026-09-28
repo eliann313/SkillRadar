@@ -3,18 +3,18 @@ import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 
-const enableGuestLogin = process.env.ENABLE_GUEST_LOGIN !== "false";
+const enableGuestLogin = process.env.ENABLE_GUEST_LOGIN === "true";
 
 const providers: NextAuthConfig["providers"] = [
     GitHub({
         clientId: process.env.GITHUB_CLIENT_ID,
         clientSecret: process.env.GITHUB_CLIENT_SECRET,
-        allowDangerousEmailAccountLinking: true,
+        allowDangerousEmailAccountLinking: false,
     }),
     Google({
         clientId: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        allowDangerousEmailAccountLinking: true,
+        allowDangerousEmailAccountLinking: false,
     }),
     ...(enableGuestLogin
         ? [
@@ -25,13 +25,14 @@ const providers: NextAuthConfig["providers"] = [
                       role: { label: "Role", type: "text" },
                   },
                   async authorize(credentials) {
-                      const isRecruiter = credentials?.role === "recruiter";
+                      const role = credentials?.role === "recruiter" ? "recruiter" : "developer";
+                      const isRecruiter = role === "recruiter";
                       return {
                           id: isRecruiter ? "guest-recruiter-id" : "guest-developer-id",
                           name: isRecruiter ? "Demo Recruiter" : "Demo Developer",
                           email: isRecruiter ? "recruiter-guest@skillradar.dev" : "developer-guest@skillradar.dev",
                           image: null,
-                          role: isRecruiter ? "recruiter" : "developer",
+                          role,
                           isGuest: true,
                       };
                   },
@@ -71,7 +72,10 @@ export const authConfig = {
             }
 
             if (isOnDashboard) {
-                if (isLoggedIn) return true;
+                if (isLoggedIn) {
+                    if (auth?.user?.isSuspended) return false;
+                    return true;
+                }
                 return false; // Redirect unauthenticated users to login page
             }
             return true;

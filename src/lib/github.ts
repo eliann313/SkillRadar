@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { db } from "@/lib/db";
 
 export interface GitHubRepoInfo {
@@ -23,7 +24,7 @@ export class GitHubConnector {
             });
             return account?.access_token || null;
         } catch (error) {
-            console.error("[GitHubConnector] Error al buscar token OAuth:", error);
+            logger.error("[GitHubConnector] Error al buscar token OAuth:", error);
             return null;
         }
     }

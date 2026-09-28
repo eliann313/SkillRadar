@@ -9,6 +9,7 @@ import { LanguageChart } from "@/components/github/language-chart";
 import { RepoList } from "@/components/github/repo-list";
 import { AnalysisCards } from "@/components/github/analysis-cards";
 import { analyzeGithubUserAction } from "@/features/github/actions";
+import type { DetectedPatterns } from "@/features/github/types";
 import { toast } from "sonner";
 import {
     Loader2,
@@ -30,15 +31,6 @@ interface GitHubRepo {
     stars: number;
     language: string | null;
     url: string;
-}
-
-interface DetectedPatterns {
-    hasCI: boolean;
-    hasTesting: boolean;
-    hasDocker: boolean;
-    hasAuthImplementation: boolean;
-    hasCaching: boolean;
-    hasObservability: boolean;
 }
 
 interface GitHubDashboardClientProps {
@@ -93,6 +85,12 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
                     repos: unknown;
                     analysis: unknown;
                     createdAt: Date;
+                    commitFrequency?: string | null;
+                    readmeQualityScore?: number | null;
+                    longestStreakDays?: number | null;
+                    topRepoTopics?: unknown;
+                    senioritySignals?: unknown;
+                    detectedPatterns?: unknown;
                 };
                 error?: string;
             }) => {
@@ -109,6 +107,12 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
                             suggestions: string[];
                         }) || { strengths: [], weaknesses: [], suggestions: [] },
                         createdAt: new Date(res.data.createdAt),
+                        commitFrequency: res.data.commitFrequency ?? null,
+                        readmeQualityScore: res.data.readmeQualityScore ?? null,
+                        longestStreakDays: res.data.longestStreakDays ?? null,
+                        topRepoTopics: (res.data.topRepoTopics as string[] | null) ?? null,
+                        senioritySignals: (res.data.senioritySignals as string[] | null) ?? null,
+                        detectedPatterns: (res.data.detectedPatterns as DetectedPatterns | null) ?? null,
                     };
                     setData(mappedData);
                     setIsLoading(false);

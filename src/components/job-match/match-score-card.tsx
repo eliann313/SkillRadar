@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,14 +11,17 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ExplainabilityPanel } from "@/components/explainability-panel";
 import { generateSmartPitchAction } from "@/features/job-match/actions";
+import { importMissingSkillsAction } from "@/features/roadmap/actions";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
 interface MatchScoreCardProps {
     match: JobMatch;
+    /** Demo pública: oculta acciones de servidor (pitch IA) que requieren cuenta. */
+    demo?: boolean;
 }
 
-export function MatchScoreCard({ match }: MatchScoreCardProps) {
+export function MatchScoreCard({ match, demo = false }: MatchScoreCardProps) {
     const t = useTranslations("JobMatch");
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [pitch, setPitch] = useState<string | null>(null);
@@ -35,7 +39,7 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                 toast.error(res.error);
             }
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             toast.error(t("pitchError"));
         } finally {
             setIsGeneratingPitch(false);
@@ -50,7 +54,7 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
             toast.success(t("copiedSuccess"));
             setTimeout(() => setIsCopied(false), 2000);
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             toast.error(t("copyError"));
         }
     };
@@ -84,6 +88,11 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                         <CardTitle className="flex items-center gap-2">
                             <Target className="size-5 text-primary" />
                             {t("matchResults")}
+                            {match.isSimulated ? (
+                                <Badge variant="outline" className="border-warning/40 text-warning text-[10px]">
+                                    {t("simulatedBadge", { default: "Offline (sin IA)" })}
+                                </Badge>
+                            ) : null}
                         </CardTitle>
                         <CardDescription className="mt-1">
                             {match.jobTitle}
@@ -102,7 +111,7 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                             className="h-7 px-2 mt-1 gap-1 text-[11px] text-primary hover:bg-primary/10 hover:text-primary cursor-pointer"
                         >
                             <Eye className="size-3" />
-                            {t("reasoningBtn", { default: "Ver Razonamiento" })}
+                            {t("reasoningBtn")}
                         </Button>
                     </div>
                 </div>
@@ -192,7 +201,7 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                                 <p className="font-medium text-foreground">{t("upskillingCandidate")}</p>
                                 <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
                                     {t("upskillingCandidateDesc", {
-                                        skills: match.missingSkills.slice(0, 2).join(t("and", { default: " and " })),
+                                        skills: match.missingSkills.slice(0, 2).join(t("and")),
                                     })}
                                 </p>
                             </div>
@@ -225,9 +234,28 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
                         <div className="flex flex-col gap-4">
                             <div className="flex items-center gap-2">
                                 <TrendingUp className="size-5 text-emerald" />
-                                <h3 className="font-semibold text-foreground">
-                                    {t("growthPath", { default: "Tu Ruta de Crecimiento (Action Plan)" })}
-                                </h3>
+                                <h3 className="font-semibold text-foreground">{t("growthPath")}</h3>
+                                {!match.isSimulated && !match.id.startsWith("demo-") ? (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="ml-auto h-7 text-[11px]"
+                                        onClick={() =>
+                                            void importMissingSkillsAction(match.id).then((res) => {
+                                                if (res.success) {
+                                                    toast.success(
+                                                        t("roadmapImported", {
+                                                            default: "{count} brechas enviadas al roadmap.",
+                                                            count: res.data,
+                                                        }),
+                                                    );
+                                                } else toast.error(res.error);
+                                            })
+                                        }
+                                    >
+                                        {t("sendToRoadmap", { default: "Enviar al roadmap" })}
+                                    </Button>
+                                ) : null}
                             </div>
                             <div className="grid gap-4 sm:grid-cols-2">
                                 {match.actionPlan.map((plan, idx) => (
@@ -254,76 +282,82 @@ export function MatchScoreCard({ match }: MatchScoreCardProps) {
 
                 <Separator />
 
-                {/* Smart Pitch / Auto-Cover Letter */}
-                <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-2">
-                        <Sparkles className="size-5 text-primary" />
-                        <h3 className="font-semibold text-foreground">{t("smartPitchTitle")}</h3>
+                {/* Smart Pitch / Auto-Cover Letter (requiere cuenta; oculto en demo) */}
+                {demo ? (
+                    <div className="rounded-lg border border-dashed border-border/80 bg-muted/10 p-6 text-center">
+                        <p className="text-xs text-muted-foreground">{t("demoPitchNote")}</p>
                     </div>
-
-                    {!pitch ? (
-                        <div className="rounded-lg border border-dashed border-border/80 bg-muted/10 p-6 text-center flex flex-col items-center gap-3">
-                            <p className="text-xs text-muted-foreground max-w-md">{t("smartPitchDesc")}</p>
-                            <Button
-                                onClick={() => {
-                                    void handleGeneratePitch();
-                                }}
-                                disabled={isGeneratingPitch}
-                                size="sm"
-                                className="cursor-pointer"
-                            >
-                                {isGeneratingPitch ? (
-                                    <>
-                                        <Loader2 className="mr-2 size-3.5 animate-spin" />
-                                        {t("generatingPitch")}
-                                    </>
-                                ) : (
-                                    <>
-                                        <Sparkles className="mr-1.5 size-3.5" />
-                                        {t("generatePitchBtn")}
-                                    </>
-                                )}
-                            </Button>
+                ) : (
+                    <div className="flex flex-col gap-4">
+                        <div className="flex items-center gap-2">
+                            <Sparkles className="size-5 text-primary" />
+                            <h3 className="font-semibold text-foreground">{t("smartPitchTitle")}</h3>
                         </div>
-                    ) : (
-                        <div className="flex flex-col gap-3">
-                            <div className="relative">
-                                <textarea
-                                    value={pitch}
-                                    onChange={(e) => setPitch(e.target.value)}
-                                    className="w-full min-h-[160px] p-3 text-xs bg-muted/20 border border-border/80 rounded-lg text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans leading-relaxed outline-none"
-                                />
-                            </div>
-                            <div className="flex items-center gap-2 justify-end">
+
+                        {!pitch ? (
+                            <div className="rounded-lg border border-dashed border-border/80 bg-muted/10 p-6 text-center flex flex-col items-center gap-3">
+                                <p className="text-xs text-muted-foreground max-w-md">{t("smartPitchDesc")}</p>
                                 <Button
-                                    variant="outline"
-                                    size="sm"
                                     onClick={() => {
                                         void handleGeneratePitch();
                                     }}
                                     disabled={isGeneratingPitch}
-                                    className="h-8 text-[11px] cursor-pointer"
+                                    size="sm"
+                                    className="cursor-pointer"
                                 >
                                     {isGeneratingPitch ? (
-                                        <Loader2 className="size-3 animate-spin" />
+                                        <>
+                                            <Loader2 className="mr-2 size-3.5 animate-spin" />
+                                            {t("generatingPitch")}
+                                        </>
                                     ) : (
-                                        t("regenerateBtn")
+                                        <>
+                                            <Sparkles className="mr-1.5 size-3.5" />
+                                            {t("generatePitchBtn")}
+                                        </>
                                     )}
                                 </Button>
-                                <Button
-                                    size="sm"
-                                    onClick={() => {
-                                        void handleCopy();
-                                    }}
-                                    className="h-8 text-[11px] gap-1 cursor-pointer"
-                                >
-                                    {isCopied ? <Check className="size-3" /> : <Copy className="size-3" />}
-                                    {isCopied ? t("copiedBtn") : t("copyBtn")}
-                                </Button>
                             </div>
-                        </div>
-                    )}
-                </div>
+                        ) : (
+                            <div className="flex flex-col gap-3">
+                                <div className="relative">
+                                    <textarea
+                                        value={pitch}
+                                        onChange={(e) => setPitch(e.target.value)}
+                                        className="w-full min-h-[160px] p-3 text-xs bg-muted/20 border border-border/80 rounded-lg text-foreground focus:ring-1 focus:ring-primary focus:border-primary font-sans leading-relaxed outline-none"
+                                    />
+                                </div>
+                                <div className="flex items-center gap-2 justify-end">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            void handleGeneratePitch();
+                                        }}
+                                        disabled={isGeneratingPitch}
+                                        className="h-8 text-[11px] cursor-pointer"
+                                    >
+                                        {isGeneratingPitch ? (
+                                            <Loader2 className="size-3 animate-spin" />
+                                        ) : (
+                                            t("regenerateBtn")
+                                        )}
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        onClick={() => {
+                                            void handleCopy();
+                                        }}
+                                        className="h-8 text-[11px] gap-1 cursor-pointer"
+                                    >
+                                        {isCopied ? <Check className="size-3" /> : <Copy className="size-3" />}
+                                        {isCopied ? t("copiedBtn") : t("copyBtn")}
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
             </CardContent>
 
             <ExplainabilityPanel

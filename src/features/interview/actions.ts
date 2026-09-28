@@ -1,6 +1,8 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
+import { isGuestSession, GUEST_WRITE_ERROR } from "@/lib/guest-guard";
 import { InterviewService } from "./service";
 import { InterviewRepository } from "./repository";
 import { revalidatePath } from "next/cache";
@@ -10,12 +12,15 @@ export async function startInterviewAction() {
     if (!session?.user?.id) {
         return { success: false, error: "No autorizado. Por favor inicia sesión." };
     }
+    if (isGuestSession(session)) {
+        return { success: false, error: GUEST_WRITE_ERROR };
+    }
 
     try {
         const result = await InterviewService.startSession(session.user.id);
         return { success: true, data: result };
     } catch (error: unknown) {
-        console.error("[startInterviewAction] Error:", error);
+        logger.error("[startInterviewAction] Error:", error);
         return { success: false, error: "Error al iniciar la sesión de entrevista." };
     }
 }
@@ -25,12 +30,15 @@ export async function saveInterviewMessagesAction(id: string, messages: Array<{ 
     if (!session?.user?.id) {
         return { success: false, error: "No autorizado." };
     }
+    if (isGuestSession(session)) {
+        return { success: false, error: GUEST_WRITE_ERROR };
+    }
 
     try {
         await InterviewRepository.updateMessages(id, session.user.id, messages);
         return { success: true };
     } catch (error: unknown) {
-        console.error("[saveInterviewMessagesAction] Error:", error);
+        logger.error("[saveInterviewMessagesAction] Error:", error);
         return { success: false, error: "Error al guardar el historial del chat." };
     }
 }
@@ -43,14 +51,57 @@ export async function finishInterviewAction(
     if (!session?.user?.id) {
         return { success: false, error: "No autorizado." };
     }
+    if (isGuestSession(session)) {
+        return { success: false, error: GUEST_WRITE_ERROR };
+    }
 
     try {
         const debrief = await InterviewService.finishAndDebrief(id, session.user.id, mode);
         revalidatePath("/dashboard"); // Revalidar historial y timelines
+        revalidatePath("/dashboard/interview");
         return { success: true, data: debrief };
     } catch (error: unknown) {
-        console.error("[finishInterviewAction] Error:", error);
+        logger.error("[finishInterviewAction] Error:", error);
         const msg = error instanceof Error ? error.message : "Error al procesar el reporte final.";
         return { success: false, error: msg };
+    }
+}
+
+export interface InterviewHistoryItem {
+    id: string;
+    score: number | null;
+    mode: string | null;
+    company: string | null;
+    createdAt: string;
+}
+
+/**
+ * Historial de sesiones de entrevista del usuario (para la lista en /interview).
+ */
+export async function getInterviewHistoryAction(): Promise<
+    { success: true; data: InterviewHistoryItem[] } | { success: false; error: string }
+> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, error: "No autorizado." };
+    }
+    try {
+        const sessions = await InterviewRepository.listByUserId(session.user.id);
+        return {
+            success: true,
+            data: sessions.slice(0, 20).map((s) => {
+                const debrief = (s.debrief ?? {}) as { mode?: string };
+                return {
+                    id: s.id,
+                    score: s.score,
+                    mode: typeof debrief.mode === "string" ? debrief.mode : null,
+                    company: (s as { company?: string | null }).company ?? null,
+                    createdAt: s.createdAt.toISOString(),
+                };
+            }),
+        };
+    } catch (error: unknown) {
+        logger.error("[getInterviewHistoryAction] Error:", error);
+        return { success: false, error: "Error al cargar el historial." };
     }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore, useReducer } from "react";
 import { Link } from "@/i18n/routing";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,8 @@ import {
     Sparkles,
     Kanban,
     LineChart,
+    Mail,
+    ChevronDown,
 } from "lucide-react";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { CareerCopilot } from "@/components/dashboard/career-copilot";
@@ -83,11 +85,85 @@ const developerNavItems = [
     },
 ];
 
+interface NavItem {
+    href: string;
+    label: string;
+    key: string;
+    icon: React.ComponentType<{ className?: string }>;
+}
+
+interface NavGroup {
+    labelKey: string | null;
+    items: NavItem[];
+}
+
+// Inicio fijo arriba + 4 espacios: Perfil, Preparación, Oportunidades, Progreso
+const developerNavGroups: NavGroup[] = [
+    { labelKey: null, items: [developerNavItems[0]] },
+    {
+        labelKey: "groupProfile",
+        items: [developerNavItems[1], developerNavItems[8], developerNavItems[6], developerNavItems[9]],
+    },
+    { labelKey: "groupPreparation", items: [developerNavItems[5]] },
+    {
+        labelKey: "groupOpportunities",
+        items: [developerNavItems[2], developerNavItems[3], developerNavItems[4]],
+    },
+    { labelKey: "groupProgress", items: [developerNavItems[7]] },
+];
+
 const recruiterNavItems = [
     { href: "/dashboard", label: "Talent Pool", key: "talentPool", icon: Users },
     { href: "/dashboard/recruiter/postings", label: "Job Postings", key: "jobPostings", icon: Briefcase },
+    { href: "/dashboard/recruiter/pipeline", label: "Pipeline", key: "pipeline", icon: Kanban },
+    { href: "/dashboard/recruiter/requests", label: "Inbox", key: "requests", icon: MessageSquare },
+    { href: "/dashboard/recruiter/templates", label: "Templates", key: "templates", icon: Mail },
     { href: "/dashboard/settings", label: "Settings", key: "settings", icon: Settings },
 ];
+
+const recruiterNavGroups: NavGroup[] = [
+    { labelKey: "groupManage", items: [recruiterNavItems[0], recruiterNavItems[1], recruiterNavItems[2]] },
+    { labelKey: "groupContact", items: [recruiterNavItems[3], recruiterNavItems[4]] },
+];
+
+const STORAGE_KEY = "sr-sidebar-groups";
+
+function loadOpenGroups(): Record<string, boolean> {
+    if (typeof window === "undefined") return {};
+    try {
+        return JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "{}") as Record<string, boolean>;
+    } catch {
+        return {};
+    }
+}
+
+// Caché estable para useSyncExternalStore (el snapshot debe mantener referencia)
+let groupsCache: Record<string, boolean> | null = null;
+
+function getGroupsSnapshot(): Record<string, boolean> {
+    if (!groupsCache) groupsCache = loadOpenGroups();
+    return groupsCache;
+}
+
+function subscribeGroups(onChange: () => void): () => void {
+    groupsCache = null; // releer en el próximo snapshot (montaje)
+    if (typeof window === "undefined") return () => {};
+    window.addEventListener("storage", onChange);
+    return () => window.removeEventListener("storage", onChange);
+}
+
+function getServerGroupsSnapshot(): Record<string, boolean> {
+    return {};
+}
+
+function persistGroups(next: Record<string, boolean>) {
+    groupsCache = next;
+    try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch {
+        // almacenamiento no disponible: se pierde la preferencia
+    }
+}
 
 interface SidebarProps {
     collapsed: boolean;
@@ -103,8 +179,61 @@ function SidebarContent({ collapsed, onToggle, isMobile = false }: SidebarProps)
     const logout = () => {
         void signOut({ callbackUrl: "/" });
     };
-
     const navItems = user?.role === "recruiter" ? recruiterNavItems : developerNavItems;
+    const navGroups: NavGroup[] = user?.role === "recruiter" ? recruiterNavGroups : developerNavGroups;
+
+    // Hidratación sin mismatch: el servidor usa {} y el cliente hidrata con el
+    // snapshot de localStorage vía useSyncExternalStore (sin setState en efecto).
+    const openGroups = useSyncExternalStore(subscribeGroups, getGroupsSnapshot, getServerGroupsSnapshot);
+    const [, bumpGroups] = useReducer((v: number) => v + 1, 0);
+
+    const toggleGroup = (labelKey: string) => {
+        const next = { ...openGroups, [labelKey]: !(openGroups[labelKey] ?? false) };
+        persistGroups(next);
+        bumpGroups();
+    };
+
+    const isGroupOpen = (group: NavGroup) => {
+        if (!group.labelKey) return true;
+        if (openGroups[group.labelKey] !== undefined) return openGroups[group.labelKey];
+        // Por defecto: solo abierto el grupo que contiene la ruta activa
+        return group.items.some((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
+    };
+    const renderNavItem = (item: NavItem) => {
+        const isActive = pathname === item.href;
+        const Icon = item.icon;
+
+        const linkContent = (
+            <Link
+                href={item.href}
+                className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    isActive
+                        ? "bg-sidebar-accent text-sidebar-primary"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                    collapsed && "justify-center px-2",
+                )}
+            >
+                <Icon className="size-5 shrink-0" />
+                {!collapsed && <span>{t(item.key)}</span>}
+            </Link>
+        );
+
+        if (collapsed) {
+            return (
+                <li key={item.href}>
+                    <Tooltip>
+                        <TooltipTrigger render={linkContent} />
+                        <TooltipContent side="right" sideOffset={8}>
+                            {t(item.key)}
+                        </TooltipContent>
+                    </Tooltip>
+                </li>
+            );
+        }
+
+        return <li key={item.href}>{linkContent}</li>;
+    };
 
     return (
         <div className="flex h-full flex-col bg-sidebar">
@@ -142,43 +271,60 @@ function SidebarContent({ collapsed, onToggle, isMobile = false }: SidebarProps)
 
             {/* Navigation */}
             <nav className="flex-1 overflow-y-auto p-3 scrollbar-thin">
-                <ul className="flex flex-col gap-1">
-                    {navItems.map((item) => {
-                        const isActive = pathname === item.href;
-                        const Icon = item.icon;
-
-                        const linkContent = (
-                            <Link
-                                href={item.href}
-                                className={cn(
-                                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                                    isActive
-                                        ? "bg-sidebar-accent text-sidebar-primary"
-                                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                                    collapsed && "justify-center px-2",
-                                )}
-                            >
-                                <Icon className="size-5 shrink-0" />
-                                {!collapsed && <span>{t(item.key)}</span>}
-                            </Link>
-                        );
-
-                        if (collapsed) {
-                            return (
-                                <li key={item.href}>
-                                    <Tooltip>
-                                        <TooltipTrigger render={linkContent} />
-                                        <TooltipContent side="right" sideOffset={8}>
-                                            {t(item.key)}
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </li>
+                {collapsed ? (
+                    <ul className="flex flex-col gap-1">{navItems.map((item) => renderNavItem(item))}</ul>
+                ) : (
+                    <div className="flex flex-col gap-1.5">
+                        {navGroups.map((group, gi) => {
+                            // Solo Inicio (sin etiqueta) es link directo; todo grupo
+                            // etiquetado se muestra como acordeón aunque tenga 1 item
+                            if (!group.labelKey) {
+                                return (
+                                    <ul key={group.labelKey ?? `top-${gi}`} className="flex flex-col gap-1">
+                                        {group.items.map((item) => renderNavItem(item))}
+                                    </ul>
+                                );
+                            }
+                            const open = isGroupOpen(group);
+                            const hasActive = group.items.some(
+                                (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
                             );
-                        }
-
-                        return <li key={item.href}>{linkContent}</li>;
-                    })}
-                </ul>
+                            return (
+                                <div key={group.labelKey} className="flex flex-col">
+                                    <button
+                                        type="button"
+                                        aria-expanded={open}
+                                        onClick={() => toggleGroup(group.labelKey as string)}
+                                        className={cn(
+                                            "flex items-center justify-between rounded-lg px-3 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors",
+                                            hasActive
+                                                ? "text-sidebar-primary"
+                                                : "text-muted-foreground hover:text-sidebar-foreground",
+                                        )}
+                                    >
+                                        {t(group.labelKey)}
+                                        <ChevronDown
+                                            className={cn(
+                                                "size-3.5 transition-transform duration-200",
+                                                open && "rotate-180",
+                                            )}
+                                        />
+                                    </button>
+                                    <div
+                                        className={cn(
+                                            "grid transition-all duration-200 ease-in-out",
+                                            open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+                                        )}
+                                    >
+                                        <ul className="flex min-h-0 flex-col gap-1 overflow-hidden">
+                                            {group.items.map((item) => renderNavItem(item))}
+                                        </ul>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </nav>
 
             <Separator className="bg-sidebar-border" />

@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { ResumeRepository } from "./repository";
 import { CVAnalysisAIService } from "./ai-service";
 
@@ -17,7 +18,7 @@ export class CVAnalysisService {
 
             return rawText;
         } catch (error) {
-            console.error("[CVAnalysisService] Error parseando PDF:", error);
+            logger.error("[CVAnalysisService] Error parseando PDF:", error);
             if (error instanceof Error && error.message === "PDF_NOT_READABLE") {
                 throw error;
             }
@@ -51,7 +52,7 @@ export class CVAnalysisService {
 
             return updatedResume;
         } catch (aiError) {
-            console.error(
+            logger.error(
                 "[CVAnalysisService] Error durante la fase de análisis de IA para texto crudo CV ID:",
                 resume.id,
                 aiError,
@@ -90,11 +91,7 @@ export class CVAnalysisService {
 
             return updatedResume;
         } catch (aiError) {
-            console.error(
-                "[CVAnalysisService] Error durante la fase de análisis de IA para CV ID:",
-                resume.id,
-                aiError,
-            );
+            logger.error("[CVAnalysisService] Error durante la fase de análisis de IA para CV ID:", resume.id, aiError);
             // Retornamos el resume inicial creado si la IA falla catastróficamente en producción para no romper el flujo del usuario
             return resume;
         }

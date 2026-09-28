@@ -15,18 +15,49 @@ import "../globals.css";
 const inter = Inter({
     variable: "--font-sans",
     subsets: ["latin"],
+    display: "swap",
+    preload: true,
 });
 
 const jetbrainsMono = JetBrains_Mono({
     variable: "--font-geist-mono",
     subsets: ["latin"],
+    display: "swap",
 });
 
+const siteUrl = process.env.NEXTAUTH_URL || "https://skillradar.dev";
+
 export const metadata: Metadata = {
-    title: "SkillRadar | AI-Powered Developer Profile Analysis",
+    metadataBase: new URL(siteUrl),
+    title: {
+        default: "SkillRadar | AI-Powered Developer Profile Analysis",
+        template: "%s | SkillRadar",
+    },
     description:
         "Analyze your technical profile with AI, match with job offers, and prepare for interviews. For developers and recruiters.",
     keywords: ["developer", "CV analysis", "job matching", "AI", "technical skills", "recruiters"],
+    authors: [{ name: "SkillRadar" }],
+    alternates: {
+        canonical: "/",
+        languages: {
+            es: "/es",
+            en: "/en",
+            "x-default": "/es",
+        },
+    },
+    openGraph: {
+        type: "website",
+        siteName: "SkillRadar",
+        locale: "es_ES",
+        alternateLocale: ["en_US"],
+    },
+    twitter: {
+        card: "summary_large_image",
+    },
+    robots: {
+        index: true,
+        follow: true,
+    },
 };
 
 export const viewport: Viewport = {

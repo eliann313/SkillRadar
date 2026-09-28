@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,10 +47,10 @@ export function RoleSelector() {
                 await update({ role: selectedRole });
                 window.location.href = "/dashboard";
             } else {
-                console.error("Failed to update role:", result.error);
+                logger.error("Failed to update role:", result.error);
             }
         } catch (err) {
-            console.error("Error choosing role:", err);
+            logger.error("Error choosing role:", err);
         } finally {
             setIsSubmitting(false);
         }

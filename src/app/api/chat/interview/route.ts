@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -66,6 +67,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "No autorizado." }, { status: 401 });
     }
 
+    const { checkAIChatRateLimit } = await import("@/lib/rate-limit");
+    const rl = await checkAIChatRateLimit(`user:${session.user.id}`);
+    if (!rl.success) {
+        return NextResponse.json({ error: "Límite diario de chat IA alcanzado." }, { status: 429 });
+    }
+
     try {
         const {
             messages,
@@ -131,7 +138,7 @@ export async function POST(req: NextRequest) {
                     apiKey = decrypted;
                 }
             } catch (err) {
-                console.error("[Chat API] Error al desencriptar clave del usuario, usando fallback global:", err);
+                logger.error("[Chat API] Error al desencriptar clave del usuario, usando fallback global:", err);
             }
         }
 
@@ -175,7 +182,7 @@ export async function POST(req: NextRequest) {
             : [];
 
         if (!apiKey) {
-            console.warn("⚠️ [Interview Route] No API Key configured. Returning offline mock stream response.");
+            logger.warn("⚠️ [Interview Route] No API Key configured. Returning offline mock stream response.");
             const encoder = new TextEncoder();
 
             const lastMsg = formattedMessages[formattedMessages.length - 1]?.content || "";
@@ -212,7 +219,7 @@ export async function POST(req: NextRequest) {
 
         try {
             const google = createGoogleGenerativeAI({ apiKey });
-            const model = google("gemini-3.6-flash");
+            const model = google("gemini-3.8-flash");
 
             const result = streamText({
                 model,
@@ -222,7 +229,7 @@ export async function POST(req: NextRequest) {
 
             return result.toTextStreamResponse();
         } catch (streamError) {
-            console.warn(
+            logger.warn(
                 "⚠️ [Interview Route] Failed to initialize live stream. Returning offline mock stream response.",
                 streamError,
             );
@@ -260,7 +267,7 @@ export async function POST(req: NextRequest) {
             });
         }
     } catch (error: unknown) {
-        console.error("[Interview Chat Endpoint] Error:", error);
+        logger.error("[Interview Chat Endpoint] Error:", error);
         return NextResponse.json({ error: "Error interno del servidor." }, { status: 500 });
     }
 }

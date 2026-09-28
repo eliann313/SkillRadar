@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createAnthropic } from "@ai-sdk/anthropic";
@@ -24,7 +25,7 @@ export class AIService {
     public static getModelInstance(provider: string, model: string, userSettings?: AIServiceOptions["userSettings"]) {
         let apiKey: string | undefined;
 
-        console.warn(`🔮 [AIService] Instanciando proveedor: "${provider}" con modelo: "${model}"`);
+        logger.warn(`🔮 [AIService] Instanciando proveedor: "${provider}" con modelo: "${model}"`);
 
         if (provider === "gemini") {
             apiKey = userSettings?.geminiApiKeyEncrypted
@@ -34,7 +35,7 @@ export class AIService {
             if (!apiKey) {
                 throw new Error("GEMINI_API_KEY no configurada a nivel global ni de usuario.");
             }
-            console.warn(
+            logger.warn(
                 `🔮 [AIService] Usando clave de Gemini ${userSettings?.geminiApiKeyEncrypted ? "provista por el USUARIO (Bypass Rate Limits activado)" : "del SISTEMA (Cuotas estándar)"}`,
             );
             const google = createGoogleGenerativeAI({ apiKey });
@@ -50,7 +51,7 @@ export class AIService {
             if (!apiKey) {
                 throw new Error("GROQ_API_KEY no configurada a nivel global ni de usuario.");
             }
-            console.warn(
+            logger.warn(
                 `🔮 [AIService] Usando clave de Groq ${userSettings?.groqApiKeyEncrypted ? "provista por el USUARIO (Bypass Rate Limits activado)" : "del SISTEMA (Cuotas estándar)"}`,
             );
             const groq = createOpenAI({
@@ -68,7 +69,7 @@ export class AIService {
             if (!apiKey) {
                 throw new Error("API Key de OpenAI no configurada a nivel de usuario ni de sistema.");
             }
-            console.warn(
+            logger.warn(
                 `🔮 [AIService] Usando clave de OpenAI ${userSettings?.openaiApiKeyEncrypted ? "provista por el USUARIO (Bypass Rate Limits activado)" : "del SISTEMA (Cuotas estándar)"}`,
             );
             const openai = createOpenAI({ apiKey });
@@ -83,7 +84,7 @@ export class AIService {
             if (!apiKey) {
                 throw new Error("API Key de Anthropic no configurada a nivel de usuario ni de sistema.");
             }
-            console.warn(
+            logger.warn(
                 `🔮 [AIService] Usando clave de Anthropic ${userSettings?.anthropicApiKeyEncrypted ? "provista por el USUARIO (Bypass Rate Limits activado)" : "del SISTEMA (Cuotas estándar)"}`,
             );
             const anthropic = createAnthropic({ apiKey });
@@ -98,7 +99,7 @@ export class AIService {
             if (!apiKey) {
                 throw new Error("OPENROUTER_API_KEY no configurada a nivel global ni de usuario.");
             }
-            console.warn(
+            logger.warn(
                 `🔮 [AIService] Usando clave de OpenRouter ${userSettings?.openrouterApiKeyEncrypted ? "provista por el USUARIO (Bypass Rate Limits activado)" : "del SISTEMA (Cuotas estándar)"}`,
             );
             const openrouter = createOpenAI({
@@ -113,15 +114,16 @@ export class AIService {
 
     static async generateStructuredObject<T extends object>(options: AIServiceOptions): Promise<T> {
         const primaryProvider = options.userSettings?.preferredProvider || "gemini";
-        const primaryModel = options.userSettings?.preferredModel || "gemini-3.6-flash";
+        const primaryModel = options.userSettings?.preferredModel || "gemini-3.8-flash";
 
         // Cola de cascada estándar del sistema para fallbacks
         const cascadeQueue = [
-            { provider: "gemini", model: "gemini-3.6-flash" },
-            { provider: "groq", model: "llama-3.3-70b-versatile" },
+            { provider: "gemini", model: "gemini-3.8-flash" },
+            { provider: "gemini", model: "gemini-3.7-flash" },
+            { provider: "groq", model: "openai/gpt-oss-120b" },
             {
                 provider: "openrouter",
-                model: "openrouter/free",
+                model: "google/gemini-3.8-flash",
             },
         ];
 
@@ -135,7 +137,7 @@ export class AIService {
 
         for (const option of targetQueue) {
             try {
-                console.warn(
+                logger.warn(
                     `🛡️ [AIService] Intentando inferencia estructurada con "${option.provider}" ("${option.model}")...`,
                 );
                 const modelInstance = this.getModelInstance(option.provider, option.model, options.userSettings);
@@ -151,11 +153,11 @@ export class AIService {
                     mode,
                 } as unknown as Parameters<typeof generateObject>[0]);
 
-                console.warn(`✅ [AIService] Inferencia completada con éxito vía "${option.provider}".`);
+                logger.warn(`✅ [AIService] Inferencia completada con éxito vía "${option.provider}".`);
                 return object as T;
             } catch (error: unknown) {
                 const errMessage = error instanceof Error ? error.message : String(error);
-                console.error("❌ [AIService] Falló la inferencia estructurada con:", option.provider, errMessage);
+                logger.error("❌ [AIService] Falló la inferencia estructurada con:", option.provider, errMessage);
                 lastError = error;
             }
         }

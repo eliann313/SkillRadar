@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import crypto from "crypto";
 
 // Clave secreta de encriptación derivada
@@ -22,6 +23,9 @@ const getEncryptionKey = (): Buffer => {
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12; // Standard para GCM
+
+/** Placeholder que el cliente envía cuando una API key ya está guardada y no se quiere rotar. */
+export const API_KEY_PRESET_PLACEHOLDER = "__API_KEY_PRESET__";
 
 /**
  * Encripta un texto plano a una cadena en formato hexadecimal que incluye IV, Ciphertext y Auth Tag.
@@ -69,7 +73,7 @@ export function decrypt(encryptedText: string | null | undefined): string {
 
         return decrypted;
     } catch (error) {
-        console.error("❌ [Crypto] Error desencriptando API Key:", error);
+        logger.error("❌ [Crypto] Error desencriptando API Key:", error);
         return "";
     }
 }

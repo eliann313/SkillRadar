@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { RadialProgress } from "@/components/dashboard/radial-progress";
 import type { CVAnalysis } from "@/lib/types";
+import { getSeniorityColor } from "@/lib/seniority";
 import { Check, AlertTriangle, Lightbulb, Award, Eye, ShieldCheck, Cpu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExplainabilityPanel } from "@/components/explainability-panel";
@@ -13,29 +14,6 @@ import { useTranslations } from "next-intl";
 
 interface AnalysisResultsProps {
     analysis: CVAnalysis;
-}
-
-const seniorityColors: Record<string, string> = {
-    junior: "bg-indigo/10 text-indigo border-indigo/20",
-    mid: "bg-primary/10 text-primary border-primary/20",
-    senior: "bg-emerald/10 text-emerald border-emerald/20",
-    lead: "bg-warning/10 text-warning border-warning/20",
-};
-
-export function getSeniorityColor(level: string) {
-    const normalized = String(level).toLowerCase();
-    switch (normalized) {
-        case "junior":
-            return seniorityColors.junior;
-        case "mid":
-            return seniorityColors.mid;
-        case "senior":
-            return seniorityColors.senior;
-        case "lead":
-            return seniorityColors.lead;
-        default:
-            return "";
-    }
 }
 
 export function AnalysisResults({ analysis }: AnalysisResultsProps) {
@@ -50,11 +28,40 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
         analysis.technicalExplanation || t("noEvidence", { default: "No se detectó evidencia explícita." });
     const credibilityExplanation =
         analysis.credibilityExplanation || t("noEvidence", { default: "No se detectó evidencia explícita." });
+    const breakdown = analysis.atsBreakdown;
+    const breakdownRows = breakdown
+        ? ([
+              { key: "breakdownContacto", value: breakdown.contacto, max: 15 },
+              { key: "breakdownSecciones", value: breakdown.secciones, max: 25 },
+              { key: "breakdownLegibilidad", value: breakdown.legibilidad, max: 20 },
+              { key: "breakdownContexto", value: breakdown.keywordsContexto, max: 20 },
+              { key: "breakdownCuantificacion", value: breakdown.cuantificacion, max: 20 },
+          ] as const)
+        : null;
 
     return (
         <div className="flex flex-col gap-6">
             {/* Tres Anillos de Puntuación (ATS, Tech, Credibilidad) */}
             <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+                    <div className="flex items-center gap-2">
+                        <CardTitle className="text-base">{t("atsScoreExplainTitle")}</CardTitle>
+                        {analysis.isSimulated ? (
+                            <Badge variant="outline" className="border-warning/40 text-warning text-[10px]">
+                                {t("simulatedBadge")}
+                            </Badge>
+                        ) : null}
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsPanelOpen(true)}
+                        className="gap-1 px-4 text-xs hover:bg-primary/10 border-border"
+                    >
+                        <Eye className="size-3.5" />
+                        {t("reasoningBtn")}
+                    </Button>
+                </CardHeader>
                 <CardContent className="flex flex-col gap-6 py-8 md:flex-row md:justify-around items-center">
                     {/* ATS Score */}
                     <div className="flex flex-col items-center gap-2">
@@ -69,7 +76,11 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
                         <div className="flex flex-col items-center gap-0.5 text-center">
                             <p className="text-xs font-semibold text-foreground/90">{t("atsScore")}</p>
                             <span className="text-[10px] text-muted-foreground">
-                                {atsScore >= 80 ? "Excellent" : atsScore >= 60 ? "Good" : "Needs Work"}
+                                {atsScore >= 80
+                                    ? t("tierExcellent")
+                                    : atsScore >= 60
+                                      ? t("tierGood")
+                                      : t("tierNeedsWork")}
                             </span>
                         </div>
                     </div>
@@ -90,7 +101,11 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
                         <div className="flex flex-col items-center gap-0.5 text-center">
                             <p className="text-xs font-semibold text-foreground/90">{t("techScore")}</p>
                             <span className="text-[10px] text-muted-foreground">
-                                {technicalScore >= 80 ? "Advanced" : technicalScore >= 60 ? "Capable" : "Novice"}
+                                {technicalScore >= 80
+                                    ? t("tierAdvanced")
+                                    : technicalScore >= 60
+                                      ? t("tierCapable")
+                                      : t("tierNovice")}
                             </span>
                         </div>
                     </div>
@@ -112,10 +127,10 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
                             <p className="text-xs font-semibold text-foreground/90">{t("credibilityScore")}</p>
                             <span className="text-[10px] text-muted-foreground">
                                 {credibilityScore >= 80
-                                    ? "Verified"
+                                    ? t("tierVerified")
                                     : credibilityScore >= 50
-                                      ? "Consistent"
-                                      : "Unverified"}
+                                      ? t("tierConsistent")
+                                      : t("tierUnverified")}
                             </span>
                         </div>
                     </div>
@@ -140,6 +155,38 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Desglose 0-based del ATS: evidencia detrás del número */}
+            {breakdownRows ? (
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-sm font-semibold">{t("breakdownTitle")}</CardTitle>
+                        <CardDescription>
+                            {t("atsScoreExplainDesc", {
+                                default: "Cada parcial suma desde 0 hasta el total.",
+                            })}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex flex-col gap-3">
+                        {breakdownRows.map((row) => (
+                            <div key={row.key} className="flex flex-col gap-1">
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="text-muted-foreground">{t(row.key)}</span>
+                                    <span className="font-semibold text-foreground">
+                                        {row.value}/{row.max}
+                                    </span>
+                                </div>
+                                <div className="h-2 overflow-hidden rounded-full bg-muted">
+                                    <div
+                                        className="h-full rounded-full bg-primary transition-all"
+                                        style={{ width: `${Math.min(100, Math.round((row.value / row.max) * 100))}%` }}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+            ) : null}
 
             {/* Razonamiento / Explicaciones Cualitativas */}
             <div className="grid gap-6 md:grid-cols-2">
@@ -183,7 +230,7 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
                     </CardHeader>
                     <CardContent>
                         <div className="flex flex-wrap gap-2">
-                            {analysis.detectedKeywords.map((keyword) => (
+                            {[...new Set(analysis.detectedKeywords)].map((keyword) => (
                                 <Badge key={keyword} className="bg-emerald/10 text-emerald hover:bg-emerald/20">
                                     {keyword}
                                 </Badge>
@@ -203,7 +250,7 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
                     </CardHeader>
                     <CardContent>
                         <div className="flex flex-wrap gap-2">
-                            {analysis.missingKeywords.map((keyword) => (
+                            {[...new Set(analysis.missingKeywords)].map((keyword) => (
                                 <Badge key={keyword} variant="outline" className="border-warning/30 text-warning">
                                     {keyword}
                                 </Badge>
@@ -235,18 +282,6 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
                     </ul>
                 </CardContent>
             </Card>
-
-            <div className="flex justify-center">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsPanelOpen(true)}
-                    className="gap-1 px-4 text-xs hover:bg-primary/10 border-border"
-                >
-                    <Eye className="size-3.5" />
-                    {t("reasoningBtn")}
-                </Button>
-            </div>
 
             <ExplainabilityPanel
                 isOpen={isPanelOpen}

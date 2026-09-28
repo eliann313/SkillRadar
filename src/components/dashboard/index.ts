@@ -1,8 +1,10 @@
 export { DashboardHeader } from "./dashboard-header";
 export { MetricsGrid } from "./metrics-grid";
-export { RadialProgress } from "./radial-progress";
 export { NextAction } from "./next-action";
 export { HistoricalChart } from "./historical-chart";
 export { ContactRequestsList } from "./contact-requests-list";
 export { ProgressRecharts } from "./progress-recharts";
 export { SkillRadarChart } from "./skill-radar-chart";
+export { RoadmapChecklist } from "./roadmap-checklist";
+export { PrivacyCard } from "./privacy-card";
+export { ExportReportButton } from "./export-report-button";

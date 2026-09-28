@@ -1,6 +1,14 @@
 import { auth } from "@/lib/auth";
-import { DashboardHeader, MetricsGrid, NextAction, HistoricalChart, ContactRequestsList } from "@/components/dashboard";
-import { TalentDashboard } from "@/components/recruiter";
+import { safeParseJson } from "@/lib/pii";
+import {
+    DashboardHeader,
+    MetricsGrid,
+    NextAction,
+    HistoricalChart,
+    ContactRequestsList,
+    PrivacyCard,
+} from "@/components/dashboard";
+import { TalentDashboard, RecruiterVerificationGate } from "@/components/recruiter";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getTranslations } from "next-intl/server";
@@ -20,6 +28,14 @@ export default async function DashboardPage() {
 
     // Recruiter dashboard
     if (session.user.role === "recruiter") {
+        const recruiter = await db.user.findUnique({
+            where: { id: session.user.id },
+            select: { recruiterVerified: true, verificationRequestedAt: true },
+        });
+        if (!recruiter?.recruiterVerified) {
+            return <RecruiterVerificationGate requested={!!recruiter?.verificationRequestedAt} />;
+        }
+
         const [developers, shortlists] = await Promise.all([
             db.user.findMany({
                 where: { role: "developer" },
@@ -53,9 +69,10 @@ export default async function DashboardPage() {
                     estimatedSeniority?: "junior" | "mid" | "senior" | "lead";
                 } | null = null;
                 if (resume.analysis) {
-                    parsedAnalysis = (
-                        typeof resume.analysis === "string" ? JSON.parse(resume.analysis) : resume.analysis
-                    ) as { keywords?: string[]; estimatedSeniority?: "junior" | "mid" | "senior" | "lead" };
+                    parsedAnalysis = safeParseJson<{
+                        keywords?: string[];
+                        estimatedSeniority?: "junior" | "mid" | "senior" | "lead";
+                    }>(resume.analysis, null);
                 }
 
                 // Filtrar proactivamente keywords para que sólo se muestren las presentes en el texto del CV
@@ -232,6 +249,7 @@ export default async function DashboardPage() {
     return (
         <div className="flex flex-col gap-6">
             <DashboardHeader />
+            <PrivacyCard pendingCount={contactRequests.length} />
             {contactRequests.length > 0 && <ContactRequestsList requests={contactRequests} />}
             <NextAction {...nextAction} />
             <MetricsGrid latestResume={latestResume} latestJobMatch={latestJobMatch} limits={limits} />

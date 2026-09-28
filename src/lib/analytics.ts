@@ -1,8 +1,9 @@
+import { logger } from "@/lib/logger";
 import { track } from "@vercel/analytics/server";
 import { db } from "@/lib/db";
 import { createHash } from "crypto";
 
-export function getAnonymousUserHash(userId: string): string {
+function getAnonymousUserHash(userId: string): string {
     return createHash("sha256").update(userId).digest("hex");
 }
 
@@ -50,6 +51,6 @@ export async function trackServerEvent(
             userHash: userHash || "anonymous",
         });
     } catch (err) {
-        console.error("[Analytics] Error trackeando evento:", name, err);
+        logger.error("[Analytics] Error trackeando evento:", name, err);
     }
 }

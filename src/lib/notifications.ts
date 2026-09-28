@@ -1,9 +1,12 @@
+import { logger } from "@/lib/logger";
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
+import { escapeHtml, isSafeInternalLink } from "@/lib/pii";
 
 export async function createNotification(params: {
     userId: string;
-    type: "new_job_match" | "new_application" | "application_status_changed";
+    type:
+        "new_job_match" | "new_application" | "application_status_changed" | "contact_status_changed" | "talent_alert";
     title: string;
     message: string;
     link: string;
@@ -30,6 +33,8 @@ export async function createNotification(params: {
                     emailNotifications: true,
                     emailNewApplication: true,
                     emailApplicationStatusChanged: true,
+                    emailContactUpdates: true,
+                    emailJobMatches: true,
                 },
             });
 
@@ -40,10 +45,17 @@ export async function createNotification(params: {
                     shouldSendEmail = true;
                 } else if (params.type === "application_status_changed" && user.emailApplicationStatusChanged) {
                     shouldSendEmail = true;
+                } else if (params.type === "contact_status_changed" && user.emailContactUpdates) {
+                    shouldSendEmail = true;
+                } else if (params.type === "new_job_match" && user.emailJobMatches) {
+                    shouldSendEmail = true;
                 }
 
                 if (shouldSendEmail) {
                     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+                    const safeLink = isSafeInternalLink(params.link) ? params.link : "/dashboard";
+                    const safeTitle = escapeHtml(params.title);
+                    const safeMessage = escapeHtml(params.message);
                     const emailHtml = `
                         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff; color: #1a202c;">
                             <div style="text-align: center; border-bottom: 1px solid #edf2f7; padding-bottom: 20px;">
@@ -51,10 +63,10 @@ export async function createNotification(params: {
                                 <p style="font-size: 14px; color: #718096; margin: 5px 0 0 0;">AI-powered Talent Matching</p>
                             </div>
                             <div style="padding: 20px 0;">
-                                <h2 style="font-size: 18px; color: #2d3748; margin-top: 0;">${params.title}</h2>
-                                <p style="font-size: 16px; line-height: 1.5; color: #4a5568;">${params.message}</p>
+                                <h2 style="font-size: 18px; color: #2d3748; margin-top: 0;">${safeTitle}</h2>
+                                <p style="font-size: 16px; line-height: 1.5; color: #4a5568;">${safeMessage}</p>
                                 <div style="margin-top: 25px; text-align: center;">
-                                    <a href="${baseUrl}${params.link}" style="background-color: #10b981; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px; display: inline-block;">Ver en mi Dashboard</a>
+                                    <a href="${baseUrl}${safeLink}" style="background-color: #10b981; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px; display: inline-block;">Ver en mi Dashboard</a>
                                 </div>
                             </div>
                             <div style="border-top: 1px solid #edf2f7; padding-top: 20px; text-align: center; font-size: 12px; color: #a0aec0;">
@@ -72,12 +84,12 @@ export async function createNotification(params: {
                 }
             }
         } catch (mailError) {
-            console.error("[createNotification] Error processing email logic:", mailError);
+            logger.error("[createNotification] Error processing email logic:", mailError);
         }
 
         return notification;
     } catch (error) {
-        console.error("[createNotification] Error creating notification in database:", error);
+        logger.error("[createNotification] Error creating notification in database:", error);
         throw error;
     }
 }

@@ -1,6 +1,8 @@
 "use client";
+import { logger } from "@/lib/logger";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Sparkles, Plus, Printer, Save, Mail, Phone, Globe, X } from "lucide-react";
 import { toast } from "sonner";
 import { analyzeImpactVerbsAction, saveResumeDataAction } from "@/features/resume-builder/actions";
+import { getUserResumesAction } from "@/features/cv-analysis/actions";
+import { safeParseJson } from "@/lib/pii";
 import { useTranslations } from "next-intl";
 
 // Lucide Icon Mocks because simple svg icons are cleaner for PDF exports
@@ -72,6 +76,7 @@ interface ImpactVerbAnalysis {
 
 export default function ResumeBuilderPage() {
     const t = useTranslations("ResumeBuilder");
+    const { data: session } = useSession();
 
     const [personalInfo, setPersonalInfo] = useState({
         name: "Jane Doe",
@@ -142,6 +147,47 @@ export default function ResumeBuilderPage() {
         "Docker",
         "Git",
     ]);
+
+    // Precargar desde el CV activo y la sesión (en lugar de datos de ejemplo).
+    useEffect(() => {
+        let cancelled = false;
+        void (async () => {
+            if (session?.user?.name) {
+                const userName = session.user.name;
+                if (!cancelled) {
+                    setPersonalInfo((prev) => (prev.name === "Jane Doe" ? { ...prev, name: userName } : prev));
+                }
+            }
+            if (session?.user?.email) {
+                const userEmail = session.user.email;
+                if (!cancelled) {
+                    setPersonalInfo((prev) =>
+                        prev.email === "jane.doe@example.com" ? { ...prev, email: userEmail } : prev,
+                    );
+                }
+            }
+            try {
+                const res = await getUserResumesAction();
+                if (!res.success || cancelled) return;
+                const active =
+                    res.data.find((r) => (r as { isActive?: boolean }).isActive) ??
+                    [...res.data].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+                if (!active) return;
+                const parsed = safeParseJson<{ keywords?: string[] }>(
+                    (active as { analysis?: unknown }).analysis ?? null,
+                    null,
+                );
+                if (parsed?.keywords && parsed.keywords.length > 0) {
+                    setSkills(parsed.keywords.slice(0, 15));
+                }
+            } catch {
+                // Precarga opcional: el builder funciona con defaults
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [session?.user?.id, session?.user?.name, session?.user?.email]);
     const [newSkill, setNewSkill] = useState("");
 
     // IA Verb analysis state
@@ -225,7 +271,7 @@ export default function ResumeBuilderPage() {
                 toast.error(result.error || "Fallo en el análisis de verbos.");
             }
         } catch (e) {
-            console.error(e);
+            logger.error(e);
             toast.error("Ocurrió un error al procesar el análisis.");
         } finally {
             setIsAnalyzing(false);
@@ -292,7 +338,7 @@ export default function ResumeBuilderPage() {
                 toast.error(result.error || "Fallo al guardar el currículum.");
             }
         } catch (e) {
-            console.error(e);
+            logger.error(e);
             toast.error("Error al guardar el currículum.");
         } finally {
             setIsSaving(false);

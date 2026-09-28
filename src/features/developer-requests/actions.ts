@@ -1,57 +1,10 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import type { ActionResult } from "@/features/job-match/types";
+import type { ActionResult } from "@/lib/action-result";
 import { revalidatePath } from "next/cache";
-import type { ContactRequest } from "@prisma/client";
-
-export type ContactRequestWithRecruiter = ContactRequest & {
-    recruiter: {
-        name: string | null;
-        email: string;
-    };
-};
-
-/**
- * Obtiene todas las solicitudes de contacto recibidas por el desarrollador activo.
- */
-export async function getReceivedContactRequestsAction(): Promise<ActionResult<ContactRequestWithRecruiter[]>> {
-    try {
-        const session = await auth();
-        if (!session?.user?.id) {
-            return { success: false, error: "No autorizado. Inicie sesión nuevamente." };
-        }
-
-        if (session.user.role !== "developer") {
-            return { success: false, error: "Acceso denegado. Se requiere el rol de desarrollador." };
-        }
-
-        const requests = await db.contactRequest.findMany({
-            where: { developerId: session.user.id },
-            include: {
-                recruiter: {
-                    select: {
-                        name: true,
-                        email: true,
-                    },
-                },
-            },
-            orderBy: { createdAt: "desc" },
-        });
-
-        return {
-            success: true,
-            data: requests as ContactRequestWithRecruiter[],
-        };
-    } catch (error: unknown) {
-        console.error("[getReceivedContactRequestsAction] Error:", error);
-        return {
-            success: false,
-            error: "Error al recuperar solicitudes de contacto.",
-        };
-    }
-}
 
 /**
  * Acepta una solicitud de contacto, revelando los datos.
@@ -76,6 +29,15 @@ export async function acceptContactRequestAction(requestId: string): Promise<Act
             data: { status: "accepted" },
         });
 
+        const { createNotification } = await import("@/lib/notifications");
+        await createNotification({
+            userId: request.recruiterId,
+            type: "contact_status_changed",
+            title: "Contacto aceptado",
+            message: `Un desarrollador aceptó tu solicitud de contacto. Ya puedes ver su perfil completo.`,
+            link: "/dashboard",
+        });
+
         revalidatePath("/dashboard");
 
         return {
@@ -83,7 +45,7 @@ export async function acceptContactRequestAction(requestId: string): Promise<Act
             data: true,
         };
     } catch (error: unknown) {
-        console.error("[acceptContactRequestAction] Error:", error);
+        logger.error("[acceptContactRequestAction] Error:", error);
         return {
             success: false,
             error: "Error al aceptar la solicitud de contacto.",
@@ -114,6 +76,15 @@ export async function declineContactRequestAction(requestId: string): Promise<Ac
             data: { status: "declined" },
         });
 
+        const { createNotification } = await import("@/lib/notifications");
+        await createNotification({
+            userId: request.recruiterId,
+            type: "contact_status_changed",
+            title: "Contacto declinado",
+            message: `Un desarrollador declinó tu solicitud de contacto.`,
+            link: "/dashboard",
+        });
+
         revalidatePath("/dashboard");
 
         return {
@@ -121,7 +92,7 @@ export async function declineContactRequestAction(requestId: string): Promise<Ac
             data: true,
         };
     } catch (error: unknown) {
-        console.error("[declineContactRequestAction] Error:", error);
+        logger.error("[declineContactRequestAction] Error:", error);
         return {
             success: false,
             error: "Error al rechazar la solicitud de contacto.",

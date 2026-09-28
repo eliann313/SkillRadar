@@ -15,6 +15,7 @@ import {
 } from "@/features/jobs/actions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { safeParseJson } from "@/lib/pii";
 import { Flag } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -45,6 +46,9 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
     const [search, setSearch] = useState("");
     const [remoteType, setRemoteType] = useState("all");
     const [seniorityLevel, setSeniorityLevel] = useState("all");
+    const [sortBy, setSortBy] = useState<"match" | "newest">("match");
+    const [onlyHighMatch, setOnlyHighMatch] = useState(false);
+    const [hideApplied, setHideApplied] = useState(false);
     const [loading, setLoading] = useState(false);
     const [applyingId, setApplyingId] = useState<string | null>(null);
     const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
@@ -149,12 +153,12 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                     <AlertCircle className="size-5 shrink-0 mt-0.5" />
                     <div>
                         {t.rich("noResumeWarning", {
-                            link: () => (
+                            link: (chunks) => (
                                 <Link
                                     href="/dashboard/cv-analysis"
                                     className="underline font-bold hover:text-yellow-700"
                                 >
-                                    CV Analysis
+                                    {chunks}
                                 </Link>
                             ),
                         })}
@@ -202,6 +206,37 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                         </select>
                     </div>
                 </CardContent>
+                <CardContent className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-0 text-xs text-muted-foreground">
+                    <label className="flex items-center gap-1.5">
+                        {t("sortBy", { default: "Orden:" })}
+                        <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value as "match" | "newest")}
+                            className="rounded-md border border-input bg-background px-2 py-1 text-xs"
+                        >
+                            <option value="match">{t("sortMatch", { default: "Mayor afinidad" })}</option>
+                            <option value="newest">{t("sortNewest", { default: "Más recientes" })}</option>
+                        </select>
+                    </label>
+                    <label className="flex cursor-pointer items-center gap-1.5">
+                        <input
+                            type="checkbox"
+                            className="size-3.5 accent-primary"
+                            checked={onlyHighMatch}
+                            onChange={(e) => setOnlyHighMatch(e.target.checked)}
+                        />
+                        {t("onlyHighMatch", { default: "Solo ≥75% afinidad" })}
+                    </label>
+                    <label className="flex cursor-pointer items-center gap-1.5">
+                        <input
+                            type="checkbox"
+                            className="size-3.5 accent-primary"
+                            checked={hideApplied}
+                            onChange={(e) => setHideApplied(e.target.checked)}
+                        />
+                        {t("hideApplied", { default: "Ocultar aplicadas" })}
+                    </label>
+                </CardContent>
             </Card>
 
             {/* Listado de Ofertas */}
@@ -215,117 +250,128 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                         {t("noOffers")}
                     </div>
                 ) : (
-                    jobs.map((job) => {
-                        const skills: string[] = Array.isArray(job.requiredSkills)
-                            ? job.requiredSkills
-                            : typeof job.requiredSkills === "string"
-                              ? JSON.parse(job.requiredSkills)
-                              : [];
+                    jobs
+                        .filter((job) => {
+                            if (onlyHighMatch && (job.matchScore ?? 0) < 75) return false;
+                            if (hideApplied && job.hasApplied) return false;
+                            return true;
+                        })
+                        .sort((a, b) =>
+                            sortBy === "match"
+                                ? (b.matchScore ?? -1) - (a.matchScore ?? -1)
+                                : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+                        )
+                        .map((job) => {
+                            const skills: string[] = Array.isArray(job.requiredSkills)
+                                ? job.requiredSkills
+                                : (safeParseJson<string[]>(job.requiredSkills, []) ?? []);
 
-                        return (
-                            <Card
-                                key={job.id}
-                                className="border border-border flex flex-col md:flex-row justify-between items-start md:items-center p-6 gap-6 hover:shadow-md transition-shadow"
-                            >
-                                <div className="space-y-3 flex-1">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <h2 className="text-lg font-bold leading-tight text-foreground">{job.title}</h2>
-                                        <span className="text-xs text-muted-foreground font-semibold px-2 py-0.5 rounded-md bg-muted">
-                                            {job.company}
-                                        </span>
-                                    </div>
-
-                                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                                        <span className="flex items-center gap-1">
-                                            <MapPin className="size-3.5" />
-                                            {job.location}
-                                        </span>
-                                        <span className="flex items-center gap-1 uppercase">
-                                            <Briefcase className="size-3.5" />
-                                            {t(job.remoteType, { default: job.remoteType })}
-                                        </span>
-                                        <span className="flex items-center gap-1 uppercase">
-                                            <Award className="size-3.5" />
-                                            {t(job.seniorityLevel, { default: job.seniorityLevel })}
-                                        </span>
-                                    </div>
-
-                                    <p className="text-xs text-muted-foreground leading-relaxed max-w-3xl whitespace-pre-line">
-                                        {job.description}
-                                    </p>
-
-                                    <div className="flex flex-wrap gap-1.5 pt-1">
-                                        {skills.map((skill) => (
-                                            <Badge key={skill} variant="secondary" className="text-[10px]">
-                                                {skill}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-row md:flex-col items-center justify-between md:justify-center md:items-end w-full md:w-auto shrink-0 gap-4 pt-4 md:pt-0 border-t md:border-t-0 border-border">
-                                    {job.matchScore !== null && (
-                                        <div
-                                            className={cn(
-                                                "flex flex-col items-center justify-center p-3 rounded-lg border text-center shrink-0 w-24 h-20",
-                                                getScoreColor(job.matchScore),
-                                            )}
-                                        >
-                                            <span className="text-xl font-extrabold">{job.matchScore}%</span>
-                                            <span className="text-[9px] uppercase font-bold tracking-wider">
-                                                {t("affinity")}
+                            return (
+                                <Card
+                                    key={job.id}
+                                    className="border border-border flex flex-col md:flex-row justify-between items-start md:items-center p-6 gap-6 hover:shadow-md transition-shadow"
+                                >
+                                    <div className="space-y-3 flex-1">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <h2 className="text-lg font-bold leading-tight text-foreground">
+                                                {job.title}
+                                            </h2>
+                                            <span className="text-xs text-muted-foreground font-semibold px-2 py-0.5 rounded-md bg-muted">
+                                                {job.company}
                                             </span>
                                         </div>
-                                    )}
 
-                                    <div className="flex gap-2 w-full md:w-auto">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            title={t("report")}
-                                            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
-                                            onClick={() => setReportingJobId(job.id)}
-                                        >
-                                            <Flag className="size-4" />
-                                        </Button>
+                                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                                            <span className="flex items-center gap-1">
+                                                <MapPin className="size-3.5" />
+                                                {job.location}
+                                            </span>
+                                            <span className="flex items-center gap-1 uppercase">
+                                                <Briefcase className="size-3.5" />
+                                                {t(job.remoteType, { default: job.remoteType })}
+                                            </span>
+                                            <span className="flex items-center gap-1 uppercase">
+                                                <Award className="size-3.5" />
+                                                {t(job.seniorityLevel, { default: job.seniorityLevel })}
+                                            </span>
+                                        </div>
 
-                                        {job.hasApplied ? (
-                                            <div className="flex gap-2 w-full md:w-auto">
+                                        <p className="text-xs text-muted-foreground leading-relaxed max-w-3xl whitespace-pre-line">
+                                            {job.description}
+                                        </p>
+
+                                        <div className="flex flex-wrap gap-1.5 pt-1">
+                                            {skills.map((skill) => (
+                                                <Badge key={skill} variant="secondary" className="text-[10px]">
+                                                    {skill}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-row md:flex-col items-center justify-between md:justify-center md:items-end w-full md:w-auto shrink-0 gap-4 pt-4 md:pt-0 border-t md:border-t-0 border-border">
+                                        {job.matchScore !== null && (
+                                            <div
+                                                className={cn(
+                                                    "flex flex-col items-center justify-center p-3 rounded-lg border text-center shrink-0 w-24 h-20",
+                                                    getScoreColor(job.matchScore),
+                                                )}
+                                            >
+                                                <span className="text-xl font-extrabold">{job.matchScore}%</span>
+                                                <span className="text-[9px] uppercase font-bold tracking-wider">
+                                                    {t("affinity")}
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        <div className="flex gap-2 w-full md:w-auto">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                title={t("report")}
+                                                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                                                onClick={() => setReportingJobId(job.id)}
+                                            >
+                                                <Flag className="size-4" />
+                                            </Button>
+
+                                            {job.hasApplied ? (
+                                                <div className="flex gap-2 w-full md:w-auto">
+                                                    <Button
+                                                        disabled
+                                                        variant="outline"
+                                                        className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50/5 border-emerald-500/20 w-full md:w-auto"
+                                                    >
+                                                        <CheckCircle2 className="size-4 text-emerald-500" />
+                                                        <span>{t("applied")}</span>
+                                                    </Button>
+                                                    <Button
+                                                        variant="destructive"
+                                                        onClick={() => {
+                                                            void handleWithdraw(job.id);
+                                                        }}
+                                                        disabled={withdrawingId !== null}
+                                                        className="w-full md:w-auto"
+                                                    >
+                                                        {withdrawingId === job.id ? t("withdrawing") : t("withdraw")}
+                                                    </Button>
+                                                </div>
+                                            ) : (
                                                 <Button
-                                                    disabled
-                                                    variant="outline"
-                                                    className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50/5 border-emerald-500/20 w-full md:w-auto"
-                                                >
-                                                    <CheckCircle2 className="size-4 text-emerald-500" />
-                                                    <span>{t("applied")}</span>
-                                                </Button>
-                                                <Button
-                                                    variant="destructive"
                                                     onClick={() => {
-                                                        void handleWithdraw(job.id);
+                                                        void handleApply(job.id);
                                                     }}
-                                                    disabled={withdrawingId !== null}
+                                                    disabled={applyingId !== null || withdrawingId !== null}
                                                     className="w-full md:w-auto"
                                                 >
-                                                    {withdrawingId === job.id ? t("withdrawing") : t("withdraw")}
+                                                    {applyingId === job.id ? t("applying") : t("apply")}
                                                 </Button>
-                                            </div>
-                                        ) : (
-                                            <Button
-                                                onClick={() => {
-                                                    void handleApply(job.id);
-                                                }}
-                                                disabled={applyingId !== null || withdrawingId !== null}
-                                                className="w-full md:w-auto"
-                                            >
-                                                {applyingId === job.id ? t("applying") : t("apply")}
-                                            </Button>
-                                        )}
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            </Card>
-                        );
-                    })
+                                </Card>
+                            );
+                        })
                 )}
             </div>
 
