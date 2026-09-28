@@ -2,7 +2,7 @@
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.3-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React 19](https://img.shields.io/badge/React-19.2-blue?style=for-the-badge&logo=react)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0+7-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Prisma ORM](https://img.shields.io/badge/Prisma-7.x-2C3E50?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
 [![PostgreSQL](https://img.shields.io/badge/Postgres-Neon-336791?style=for-the-badge&logo=postgresql)](https://neon.tech/)
 [![Auth.js](https://img.shields.io/badge/Auth.js-v5-5A29E4?style=for-the-badge&logo=next.js)](https://authjs.dev/)
@@ -76,6 +76,7 @@ Domain logic lives in `src/features/*` (services, actions, repositories, Zod typ
 ## 🛠️ Tech Stack & Versioning
 
 - **Frontend**: Next.js ^16.3 (App Router utilizing Turbopack) & React 19.2.
+- **Language**: TypeScript 6.0 (primary `tsc`) + TypeScript 7 side-by-side compat check (`npm run type-check:ts7`, enforced in CI).
 - **Styling**: Tailwind CSS v4.3 & shadcn/ui.
 - **Dynamic Components**: `@base-ui/react` ^1.6.0 (Base UI v1).
 - **ORM**: Prisma 7.8.0.
