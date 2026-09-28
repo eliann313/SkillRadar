@@ -1,18 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ContactThread } from "@/components/recruiter/contact-thread";
 import type { SentContactRequest } from "@/features/recruiter/application/recruiter.use-cases";
 import { useTranslations } from "next-intl";
 import { cn } from "@/shared-kernel/utils";
 
 const STATUSES = ["all", "pending", "accepted", "declined"] as const;
 
-export function RequestsClientPage({ initial }: { initial: SentContactRequest[] }) {
+interface RequestsClientPageProps {
+    initial: SentContactRequest[];
+    /** Slot inyectado por la capa app: el hilo pertenece a contact-thread. */
+    renderThread: (requestId: string) => ReactNode;
+}
+
+export function RequestsClientPage({ initial, renderThread }: RequestsClientPageProps) {
     const t = useTranslations("Inbox");
     const [filter, setFilter] = useState<(typeof STATUSES)[number]>("all");
     const [openId, setOpenId] = useState<string | null>(null);
@@ -81,7 +86,7 @@ export function RequestsClientPage({ initial }: { initial: SentContactRequest[] 
                     <DialogHeader>
                         <DialogTitle>{t("threadTitle")}</DialogTitle>
                     </DialogHeader>
-                    {openId ? <ContactThread requestId={openId} /> : null}
+                    {openId ? renderThread(openId) : null}
                 </DialogContent>
             </Dialog>
         </div>

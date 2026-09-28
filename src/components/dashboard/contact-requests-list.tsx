@@ -11,7 +11,7 @@ import {
     declineContactRequestAction,
 } from "@/features/developer-requests/application/developer-requests.use-cases";
 import { createReportAction } from "@/features/jobs/application/jobs.use-cases";
-import { ContactThread } from "@/components/recruiter/contact-thread";
+import { ContactThread } from "@/features/contact-thread/presentation/contact-thread.panel";
 import { toast } from "sonner";
 
 export interface RequestItem {

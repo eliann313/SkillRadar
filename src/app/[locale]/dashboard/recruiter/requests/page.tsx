@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSentContactRequestsAction } from "@/features/recruiter/application/recruiter.use-cases";
 import { getTranslations } from "next-intl/server";
 import { RequestsClientPage } from "@/features/recruiter/presentation/recruiter-requests.client";
+import { ContactThread } from "@/features/contact-thread/presentation/contact-thread.panel";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
@@ -17,5 +18,10 @@ export default async function RecruiterRequestsPage() {
 
     const res = await getSentContactRequestsAction();
 
-    return <RequestsClientPage initial={res.success ? res.data : []} />;
+    return (
+        <RequestsClientPage
+            initial={res.success ? res.data : []}
+            renderThread={(requestId) => <ContactThread requestId={requestId} />}
+        />
+    );
 }

@@ -1,7 +1,7 @@
 import { auth } from "@/infrastructure/auth";
 import { redirect } from "next/navigation";
 import { JobTrackerService } from "@/features/job-tracker/application/job-tracker.service";
-import { KanbanBoard } from "@/components/job-tracker/kanban-board";
+import { KanbanBoard } from "@/features/job-tracker/presentation/kanban-board";
 import {
     createJobApplicationAction,
     updateJobApplicationStatusAction,

@@ -43,8 +43,8 @@ import {
     getMarketIntelligenceDataAction,
 } from "@/features/recruiter/application/recruiter.use-cases";
 import { toast } from "sonner";
-import { CandidateDetailModal } from "./candidate-detail-modal";
-import { CandidateCompare } from "./candidate-compare";
+import { CandidateDetailModal } from "@/features/recruiter/presentation/candidate-detail-modal";
+import { CandidateCompare } from "@/features/recruiter/presentation/candidate-compare";
 import {
     listSavedSearchesAction,
     saveSearchAction,
