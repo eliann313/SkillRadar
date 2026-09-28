@@ -738,6 +738,8 @@
         "deleteAccountNetworkError": "Error al eliminar la cuenta.",
         "keyClearedFull": "Se vació la clave. Guarda cambios para eliminarla de la base de datos.",
         "keyClearedShort": "Se vació la clave. Guarda cambios para eliminarla.",
+        "keyRevoked": "Clave revocada y eliminada de la base de datos.",
+        "keyRevokeError": "No se pudo revocar la clave.",
         "linkCopied": "Enlace copiado al portapapeles.",
         "markdownCopied": "Snippet de Markdown copiado."
     },

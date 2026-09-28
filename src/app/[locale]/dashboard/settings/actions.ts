@@ -118,6 +118,63 @@ export async function saveUserApiKeysAction(input: ApiKeysInput) {
     }
 }
 
+const API_KEY_PROVIDERS = ["gemini", "groq", "openrouter", "openai", "anthropic"] as const;
+export type ApiKeyProvider = (typeof API_KEY_PROVIDERS)[number];
+
+const PROVIDER_KEY_COLUMNS: Record<
+    ApiKeyProvider,
+    "geminiApiKey" | "groqApiKey" | "openrouterApiKey" | "openaiApiKey" | "anthropicApiKey"
+> = {
+    gemini: "geminiApiKey",
+    groq: "groqApiKey",
+    openrouter: "openrouterApiKey",
+    openai: "openaiApiKey",
+    anthropic: "anthropicApiKey",
+};
+
+/**
+ * Revoca inmediatamente la clave BYOK de un proveedor (Fase 1).
+ * A diferencia de vaciar el input (que requiere Guardar), esto elimina la
+ * columna cifrada en el acto y deja traza de auditoría (sin material de clave).
+ */
+export async function deleteUserApiKeyAction(provider: ApiKeyProvider) {
+    try {
+        if (!API_KEY_PROVIDERS.includes(provider)) {
+            return { success: false, error: "Proveedor inválido." };
+        }
+
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado. Inicie sesión." };
+        }
+
+        if (session.user.isGuest === true) {
+            return { success: true, message: "Clave revocada (Modo Simulación)." };
+        }
+
+        await db.user.update({
+            where: { id: session.user.id },
+            data: { [PROVIDER_KEY_COLUMNS[provider]]: null },
+        });
+
+        logger.info(`[deleteUserApiKeyAction] Clave revocada`, {
+            userId: session.user.id,
+            provider,
+        });
+
+        revalidatePath("/dashboard/settings");
+
+        return { success: true, message: "Clave revocada correctamente." };
+    } catch (error: unknown) {
+        const errMessage = error instanceof Error ? error.message : "Error al revocar la clave de API.";
+        logger.error("[deleteUserApiKeyAction] Error revocando llave:", errMessage);
+        return {
+            success: false,
+            error: errMessage,
+        };
+    }
+}
+
 /**
  * Guarda las preferencias de inferencia por defecto para el usuario.
  */
