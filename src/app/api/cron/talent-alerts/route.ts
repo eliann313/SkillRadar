@@ -26,6 +26,7 @@ export async function GET(request: Request) {
     }
 
     try {
+        const startedAt = Date.now();
         const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
         const searches = await db.savedSearch.findMany({
             where: {
@@ -80,8 +81,11 @@ export async function GET(request: Request) {
             }
         }
 
-        logger.warn(`[Cron Talent Alerts] Éxito: ${created} alertas creadas.`);
-        return NextResponse.json({ success: true, created });
+        const durationMs = Date.now() - startedAt;
+        logger.warn(
+            `[Cron Talent Alerts] Éxito: ${created} alertas creadas sobre ${searches.length} búsquedas en ${durationMs}ms.`,
+        );
+        return NextResponse.json({ success: true, created, searches: searches.length, durationMs });
     } catch (error) {
         logger.error("[Cron Talent Alerts] Error:", error);
         return NextResponse.json(
