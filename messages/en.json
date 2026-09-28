@@ -489,6 +489,7 @@
         "submitReport": "Submit Report",
         "submittingReport": "Submitting...",
         "filterError": "Error filtering job offers.",
+        "retry": "Retry",
         "reportLengthError": "The reason must be at least 5 characters long.",
         "reportSuccess": "The report has been sent. We will review the content shortly.",
         "reportError": "Error sending report.",
