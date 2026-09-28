@@ -50,7 +50,7 @@ graph TD
     style DB fill:#eef9f2,stroke:#1a3a2a,stroke-width:1px
 ```
 
-La lógica de dominio vive en `src/features/*` (servicios, actions, repositorios, tipos Zod). Los contratos transversales viven en el shared kernel (`src/lib/action-result.ts`, `sanitize.ts`, `seniority.ts`, `pii.ts`): **ningún feature importa de otro feature** — los bordes hexagonales se verifican en CI con dependency-cruiser (ver `docs/adr/`).
+La lógica de dominio vive en `src/features/*` como módulos hexagonales (`domain/` tipos + puertos, `application/` servicios + casos de uso, `infrastructure/` repositorios, `presentation/` pantallas cliente). Los ficheros de ruta de Next (`page|layout|error|loading|route`) son nombres reservados y quedan como adaptadores finos que delegan a `features/*/presentation`. Los contratos puros transversales viven en el shared kernel (`src/shared-kernel/action-result.ts`, `sanitize.ts`, `seniority.ts`, `pii.ts`); los adaptadores de IO viven en `src/infrastructure/` (`db`, `auth`, `ai/`, `crypto`, `file-storage`): **ningún feature importa de otro feature** — los bordes hexagonales se verifican en CI con dependency-cruiser (ver `docs/adr/`, ADR-003).
 
 ---
 
@@ -86,7 +86,7 @@ La lógica de dominio vive en `src/features/*` (servicios, actions, repositorios
 - **Límites de Ratio (Rate Limiting)**: Upstash Redis Web SDK (`@upstash/ratelimit`).
 - **Orquestación de IA y Modelos LLM**: Vercel AI SDK (`ai` v7 / `@ai-sdk` v4) con soporte multi-proveedor (Google Gemini, OpenAI, Anthropic Claude, Groq y OpenRouter) y sistema de fallback automático en cascada.
 - **Internacionalización**: `next-intl` ^4.x.
-- **Pruebas Unitarias**: Vitest 4.x & `@testing-library/react` (125 tests, ~40% cobertura de líneas con piso anti-regresión).
+- **Pruebas Unitarias**: Vitest 4.x & `@testing-library/react` (126 tests, ~40% cobertura de líneas con piso anti-regresión).
 - **Pruebas E2E**: Playwright ^1.61.0.
 - **Arquitectura y Código Muerto**: dependency-cruiser 18 (gates hexagonales) + Knip.
 
@@ -97,29 +97,34 @@ La lógica de dominio vive en `src/features/*` (servicios, actions, repositorios
 ```text
 ├── .dependency-cruiser.cjs      # Gates hexagonales (severidad error en CI)
 ├── .github/                     # Workflows de CI/CD y plantillas de PRs e Issues
-├── docs/adr/                    # Architecture Decision Records
+├── docs/adr/                    # Architecture Decision Records (ver ADR-003 screaming/hexagonal)
 ├── knip.json                    # Config de auditoría de código muerto / dependencias
 ├── messages/                    # Diccionarios de traducción JSON (es.json, en.json)
 ├── prisma/                      # Definición de esquema de base de datos y migraciones
-├── scripts/audit-high.mjs       # Gate de npm audit (high/critical + allowlist)
+├── scripts/
+│   ├── audit-high.mjs           # Gate de npm audit (high/critical + allowlist)
+│   └── refactor/                # Scripts de renombre screaming/hexagonal de un solo uso (ADR-003)
 ├── src/
-│   ├── app/                     # Rutas de Next.js App Router (localizadas bajo [locale]/)
+│   ├── app/                     # App Router de Next.js: adaptadores finos (page/layout/error/loading/route son reservados)
 │   │   └── [locale]/
-│   │       ├── dashboard/       # Rutas protegidas de panel (admin, settings, cv-analysis, etc.)
+│   │       ├── dashboard/       # Rutas protegidas que delegan a features/*/presentation
 │   │       ├── legal/           # Páginas de políticas de privacidad y términos
 │   │       ├── login/           # Formulario de login/registro localizado
 │   │       └── page.tsx         # Página de inicio / landing page localizada
-│   ├── components/              # Componentes de UI reutilizables
+│   ├── components/              # UI reutilizable (ui/ genérico + componentes de dominio usados por presentation)
 │   │   ├── auth/                # Formularios de autenticación
 │   │   ├── layout/              # Sidebar, Navbar, LanguageSwitcher y ThemeToggle
 │   │   └── ui/                  # Componentes base de shadcn/ui
-│   ├── features/                # Módulos de dominio (servicios, actions, repositorios, puertos, tests)
-│   │   ├── cv-analysis/         # Análisis de CV y pruebas unitarias
-│   │   ├── job-match/           # Algoritmo de emparejamiento ATS
-│   │   ├── jobs/                # Portal de empleo, moderación, puertos y guardas IDOR
-│   │   └── recruiter/           # Gestión de candidatos y sanitizador de Doble Ciego
+│   ├── features/                # Dominios hexagonales: domain/ application/ infrastructure/ presentation/
+│   │   │                        # Nomenclatura: <contexto>.<capa>.ts (ej. github.use-cases.ts, jobs.ports.ts)
+│   │   ├── cv-analysis/         # Análisis de CV + puerto ResumeStore
+│   │   ├── github/              # Señales, seniority + presentation/github-dashboard.client.tsx
+│   │   ├── jobs/                # Portal, ofertas, pantallas de pipeline + domain/jobs.ports.ts (MatchProvider)
+│   │   ├── job-match/           # Algoritmo de emparejamiento ATS + puerto JobMatchStore
+│   │   └── recruiter/           # Gestión de candidatos, pantalla de solicitudes y Doble Ciego
+│   ├── shared-kernel/           # Contratos puros transversales (action-result, sanitize, seniority, pii, types, utils)
+│   ├── infrastructure/          # Adaptadores de IO (db, auth, ai/, crypto, file-storage, mail, rate-limit, guards)
 │   ├── i18n/                    # Configuración, enrutamiento y cargador de next-intl
-│   ├── lib/                     # Shared kernel (action-result, sanitize, seniority, pii) + infra
 │   └── proxy.ts                 # Interceptor del middleware combinado (Auth + next-intl)
 ├── tests/
 │   └── e2e/                     # Pruebas End-to-End con Playwright (developer, recruiter)
@@ -216,7 +221,7 @@ cmd /c npm run format:check
 # Análisis estático y linter (ESLint + React Compiler)
 cmd /c npm run lint
 
-# Pruebas unitarias y de integración con piso de cobertura (Vitest, 125 tests / ~40% líneas)
+# Pruebas unitarias y de integración con piso de cobertura (Vitest, 126 tests / ~40% líneas)
 cmd /c npm run test -- --coverage
 
 # Gates de arquitectura hexagonal (dependency-cruiser, severidad error)

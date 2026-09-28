@@ -1,5 +1,5 @@
 "use client";
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,8 @@ import {
     getLinkedinAuditHistoryAction,
     type LinkedinAuditResult,
     type LinkedinAuditHistoryItem,
-} from "@/features/linkedin-audit/actions";
-import { cn } from "@/lib/utils";
+} from "@/features/linkedin-audit/application/linkedin-audit.use-cases";
+import { cn } from "@/shared-kernel/utils";
 
 const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>

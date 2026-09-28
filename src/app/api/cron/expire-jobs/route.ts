@@ -1,6 +1,6 @@
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { db } from "@/infrastructure/db";
 
 export async function GET(request: Request) {
     // Verificar autenticación mediante cabecera Authorization (también en preview/dev si hay secreto)

@@ -1,5 +1,5 @@
 "use client";
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 
 import { useState, useCallback, useEffect } from "react";
 import { useDropzone, type DropzoneRootProps, type DropzoneInputProps } from "react-dropzone";
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared-kernel/utils";
 import { Upload, FileText, ChevronDown, X, Loader2, Sparkles } from "lucide-react";
 import { upload } from "@vercel/blob/client";
 import { toast } from "sonner";

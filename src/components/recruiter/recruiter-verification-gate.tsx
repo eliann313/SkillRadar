@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ShieldCheck, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { requestRecruiterVerification } from "@/lib/recruiter-guard";
+import { requestRecruiterVerification } from "@/infrastructure/recruiter-guard";
 
 export function RecruiterVerificationGate({ requested }: { requested: boolean }) {
     const t = useTranslations("Recruiter");

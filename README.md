@@ -50,7 +50,7 @@ graph TD
     style DB fill:#eef9f2,stroke:#1a3a2a,stroke-width:1px
 ```
 
-Domain logic lives in `src/features/*` (services, actions, repositories, Zod types). Cross-cutting contracts live in the shared kernel (`src/lib/action-result.ts`, `sanitize.ts`, `seniority.ts`, `pii.ts`): **no feature ever imports from another feature** — hexagonal boundaries are enforced in CI by dependency-cruiser (see `docs/adr/`).
+Domain logic lives in `src/features/*` as hexagonal modules (`domain/` types + ports, `application/` services + use-cases, `infrastructure/` repositories, `presentation/` client screens). Next route files (`page|layout|error|loading|route`) are reserved names and stay as thin adapters delegating to `features/*/presentation`. Cross-cutting pure contracts live in the shared kernel (`src/shared-kernel/action-result.ts`, `sanitize.ts`, `seniority.ts`, `pii.ts`); IO adapters live in `src/infrastructure/` (`db`, `auth`, `ai/`, `crypto`, `file-storage`): **no feature ever imports from another feature** — hexagonal boundaries are enforced in CI by dependency-cruiser (see `docs/adr/`, ADR-003).
 
 ---
 
@@ -86,7 +86,7 @@ Domain logic lives in `src/features/*` (services, actions, repositories, Zod typ
 - **Rate Limiting**: Upstash Redis Web SDK (`@upstash/ratelimit`).
 - **AI Orchestration & Multi-Model LLMs**: Vercel AI SDK (`ai` v7 / `@ai-sdk` v4) supporting Google Gemini, OpenAI, Anthropic Claude, Groq and OpenRouter with automatic cascading fallback.
 - **Internationalization**: `next-intl` ^4.x.
-- **Unit Testing**: Vitest 4.x & `@testing-library/react` (125 tests, ~40% line coverage with anti-regression floor).
+- **Unit Testing**: Vitest 4.x & `@testing-library/react` (126 tests, ~40% line coverage with anti-regression floor).
 - **E2E Testing**: Playwright ^1.61.0.
 - **Architecture & Dead Code**: dependency-cruiser 18 (hexagonal gates) + Knip.
 
@@ -97,29 +97,34 @@ Domain logic lives in `src/features/*` (services, actions, repositories, Zod typ
 ```text
 ├── .dependency-cruiser.cjs      # Hexagonal gates (error severity in CI)
 ├── .github/                     # CI/CD Workflows and PR/Issue templates
-├── docs/adr/                    # Architecture Decision Records
+├── docs/adr/                    # Architecture Decision Records (see ADR-003 screaming/hexagonal)
 ├── knip.json                    # Dead-code / dependency audit config
 ├── messages/                    # Translation dictionary JSON files (es.json, en.json)
 ├── prisma/                      # Database schema definition and migration files
-├── scripts/audit-high.mjs       # npm audit gate (high/critical + allowlist)
+├── scripts/
+│   ├── audit-high.mjs           # npm audit gate (high/critical + allowlist)
+│   └── refactor/                # One-shot screaming/hexagonal rename scripts (ADR-003)
 ├── src/
-│   ├── app/                     # Next.js App Router Pages (localized under [locale]/)
+│   ├── app/                     # Next.js App Router: thin adapters (page/layout/error/loading/route are reserved)
 │   │   └── [locale]/
-│   │       ├── dashboard/       # Protected dashboard routes (admin, settings, cv-analysis, etc.)
+│   │       ├── dashboard/       # Protected routes delegating to features/*/presentation
 │   │       ├── legal/           # Privacy policy and terms of service pages
 │   │       ├── login/           # Locale-aware Login and Signup Form page
 │   │       └── page.tsx         # Localized Marketing/Landing Page
-│   ├── components/              # Reusable UI Components
+│   ├── components/              # Reusable UI (ui/ generic + domain components used by presentation)
 │   │   ├── auth/                # Login & Register forms
 │   │   ├── layout/              # Sidebar, Navbar, LanguageSwitcher and ThemeToggle
 │   │   └── ui/                  # Shadcn/ui core components
-│   ├── features/                # Domain-Driven Feature Modules (services, actions, repositories, ports, tests)
-│   │   ├── cv-analysis/         # AI Resume Parsing logic and tests
-│   │   ├── job-match/           # ATS Matching algorithm
-│   │   ├── jobs/                # Recruiter board, moderations, ports and IDOR guards
-│   │   └── recruiter/           # Sourcing, profiles and Double-Blind sanitizers
+│   ├── features/                # Hexagonal domains: domain/ application/ infrastructure/ presentation/
+│   │   │                        # Naming: <context>.<layer>.ts (e.g. github.use-cases.ts, jobs.ports.ts)
+│   │   ├── cv-analysis/         # AI Resume Parsing + ResumeStore port
+│   │   ├── github/              # Signals, seniority + presentation/github-dashboard.client.tsx
+│   │   ├── jobs/                # Board, postings, pipeline screens + domain/jobs.ports.ts (MatchProvider)
+│   │   ├── job-match/           # ATS Matching algorithm + JobMatchStore port
+│   │   └── recruiter/           # Sourcing, requests screen, Double-Blind sanitizers
+│   ├── shared-kernel/           # Pure cross-cutting contracts (action-result, sanitize, seniority, pii, types, utils)
+│   ├── infrastructure/          # IO adapters (db, auth, ai/, crypto, file-storage, mail, rate-limit, guards)
 │   ├── i18n/                    # next-intl configuration, routing and request handlers
-│   ├── lib/                     # Shared kernel (action-result, sanitize, seniority, pii) + infra
 │   └── proxy.ts                 # App Router combined middleware hook (Auth + next-intl)
 ├── tests/
 │   └── e2e/                     # Playwright end-to-end user flows (developer, recruiter)
@@ -216,7 +221,7 @@ cmd /c npm run format:check
 # Static analysis and linter (ESLint + React Compiler)
 cmd /c npm run lint
 
-# Run Unit & Integration tests with coverage floor (Vitest, 125 tests / ~40% lines)
+# Run Unit & Integration tests with coverage floor (Vitest, 126 tests / ~40% lines)
 cmd /c npm run test -- --coverage
 
 # Hexagonal architecture gates (dependency-cruiser, error severity)

@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useSession, signOut } from "next-auth/react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared-kernel/utils";
 import {
     LayoutDashboard,
     FileText,

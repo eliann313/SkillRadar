@@ -2,7 +2,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import type { TalentCard } from "@/lib/types";
+import type { TalentCard } from "@/shared-kernel/types";
 
 export function CandidateCompare({
     talents,

@@ -1,6 +1,6 @@
 "use client";
 
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { FileWarning, RefreshCw, ArrowLeft } from "lucide-react";

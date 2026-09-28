@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/infrastructure/auth";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth";
 import { Suspense } from "react";

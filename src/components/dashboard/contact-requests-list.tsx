@@ -1,13 +1,16 @@
 "use client";
 
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, X, Shield, Flag, MessageCircle } from "lucide-react";
-import { acceptContactRequestAction, declineContactRequestAction } from "@/features/developer-requests/actions";
-import { createReportAction } from "@/features/jobs/actions";
+import {
+    acceptContactRequestAction,
+    declineContactRequestAction,
+} from "@/features/developer-requests/application/developer-requests.use-cases";
+import { createReportAction } from "@/features/jobs/application/jobs.use-cases";
 import { ContactThread } from "@/components/recruiter/contact-thread";
 import { toast } from "sonner";
 

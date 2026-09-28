@@ -1,17 +1,17 @@
 "use client";
 
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import type { JobMatch } from "@/lib/types";
+import type { JobMatch } from "@/shared-kernel/types";
 import { Check, X, Target, TrendingUp, AlertCircle, Sparkles, Eye, Copy, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared-kernel/utils";
 import { Button } from "@/components/ui/button";
 import { ExplainabilityPanel } from "@/components/explainability-panel";
-import { generateSmartPitchAction } from "@/features/job-match/actions";
-import { importMissingSkillsAction } from "@/features/roadmap/actions";
+import { generateSmartPitchAction } from "@/features/job-match/application/job-match.use-cases";
+import { importMissingSkillsAction } from "@/features/roadmap/application/roadmap.use-cases";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 

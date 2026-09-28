@@ -1,9 +1,9 @@
 "use server";
 
-import { logger } from "@/lib/logger";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { encrypt, API_KEY_PRESET_PLACEHOLDER } from "@/lib/crypto";
+import { logger } from "@/infrastructure/logger";
+import { auth } from "@/infrastructure/auth";
+import { db } from "@/infrastructure/db";
+import { encrypt, API_KEY_PRESET_PLACEHOLDER } from "@/infrastructure/crypto";
 import { revalidatePath } from "next/cache";
 
 export interface ApiKeysInput {

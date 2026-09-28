@@ -42,7 +42,7 @@ test.describe("Developer E2E Flow", () => {
 
         // 9. Navegar a nuestra pantalla de Gestión de CVs.
         // Nota: en modo Guest el análisis de CV es mockeado/efímero (ver
-        // src/features/cv-analysis/actions.ts) y nunca se persiste en la base de
+        // src/features/cv-analysis/application/cv-analysis.use-cases.ts) y nunca se persiste en la base de
         // datos, así que acá no debe aparecer el CV recién "subido" — verificamos el
         // estado vacío real en vez de un dato que el modo Guest nunca guarda.
         await page.goto("/dashboard/settings/resumes");

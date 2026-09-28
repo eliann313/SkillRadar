@@ -1,6 +1,6 @@
-import { db } from "@/lib/db";
-import { escapeXml } from "@/lib/pii";
-import { checkContentReportRateLimit, getClientIp } from "@/lib/rate-limit";
+import { db } from "@/infrastructure/db";
+import { escapeXml } from "@/shared-kernel/pii";
+import { checkContentReportRateLimit, getClientIp } from "@/infrastructure/rate-limit";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 

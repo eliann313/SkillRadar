@@ -1,9 +1,9 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/infrastructure/auth";
 import { redirect } from "next/navigation";
-import { JobPostingService } from "@/features/jobs/service";
-import { JobsClientPage } from "./client-page";
+import { JobPostingService } from "@/features/jobs/application/jobs.service";
+import { JobsClientPage } from "@/features/jobs/presentation/jobs-board.client";
 
-import type { JobPostingWithMatch } from "@/features/jobs/types";
+import type { JobPostingWithMatch } from "@/features/jobs/domain/jobs.types";
 
 export default async function DeveloperJobsPage() {
     const session = await auth();
