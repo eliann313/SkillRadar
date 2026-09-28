@@ -1,8 +1,8 @@
 # SkillRadar 🎯
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![React 19](https://img.shields.io/badge/React-19.0-blue?style=for-the-badge&logo=react)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.3-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![React 19](https://img.shields.io/badge/React-19.2-blue?style=for-the-badge&logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Prisma ORM](https://img.shields.io/badge/Prisma-7.x-2C3E50?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
 [![PostgreSQL](https://img.shields.io/badge/Postgres-Neon-336791?style=for-the-badge&logo=postgresql)](https://neon.tech/)
 [![Auth.js](https://img.shields.io/badge/Auth.js-v5-5A29E4?style=for-the-badge&logo=next.js)](https://authjs.dev/)
@@ -35,7 +35,7 @@ graph TD
     subgraph Service [Application Services]
         SSRF -->|Signed URL 1h expire| AI[AI CV Analysis Service]
         AI -->|4. Structured Request via Zod| VSDK[Vercel AI SDK]
-        VSDK -->|Primary/BYOK API Key| LLM["Multi-Provider Engine: Gemini 3.6 Flash / Groq / OpenRouter / Custom BYOK (OpenAI, Claude, etc.)"]
+        VSDK -->|Primary/BYOK API Key| LLM["Multi-Provider Engine: Gemini 3.8 Flash / Groq gpt-oss / OpenRouter / Custom BYOK (OpenAI GPT-6, Claude, etc.)"]
         VSDK -->|Offline Fallback| MOCK[Local Keywords & Seniority Mock Engine]
         AI -->|5. Structured Resume JSON| Prisma[Prisma Client Pooler]
     end
@@ -50,14 +50,21 @@ graph TD
     style DB fill:#eef9f2,stroke:#1a3a2a,stroke-width:1px
 ```
 
+Domain logic lives in `src/features/*` (services, actions, repositories, Zod types). Cross-cutting contracts live in the shared kernel (`src/lib/action-result.ts`, `sanitize.ts`, `seniority.ts`, `pii.ts`): **no feature ever imports from another feature** — hexagonal boundaries are enforced in CI by dependency-cruiser (see `docs/adr/`).
+
 ---
 
 ## 🚀 Key Features
 
-- **ATS Structured Resume Parsing**: Uploads resumes in PDF format via secure gateways and instantly receives structured feedback powered by **Google Gemini 3.6 Flash** (selected for optimal balance of cost, speed, and precision).
-- **Hybrid Multi-Model Engine & Dynamic Chat Selection**: Uses **Gemini 3.6 Flash** as the primary cost-effective system model. For interactive chat features (Career Copilot & AI Interview), candidates and recruiters can dynamically select their preferred provider and model (Google Gemini, Groq `llama-3.3-70b`, OpenAI, Anthropic Claude, OpenRouter, or custom model IDs) using encrypted **Bring Your Own Key (BYOK)** to bypass system rate limits.
+- **ATS Structured Resume Parsing**: Uploads resumes in PDF format via secure gateways and instantly receives structured feedback powered by **Google Gemini 3.8 Flash** (selected for optimal balance of cost, speed, and precision).
+- **Hybrid Multi-Model Engine & Dynamic Chat Selection**: Uses **Gemini 3.8 Flash** as the primary cost-effective system model. For interactive chat features (Career Copilot & AI Interview), candidates and recruiters can dynamically select their preferred provider and model (Google Gemini, Groq `openai/gpt-oss-120b`, OpenAI GPT-6, Anthropic Claude, OpenRouter, or custom model IDs) using encrypted **Bring Your Own Key (BYOK)** to bypass system rate limits.
 - **Cascading Multi-Tier Fallback Mechanism**: System attempts structured inference using the user's preferred provider/model first and seamlessly falls back through system free tiers (Gemini → Groq → OpenRouter) upon API timeouts or rate limits, guaranteeing high availability.
+- **Guest Demo Isolation**: Anonymous demo sessions (`guest-developer-id` / `guest-recruiter-id`) never persist to the real database; all writes are blocked server-side.
+- **Recruiter Verification**: Recruiter accounts require admin verification (`recruiterVerified`) before accessing sourcing tools; pending accounts get a dedicated gate with re-request flow.
+- **Custom Pipeline Stages**: Each job posting defines its own hiring stages; the pipeline board renders per-posting columns with funnel + conversion analytics.
+- **Talent Alerts & Bulk Outreach**: Daily cron (`/api/cron/talent-alerts`) notifies matching developers; recruiters can message shortlisted candidates in bulk with per-recipient sent/skipped reporting.
 - **Double-Blind Recruiter Privacy**: Strict server-side sanitization. Sensitive PII fields (`name`, `email`, `githubUsername`, `image`) are automatically stripped for profiles in a non-accepted state (`status !== "accepted"`), preventing bias during the sourcing phase.
+- **Job Board Moderation**: Content reports with auto `under_review` at 3 reports, IDOR ownership checks on every mutation, and expiration handling.
 - **In-App Interactive AI Interview**: Simulates technical interviews using LLMs with dynamically generated follow-up questions based on the candidate's CV and generates a detailed performance debrief.
 - **Active SSRF & CV Privacy Mitigations**: Protects CV document URLs via active session controls, resolving uploads through transient (1-hour expiry) signed URLs. Prevents Server-Side Request Forgery by validating hostnames and enforcing `https:` protocols on server fetches.
 - **Cryptographic Database Encryption (AES-256-GCM)**: Multi-tenant and user-supplied API keys (OpenAI, Claude, Gemini, Groq, OpenRouter) are encrypted at rest in PostgreSQL. Keys are stored as `ivHex:authTagHex:encryptedTextHex`, decrypted strictly in server memory, and never exposed to the client.
@@ -68,50 +75,54 @@ graph TD
 
 ## 🛠️ Tech Stack & Versioning
 
-- **Frontend**: Next.js 16.2.10 (App Router utilizing Turbopack) & React 19.2.7.
-- **Styling**: Tailwind CSS v4.3.2 & shadcn/ui.
+- **Frontend**: Next.js ^16.3 (App Router utilizing Turbopack) & React 19.2.
+- **Styling**: Tailwind CSS v4.3 & shadcn/ui.
 - **Dynamic Components**: `@base-ui/react` ^1.6.0 (Base UI v1).
 - **ORM**: Prisma 7.8.0.
 - **Database**: Neon PostgreSQL Serverless (configured with custom transaction pooling).
 - **Authentication**: Auth.js v5 (NextAuth `5.0.0-beta`) utilizing secure JWT strategy.
 - **Security & Hashing**: `bcryptjs` for password hashing, `jose` for cryptographically signing session JWTs.
 - **Rate Limiting**: Upstash Redis Web SDK (`@upstash/ratelimit`).
-- **AI Orchestration & Multi-Model LLMs**: Vercel AI SDK (`ai` v7 / `@ai-sdk` v4) supporting Google Gemini, OpenAI, Anthropic (Claude), Groq, and OpenRouter with automatic cascading fallback.
+- **AI Orchestration & Multi-Model LLMs**: Vercel AI SDK (`ai` v7 / `@ai-sdk` v4) supporting Google Gemini, OpenAI, Anthropic Claude, Groq and OpenRouter with automatic cascading fallback.
 - **Internationalization**: `next-intl` ^4.x.
-- **Unit Testing**: Vitest 4.x & `@testing-library/react`.
+- **Unit Testing**: Vitest 4.x & `@testing-library/react` (125 tests, ~40% line coverage with anti-regression floor).
 - **E2E Testing**: Playwright ^1.61.0.
+- **Architecture & Dead Code**: dependency-cruiser 18 (hexagonal gates) + Knip.
 
 ---
 
 ## 📁 Directory Structure
 
 ```text
-├── .agents/                    # Custom AI agent guidelines, instructions and rules
-├── .github/                    # CI/CD Workflows and PR/Issue templates
-├── messages/                   # Translation dictionary JSON files (es.json, en.json)
-├── prisma/                     # Database schema definition and migration files
+├── .dependency-cruiser.cjs      # Hexagonal gates (error severity in CI)
+├── .github/                     # CI/CD Workflows and PR/Issue templates
+├── docs/adr/                    # Architecture Decision Records
+├── knip.json                    # Dead-code / dependency audit config
+├── messages/                    # Translation dictionary JSON files (es.json, en.json)
+├── prisma/                      # Database schema definition and migration files
+├── scripts/audit-high.mjs       # npm audit gate (high/critical + allowlist)
 ├── src/
-│   ├── app/                    # Next.js App Router Pages (localized under [locale]/)
+│   ├── app/                     # Next.js App Router Pages (localized under [locale]/)
 │   │   └── [locale]/
-│   │       ├── dashboard/      # Protected dashboard routes (admin, settings, cv-analysis, etc.)
-│   │       ├── legal/          # Privacy policy and terms of service pages
-│   │       ├── login/          # Locale-aware Login and Signup Form page
-│   │       └── page.tsx        # Localized Marketing/Landing Page
-│   ├── components/             # Reusable UI Components
-│   │   ├── auth/               # Login & Register forms
-│   │   ├── layout/             # Sidebar, Navbar, LanguageSwitcher and ThemeToggle
-│   │   └── ui/                 # Shadcn/ui core components
-│   ├── features/               # Domain-Driven Feature Modules (business logic, services & actions)
-│   │   ├── cv-analysis/        # AI Resume Parsing logic and tests
-│   │   ├── job-match/          # ATS Matching algorithm
-│   │   ├── jobs/               # Recruiter board, moderations and IDOR guards
-│   │   └── recruiter/          # Sourcing, profiles and Double-Blind sanitizers
-│   ├── i18n/                   # next-intl configuration, routing and request handlers
-│   ├── lib/                    # Shared utilities (auth options, db poolers, rate limiters)
-│   └── proxy.ts                # App Router combined middleware hook (Auth + next-intl)
+│   │       ├── dashboard/       # Protected dashboard routes (admin, settings, cv-analysis, etc.)
+│   │       ├── legal/           # Privacy policy and terms of service pages
+│   │       ├── login/           # Locale-aware Login and Signup Form page
+│   │       └── page.tsx         # Localized Marketing/Landing Page
+│   ├── components/              # Reusable UI Components
+│   │   ├── auth/                # Login & Register forms
+│   │   ├── layout/              # Sidebar, Navbar, LanguageSwitcher and ThemeToggle
+│   │   └── ui/                  # Shadcn/ui core components
+│   ├── features/                # Domain-Driven Feature Modules (services, actions, repositories, ports, tests)
+│   │   ├── cv-analysis/         # AI Resume Parsing logic and tests
+│   │   ├── job-match/           # ATS Matching algorithm
+│   │   ├── jobs/                # Recruiter board, moderations, ports and IDOR guards
+│   │   └── recruiter/           # Sourcing, profiles and Double-Blind sanitizers
+│   ├── i18n/                    # next-intl configuration, routing and request handlers
+│   ├── lib/                     # Shared kernel (action-result, sanitize, seniority, pii) + infra
+│   └── proxy.ts                 # App Router combined middleware hook (Auth + next-intl)
 ├── tests/
-│   └── e2e/                    # Playwright end-to-end user flows (developer, recruiter)
-└── vitest.config.ts            # Unit & Integration test runner configuration
+│   └── e2e/                     # Playwright end-to-end user flows (developer, recruiter)
+└── vitest.config.ts             # Vitest config with coverage anti-regression thresholds
 ```
 
 ---
@@ -126,14 +137,17 @@ Duplicate the template environment file:
 cp .env.example .env
 ```
 
-Fill in the required variables (database strings, secrets, and provider keys):
+Fill in the required variables (see `.env.example` for the full list of ~30 vars):
 
 ```ini
 # Database Connection (Neon Postgres)
 DATABASE_URL="postgresql://user:password@host/dbname?sslmode=require"
+DATABASE_URL_UNPOOLED=""
 
-# Auth.js Config
+# Auth.js Config + AES-256-GCM override (falls back to AUTH_SECRET)
 AUTH_SECRET="your-super-long-generated-secret-key"
+NEXTAUTH_SECRET="your-super-shared-secret-key"
+ENCRYPTION_KEY="your-secure-32-character-crypto-key"
 NEXTAUTH_URL="http://localhost:3000"
 
 # OAuth Providers
@@ -142,13 +156,24 @@ GITHUB_CLIENT_SECRET="your_github_client_secret"
 GOOGLE_CLIENT_ID="your_google_client_id"
 GOOGLE_CLIENT_SECRET="your_google_client_secret"
 
-# Vercel Blob (CV file storage: Storage -> Blob -> Connect)
+# Vercel Blob (CV file storage)
 BLOB_READ_WRITE_TOKEN="vercel_blob_rw_..."
+BLOB_STORE_ID=""
 
-# AI Provider API Keys
+# AI Provider API Keys (global or per-user BYOK)
 GEMINI_API_KEY="your_gemini_api_key"
 OPENROUTER_API_KEY="your_openrouter_api_key"
 GROQ_API_KEY="your_groq_api_key"
+OPENAI_API_KEY="your_openai_api_key"
+ANTHROPIC_API_KEY="your_anthropic_api_key"
+
+# Transactional email (password reset) + talent-alerts cron
+RESEND_API_KEY=""
+CRON_SECRET=""
+
+# Guest demo + Neon flags
+ENABLE_GUEST_LOGIN="false"
+USE_NEON_WEBSOCKETS="true"
 
 # Upstash Redis (Rate Limiting)
 UPSTASH_REDIS_REST_URL="https://...upstash.io"
@@ -178,7 +203,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the running app.
 
 ## 🧪 Testing, Code Quality & QA
 
-This repository runs static analysis, style audits, unit tests, and browser automation locally and in CI:
+Quality gates run locally and in CI (`quality` → `test` + `arch` → `build` + `e2e`):
 
 ```bash
 # Typecheck
@@ -187,11 +212,23 @@ cmd /c npm run type-check
 # Code formatting validation (Prettier)
 cmd /c npm run format:check
 
-# Static analysis and linter (ESLint)
+# Static analysis and linter (ESLint + React Compiler)
 cmd /c npm run lint
 
-# Run Unit & Integration tests (Vitest)
-cmd /c npm run test
+# Run Unit & Integration tests with coverage floor (Vitest, 125 tests / ~40% lines)
+cmd /c npm run test -- --coverage
+
+# Hexagonal architecture gates (dependency-cruiser, error severity)
+cmd /c npm run arch
+
+# Dead code & unused dependencies (Knip)
+cmd /c npm run knip
+
+# Dependency audit: high/critical with documented allowlist
+cmd /c npm run audit:high
+
+# Static security scan (Semgrep)
+cmd /c npm run security:scan
 
 # Run End-to-End Tests (Playwright)
 cmd /c npx playwright test
@@ -204,13 +241,6 @@ cmd /c npm run build
 
 ## 🛡️ Git Workflow & Pre-commit Automation
 
-To keep the main branches clean and maintain strict quality standards, this project implements local git hooks using **Husky** and **lint-staged**.
+Atomic branches from `develop` (`feature/*`, `bugfix/*`, `docs/*`, `chore/*`, `test/*`); PRs target `develop` — never push directly to `main`/`develop`. Before push: `npm run type-check` + `npm run test`.
 
-Every time you run `git commit`, the following operations execute automatically:
-
-1.  Filters staged files (`*.ts`, `*.tsx`, `*.js`).
-2.  Runs `eslint --fix` to fix any syntax/linting warnings.
-3.  Runs `prettier --write` to normalize file styles.
-4.  Runs local static security scans to prevent secrets from leakages.
-
-If any check fails, the commit is safely aborted on your machine, preventing broken commits from reaching remote pull requests.
+Every `git commit` runs via **Husky** + **lint-staged**: `eslint --fix`, `prettier --write`, React Doctor (errors block), and a local Semgrep scan. If any check fails, the commit is safely aborted, preventing broken commits from reaching remote pull requests.
