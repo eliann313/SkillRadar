@@ -1,8 +1,8 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/infrastructure/auth";
 import { redirect } from "next/navigation";
-import { listTemplatesAction } from "@/features/outreach-templates/actions";
+import { listTemplatesAction } from "@/features/outreach-templates/application/outreach-templates.use-cases";
 import { getTranslations } from "next-intl/server";
-import { TemplatesClientPage } from "./client-page";
+import { TemplatesClientPage } from "@/features/outreach-templates/presentation/outreach-templates.client";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;

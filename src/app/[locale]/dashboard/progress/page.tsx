@@ -1,6 +1,9 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/infrastructure/auth";
 import { redirect } from "next/navigation";
-import { getProgressDataAction, getCareerRecommendationsAction } from "@/features/cv-analysis/actions";
+import {
+    getProgressDataAction,
+    getCareerRecommendationsAction,
+} from "@/features/cv-analysis/application/cv-analysis.use-cases";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -9,7 +12,7 @@ import { RoadmapChecklist } from "@/components/dashboard";
 import { ExportReportButton } from "@/components/dashboard";
 import { TrendingUp, Award, CheckCircle2, ArrowRight, FileText, Calendar, Sparkles, Flame } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared-kernel/utils";
 import { getTranslations } from "next-intl/server";
 
 interface PageProps {

@@ -1,10 +1,10 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/infrastructure/auth";
 import { redirect } from "next/navigation";
-import { JobPostingService } from "@/features/jobs/service";
-import { db } from "@/lib/db";
-import { safeParseJson } from "@/lib/pii";
-import type { Application } from "./client-page";
-import { ApplicationsClientPage } from "./client-page";
+import { JobPostingService } from "@/features/jobs/application/jobs.service";
+import { db } from "@/infrastructure/db";
+import { safeParseJson } from "@/shared-kernel/pii";
+import type { Application } from "./job-applications.screen";
+import { ApplicationsClientPage } from "./job-applications.screen";
 
 interface Props {
     params: Promise<{ id: string }>;

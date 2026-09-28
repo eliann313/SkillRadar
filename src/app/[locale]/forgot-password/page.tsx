@@ -1,12 +1,12 @@
 "use client";
 
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { requestPasswordResetAction } from "@/lib/auth-actions";
+import { requestPasswordResetAction } from "@/infrastructure/auth-actions";
 import { toast } from "sonner";
 import { Mail, Loader2, ArrowLeft } from "lucide-react";
 import { Link } from "@/i18n/routing";

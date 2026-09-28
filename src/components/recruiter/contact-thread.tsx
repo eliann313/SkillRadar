@@ -5,12 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared-kernel/utils";
 import {
     getThreadMessagesAction,
     sendThreadMessageAction,
     type ThreadMessage,
-} from "@/features/contact-thread/actions";
+} from "@/features/contact-thread/application/contact-thread.use-cases";
 
 export function ContactThread({ requestId }: { requestId: string }) {
     const [messages, setMessages] = useState<ThreadMessage[]>([]);

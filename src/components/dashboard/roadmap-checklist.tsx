@@ -7,14 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ListChecks } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared-kernel/utils";
 import {
     listRoadmapTasksAction,
     createRoadmapTaskAction,
     toggleRoadmapTaskAction,
     deleteRoadmapTaskAction,
     type RoadmapTaskDTO,
-} from "@/features/roadmap/actions";
+} from "@/features/roadmap/application/roadmap.use-cases";
 
 export function RoadmapChecklist() {
     const [tasks, setTasks] = useState<RoadmapTaskDTO[]>([]);

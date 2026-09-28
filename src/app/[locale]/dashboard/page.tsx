@@ -1,5 +1,5 @@
-import { auth } from "@/lib/auth";
-import { safeParseJson } from "@/lib/pii";
+import { auth } from "@/infrastructure/auth";
+import { safeParseJson } from "@/shared-kernel/pii";
 import {
     DashboardHeader,
     MetricsGrid,
@@ -10,7 +10,7 @@ import {
 } from "@/components/dashboard";
 import { TalentDashboard, RecruiterVerificationGate } from "@/components/recruiter";
 import { redirect } from "next/navigation";
-import { db } from "@/lib/db";
+import { db } from "@/infrastructure/db";
 import { getTranslations } from "next-intl/server";
 
 const DEFAULT_LIMITS = {

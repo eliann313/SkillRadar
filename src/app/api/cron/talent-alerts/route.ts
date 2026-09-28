@@ -1,8 +1,8 @@
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { createNotification } from "@/lib/notifications";
-import { safeParseJson } from "@/lib/pii";
+import { db } from "@/infrastructure/db";
+import { createNotification } from "@/infrastructure/notifications";
+import { safeParseJson } from "@/shared-kernel/pii";
 
 interface TalentFilters {
     query?: string;

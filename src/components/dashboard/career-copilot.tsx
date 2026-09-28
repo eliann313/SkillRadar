@@ -1,6 +1,6 @@
 "use client";
 
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useChat, type UIMessage } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared-kernel/utils";
 import { Bot, X, MessageCircle, Send, Loader2, Minimize2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";

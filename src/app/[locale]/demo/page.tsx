@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import DemoClient from "./demo-client";
+import DemoClient from "./demo-showcase.client";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;

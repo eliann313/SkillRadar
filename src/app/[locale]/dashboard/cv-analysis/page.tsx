@@ -1,16 +1,16 @@
 "use client";
 
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { CVUploadForm, AnalysisResults } from "@/components/cv-analysis";
-import type { CVAnalysis } from "@/lib/types";
+import type { CVAnalysis } from "@/shared-kernel/types";
 import { redirect } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AnalysisSkeleton } from "@/components/ui/loading-skeletons";
-import { uploadAndParseCVAction } from "@/features/cv-analysis/actions";
+import { uploadAndParseCVAction } from "@/features/cv-analysis/application/cv-analysis.use-cases";
 import { toast } from "sonner";
-import type { ATSAnalysis } from "@/features/cv-analysis/types";
+import type { ATSAnalysis } from "@/features/cv-analysis/domain/cv-analysis.types";
 import { useTranslations } from "next-intl";
 
 export default function CVAnalysisPage() {

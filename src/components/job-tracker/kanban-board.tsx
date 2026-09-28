@@ -14,7 +14,7 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared-kernel/utils";
 import { useTranslations } from "next-intl";
 
 interface KanbanBoardProps {

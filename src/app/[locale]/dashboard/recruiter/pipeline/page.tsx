@@ -1,9 +1,9 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/infrastructure/auth";
 import { redirect } from "next/navigation";
-import { JobPostingService } from "@/features/jobs/service";
+import { JobPostingService } from "@/features/jobs/application/jobs.service";
 import { getTranslations } from "next-intl/server";
-import { resolveStages, unionStages } from "@/lib/pipeline-stages";
-import { PipelineClientPage, type PipelineItem } from "./client-page";
+import { resolveStages, unionStages } from "@/infrastructure/pipeline-stages";
+import { PipelineClientPage, type PipelineItem } from "@/features/jobs/presentation/recruiter-pipeline.client";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;

@@ -1,13 +1,13 @@
 "use client";
 
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { resetPasswordAction } from "@/lib/auth-actions";
+import { resetPasswordAction } from "@/infrastructure/auth-actions";
 import { toast } from "sonner";
 import { Lock, Loader2, Eye, EyeOff, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Link } from "@/i18n/routing";

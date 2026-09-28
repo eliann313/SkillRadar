@@ -1,6 +1,6 @@
 "use client";
 
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { useState, useRef, useEffect } from "react";
 import { useChat, type UIMessage } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
@@ -10,8 +10,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { startInterviewAction, saveInterviewMessagesAction, finishInterviewAction } from "@/features/interview/actions";
-import { cn } from "@/lib/utils";
+import {
+    startInterviewAction,
+    saveInterviewMessagesAction,
+    finishInterviewAction,
+} from "@/features/interview/application/interview.use-cases";
+import { cn } from "@/shared-kernel/utils";
 import { Send, Bot, User, Sparkles, CheckCircle2, Zap, Award as Trophy, Loader2, Flame, Users } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";

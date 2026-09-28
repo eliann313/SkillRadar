@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -16,9 +16,9 @@ import {
     DialogFooter,
     DialogDescription,
 } from "@/components/ui/dialog";
-import type { TalentCard } from "@/lib/types";
-import { getSeniorityColor } from "@/lib/seniority";
-import { cn } from "@/lib/utils";
+import type { TalentCard } from "@/shared-kernel/types";
+import { getSeniorityColor } from "@/shared-kernel/seniority";
+import { cn } from "@/shared-kernel/utils";
 import {
     Search,
     Users,
@@ -41,7 +41,7 @@ import {
     toggleShortlistAction,
     searchTalentPoolAIAction,
     getMarketIntelligenceDataAction,
-} from "@/features/recruiter/actions";
+} from "@/features/recruiter/application/recruiter.use-cases";
 import { toast } from "sonner";
 import { CandidateDetailModal } from "./candidate-detail-modal";
 import { CandidateCompare } from "./candidate-compare";
@@ -50,7 +50,7 @@ import {
     saveSearchAction,
     deleteSavedSearchAction,
     type SavedSearchDTO,
-} from "@/features/saved-searches/actions";
+} from "@/features/saved-searches/application/saved-searches.use-cases";
 import {
     ResponsiveContainer,
     BarChart,

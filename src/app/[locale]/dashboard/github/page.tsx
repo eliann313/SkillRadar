@@ -1,7 +1,7 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/infrastructure/auth";
 import { redirect } from "next/navigation";
-import { GithubAnalysisRepository } from "@/features/github/repository";
-import { GitHubDashboardClient } from "./client-page";
+import { GithubAnalysisRepository } from "@/features/github/infrastructure/github.repository";
+import { GitHubDashboardClient } from "@/features/github/presentation/github-dashboard.client";
 
 export default async function GithubDashboardPage() {
     const session = await auth();

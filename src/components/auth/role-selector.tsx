@@ -1,14 +1,14 @@
 "use client";
 
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSession } from "next-auth/react";
-import { updateUserRole } from "@/lib/auth-actions";
-import type { UserRole } from "@/lib/types";
+import { updateUserRole } from "@/infrastructure/auth-actions";
+import type { UserRole } from "@/shared-kernel/types";
 import { Code2, Users, ArrowRight, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared-kernel/utils";
 
 const roles: {
     id: UserRole;

@@ -1,4 +1,4 @@
-import type { CVAnalysis, JobMatch } from "@/lib/types";
+import type { CVAnalysis, JobMatch } from "@/shared-kernel/types";
 
 /**
  * Datos 100% ficticios para la demo pública (/demo) y la landing.

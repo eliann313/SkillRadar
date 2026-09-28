@@ -1,5 +1,5 @@
 "use client";
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -11,9 +11,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Plus, Printer, Save, Mail, Phone, Globe, X } from "lucide-react";
 import { toast } from "sonner";
-import { analyzeImpactVerbsAction, saveResumeDataAction } from "@/features/resume-builder/actions";
-import { getUserResumesAction } from "@/features/cv-analysis/actions";
-import { safeParseJson } from "@/lib/pii";
+import {
+    analyzeImpactVerbsAction,
+    saveResumeDataAction,
+} from "@/features/resume-builder/application/resume-builder.use-cases";
+import { getUserResumesAction } from "@/features/cv-analysis/application/cv-analysis.use-cases";
+import { safeParseJson } from "@/shared-kernel/pii";
 import { useTranslations } from "next-intl";
 
 // Lucide Icon Mocks because simple svg icons are cleaner for PDF exports

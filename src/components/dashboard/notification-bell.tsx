@@ -1,15 +1,19 @@
 "use client";
 
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { getNotificationsAction, markAsReadAction, markAllAsReadAction } from "@/features/notifications/actions";
+import {
+    getNotificationsAction,
+    markAsReadAction,
+    markAllAsReadAction,
+} from "@/features/notifications/application/notifications.use-cases";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared-kernel/utils";
 import type { Notification } from "@prisma/client";
 
 export function NotificationBell() {

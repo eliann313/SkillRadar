@@ -1,6 +1,6 @@
 "use client";
 
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { useTranslations } from "next-intl";
 import { useSession, signOut } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
@@ -49,8 +49,8 @@ import {
     saveUserNotificationPreferencesAction,
 } from "./actions";
 
-import { API_KEY_PRESET_PLACEHOLDER } from "@/lib/crypto";
-import { PROVIDER_MODELS } from "@/lib/ai/models";
+import { API_KEY_PRESET_PLACEHOLDER } from "@/infrastructure/crypto";
+import { PROVIDER_MODELS } from "@/infrastructure/ai/models";
 
 export function getProviderModels(prov: string) {
     switch (prov) {

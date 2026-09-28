@@ -1,6 +1,6 @@
-import { auth } from "@/lib/auth";
-import { checkCVRateLimit } from "@/lib/rate-limit";
-import { validateBlobFileUrl } from "@/lib/file-storage";
+import { auth } from "@/infrastructure/auth";
+import { checkCVRateLimit } from "@/infrastructure/rate-limit";
+import { validateBlobFileUrl } from "@/infrastructure/file-storage";
 import { get as getBlob } from "@vercel/blob";
 
 /**
@@ -23,7 +23,7 @@ export async function GET(request: Request): Promise<Response> {
     }
 
     // Ownership: solo el dueño del resume puede descargar su fileKey (evita IDOR)
-    const { db } = await import("@/lib/db");
+    const { db } = await import("@/infrastructure/db");
     const owned = await db.resume.findFirst({
         where: { userId: session.user.id, fileUrl: validation.validatedUrl },
         select: { id: true, fileName: true },
