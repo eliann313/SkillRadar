@@ -10,8 +10,11 @@ module.exports = {
             name: "hex-no-feature-to-feature",
             severity: "error",
             comment:
-                "Hexagonal: un feature nunca importa de otro feature. Compartir vía lib/shared-kernel o puerto explícito.",
-            from: { path: "^src/features/([^/]+)/", pathNot: "^src/features/jobs/ports\\.ts$" },
+                "Hexagonal: un feature nunca importa de otro feature. Compartir vía lib/shared-kernel o puerto explícito. Tests (*.test.*) pueden cablear adaptadores.",
+            from: {
+                path: "^src/features/([^/]+)/",
+                pathNot: ["^src/features/jobs/ports\\.ts$", "\\.test\\."],
+            },
             to: { path: "^src/features/", pathNot: "^src/features/$1/" },
         },
         {
