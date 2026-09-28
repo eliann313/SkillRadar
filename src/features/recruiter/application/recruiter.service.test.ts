@@ -190,3 +190,57 @@ describe("RecruiterService — shortlist, contacto y market intelligence (DB moc
         });
     });
 });
+
+describe("RecruiterService — Doble Ciego en rankTalentPool (DB mockeada)", () => {
+    const developer = {
+        id: "dev-1",
+        name: "Ada Lovelace",
+        email: "ada@example.com",
+        image: "https://example.com/ada.png",
+        resumes: [{ analysis: null, rawText: "React TypeScript 6 años senior" }],
+    };
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        vi.spyOn(db.user, "findMany").mockResolvedValue([developer] as never);
+        vi.spyOn(db.user, "findUnique").mockResolvedValue(null);
+    });
+
+    it("oculta PII cuando el contacto no esta aceptado", async () => {
+        vi.spyOn(db.contactRequest, "findMany").mockResolvedValue([]);
+
+        const [ranked] = await RecruiterService.rankTalentPool({ recruiterId: "rec-1", jobDescription: "React" });
+
+        expect(ranked.name).toBeNull();
+        expect(ranked.email).toBeNull();
+        expect(ranked.githubUsername).toBeNull();
+        expect(ranked.image).toBeNull();
+        expect(ranked.anonymousId).toMatch(/^DEV-/);
+        expect(JSON.stringify(ranked)).not.toContain("ada@example.com");
+        expect(JSON.stringify(ranked)).not.toContain("Ada Lovelace");
+    });
+
+    it("expone PII solo cuando el contacto esta aceptado", async () => {
+        vi.spyOn(db.contactRequest, "findMany").mockResolvedValue([
+            { developerId: "dev-1", status: "accepted", id: "cr-1" },
+        ] as never);
+
+        const [ranked] = await RecruiterService.rankTalentPool({ recruiterId: "rec-1", jobDescription: "React" });
+
+        expect(ranked.contactStatus).toBe("accepted");
+        expect(ranked.name).toBe("Ada Lovelace");
+        expect(ranked.email).toBe("ada@example.com");
+    });
+
+    it("oculta PII cuando el contacto esta pendiente", async () => {
+        vi.spyOn(db.contactRequest, "findMany").mockResolvedValue([
+            { developerId: "dev-1", status: "pending", id: "cr-1" },
+        ] as never);
+
+        const [ranked] = await RecruiterService.rankTalentPool({ recruiterId: "rec-1", jobDescription: "React" });
+
+        expect(ranked.contactStatus).toBe("pending");
+        expect(ranked.name).toBeNull();
+        expect(ranked.email).toBeNull();
+    });
+});
