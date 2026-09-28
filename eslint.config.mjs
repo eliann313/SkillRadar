@@ -2,6 +2,12 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 import reactCompiler from "eslint-plugin-react-compiler";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+// Versión pineada: eslint-plugin-react@7 usa context.getFilename() (eliminado en
+// ESLint 10) solo cuando version === "detect". Con versión explícita no hay crash.
+const { version: installedReactVersion } = require("react/package.json");
 
 const eslintConfig = defineConfig([
     ...nextVitals,
@@ -13,6 +19,9 @@ const eslintConfig = defineConfig([
                 project: true,
                 tsconfigRootDir: import.meta.dirname,
             },
+        },
+        settings: {
+            react: { version: installedReactVersion },
         },
         rules: {
             // ─────────────────────────────────────────

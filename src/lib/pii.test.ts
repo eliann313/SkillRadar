@@ -35,6 +35,13 @@ describe("lib/pii — Doble Ciego y PII", () => {
             expect(stripPIIForLLM(`https://example.com/cv.pdf ${pad}`)).toContain("[URL_REDACTED]");
         });
 
+        it("no confunde un substring github/linkedin en host ajeno (CodeQL)", () => {
+            const pad = "x".repeat(120);
+            const out = stripPIIForLLM(`https://evil.com/?x=github.com ${pad}`);
+            expect(out).toContain("[URL_REDACTED]");
+            expect(out).not.toContain("[PROFILE_LINK_REDACTED]");
+        });
+
         it("respeta maxChars", () => {
             const long = "a".repeat(7000);
             expect(stripPIIForLLM(long, 100).length).toBeLessThanOrEqual(100);

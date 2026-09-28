@@ -12,10 +12,12 @@ export function stripPIIForLLM(rawText: string, maxChars = 6000): string {
         const digits = m.replace(/\D/g, "");
         return digits.length >= 7 ? "[PHONE_REDACTED]" : m;
     });
-    // URLs (keep domain hint for github/linkedin as signal, redact rest)
+    // URLs (keep domain hint for github/linkedin as signal, redact rest).
+    // CodeQL js/incomplete-url-substring-sanitization: el host se compara
+    // exacto vía URL.hostname (un substring como "evil.com/?x=github.com"
+    // NO debe pasar como profile link).
     text = text.replace(/https?:\/\/[^\s)]+/gi, (url) => {
-        const lower = url.toLowerCase();
-        if (lower.includes("github.com") || lower.includes("linkedin.com")) return "[PROFILE_LINK_REDACTED]";
+        if (isProfileHost(url)) return "[PROFILE_LINK_REDACTED]";
         return "[URL_REDACTED]";
     });
     // LinkedIn / GitHub handles on plain text
@@ -40,6 +42,22 @@ export function stripPIIForLLM(rawText: string, maxChars = 6000): string {
         cleaned.push(line);
     }
     return cleaned.join("\n").slice(0, maxChars);
+}
+
+/** Host exacto de perfil (github/linkedin): evita substring-spoofing. */
+function isProfileHost(url: string): boolean {
+    let host: string;
+    try {
+        host = new URL(url).hostname.toLowerCase();
+    } catch {
+        return false;
+    }
+    return (
+        host === "github.com" ||
+        host.endsWith(".github.com") ||
+        host === "linkedin.com" ||
+        host.endsWith(".linkedin.com")
+    );
 }
 
 /** Remove emails/phones/urls that the model may have echoed back in generated text. */
