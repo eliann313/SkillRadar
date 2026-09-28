@@ -1,7 +1,7 @@
 /** @type {import('dependency-cruiser').IConfiguration} */
 module.exports = {
     // F4.2: reglas hexagonales en "error" (bloquean CI). La única excepción
-    // es jobs/ports.ts → job-match/service (adaptador por defecto del puerto
+    // es jobs/domain/jobs.ports.ts → job-match/service (adaptador por defecto del puerto
     // MatchProvider): excluida de la regla general vía `pathNot` y auditada
     // por la regla informativa `hex-jobs-port-adapter` (+ ADR-002).
     // Todo borde nuevo feature-to-feature rompe el build.
@@ -13,7 +13,7 @@ module.exports = {
                 "Hexagonal: un feature nunca importa de otro feature. Compartir vía lib/shared-kernel o puerto explícito. Tests (*.test.*) pueden cablear adaptadores.",
             from: {
                 path: "^src/features/([^/]+)/",
-                pathNot: ["^src/features/jobs/ports\\.ts$", "\\.test\\."],
+                pathNot: ["^src/features/jobs/domain/jobs\\.ports\\.ts$", "\\.test\\."],
             },
             to: { path: "^src/features/", pathNot: "^src/features/$1/" },
         },
@@ -22,7 +22,7 @@ module.exports = {
             severity: "info",
             comment:
                 "Excepción explícita y única (ADR-002 en docs/adr/0002-puerto-matching-jobs-jobmatch.md): el adaptador por defecto del puerto MatchProvider vive en job-match. Informativa: no bloquea.",
-            from: { path: "^src/features/jobs/ports\\.ts$" },
+            from: { path: "^src/features/jobs/domain/jobs\\.ports\\.ts$" },
             to: { path: "^src/features/" },
         },
         {
@@ -37,8 +37,16 @@ module.exports = {
             name: "hex-no-features-in-infra",
             severity: "error",
             comment: "Hexagonal: lib/ infra y shared-kernel no dependen de features.",
-            from: { path: "^src/lib/" },
+            from: { path: "^src/(lib|infrastructure|shared-kernel)/" },
             to: { path: "^src/features/" },
+        },
+        {
+            name: "hex-shared-kernel-pure",
+            severity: "error",
+            comment:
+                "Hexagonal: shared-kernel es puro (sin IO ni framework). No importa de infrastructure, features, app ni components.",
+            from: { path: "^src/shared-kernel/" },
+            to: { path: "^src/(infrastructure|features|app|components)/" },
         },
         {
             name: "hex-no-db-in-components",

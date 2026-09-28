@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { CheckCircle2, AlertTriangle, HelpCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared-kernel/utils";
 
 interface ExplainabilityPanelProps {
     isOpen: boolean;

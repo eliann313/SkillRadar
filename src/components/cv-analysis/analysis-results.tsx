@@ -5,8 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { RadialProgress } from "@/components/dashboard/radial-progress";
-import type { CVAnalysis } from "@/lib/types";
-import { getSeniorityColor } from "@/lib/seniority";
+import type { CVAnalysis } from "@/shared-kernel/types";
+import { getSeniorityColor } from "@/shared-kernel/seniority";
 import { Check, AlertTriangle, Lightbulb, Award, Eye, ShieldCheck, Cpu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExplainabilityPanel } from "@/components/explainability-panel";

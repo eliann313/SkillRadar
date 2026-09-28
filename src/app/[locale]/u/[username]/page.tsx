@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { db } from "@/infrastructure/db";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,8 +6,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { SkillRadarChart } from "@/components/dashboard";
 import { Globe, Shield, Calendar, Sparkles, Terminal, FileText, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
-import { trackServerEvent } from "@/lib/analytics";
+import { cn } from "@/shared-kernel/utils";
+import { trackServerEvent } from "@/infrastructure/analytics";
 import { getTranslations } from "next-intl/server";
 
 interface PageProps {

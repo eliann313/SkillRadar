@@ -1,6 +1,6 @@
 "use client";
 
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { signIn, useSession } from "next-auth/react";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { Mail, Loader2, Bot, Users, Lock, User, Eye, EyeOff, Sparkles } from "lucide-react";
 import { RoleSelector } from "./role-selector";
-import { registerUserAction } from "@/lib/auth-actions";
+import { registerUserAction } from "@/infrastructure/auth-actions";
 import { toast } from "sonner";
 import { Link } from "@/i18n/routing";
 import { useSearchParams } from "next/navigation";

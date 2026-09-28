@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/infrastructure/auth";
 import { notFound } from "next/navigation";
 import React from "react";
 

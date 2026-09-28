@@ -1,9 +1,9 @@
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { checkGithubRateLimit } from "@/lib/rate-limit";
-import { GithubAnalysisService } from "@/features/github/service";
+import { auth } from "@/infrastructure/auth";
+import { checkGithubRateLimit } from "@/infrastructure/rate-limit";
+import { GithubAnalysisService } from "@/features/github/application/github.service";
 
 export async function POST(req: NextRequest) {
     const session = await auth();

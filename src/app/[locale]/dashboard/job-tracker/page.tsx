@@ -1,12 +1,12 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/infrastructure/auth";
 import { redirect } from "next/navigation";
-import { JobTrackerService } from "@/features/job-tracker/service";
+import { JobTrackerService } from "@/features/job-tracker/application/job-tracker.service";
 import { KanbanBoard } from "@/components/job-tracker/kanban-board";
 import {
     createJobApplicationAction,
     updateJobApplicationStatusAction,
     deleteJobApplicationAction,
-} from "@/features/job-tracker/actions";
+} from "@/features/job-tracker/application/job-tracker.use-cases";
 import { getTranslations } from "next-intl/server";
 
 export default async function JobTrackerPage() {

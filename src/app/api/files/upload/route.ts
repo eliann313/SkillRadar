@@ -1,6 +1,6 @@
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
-import { auth } from "@/lib/auth";
-import { MAX_CV_FILE_SIZE } from "@/lib/file-storage";
+import { auth } from "@/infrastructure/auth";
+import { MAX_CV_FILE_SIZE } from "@/infrastructure/file-storage";
 
 export async function POST(request: Request): Promise<Response> {
     const body = (await request.json()) as HandleUploadBody;

@@ -4,8 +4,8 @@ import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, TrendingDown, TrendingUp, Minus } from "lucide-react";
-import { safeParseJson } from "@/lib/pii";
-import { cn } from "@/lib/utils";
+import { safeParseJson } from "@/shared-kernel/pii";
+import { cn } from "@/shared-kernel/utils";
 
 export interface DiffableResume {
     id: string;

@@ -1,12 +1,12 @@
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { auth } from "@/infrastructure/auth";
+import { db } from "@/infrastructure/db";
 import { streamText } from "ai";
-import { AIService } from "@/lib/ai";
-import { isValidProviderAndModel } from "@/lib/ai/models";
-import { safeParseJson } from "@/lib/pii";
+import { AIService } from "@/infrastructure/ai";
+import { isValidProviderAndModel } from "@/infrastructure/ai/models";
+import { safeParseJson } from "@/shared-kernel/pii";
 
 export async function POST(req: NextRequest) {
     const session = await auth();
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "No autorizado." }, { status: 401 });
     }
 
-    const { checkAIChatRateLimit } = await import("@/lib/rate-limit");
+    const { checkAIChatRateLimit } = await import("@/infrastructure/rate-limit");
     const rl = await checkAIChatRateLimit(`user:${session.user.id}`);
     if (!rl.success) {
         return NextResponse.json({ error: "Límite diario de chat IA alcanzado." }, { status: 429 });

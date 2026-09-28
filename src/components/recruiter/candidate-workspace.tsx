@@ -14,7 +14,7 @@ import {
     saveScorecardAction,
     type CandidateNoteDTO,
     type ScorecardDTO,
-} from "@/features/application-notes/actions";
+} from "@/features/application-notes/application/application-notes.use-cases";
 
 interface Criterion {
     question: string;

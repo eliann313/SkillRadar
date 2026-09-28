@@ -10,16 +10,16 @@
         "overrides": [
             // registerUserAction y requestPasswordResetAction DEBEN ser públicas (registro/recupero); protegidas por rate-limit + Zod + bcrypt. Verificado manual 2026-09-26.
             {
-                "files": ["src/lib/auth-actions.ts"],
+                "files": ["src/infrastructure/auth-actions.ts"],
                 "rules": ["react-doctor/server-auth-actions"]
             },
-            // Auth vía helpers que el scanner no reconoce: assertAdmin (admin), requireRecruiter (notes), checks inline + requireUser (thread/roadmap). Verificado manual 2026-09-26.
+            // Auth vía helpers que el scanner no reconoce: assertAdmin (admin), requireRecruiter (notes), checks inline + requireUser (thread/roadmap). Verificado manual 2026-09-26. Rutas actualizadas en refactor screaming/hexagonal (ADR-003).
             {
                 "files": [
-                    "src/features/admin/actions.ts",
-                    "src/features/application-notes/actions.ts",
-                    "src/features/contact-thread/actions.ts",
-                    "src/features/roadmap/actions.ts"
+                    "src/features/admin/application/admin.use-cases.ts",
+                    "src/features/application-notes/application/application-notes.use-cases.ts",
+                    "src/features/contact-thread/application/contact-thread.use-cases.ts",
+                    "src/features/roadmap/application/roadmap.use-cases.ts"
                 ],
                 "rules": ["react-doctor/server-auth-actions"]
             },

@@ -1,6 +1,6 @@
 "use client";
 
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import {
     getPendingReportsAction,
     getPendingVerificationsAction,
     reviewVerificationAction,
-} from "@/features/admin/actions";
+} from "@/features/admin/application/admin.use-cases";
 
 interface FunnelData {
     registered: number;

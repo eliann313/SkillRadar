@@ -1,6 +1,6 @@
 "use client";
 
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +28,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { getUserResumesAction, setActiveResumeAction, deleteResumeAction } from "@/features/cv-analysis/actions";
+import {
+    getUserResumesAction,
+    setActiveResumeAction,
+    deleteResumeAction,
+} from "@/features/cv-analysis/application/cv-analysis.use-cases";
 import { ResumeDiff, type DiffableResume } from "@/components/cv-analysis";
 
 interface ResumeItem {

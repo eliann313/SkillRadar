@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/infrastructure/auth";
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/layout";
 import { getTranslations } from "next-intl/server";

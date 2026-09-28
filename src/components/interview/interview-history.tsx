@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
-import { getInterviewHistoryAction, type InterviewHistoryItem } from "@/features/interview/actions";
+import {
+    getInterviewHistoryAction,
+    type InterviewHistoryItem,
+} from "@/features/interview/application/interview.use-cases";
 
 export function InterviewHistory() {
     const t = useTranslations("MockInterview");

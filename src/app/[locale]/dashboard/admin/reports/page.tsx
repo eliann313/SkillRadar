@@ -1,6 +1,6 @@
 "use client";
 
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { useEffect, useState } from "react";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,11 @@ import {
 import { AlertTriangle, ChevronLeft, ShieldCheck, UserX, Loader2, Info } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { getPendingReportsAction, dismissReportAction, suspendUserAction } from "@/features/admin/actions";
+import {
+    getPendingReportsAction,
+    dismissReportAction,
+    suspendUserAction,
+} from "@/features/admin/application/admin.use-cases";
 
 interface ReportItem {
     id: string;

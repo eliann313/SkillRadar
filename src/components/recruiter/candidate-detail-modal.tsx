@@ -1,8 +1,8 @@
 "use client";
 
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { useState } from "react";
-import type { TalentCard } from "@/lib/types";
+import type { TalentCard } from "@/shared-kernel/types";
 import {
     Dialog,
     DialogContent,
@@ -31,12 +31,12 @@ import {
     generateInterviewQuestionsAction,
     generateCandidatePitchSummaryAction,
     generateCandidateOutreachAction,
-} from "@/features/recruiter/actions";
+} from "@/features/recruiter/application/recruiter.use-cases";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { jsPDF } from "jspdf";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared-kernel/utils";
 
 interface CandidateDetailModalProps {
     isOpen: boolean;

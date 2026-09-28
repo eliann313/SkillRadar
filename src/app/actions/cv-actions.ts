@@ -1,9 +1,9 @@
 "use server";
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 
-import { auth } from "@/lib/auth";
-import { checkCVRateLimit } from "@/lib/rate-limit";
-import { validateBlobFileUrl } from "@/lib/file-storage";
+import { auth } from "@/infrastructure/auth";
+import { checkCVRateLimit } from "@/infrastructure/rate-limit";
+import { validateBlobFileUrl } from "@/infrastructure/file-storage";
 
 export async function getSignedFileUrlAction(
     fileUrl: string,
@@ -25,7 +25,7 @@ export async function getSignedFileUrlAction(
         }
 
         // 3. Ownership: solo el dueño del resume puede ver su archivo (evita IDOR)
-        const { db } = await import("@/lib/db");
+        const { db } = await import("@/infrastructure/db");
         const owned = await db.resume.findFirst({
             where: { userId: session.user.id, fileUrl: validation.validatedUrl },
             select: { id: true },

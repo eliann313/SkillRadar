@@ -1,11 +1,11 @@
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { auth } from "@/infrastructure/auth";
+import { db } from "@/infrastructure/db";
 import { streamText } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { env } from "@/lib/env";
+import { env } from "@/infrastructure/env";
 
 // 18.2: Interview mode system prompts
 type InterviewMode = "standard" | "pressure" | "recruiter_simulation";
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "No autorizado." }, { status: 401 });
     }
 
-    const { checkAIChatRateLimit } = await import("@/lib/rate-limit");
+    const { checkAIChatRateLimit } = await import("@/infrastructure/rate-limit");
     const rl = await checkAIChatRateLimit(`user:${session.user.id}`);
     if (!rl.success) {
         return NextResponse.json({ error: "Límite diario de chat IA alcanzado." }, { status: 429 });
@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
 
         if (interviewSession.user.geminiApiKey) {
             try {
-                const { decrypt } = await import("@/lib/crypto");
+                const { decrypt } = await import("@/infrastructure/crypto");
                 const decrypted = decrypt(interviewSession.user.geminiApiKey);
                 if (decrypted) {
                     apiKey = decrypted;

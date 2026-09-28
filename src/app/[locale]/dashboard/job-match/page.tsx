@@ -1,17 +1,17 @@
 "use client";
 
-import { logger } from "@/lib/logger";
+import { logger } from "@/infrastructure/logger";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { JobOfferInput, MatchScoreCard } from "@/components/job-match";
-import type { JobMatch } from "@/lib/types";
+import type { JobMatch } from "@/shared-kernel/types";
 import { redirect } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MatchSkeleton } from "@/components/ui/loading-skeletons";
-import { getUserResumesAction } from "@/features/cv-analysis/actions";
-import { createJobMatchAction } from "@/features/job-match/actions";
+import { getUserResumesAction } from "@/features/cv-analysis/application/cv-analysis.use-cases";
+import { createJobMatchAction } from "@/features/job-match/application/job-match.use-cases";
 import { toast } from "sonner";
-import type { JobMatchAnalysis } from "@/features/job-match/types";
+import type { JobMatchAnalysis } from "@/features/job-match/domain/job-match.types";
 import { useTranslations } from "next-intl";
 
 export default function JobMatchPage() {

@@ -1,8 +1,8 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/infrastructure/auth";
 import { redirect } from "next/navigation";
-import { getSentContactRequestsAction } from "@/features/recruiter/actions";
+import { getSentContactRequestsAction } from "@/features/recruiter/application/recruiter.use-cases";
 import { getTranslations } from "next-intl/server";
-import { RequestsClientPage } from "./client-page";
+import { RequestsClientPage } from "@/features/recruiter/presentation/recruiter-requests.client";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
