@@ -82,6 +82,7 @@ Promueve el uso de verbos activos de impacto en primera persona del pasado (ej: 
 === INICIO DEL TEXTO ===
 ${experienceText}
 === FIN DEL TEXTO ===`,
+            userId: session.user.id,
             userSettings,
         });
 

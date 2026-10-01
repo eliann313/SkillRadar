@@ -143,6 +143,7 @@ ${JSON.stringify(
     null,
     2,
 )}`,
+                userId,
                 userSettings,
             });
 
