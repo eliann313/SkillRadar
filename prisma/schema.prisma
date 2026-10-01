@@ -307,7 +307,7 @@ model ContentReport {
 
 model AnalyticsEvent {
   id        String   @id @default(cuid())
-  name      String   // cv_uploaded, job_match_completed, public_profile_viewed, contact_request_sent, job_posting_applied, user_registered
+  name      String   // cv_uploaded, job_match_completed, public_profile_viewed, contact_request_sent, job_posting_applied, user_registered, ai_inference_succeeded, ai_inference_failed
   userHash  String?  // Hash SHA-256 del userId para agrupar conversiones sin revelar PII
   createdAt DateTime @default(now())
 }

@@ -33,7 +33,7 @@ import {
     setActiveResumeAction,
     deleteResumeAction,
 } from "@/features/cv-analysis/application/cv-analysis.use-cases";
-import { ResumeDiff, type DiffableResume } from "@/components/cv-analysis";
+import { ResumeDiff, type DiffableResume } from "@/features/cv-analysis/presentation";
 
 interface ResumeItem {
     id: string;

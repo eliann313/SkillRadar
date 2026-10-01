@@ -4,7 +4,7 @@ import { logger } from "@/infrastructure/logger";
 import { auth } from "@/infrastructure/auth";
 import { isGuestSession, GUEST_WRITE_ERROR } from "@/infrastructure/guest-guard";
 import { InterviewService } from "./interview.service";
-import { InterviewRepository } from "../infrastructure/interview.repository";
+import { defaultInterviewStore as interviewStore } from "../infrastructure/interview.repository";
 import { revalidatePath } from "next/cache";
 
 export async function startInterviewAction() {
@@ -35,7 +35,7 @@ export async function saveInterviewMessagesAction(id: string, messages: Array<{ 
     }
 
     try {
-        await InterviewRepository.updateMessages(id, session.user.id, messages);
+        await interviewStore.updateMessages(id, session.user.id, messages);
         return { success: true };
     } catch (error: unknown) {
         logger.error("[saveInterviewMessagesAction] Error:", error);
@@ -86,7 +86,7 @@ export async function getInterviewHistoryAction(): Promise<
         return { success: false, error: "No autorizado." };
     }
     try {
-        const sessions = await InterviewRepository.listByUserId(session.user.id);
+        const sessions = await interviewStore.listByUserId(session.user.id);
         return {
             success: true,
             data: sessions.slice(0, 20).map((s) => {

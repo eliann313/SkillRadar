@@ -8,12 +8,12 @@
     "ignore": {
         "files": [".next/**", "out/**", "build/**", "coverage/**", "playwright-report/**"],
         "overrides": [
-            // registerUserAction y requestPasswordResetAction DEBEN ser públicas (registro/recupero); protegidas por rate-limit + Zod + bcrypt. Verificado manual 2026-09-26.
+            // registerUserAction y requestPasswordResetAction DEBEN ser públicas (registro/recupero); protegidas por rate-limit + Zod + bcrypt. Verificado manual 2026-09-26, re-verificado Fase 1 (2026-09-28): save/register con checkLoginRateLimit + registerSchema + bcrypt; reset con token + expiración.
             {
                 "files": ["src/infrastructure/auth-actions.ts"],
                 "rules": ["react-doctor/server-auth-actions"]
             },
-            // Auth vía helpers que el scanner no reconoce: assertAdmin (admin), requireRecruiter (notes), checks inline + requireUser (thread/roadmap). Verificado manual 2026-09-26. Rutas actualizadas en refactor screaming/hexagonal (ADR-003).
+            // Auth vía helpers que el scanner no reconoce (verificado manual 2026-09-26, re-verificado Fase 1 2026-09-28): admin.assertAdmin->assertActiveUser->auth()+rol admin; notes.requireRecruiter->auth()+rol recruiter; thread auth() inline + ownership; roadmap.requireUser->auth(). Rutas actualizadas en refactor screaming/hexagonal (ADR-003).
             {
                 "files": [
                     "src/features/admin/application/admin.use-cases.ts",
@@ -23,10 +23,15 @@
                 ],
                 "rules": ["react-doctor/server-auth-actions"]
             },
-            // El timer de cv-upload-form se guarda y se limpia en el cleanup del efecto. Verificado manual 2026-09-26.
+            // El timer de cv-upload-form se guarda y se limpia en el cleanup del efecto (clearTimeout verificado en el return del useEffect; el scanner no lo sigue dentro del handler). Verificado manual 2026-09-26, ruta actualizada en Fase 0 (movido a features). Re-verificado 2026-10-01.
             {
-                "files": ["src/components/cv-analysis/cv-upload-form.tsx"],
+                "files": ["src/features/cv-analysis/presentation/cv-upload-form.tsx"],
                 "rules": ["react-doctor/effect-needs-cleanup"]
+            },
+            // deleteUserApiKeyAction y getMyUsageAction verifican auth() + early return sin sesion + guest-guard antes de tocar DB (mismo patron que el resto del archivo). El scanner no reconoce el patron inline. Verificado manual Fase 1/5 (2026-10-01).
+            {
+                "files": ["src/app/[locale]/dashboard/settings/actions.ts"],
+                "rules": ["react-doctor/server-auth-actions"]
             }
         ]
     },

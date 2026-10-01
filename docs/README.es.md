@@ -86,7 +86,7 @@ La lógica de dominio vive en `src/features/*` como módulos hexagonales (`domai
 - **Límites de Ratio (Rate Limiting)**: Upstash Redis Web SDK (`@upstash/ratelimit`).
 - **Orquestación de IA y Modelos LLM**: Vercel AI SDK (`ai` v7 / `@ai-sdk` v4) con soporte multi-proveedor (Google Gemini, OpenAI, Anthropic Claude, Groq y OpenRouter) y sistema de fallback automático en cascada.
 - **Internacionalización**: `next-intl` ^4.x.
-- **Pruebas Unitarias**: Vitest 4.x & `@testing-library/react` (126 tests, ~40% cobertura de líneas con piso anti-regresión).
+- **Pruebas Unitarias**: Vitest 4.x & `@testing-library/react` (139 tests, ~40% cobertura de líneas con piso anti-regresión).
 - **Pruebas E2E**: Playwright ^1.61.0.
 - **Arquitectura y Código Muerto**: dependency-cruiser 18 (gates hexagonales) + Knip.
 
@@ -221,7 +221,7 @@ cmd /c npm run format:check
 # Análisis estático y linter (ESLint + React Compiler)
 cmd /c npm run lint
 
-# Pruebas unitarias y de integración con piso de cobertura (Vitest, 126 tests / ~40% líneas)
+# Pruebas unitarias y de integración con piso de cobertura (Vitest, 139 tests / ~40% líneas)
 cmd /c npm run test -- --coverage
 
 # Gates de arquitectura hexagonal (dependency-cruiser, severidad error)

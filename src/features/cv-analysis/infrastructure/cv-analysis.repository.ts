@@ -2,14 +2,19 @@ import { db } from "@/infrastructure/db";
 import type { ResumeAnalysisData, ResumeCreateData, ResumeStore } from "../domain/cv-analysis.ports";
 import type { Prisma } from "@prisma/client";
 
-export class ResumeRepository {
-    static async create(data: ResumeCreateData) {
+/**
+ * Adaptador por defecto del puerto `ResumeStore` (ADR-003, Fase 0).
+ * Sin clase intermedia: el store implementa Prisma directo y el servicio
+ * y los use-cases solo conocen el puerto. Tests inyectan otro `ResumeStore`.
+ */
+export const defaultResumeStore: ResumeStore = {
+    async create(data: ResumeCreateData) {
         return await db.resume.create({
             data,
         });
-    }
+    },
 
-    static async updateAnalysis(id: string, userId: string, data: ResumeAnalysisData) {
+    async updateAnalysis(id: string, userId: string, data: ResumeAnalysisData) {
         return await db.resume.update({
             where: { id, userId },
             data: {
@@ -17,22 +22,22 @@ export class ResumeRepository {
                 analysis: data.analysis as unknown as Prisma.InputJsonValue, // Cast seguro para compatibilidad de tipos estrictos con Prisma JSON
             },
         });
-    }
+    },
 
-    static async findByUserId(userId: string) {
+    async findByUserId(userId: string) {
         return await db.resume.findMany({
             where: { userId },
             orderBy: { createdAt: "desc" },
         });
-    }
+    },
 
-    static async delete(id: string, userId: string) {
+    async delete(id: string, userId: string) {
         return await db.resume.delete({
             where: { id, userId },
         });
-    }
+    },
 
-    static async setActive(id: string, userId: string) {
+    async setActive(id: string, userId: string) {
         return await db.$transaction([
             db.resume.updateMany({
                 where: { userId },
@@ -43,9 +48,9 @@ export class ResumeRepository {
                 data: { isActive: true },
             }),
         ]);
-    }
+    },
 
-    static async getActive(userId: string) {
+    async getActive(userId: string) {
         const active = await db.resume.findFirst({
             where: { userId, isActive: true },
         });
@@ -54,18 +59,5 @@ export class ResumeRepository {
             where: { userId },
             orderBy: { createdAt: "desc" },
         });
-    }
-}
-
-/**
- * Adaptador por defecto del puerto `ResumeStore` (ADR-003).
- * La aplicación inyecta otro `ResumeStore` en tests; el servicio usa este.
- */
-export const defaultResumeStore: ResumeStore = {
-    create: (data) => ResumeRepository.create(data),
-    updateAnalysis: (id, userId, data) => ResumeRepository.updateAnalysis(id, userId, data),
-    findByUserId: (userId) => ResumeRepository.findByUserId(userId),
-    delete: (id, userId) => ResumeRepository.delete(id, userId),
-    setActive: (id, userId) => ResumeRepository.setActive(id, userId),
-    getActive: (userId) => ResumeRepository.getActive(userId),
+    },
 };

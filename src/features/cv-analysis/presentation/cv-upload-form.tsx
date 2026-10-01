@@ -12,7 +12,7 @@ import { cn } from "@/shared-kernel/utils";
 import { Upload, FileText, ChevronDown, X, Loader2, Sparkles } from "lucide-react";
 import { upload } from "@vercel/blob/client";
 import { toast } from "sonner";
-import { getSignedFileUrlAction } from "@/app/actions/cv-actions";
+import { getSignedFileUrlAction } from "@/features/cv-analysis/application/cv-analysis.use-cases";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 

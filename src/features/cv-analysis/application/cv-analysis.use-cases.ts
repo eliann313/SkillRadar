@@ -4,11 +4,12 @@ import { logger } from "@/infrastructure/logger";
 import { auth, assertActiveUser } from "@/infrastructure/auth";
 import { trackServerEvent } from "@/infrastructure/analytics";
 import { CVAnalysisService } from "./cv-analysis.service";
-import { ResumeRepository } from "../infrastructure/cv-analysis.repository";
+import { defaultResumeStore as resumeStore } from "../infrastructure/cv-analysis.repository";
 import type { Resume, Prisma } from "@prisma/client";
 import type { ActionResult } from "@/shared-kernel/action-result";
 import { revalidatePath } from "next/cache";
 import { checkCVRateLimit, getClientIp } from "@/infrastructure/rate-limit";
+import { validateBlobFileUrl } from "@/infrastructure/file-storage";
 import { db } from "@/infrastructure/db";
 import { AIService, type AIServiceOptions } from "@/infrastructure/ai";
 import { z } from "zod";
@@ -193,7 +194,7 @@ export async function getUserResumesAction(): Promise<ActionResult<Resume[]>> {
             return { success: false, error: "No autorizado." };
         }
 
-        const resumes = await ResumeRepository.findByUserId(session.user.id);
+        const resumes = await resumeStore.findByUserId(session.user.id);
         return {
             success: true,
             data: resumes,
@@ -308,7 +309,7 @@ export async function setActiveResumeAction(id: string): Promise<ActionResult<bo
         const session = await assertActiveUser();
         const userId = session.user.id;
 
-        await ResumeRepository.setActive(id, userId);
+        await resumeStore.setActive(id, userId);
 
         revalidatePath("/dashboard");
         revalidatePath("/dashboard/settings/resumes");
@@ -361,7 +362,7 @@ export async function deleteResumeAction(
         }
 
         // Proceder a eliminar
-        await ResumeRepository.delete(id, userId);
+        await resumeStore.delete(id, userId);
 
         // Si era el CV activo, marcar el más reciente restante como activo de forma predeterminada
         if (resume.isActive) {
@@ -370,7 +371,7 @@ export async function deleteResumeAction(
                 orderBy: { createdAt: "desc" },
             });
             if (latestRemaining) {
-                await ResumeRepository.setActive(latestRemaining.id, userId);
+                await resumeStore.setActive(latestRemaining.id, userId);
             }
         }
 
@@ -664,6 +665,59 @@ ${demandedSkills.join(", ") || "React, Node.js, TypeScript, Next.js, Docker, AWS
         return {
             success: false,
             error: error instanceof Error ? error.message : "Error al procesar las sugerencias del Career Copilot.",
+        };
+    }
+}
+
+/**
+ * Genera una URL de vista con ownership para un archivo de CV.
+ * Migrado desde `src/app/actions/cv-actions.ts` (Fase 0): logica de dominio
+ * CV que vivia en la capa app. Auth + anti-SSRF + IDOR + rate-limit.
+ */
+export async function getSignedFileUrlAction(
+    fileUrl: string,
+): Promise<{ success: boolean; url?: string; error?: string }> {
+    try {
+        // 1. Validar autenticación
+        const session = await auth();
+        if (!session?.user?.id) {
+            return {
+                success: false,
+                error: "No autorizado. Inicie sesión nuevamente.",
+            };
+        }
+
+        // 2. Validar que la URL pertenece a nuestro storage (barrera anti-SSRF)
+        const validation = validateBlobFileUrl(fileUrl);
+        if (!validation.ok) {
+            return { success: false, error: validation.error };
+        }
+
+        // 3. Ownership: solo el dueño del resume puede ver su archivo (evita IDOR)
+        const owned = await db.resume.findFirst({
+            where: { userId: session.user.id, fileUrl: validation.validatedUrl },
+            select: { id: true },
+        });
+        if (!owned) {
+            return { success: false, error: "Archivo no encontrado para este usuario." };
+        }
+
+        const rl = await checkCVRateLimit(`user:${session.user.id}`);
+        if (!rl.success) {
+            return { success: false, error: "Límite diario de descargas alcanzado." };
+        }
+
+        // 4. URL de vista vía proxy con ownership: la URL cruda de Blob nunca
+        // se expone de forma persistente al cliente.
+        return {
+            success: true,
+            url: `/api/files?url=${encodeURIComponent(validation.validatedUrl)}`,
+        };
+    } catch (error) {
+        logger.error("[getSignedFileUrlAction] Error:", error);
+        return {
+            success: false,
+            error: "Error al generar la URL de vista para el archivo.",
         };
     }
 }

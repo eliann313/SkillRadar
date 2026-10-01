@@ -5,11 +5,14 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 import { generateObject } from "ai";
 import { env } from "@/infrastructure/env";
 import { decrypt } from "@/infrastructure/crypto";
+import { trackAiUsage } from "@/infrastructure/ai-usage";
 
 export interface AIServiceOptions {
     schema: unknown;
     system?: string;
     prompt?: string;
+    /** Opcional: attribution anonimizada del uso (Fase 3). Sin userId el trackeo es anonimo. */
+    userId?: string;
     userSettings?: {
         geminiApiKeyEncrypted?: string | null;
         groqApiKeyEncrypted?: string | null;
@@ -135,7 +138,8 @@ export class AIService {
 
         let lastError: unknown = null;
 
-        for (const option of targetQueue) {
+        for (const [attempt, option] of targetQueue.entries()) {
+            const startedAt = Date.now();
             try {
                 logger.warn(
                     `🛡️ [AIService] Intentando inferencia estructurada con "${option.provider}" ("${option.model}")...`,
@@ -154,10 +158,26 @@ export class AIService {
                 } as unknown as Parameters<typeof generateObject>[0]);
 
                 logger.warn(`✅ [AIService] Inferencia completada con éxito vía "${option.provider}".`);
+                await trackAiUsage({
+                    provider: option.provider,
+                    model: option.model,
+                    latencyMs: Date.now() - startedAt,
+                    success: true,
+                    fallbackAttempt: attempt,
+                    userId: options.userId,
+                });
                 return object as T;
             } catch (error: unknown) {
                 const errMessage = error instanceof Error ? error.message : String(error);
                 logger.error("❌ [AIService] Falló la inferencia estructurada con:", option.provider, errMessage);
+                await trackAiUsage({
+                    provider: option.provider,
+                    model: option.model,
+                    latencyMs: Date.now() - startedAt,
+                    success: false,
+                    fallbackAttempt: attempt,
+                    userId: options.userId,
+                });
                 lastError = error;
             }
         }

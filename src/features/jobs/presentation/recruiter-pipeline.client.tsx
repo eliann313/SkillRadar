@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { cn } from "@/shared-kernel/utils";
 import { updateApplicationStatusAction } from "@/features/jobs/application/jobs.use-cases";
 import { DEFAULT_PIPELINE_STAGES } from "@/infrastructure/pipeline-stages";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Search } from "lucide-react";
 
 export interface PipelineItem {
     id: string;
@@ -132,7 +134,13 @@ export function PipelineClientPage({
                         </CardContent>
                     </Card>
                 ))}
-                {summary.length === 0 ? <p className="text-sm text-muted-foreground">{t("empty")}</p> : null}
+                {summary.length === 0 ? (
+                    <EmptyState
+                        icon={<Search className="size-5 text-muted-foreground" />}
+                        title={t("empty")}
+                        description={t("subtitle")}
+                    />
+                ) : null}
             </div>
 
             {/* Kanban global con drag & drop */}

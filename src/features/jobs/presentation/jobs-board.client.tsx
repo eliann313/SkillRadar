@@ -18,6 +18,8 @@ import { cn } from "@/shared-kernel/utils";
 import { safeParseJson } from "@/shared-kernel/pii";
 import { Flag } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorState } from "@/components/ui/error-state";
 
 interface JobPosting {
     id: string;
@@ -50,6 +52,7 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
     const [onlyHighMatch, setOnlyHighMatch] = useState(false);
     const [hideApplied, setHideApplied] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [applyingId, setApplyingId] = useState<string | null>(null);
     const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
 
@@ -59,6 +62,7 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
 
     const fetchJobs = useCallback(async () => {
         setLoading(true);
+        setLoadError(null);
         const filters = {
             search: search || undefined,
             remoteType: remoteType !== "all" ? remoteType : undefined,
@@ -68,6 +72,7 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
         if (res.success && res.data) {
             setJobs(res.data);
         } else {
+            setLoadError(t("filterError"));
             toast.error(t("filterError"));
         }
         setLoading(false);
@@ -245,10 +250,19 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                     <div className="p-12 text-center text-muted-foreground text-sm">
                         {t("loading", { default: "Cargando..." })}
                     </div>
+                ) : loadError && jobs.length === 0 ? (
+                    <ErrorState
+                        title={t("filterError")}
+                        description={loadError}
+                        retryLabel={t("retry")}
+                        onRetry={() => void fetchJobs()}
+                    />
                 ) : jobs.length === 0 ? (
-                    <div className="p-12 text-center text-muted-foreground text-sm border-dashed border-2 rounded-lg">
-                        {t("noOffers")}
-                    </div>
+                    <EmptyState
+                        icon={<Briefcase className="size-5 text-muted-foreground" />}
+                        title={t("noOffers")}
+                        description={t("subtitle")}
+                    />
                 ) : (
                     jobs
                         .filter((job) => {
