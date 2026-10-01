@@ -65,3 +65,17 @@ src/features/<contexto>/
   `presentation/` y `demo`); fusionarlo en `features/*/presentation` es el
   siguiente paso. Los `use-cases` que aún llaman al repositorio-clase
   directo (`cv-analysis`, `interview`, `github`) deben migrar al store.
+
+## Adenda 2026-10-01 (deuda saldada en `chore/deuda-follow-up`)
+
+- Settings/page (1648 líneas) partido en 9 cards (`profile`, `api-keys` +
+  `provider-key-field` parametrizado, `inference`, `plan-usage`, `public`,
+  `account-type`, `notifications`, `security-data` + tipos); page queda en
+  ~540 líneas de estado + composición. El warning de complejidad desaparece.
+- `AnalyticsEvent` suma `provider/model/latencyMs/success` (nullable, sin
+  migración destructiva) y `trackServerEvent` los persiste en eventos
+  `ai_inference_*`. **Pendiente manual**: `npx prisma db push` desde un
+  entorno con acceso a Neon (sin conectividad desde esta máquina, P1001);
+  hasta entonces el `catch` de `trackServerEvent` absorbe el error sin romper.
+- Los 13 callers de `generateStructuredObject` pasan `userId` (atribución
+  anonimizada lista).

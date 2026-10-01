@@ -141,6 +141,7 @@ Genera sugerencias con ejemplos de redacción de alto impacto (1 bueno + 1 malo 
 === INICIO DEL PERFIL (truncado 6000) ===
 ${profileText.slice(0, 6000)}
 === FIN DEL PERFIL ===`,
+            userId: session.user.id,
             userSettings,
         });
 

@@ -309,6 +309,10 @@ model AnalyticsEvent {
   id        String   @id @default(cuid())
   name      String   // cv_uploaded, job_match_completed, public_profile_viewed, contact_request_sent, job_posting_applied, user_registered, ai_inference_succeeded, ai_inference_failed
   userHash  String?  // Hash SHA-256 del userId para agrupar conversiones sin revelar PII
+  provider  String?  // Deuda Fase 3 saldada: split de costo IA por proveedor (solo eventos ai_inference_*)
+  model     String?  // Modelo usado (solo eventos ai_inference_*)
+  latencyMs Int?     // Latencia de la inferencia en ms (solo eventos ai_inference_*)
+  success   Boolean? // Exito de la inferencia (solo eventos ai_inference_*)
   createdAt DateTime @default(now())
 }
 

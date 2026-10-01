@@ -139,6 +139,7 @@ ${(resume.rawText || "").slice(0, 6000)}
 
 === OFERTA DE TRABAJO (JOB DESCRIPTION, truncada) ===
 ${params.jobOfferText.slice(0, 4000)}`,
+                userId: params.userId,
                 userSettings,
             });
 
@@ -404,6 +405,7 @@ ${resume.rawText || ""}
 
 === DESCRIPCIÓN DE LA OFERTA DE EMPLEO ===
 ${jobMatch.jobOfferText}`,
+                userId,
                 userSettings,
             });
 

@@ -636,6 +636,7 @@ ${resume.rawText}
 
 === HABILIDADES DETECTADAS EN OFERTAS DE TRABAJO (JOB BOARD) ===
 ${demandedSkills.join(", ") || "React, Node.js, TypeScript, Next.js, Docker, AWS, Testing, CI/CD"}`,
+            userId,
             userSettings,
         });
 

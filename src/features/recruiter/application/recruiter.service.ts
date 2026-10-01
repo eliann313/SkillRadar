@@ -190,6 +190,7 @@ ${stripPIIForLLM(activeResume.rawText || "")}
 
 === OFERTA DE TRABAJO (JOB DESCRIPTION) ===
 ${jdSanitized}`,
+                        userId: params.recruiterId,
                         userSettings,
                     });
                 } catch (aiError) {
@@ -522,6 +523,7 @@ Para cada pregunta generada, debes proveer la "Respuesta Esperada" o guía clave
 === TEXTO DEL CV DEL CANDIDATO (PII ELIMINADA) ===
 ${stripPIIForLLM(resume.rawText || "")}
 ${params.jobDescription ? `\n=== DESCRIPCIÓN DEL CARGO (JOB DESCRIPTION) ===\n${sanitizeText(params.jobDescription).slice(0, 4000)}` : ""}`,
+                userId: params.recruiterId,
                 userSettings,
             });
 
@@ -713,6 +715,7 @@ ATS Score base del CV: ${activeResume.atsScore || 0}%
 
 === BÚSQUEDA DEL RECLUTADOR ===
 ${querySanitized}`,
+                        userId: params.recruiterId,
                         userSettings,
                     });
                 } catch (aiError) {
@@ -952,6 +955,7 @@ ${querySanitized}`,
                 prompt: `Genera el resumen ejecutivo para este CV (PII ya eliminada):
 
 ${stripPIIForLLM(resume.rawText || "")}`,
+                userId: params.recruiterId,
                 userSettings,
             });
             return redactPIIFromModelOutput(res.summary);
@@ -1045,6 +1049,7 @@ ${stripPIIForLLM(resume.rawText || "")}`,
                 prompt: `Redacta el mensaje de contacto basándote en este currículum (PII ya eliminada):
 
 ${stripPIIForLLM(resume.rawText || "")}`,
+                userId: params.recruiterId,
                 userSettings,
             });
             return redactPIIFromModelOutput(res.message);
