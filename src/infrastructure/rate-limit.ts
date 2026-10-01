@@ -667,21 +667,21 @@ const USER_QUOTA_LIMITERS: ReadonlyArray<{
  */
 export async function getUserQuotaUsage(userId: string): Promise<UserQuotaUsage[]> {
     const identifier = `user:${userId}`.replace(/[^a-zA-Z0-9_\-:]/g, "");
-    const out: UserQuotaUsage[] = [];
-    for (const q of USER_QUOTA_LIMITERS) {
-        const limiter = q.resolve();
-        try {
-            if (limiter instanceof Ratelimit) {
-                const r = await limiter.getRemaining(identifier);
-                out.push({ key: q.key, limit: r.limit, remaining: r.remaining, reset: r.reset });
-            } else {
+    // Lecturas independientes: en paralelo (react-doctor/async-await-in-loop).
+    return Promise.all(
+        USER_QUOTA_LIMITERS.map(async (q): Promise<UserQuotaUsage> => {
+            const limiter = q.resolve();
+            try {
+                if (limiter instanceof Ratelimit) {
+                    const r = await limiter.getRemaining(identifier);
+                    return { key: q.key, limit: r.limit, remaining: r.remaining, reset: r.reset };
+                }
                 const r = await q.memory.peekRemaining(identifier);
-                out.push({ key: q.key, ...r });
+                return { key: q.key, ...r };
+            } catch (error) {
+                logger.error(`[RateLimit] Error leyendo uso de ${q.key}:`, error);
+                return { key: q.key, limit: q.limit, remaining: q.limit, reset: Date.now() + WINDOW_DURATION_MS };
             }
-        } catch (error) {
-            logger.error(`[RateLimit] Error leyendo uso de ${q.key}:`, error);
-            out.push({ key: q.key, limit: q.limit, remaining: q.limit, reset: Date.now() + WINDOW_DURATION_MS });
-        }
-    }
-    return out;
+        }),
+    );
 }
