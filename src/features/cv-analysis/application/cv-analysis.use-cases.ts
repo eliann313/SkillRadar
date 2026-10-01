@@ -344,9 +344,11 @@ export async function deleteResumeAction(
 
         // Si no se fuerza, contar relaciones asociadas para advertir al usuario
         if (!force) {
-            const matches = await db.jobMatch.count({ where: { resumeId: id } });
-            const interviews = await db.interviewSession.count({ where: { resumeId: id } });
-            const applications = await db.jobPostingApplication.count({ where: { resumeId: id } });
+            const [matches, interviews, applications] = await Promise.all([
+                db.jobMatch.count({ where: { resumeId: id } }),
+                db.interviewSession.count({ where: { resumeId: id } }),
+                db.jobPostingApplication.count({ where: { resumeId: id } }),
+            ]);
 
             if (matches > 0 || interviews > 0 || applications > 0) {
                 return {

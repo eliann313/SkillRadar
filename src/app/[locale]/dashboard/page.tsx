@@ -134,7 +134,7 @@ export default async function DashboardPage() {
         }));
 
     // 2. Obtener el último Job Match
-    const latestJobMatch = await db.jobMatch.findFirst({
+    const latestJobMatchPromise = db.jobMatch.findFirst({
         where: { userId },
         orderBy: { createdAt: "desc" },
         select: {
@@ -146,7 +146,7 @@ export default async function DashboardPage() {
     });
 
     // 3. Obtener el historial de CVs con score para el gráfico de progreso
-    const resumesHistory = await db.resume.findMany({
+    const resumesHistoryPromise = db.resume.findMany({
         where: {
             userId,
             atsScore: { not: null },
@@ -160,42 +160,54 @@ export default async function DashboardPage() {
         },
     });
 
-    // Formatear el historial para el gráfico
-    const historicalScores = resumesHistory.map((r) => ({
-        date: new Date(r.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-        score: r.atsScore || 0,
-        name: r.fileName,
-    }));
+    // Formatear el historial para el gráfico (tras el Promise.all de abajo)
+    const formatHistoricalScores = (history: Array<{ createdAt: Date; atsScore: number | null; fileName: string }>) =>
+        history.map((r) => ({
+            date: new Date(r.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+            score: r.atsScore || 0,
+            name: r.fileName,
+        }));
 
     // 4. Calcular el uso de límites del mes en curso
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const cvMonthCount = await db.resume.count({
-        where: {
-            userId,
-            createdAt: { gte: startOfMonth },
-        },
-    });
-
-    const jobMatchMonthCount = await db.jobMatch.count({
-        where: {
-            userId,
-            createdAt: { gte: startOfMonth },
-        },
-    });
-
-    const interviewMonthCount = await db.interviewSession.count({
-        where: {
-            userId,
-            createdAt: { gte: startOfMonth },
-        },
-    });
+    // Lecturas independientes en paralelo (Fase B): 7 queries de solo lectura.
+    const [
+        latestJobMatch,
+        resumesHistory,
+        cvMonthCount,
+        jobMatchMonthCount,
+        interviewMonthCount,
+        totalResumes,
+        totalMatches,
+    ] = await Promise.all([
+        latestJobMatchPromise,
+        resumesHistoryPromise,
+        db.resume.count({
+            where: {
+                userId,
+                createdAt: { gte: startOfMonth },
+            },
+        }),
+        db.jobMatch.count({
+            where: {
+                userId,
+                createdAt: { gte: startOfMonth },
+            },
+        }),
+        db.interviewSession.count({
+            where: {
+                userId,
+                createdAt: { gte: startOfMonth },
+            },
+        }),
+        db.resume.count({ where: { userId } }),
+        db.jobMatch.count({ where: { userId } }),
+    ]);
 
     // 5. Determinar la acción recomendada dinámicamente
-    const totalResumes = await db.resume.count({ where: { userId } });
-    const totalMatches = await db.jobMatch.count({ where: { userId } });
     const t = await getTranslations("Dashboard");
 
     let nextAction = {
@@ -254,7 +266,7 @@ export default async function DashboardPage() {
             {contactRequests.length > 0 && <ContactRequestsList requests={contactRequests} />}
             <NextAction {...nextAction} />
             <MetricsGrid latestResume={latestResume} latestJobMatch={latestJobMatch} limits={limits} />
-            <HistoricalChart scores={historicalScores} />
+            <HistoricalChart scores={formatHistoricalScores(resumesHistory)} />
         </div>
     );
 }

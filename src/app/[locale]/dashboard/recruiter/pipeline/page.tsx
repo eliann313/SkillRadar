@@ -25,9 +25,12 @@ export default async function RecruiterPipelinePage() {
     const columns = unionStages(Object.values(stagesByPosting));
 
     const items: PipelineItem[] = [];
-    for (const posting of postings) {
-        const apps = await JobPostingService.getJobPostingApplications(session.user.id, posting.id);
-        for (const app of apps) {
+    // Lecturas independientes por oferta en paralelo (solo queries, sin IA).
+    const appsByPosting = await Promise.all(
+        postings.map((posting) => JobPostingService.getJobPostingApplications(session.user.id, posting.id)),
+    );
+    for (const [idx, posting] of postings.entries()) {
+        for (const app of appsByPosting[idx]) {
             items.push({
                 id: app.id,
                 status: app.status,
