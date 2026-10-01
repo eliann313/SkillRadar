@@ -489,6 +489,7 @@
         "submitReport": "Enviar Reporte",
         "submittingReport": "Enviando...",
         "filterError": "Error al filtrar las ofertas.",
+        "retry": "Reintentar",
         "reportLengthError": "El motivo debe tener al menos 5 caracteres.",
         "reportSuccess": "El reporte ha sido enviado. Revisaremos el contenido a la brevedad.",
         "reportError": "Error al enviar el reporte.",

@@ -12,6 +12,8 @@ import {
     deleteTemplateAction,
     type OutreachTemplateDTO,
 } from "@/features/outreach-templates/application/outreach-templates.use-cases";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Mail } from "lucide-react";
 
 export function TemplatesClientPage({ initial }: { initial: OutreachTemplateDTO[] }) {
     const t = useTranslations("Templates");
@@ -143,7 +145,13 @@ export function TemplatesClientPage({ initial }: { initial: OutreachTemplateDTO[
                         </CardContent>
                     </Card>
                 ))}
-                {items.length === 0 ? <p className="text-sm text-muted-foreground">{t("empty")}</p> : null}
+                {items.length === 0 ? (
+                    <EmptyState
+                        icon={<Mail className="size-5 text-muted-foreground" />}
+                        title={t("empty")}
+                        description={t("subtitle")}
+                    />
+                ) : null}
             </div>
         </div>
     );

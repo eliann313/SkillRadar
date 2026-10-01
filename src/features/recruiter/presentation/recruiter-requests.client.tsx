@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import type { SentContactRequest } from "@/features/recruiter/application/recruiter.use-cases";
 import { useTranslations } from "next-intl";
 import { cn } from "@/shared-kernel/utils";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Inbox } from "lucide-react";
 
 const STATUSES = ["all", "pending", "accepted", "declined"] as const;
 
@@ -78,7 +80,13 @@ export function RequestsClientPage({ initial, renderThread }: RequestsClientPage
                         </CardContent>
                     </Card>
                 ))}
-                {visible.length === 0 ? <p className="text-sm text-muted-foreground">{t("empty")}</p> : null}
+                {visible.length === 0 ? (
+                    <EmptyState
+                        icon={<Inbox className="size-5 text-muted-foreground" />}
+                        title={t("empty")}
+                        description={t("subtitle")}
+                    />
+                ) : null}
             </div>
 
             <Dialog open={openId !== null} onOpenChange={(o) => !o && setOpenId(null)}>

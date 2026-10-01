@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
     Dialog,
     DialogContent,
@@ -230,21 +231,17 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {postings.length === 0 ? (
-                    <Card className="col-span-full border-dashed border-2 py-12 flex flex-col items-center justify-center text-center">
-                        <CardHeader className="w-full max-w-md">
-                            <CardTitle className="text-muted-foreground font-medium">
-                                No tienes ofertas creadas
-                            </CardTitle>
-                            <CardDescription>
-                                Comienza publicando tu primera vacante técnica para atraer talento.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
+                    // TODO(i18n): pantalla sin namespace; migrar literales a Postings al auditar i18n.
+                    <EmptyState
+                        icon={<Plus className="size-5 text-muted-foreground" />}
+                        title="No tienes ofertas creadas"
+                        description="Comienza publicando tu primera vacante técnica para atraer talento."
+                        action={
                             <Button onClick={openCreateDialog} variant="outline" className="mt-2">
                                 Crear Oferta
                             </Button>
-                        </CardContent>
-                    </Card>
+                        }
+                    />
                 ) : (
                     postings.map((posting) => {
                         const skills: string[] = Array.isArray(posting.requiredSkills)
