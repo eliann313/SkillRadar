@@ -124,6 +124,14 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
         }
 
         setLoading(true);
+        try {
+            await savePosting();
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const savePosting = async () => {
         const pipelineStages = [
             ...new Set(
                 stagesInput
@@ -164,7 +172,6 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
                 setIsDialogOpen(false);
             }
         }
-        setLoading(false);
     };
 
     const handlePublish = async (id: string) => {

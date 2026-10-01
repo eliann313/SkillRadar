@@ -158,9 +158,9 @@ export function ExplainabilityPanel({
                                         </p>
                                     ) : (
                                         <ul className="flex flex-col gap-2">
-                                            {evidenceFound.map((item, idx) => (
+                                            {evidenceFound.map((item) => (
                                                 <li
-                                                    key={idx}
+                                                    key={item}
                                                     className="flex items-start gap-2 text-xs text-foreground/90"
                                                 >
                                                     <span className="mt-0.5 size-1.5 rounded-full bg-emerald shrink-0" />
@@ -186,9 +186,9 @@ export function ExplainabilityPanel({
                                         </p>
                                     ) : (
                                         <ul className="flex flex-col gap-2">
-                                            {missingEvidence.map((item, idx) => (
+                                            {missingEvidence.map((item) => (
                                                 <li
-                                                    key={idx}
+                                                    key={item}
                                                     className="flex items-start gap-2 text-xs text-foreground/90"
                                                 >
                                                     <span className="mt-0.5 size-1.5 rounded-full bg-warning shrink-0" />

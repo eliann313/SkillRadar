@@ -219,8 +219,8 @@ export function MatchScoreCard({ match, demo = false }: MatchScoreCardProps) {
                                 <p className="font-semibold text-foreground">{t("aiActionSteps")}</p>
                             </div>
                             <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted-foreground">
-                                {match.recommendations.map((rec, idx) => (
-                                    <li key={idx}>{rec}</li>
+                                {match.recommendations.map((rec) => (
+                                    <li key={rec}>{rec}</li>
                                 ))}
                             </ul>
                         </div>
@@ -258,8 +258,11 @@ export function MatchScoreCard({ match, demo = false }: MatchScoreCardProps) {
                                 ) : null}
                             </div>
                             <div className="grid gap-4 sm:grid-cols-2">
-                                {match.actionPlan.map((plan, idx) => (
-                                    <div key={idx} className="rounded-lg border border-border/80 bg-muted/20 p-4">
+                                {match.actionPlan.map((plan) => (
+                                    <div
+                                        key={plan.skill}
+                                        className="rounded-lg border border-border/80 bg-muted/20 p-4"
+                                    >
                                         <Badge className="mb-2 bg-indigo/10 text-indigo hover:bg-indigo/20">
                                             {plan.skill}
                                         </Badge>

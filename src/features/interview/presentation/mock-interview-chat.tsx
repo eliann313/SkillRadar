@@ -256,9 +256,9 @@ export function MockInterviewChat() {
                                     {t("strengths")}
                                 </h4>
                                 <ul className="space-y-1.5">
-                                    {debrief.strengths.map((str, idx) => (
+                                    {debrief.strengths.map((str) => (
                                         <li
-                                            key={idx}
+                                            key={str}
                                             className="text-xs text-muted-foreground leading-relaxed flex gap-2"
                                         >
                                             <span className="text-emerald-500">•</span>
@@ -273,9 +273,9 @@ export function MockInterviewChat() {
                                     {t("improvements")}
                                 </h4>
                                 <ul className="space-y-1.5">
-                                    {debrief.improvements.map((imp, idx) => (
+                                    {debrief.improvements.map((imp) => (
                                         <li
-                                            key={idx}
+                                            key={imp}
                                             className="text-xs text-muted-foreground leading-relaxed flex gap-2"
                                         >
                                             <span className="text-primary">•</span>

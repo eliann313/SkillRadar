@@ -181,7 +181,9 @@ export default function ResumeBuilderPage() {
                     null,
                 );
                 if (parsed?.keywords && parsed.keywords.length > 0) {
-                    setSkills(parsed.keywords.slice(0, 15));
+                    if (!cancelled) {
+                        setSkills(parsed.keywords.slice(0, 15));
+                    }
                 }
             } catch {
                 // Precarga opcional: el builder funciona con defaults
@@ -1067,9 +1069,9 @@ export default function ResumeBuilderPage() {
                                                 Sugerencias Antes / Después:
                                             </p>
                                             <div className="space-y-2 max-h-[160px] overflow-y-auto scrollbar-thin pr-1">
-                                                {verbAnalysis.suggestions.map((s, index) => (
+                                                {verbAnalysis.suggestions.map((s) => (
                                                     <div
-                                                        key={index}
+                                                        key={`${s.original}-${s.suggestion}`}
                                                         className="p-2.5 rounded-lg border border-border/60 bg-background/50 space-y-1"
                                                     >
                                                         <p className="text-destructive line-through leading-relaxed">
@@ -1091,8 +1093,8 @@ export default function ResumeBuilderPage() {
                                         <div className="rounded-lg border border-primary/10 bg-primary/0 p-2.5 space-y-1">
                                             <p className="font-semibold text-primary">Consejos de Optimización:</p>
                                             <ul className="list-disc list-inside text-muted-foreground space-y-0.5 leading-relaxed pl-1">
-                                                {verbAnalysis.recommendations.map((r, index) => (
-                                                    <li key={index}>{r}</li>
+                                                {verbAnalysis.recommendations.map((r) => (
+                                                    <li key={r}>{r}</li>
                                                 ))}
                                             </ul>
                                         </div>

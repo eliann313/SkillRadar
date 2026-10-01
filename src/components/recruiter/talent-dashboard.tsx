@@ -198,24 +198,34 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
 
     useEffect(() => {
         if (activeTab === "market" && !marketData) {
+            let cancelled = false;
             const fetchMarketData = async () => {
                 setIsLoadingMarketData(true);
                 try {
                     const result = await getMarketIntelligenceDataAction();
+                    if (cancelled) return;
                     if (result.success && result.data) {
                         setMarketData(result.data);
                     } else {
                         toast.error(result.error || "No se pudieron obtener las estadísticas de Market Intelligence.");
                     }
                 } catch (e) {
-                    logger.error(e);
-                    toast.error("Error al conectar con el servidor.");
+                    if (!cancelled) {
+                        logger.error(e);
+                        toast.error("Error al conectar con el servidor.");
+                    }
                 } finally {
-                    setIsLoadingMarketData(false);
+                    if (!cancelled) {
+                        setIsLoadingMarketData(false);
+                    }
                 }
             };
             void fetchMarketData();
+            return () => {
+                cancelled = true;
+            };
         }
+        return undefined;
     }, [activeTab, marketData]);
 
     const handleToggleShortlist = async (developerId: string) => {
@@ -1065,7 +1075,7 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
                                                                 ];
                                                                 return (
                                                                     <Cell
-                                                                        key={`cell-${index}`}
+                                                                        key={entry.name}
                                                                         fill={COLORS[index % COLORS.length]}
                                                                     />
                                                                 );
