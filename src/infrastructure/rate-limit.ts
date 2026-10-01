@@ -72,6 +72,16 @@ class InMemorySlidingWindow {
             reset: resetTime,
         };
     }
+
+    /** Lectura sin consumo (Fase 5): restante y reset sin registrar uso. */
+    async peekRemaining(key: string): Promise<Pick<RateLimitResult, "limit" | "remaining" | "reset">> {
+        const now = Date.now();
+        const cutoff = now - this.windowMs;
+        const timestamps = (this.history.get(key) || []).filter((time) => time > cutoff);
+        const remaining = Math.max(0, this.limit - timestamps.length);
+        const reset = timestamps.length > 0 ? timestamps[0] + this.windowMs : now + this.windowMs;
+        return { limit: this.limit, remaining, reset };
+    }
 }
 
 // Inicializar limitadores de Upstash o InMemory dependientes de la configuración
@@ -610,4 +620,68 @@ export async function checkWriteRateLimit(identifier: string): Promise<RateLimit
         }
     }
     return await writeLimiter!.limitRequest(sanitizedIdentifier);
+}
+
+export interface UserQuotaUsage {
+    key: string;
+    limit: number;
+    remaining: number;
+    reset: number;
+}
+
+const USER_QUOTA_LIMITERS: ReadonlyArray<{
+    key: string;
+    limit: number;
+    resolve: () => Ratelimit | InMemorySlidingWindow | null;
+    memory: InMemorySlidingWindow;
+}> = [
+    { key: "cv-analysis", limit: CV_LIMIT, resolve: () => cvLimiter, memory: cvMemoryFallback },
+    { key: "job-match", limit: JOB_MATCH_LIMIT, resolve: () => jobMatchLimiter, memory: jobMatchMemoryFallback },
+    { key: "github-analysis", limit: GITHUB_LIMIT, resolve: () => githubLimiter, memory: githubMemoryFallback },
+    {
+        key: "ai-sourcing",
+        limit: AI_SOURCING_LIMIT,
+        resolve: () => aiSourcingLimiter,
+        memory: aiSourcingMemoryFallback,
+    },
+    { key: "ai-chat", limit: AI_CHAT_LIMIT, resolve: () => aiChatLimiter, memory: aiChatMemoryFallback },
+    {
+        key: "job-postings",
+        limit: JOB_POSTING_LIMIT,
+        resolve: () => jobPostingLimiter,
+        memory: jobPostingMemoryFallback,
+    },
+    {
+        key: "job-applications",
+        limit: JOB_POSTING_APPLY_LIMIT,
+        resolve: () => jobPostingApplyLimiter,
+        memory: jobPostingApplyMemoryFallback,
+    },
+    { key: "writes", limit: WRITE_LIMIT, resolve: () => writeLimiter, memory: writeMemoryFallback },
+];
+
+/**
+ * Uso restante por cuota sin consumir (Fase 5).
+ * Upstash vía getRemaining; memoria vía peek. Ante error de backend se
+ * reporta cuota llena (optimista, solo display: nunca bloquea).
+ */
+export async function getUserQuotaUsage(userId: string): Promise<UserQuotaUsage[]> {
+    const identifier = `user:${userId}`.replace(/[^a-zA-Z0-9_\-:]/g, "");
+    // Lecturas independientes: en paralelo (react-doctor/async-await-in-loop).
+    return Promise.all(
+        USER_QUOTA_LIMITERS.map(async (q): Promise<UserQuotaUsage> => {
+            const limiter = q.resolve();
+            try {
+                if (limiter instanceof Ratelimit) {
+                    const r = await limiter.getRemaining(identifier);
+                    return { key: q.key, limit: r.limit, remaining: r.remaining, reset: r.reset };
+                }
+                const r = await q.memory.peekRemaining(identifier);
+                return { key: q.key, ...r };
+            } catch (error) {
+                logger.error(`[RateLimit] Error leyendo uso de ${q.key}:`, error);
+                return { key: q.key, limit: q.limit, remaining: q.limit, reset: Date.now() + WINDOW_DURATION_MS };
+            }
+        }),
+    );
 }

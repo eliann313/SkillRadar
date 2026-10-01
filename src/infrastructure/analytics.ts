@@ -18,7 +18,9 @@ export async function trackServerEvent(
         | "public_profile_viewed"
         | "contact_request_sent"
         | "job_posting_applied"
-        | "user_registered",
+        | "user_registered"
+        | "ai_inference_succeeded"
+        | "ai_inference_failed",
     userId?: string,
     properties?: Record<string, string | number | boolean | null>,
 ) {

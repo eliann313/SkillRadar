@@ -8,12 +8,12 @@
     "ignore": {
         "files": [".next/**", "out/**", "build/**", "coverage/**", "playwright-report/**"],
         "overrides": [
-            // registerUserAction y requestPasswordResetAction DEBEN ser públicas (registro/recupero); protegidas por rate-limit + Zod + bcrypt. Verificado manual 2026-09-26.
+            // registerUserAction y requestPasswordResetAction DEBEN ser públicas (registro/recupero); protegidas por rate-limit + Zod + bcrypt. Verificado manual 2026-09-26, re-verificado Fase 1 (2026-09-28): save/register con checkLoginRateLimit + registerSchema + bcrypt; reset con token + expiración.
             {
                 "files": ["src/infrastructure/auth-actions.ts"],
                 "rules": ["react-doctor/server-auth-actions"]
             },
-            // Auth vía helpers que el scanner no reconoce: assertAdmin (admin), requireRecruiter (notes), checks inline + requireUser (thread/roadmap). Verificado manual 2026-09-26. Rutas actualizadas en refactor screaming/hexagonal (ADR-003).
+            // Auth vía helpers que el scanner no reconoce (verificado manual 2026-09-26, re-verificado Fase 1 2026-09-28): admin.assertAdmin->assertActiveUser->auth()+rol admin; notes.requireRecruiter->auth()+rol recruiter; thread auth() inline + ownership; roadmap.requireUser->auth(). Rutas actualizadas en refactor screaming/hexagonal (ADR-003).
             {
                 "files": [
                     "src/features/admin/application/admin.use-cases.ts",

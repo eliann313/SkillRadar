@@ -4,6 +4,8 @@ import { logger } from "@/infrastructure/logger";
 import { auth } from "@/infrastructure/auth";
 import { db } from "@/infrastructure/db";
 import { encrypt, API_KEY_PRESET_PLACEHOLDER } from "@/infrastructure/crypto";
+import { getUserQuotaUsage } from "@/infrastructure/rate-limit";
+import { FREE_QUOTAS, getPlanId } from "@/shared-kernel/plans";
 import { revalidatePath } from "next/cache";
 
 export interface ApiKeysInput {
@@ -115,6 +117,138 @@ export async function saveUserApiKeysAction(input: ApiKeysInput) {
             success: false,
             error: errMessage,
         };
+    }
+}
+
+const API_KEY_PROVIDERS = ["gemini", "groq", "openrouter", "openai", "anthropic"] as const;
+export type ApiKeyProvider = (typeof API_KEY_PROVIDERS)[number];
+
+const PROVIDER_KEY_COLUMNS: Record<
+    ApiKeyProvider,
+    "geminiApiKey" | "groqApiKey" | "openrouterApiKey" | "openaiApiKey" | "anthropicApiKey"
+> = {
+    gemini: "geminiApiKey",
+    groq: "groqApiKey",
+    openrouter: "openrouterApiKey",
+    openai: "openaiApiKey",
+    anthropic: "anthropicApiKey",
+};
+
+/**
+ * Revoca inmediatamente la clave BYOK de un proveedor (Fase 1).
+ * A diferencia de vaciar el input (que requiere Guardar), esto elimina la
+ * columna cifrada en el acto y deja traza de auditoría (sin material de clave).
+ */
+export async function deleteUserApiKeyAction(provider: ApiKeyProvider) {
+    try {
+        if (!API_KEY_PROVIDERS.includes(provider)) {
+            return { success: false, error: "Proveedor inválido." };
+        }
+
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado. Inicie sesión." };
+        }
+
+        if (session.user.isGuest === true) {
+            return { success: true, message: "Clave revocada (Modo Simulación)." };
+        }
+
+        await db.user.update({
+            where: { id: session.user.id },
+            data: { [PROVIDER_KEY_COLUMNS[provider]]: null },
+        });
+
+        logger.info(`[deleteUserApiKeyAction] Clave revocada`, {
+            userId: session.user.id,
+            provider,
+        });
+
+        revalidatePath("/dashboard/settings");
+
+        return { success: true, message: "Clave revocada correctamente." };
+    } catch (error: unknown) {
+        const errMessage = error instanceof Error ? error.message : "Error al revocar la clave de API.";
+        logger.error("[deleteUserApiKeyAction] Error revocando llave:", errMessage);
+        return {
+            success: false,
+            error: errMessage,
+        };
+    }
+}
+
+/**
+ * Uso del plan del usuario actual (Fase 5).
+ * - plan `byok` si tiene alguna clave propia (bypass de cuotas), `free` si no.
+ * - cuotas restantes sin consumir vía getUserQuotaUsage (free) o ilimitadas (byok).
+ */
+export async function getMyUsageAction() {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado. Inicie sesión." };
+        }
+
+        if (session.user.isGuest === true) {
+            return {
+                success: true,
+                data: {
+                    plan: "free" as const,
+                    quotas: FREE_QUOTAS.map((q) => ({
+                        key: q.key,
+                        limit: q.limit,
+                        remaining: q.limit,
+                        reset: Date.now() + q.windowMs,
+                    })),
+                },
+            };
+        }
+
+        const user = await db.user.findUnique({
+            where: { id: session.user.id },
+            select: {
+                geminiApiKey: true,
+                groqApiKey: true,
+                openrouterApiKey: true,
+                openaiApiKey: true,
+                anthropicApiKey: true,
+            },
+        });
+        if (!user) {
+            return { success: false, error: "Usuario no encontrado." };
+        }
+
+        const hasApiKeys = !!(
+            user.geminiApiKey ||
+            user.groqApiKey ||
+            user.openrouterApiKey ||
+            user.openaiApiKey ||
+            user.anthropicApiKey
+        );
+        const plan = getPlanId(hasApiKeys);
+
+        if (plan === "byok") {
+            return {
+                success: true,
+                data: {
+                    plan,
+                    quotas: FREE_QUOTAS.map((q) => ({
+                        key: q.key,
+                        limit: q.limit,
+                        remaining: q.limit,
+                        reset: Date.now() + q.windowMs,
+                        unlimited: true as const,
+                    })),
+                },
+            };
+        }
+
+        const quotas = await getUserQuotaUsage(session.user.id);
+        return { success: true, data: { plan, quotas } };
+    } catch (error: unknown) {
+        const errMessage = error instanceof Error ? error.message : "Error al obtener el uso del plan.";
+        logger.error("[getMyUsageAction] Error:", errMessage);
+        return { success: false, error: errMessage };
     }
 }
 

@@ -14,6 +14,7 @@ export async function GET(request: Request) {
     }
 
     try {
+        const startedAt = Date.now();
         const now = new Date();
         const result = await db.jobPosting.updateMany({
             where: {
@@ -27,10 +28,13 @@ export async function GET(request: Request) {
             },
         });
 
-        logger.warn(`[Cron Expire Jobs] Éxito: ${result.count} ofertas laborales expiradas.`);
+        const durationMs = Date.now() - startedAt;
+        logger.warn(`[Cron Expire Jobs] Éxito: ${result.count} ofertas laborales expiradas en ${durationMs}ms.`);
         return NextResponse.json({
             success: true,
             message: `Se expiraron automáticamente ${result.count} ofertas laborales.`,
+            expired: result.count,
+            durationMs,
         });
     } catch (error) {
         logger.error("[Cron Expire Jobs] Error:", error);
