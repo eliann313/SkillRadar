@@ -35,6 +35,7 @@ import {
     Share2,
     Copy,
     FileText,
+    Gauge,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -42,6 +43,7 @@ import {
     getUserApiKeysStatusAction,
     saveUserApiKeysAction,
     deleteUserApiKeyAction,
+    getMyUsageAction,
     type ApiKeyProvider,
     saveUserInferencePreferencesAction,
     getUserPublicProfileSettingsAction,
@@ -53,6 +55,7 @@ import {
 
 import { API_KEY_PRESET_PLACEHOLDER } from "@/infrastructure/crypto";
 import { PROVIDER_MODELS } from "@/infrastructure/ai/models";
+import { Progress } from "@/components/ui/progress";
 
 export function getProviderModels(prov: string) {
     switch (prov) {
@@ -96,6 +99,23 @@ export default function SettingsPage() {
         openaiApiKey: "",
         anthropicApiKey: "",
     });
+
+    // Uso del plan (Fase 5)
+    const [usage, setUsage] = useState<{
+        plan: "free" | "byok";
+        quotas: Array<{ key: string; limit: number; remaining: number; reset: number; unlimited?: boolean }>;
+    } | null>(null);
+
+    const QUOTA_LABEL_KEYS: Record<string, string> = {
+        "cv-analysis": "quotaCvAnalysis",
+        "job-match": "quotaJobMatch",
+        "github-analysis": "quotaGithubAnalysis",
+        "ai-sourcing": "quotaAiSourcing",
+        "ai-chat": "quotaAiChat",
+        "job-postings": "quotaJobPostings",
+        "job-applications": "quotaJobApplications",
+        writes: "quotaWrites",
+    };
 
     // Visibilidad de contraseñas/llaves
     const [showKeys, setShowKeys] = useState<Record<string, boolean>>({
@@ -213,13 +233,34 @@ export default function SettingsPage() {
                     showSeniority: publicRes.data.showSeniority,
                 });
             }
+            // Cargar uso del plan
+            const usageRes = await getMyUsageAction();
+            if (usageRes.success && usageRes.data) {
+                setUsage(usageRes.data);
+            }
         } catch (e) {
             logger.error(e);
             toast.error(t("networkLoadError"));
         } finally {
             setLoadingConfig(false);
         }
-    }, [t]);
+    }, [
+        t,
+        setKeysStatus,
+        setApiKeys,
+        setPreferredProvider,
+        setPreferredModel,
+        setIsCustomModelSelected,
+        setCustomModelId,
+        setEmailNotifications,
+        setEmailNewApplication,
+        setEmailApplicationStatusChanged,
+        setEmailContactUpdates,
+        setEmailJobMatches,
+        setPublicSettings,
+        setLoadingConfig,
+        setUsage,
+    ]);
 
     useEffect(() => {
         if (status === "authenticated" && session?.user) {
@@ -1043,6 +1084,57 @@ export default function SettingsPage() {
                                         )}
                                     </Button>
                                 </form>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Uso del Plan (Fase 5) */}
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Gauge className="size-5 text-primary" />
+                            {t("usageTitle")}
+                            {usage ? (
+                                <Badge variant="outline" className="ml-1 h-5 px-1.5 text-[10px]">
+                                    {usage.plan === "byok" ? t("planByok") : t("planFree")}
+                                </Badge>
+                            ) : null}
+                        </CardTitle>
+                        <CardDescription>{t("usageDesc")}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {!usage ? (
+                            <p className="text-xs text-muted-foreground">{t("usageLoading")}</p>
+                        ) : (
+                            <div className="flex flex-col gap-3">
+                                {usage.quotas.map((q) => {
+                                    const used = q.limit - q.remaining;
+                                    const pct = q.limit > 0 ? Math.min(100, Math.round((used / q.limit) * 100)) : 0;
+                                    return (
+                                        <div key={q.key} className="flex flex-col gap-1">
+                                            <div className="flex items-center justify-between text-xs">
+                                                <span className="font-medium text-foreground">
+                                                    {t(QUOTA_LABEL_KEYS[q.key] ?? q.key)}
+                                                </span>
+                                                <span className="text-muted-foreground">
+                                                    {q.unlimited === true ? (
+                                                        t("usageUnlimited")
+                                                    ) : (
+                                                        <>
+                                                            {q.remaining}/{q.limit} · {t("usageResets")}{" "}
+                                                            {new Date(q.reset).toLocaleTimeString([], {
+                                                                hour: "2-digit",
+                                                                minute: "2-digit",
+                                                            })}
+                                                        </>
+                                                    )}
+                                                </span>
+                                            </div>
+                                            <Progress value={q.unlimited === true ? 0 : pct} className="h-1.5" />
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
                     </CardContent>

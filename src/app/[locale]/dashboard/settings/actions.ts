@@ -4,6 +4,8 @@ import { logger } from "@/infrastructure/logger";
 import { auth } from "@/infrastructure/auth";
 import { db } from "@/infrastructure/db";
 import { encrypt, API_KEY_PRESET_PLACEHOLDER } from "@/infrastructure/crypto";
+import { getUserQuotaUsage } from "@/infrastructure/rate-limit";
+import { FREE_QUOTAS, getPlanId } from "@/shared-kernel/plans";
 import { revalidatePath } from "next/cache";
 
 export interface ApiKeysInput {
@@ -172,6 +174,81 @@ export async function deleteUserApiKeyAction(provider: ApiKeyProvider) {
             success: false,
             error: errMessage,
         };
+    }
+}
+
+/**
+ * Uso del plan del usuario actual (Fase 5).
+ * - plan `byok` si tiene alguna clave propia (bypass de cuotas), `free` si no.
+ * - cuotas restantes sin consumir vía getUserQuotaUsage (free) o ilimitadas (byok).
+ */
+export async function getMyUsageAction() {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return { success: false, error: "No autorizado. Inicie sesión." };
+        }
+
+        if (session.user.isGuest === true) {
+            return {
+                success: true,
+                data: {
+                    plan: "free" as const,
+                    quotas: FREE_QUOTAS.map((q) => ({
+                        key: q.key,
+                        limit: q.limit,
+                        remaining: q.limit,
+                        reset: Date.now() + q.windowMs,
+                    })),
+                },
+            };
+        }
+
+        const user = await db.user.findUnique({
+            where: { id: session.user.id },
+            select: {
+                geminiApiKey: true,
+                groqApiKey: true,
+                openrouterApiKey: true,
+                openaiApiKey: true,
+                anthropicApiKey: true,
+            },
+        });
+        if (!user) {
+            return { success: false, error: "Usuario no encontrado." };
+        }
+
+        const hasApiKeys = !!(
+            user.geminiApiKey ||
+            user.groqApiKey ||
+            user.openrouterApiKey ||
+            user.openaiApiKey ||
+            user.anthropicApiKey
+        );
+        const plan = getPlanId(hasApiKeys);
+
+        if (plan === "byok") {
+            return {
+                success: true,
+                data: {
+                    plan,
+                    quotas: FREE_QUOTAS.map((q) => ({
+                        key: q.key,
+                        limit: q.limit,
+                        remaining: q.limit,
+                        reset: Date.now() + q.windowMs,
+                        unlimited: true as const,
+                    })),
+                },
+            };
+        }
+
+        const quotas = await getUserQuotaUsage(session.user.id);
+        return { success: true, data: { plan, quotas } };
+    } catch (error: unknown) {
+        const errMessage = error instanceof Error ? error.message : "Error al obtener el uso del plan.";
+        logger.error("[getMyUsageAction] Error:", errMessage);
+        return { success: false, error: errMessage };
     }
 }
 
