@@ -122,8 +122,11 @@ export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGri
                                 <Progress value={matchScore} className="h-2" />
                             </div>
                             <div className="flex flex-wrap gap-1.5 max-h-[70px] overflow-y-auto">
-                                {alignedSkills.slice(0, 3).map((skill, i) => (
-                                    <Badge key={i} className="bg-emerald/10 text-emerald hover:bg-emerald/20 text-xs">
+                                {alignedSkills.slice(0, 3).map((skill) => (
+                                    <Badge
+                                        key={skill}
+                                        className="bg-emerald/10 text-emerald hover:bg-emerald/20 text-xs"
+                                    >
                                         {skill}
                                     </Badge>
                                 ))}

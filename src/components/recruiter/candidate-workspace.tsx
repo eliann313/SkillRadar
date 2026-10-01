@@ -22,11 +22,24 @@ interface Criterion {
     note: string;
 }
 
+/** Fila local con key estable para React (el DTO del backend no trae id). */
+interface CriterionRow extends Criterion {
+    key: string;
+}
+
+const newCriterionRow = (c?: Partial<Criterion>): CriterionRow => ({
+    question: "",
+    score: 3,
+    note: "",
+    ...c,
+    key: crypto.randomUUID(),
+});
+
 export function CandidateWorkspace({ applicationId }: { applicationId: string }) {
     const [notes, setNotes] = useState<CandidateNoteDTO[]>([]);
     const [draft, setDraft] = useState("");
     const [scorecard, setScorecard] = useState<ScorecardDTO | null>(null);
-    const [criteria, setCriteria] = useState<Criterion[]>([{ question: "", score: 3, note: "" }]);
+    const [criteria, setCriteria] = useState<CriterionRow[]>([newCriterionRow()]);
     const [comment, setComment] = useState("");
     const [saving, setSaving] = useState(false);
 
@@ -38,7 +51,7 @@ export function CandidateWorkspace({ applicationId }: { applicationId: string })
             if (n.success) setNotes(n.data);
             if (s.success && s.data) {
                 setScorecard(s.data);
-                setCriteria(s.data.criteria);
+                setCriteria(s.data.criteria.map((c) => newCriterionRow(c)));
                 setComment(s.data.comment ?? "");
             }
         })().catch(() => undefined);
@@ -63,7 +76,10 @@ export function CandidateWorkspace({ applicationId }: { applicationId: string })
     };
 
     const saveCard = async () => {
-        const filled = criteria.filter((c) => c.question.trim());
+        // Se strippea la key local de React: el DTO solo lleva question/score/note.
+        const filled = criteria
+            .filter((c) => c.question.trim())
+            .map(({ question, score, note }) => ({ question, score, note }));
         if (filled.length === 0) {
             toast.error("Agrega al menos una pregunta evaluada.");
             return;
@@ -121,12 +137,12 @@ export function CandidateWorkspace({ applicationId }: { applicationId: string })
             </TabsContent>
             <TabsContent value="scorecard" className="flex flex-col gap-3 pt-2">
                 {criteria.map((c, i) => (
-                    <div key={i} className="flex flex-col gap-1 rounded-lg border border-border/40 p-2.5">
+                    <div key={c.key} className="flex flex-col gap-1 rounded-lg border border-border/40 p-2.5">
                         <Input
                             value={c.question}
                             onChange={(e) =>
                                 setCriteria((prev) =>
-                                    prev.map((p, j) => (j === i ? { ...p, question: e.target.value } : p)),
+                                    prev.map((p) => (p.key === c.key ? { ...p, question: e.target.value } : p)),
                                 )
                             }
                             placeholder={`Pregunta ${i + 1}`}
@@ -143,7 +159,9 @@ export function CandidateWorkspace({ applicationId }: { applicationId: string })
                                 value={c.score}
                                 onChange={(e) =>
                                     setCriteria((prev) =>
-                                        prev.map((p, j) => (j === i ? { ...p, score: Number(e.target.value) } : p)),
+                                        prev.map((p) =>
+                                            p.key === c.key ? { ...p, score: Number(e.target.value) } : p,
+                                        ),
                                     )
                                 }
                                 className="w-28 accent-primary"
@@ -152,7 +170,7 @@ export function CandidateWorkspace({ applicationId }: { applicationId: string })
                                 value={c.note}
                                 onChange={(e) =>
                                     setCriteria((prev) =>
-                                        prev.map((p, j) => (j === i ? { ...p, note: e.target.value } : p)),
+                                        prev.map((p) => (p.key === c.key ? { ...p, note: e.target.value } : p)),
                                     )
                                 }
                                 placeholder="Nota (opcional)"
@@ -166,7 +184,7 @@ export function CandidateWorkspace({ applicationId }: { applicationId: string })
                     <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setCriteria((prev) => [...prev, { question: "", score: 3, note: "" }])}
+                        onClick={() => setCriteria((prev) => [...prev, newCriterionRow()])}
                         disabled={criteria.length >= 20}
                     >
                         + Criterio

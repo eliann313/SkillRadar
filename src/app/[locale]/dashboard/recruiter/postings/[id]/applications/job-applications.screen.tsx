@@ -139,17 +139,22 @@ export function ApplicationsClientPage({
         if (!contactingDevId || !contactMessage.trim()) return;
 
         setLoading(true);
-        const res = await createContactRequestAction(contactingDevId, contactMessage);
-        if (res.success) {
-            toast.success("Solicitud de contacto enviada. Se le notificará al desarrollador.");
-            setApplications((prev) =>
-                prev.map((app) => (app.developerId === contactingDevId ? { ...app, contactStatus: "pending" } : app)),
-            );
-            setIsContactDialogOpen(false);
-        } else {
-            toast.error(res.error || "Error al enviar la solicitud.");
+        try {
+            const res = await createContactRequestAction(contactingDevId, contactMessage);
+            if (res.success) {
+                toast.success("Solicitud de contacto enviada. Se le notificará al desarrollador.");
+                setApplications((prev) =>
+                    prev.map((app) =>
+                        app.developerId === contactingDevId ? { ...app, contactStatus: "pending" } : app,
+                    ),
+                );
+                setIsContactDialogOpen(false);
+            } else {
+                toast.error(res.error || "Error al enviar la solicitud.");
+            }
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const openDetails = (app: Application) => {
@@ -666,8 +671,8 @@ export function ApplicationsClientPage({
                                     </h4>
                                     <ul className="list-disc pl-4 space-y-1 text-xs text-muted-foreground">
                                         {Array.isArray(selectedApp.analysis.recommendations) ? (
-                                            selectedApp.analysis.recommendations.map((r: string, idx: number) => (
-                                                <li key={idx}>{r}</li>
+                                            selectedApp.analysis.recommendations.map((r: string) => (
+                                                <li key={r}>{r}</li>
                                             ))
                                         ) : (
                                             <li>{selectedApp.analysis.recommendations}</li>

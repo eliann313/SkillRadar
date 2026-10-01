@@ -85,26 +85,29 @@ export function KanbanBoard({ initialApplications, onCreate, onUpdateStatus, onD
         }
 
         setIsSubmitting(true);
-        const res = await onCreate({
-            title: newApp.title,
-            company: newApp.company,
-            url: newApp.url || undefined,
-            status: activeColumn,
-        });
+        try {
+            const res = await onCreate({
+                title: newApp.title,
+                company: newApp.company,
+                url: newApp.url || undefined,
+                status: activeColumn,
+            });
 
-        if (res.success) {
-            // Re-fetch or add directly (since Server Actions revalidate, we can just append if returned, or we rely on Next.js page refresh)
-            toast.success(t("createSuccess"));
-            setIsAddDialogOpen(false);
-            setNewApp({ title: "", company: "", url: "" });
+            if (res.success) {
+                // Re-fetch or add directly (since Server Actions revalidate, we can just append if returned, or we rely on Next.js page refresh)
+                toast.success(t("createSuccess"));
+                setIsAddDialogOpen(false);
+                setNewApp({ title: "", company: "", url: "" });
 
-            // Recargar la página/estado local
-            // Para simplificar, recargamos la página o actualizamos el estado si sabemos que fue exitoso
-            window.location.reload();
-        } else {
-            toast.error(res.error || t("createError"));
+                // Recargar la página/estado local
+                // Para simplificar, recargamos la página o actualizamos el estado si sabemos que fue exitoso
+                window.location.reload();
+            } else {
+                toast.error(res.error || t("createError"));
+            }
+        } finally {
+            setIsSubmitting(false);
         }
-        setIsSubmitting(false);
     };
 
     const handleDeleteApp = async (id: string) => {

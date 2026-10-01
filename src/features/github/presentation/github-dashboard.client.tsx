@@ -304,8 +304,8 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
                                 Seniority Evidence
                             </p>
                             <div className="flex flex-wrap gap-2">
-                                {data.senioritySignals.map((signal, i) => (
-                                    <Badge key={i} variant="secondary" className="text-xs">
+                                {data.senioritySignals.map((signal) => (
+                                    <Badge key={signal} variant="secondary" className="text-xs">
                                         {signal}
                                     </Badge>
                                 ))}
@@ -320,8 +320,8 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
                                 Top Topics
                             </p>
                             <div className="flex flex-wrap gap-2">
-                                {data.topRepoTopics.map((topic, i) => (
-                                    <Badge key={i} variant="outline" className="text-xs">
+                                {data.topRepoTopics.map((topic) => (
+                                    <Badge key={topic} variant="outline" className="text-xs">
                                         {topic}
                                     </Badge>
                                 ))}

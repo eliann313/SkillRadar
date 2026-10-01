@@ -35,9 +35,11 @@ export function CareerCopilot() {
     // Fetch user key settings and default AI preferences when the chat opens
     useEffect(() => {
         if (!isOpen) return;
+        let cancelled = false;
         const fetchStatus = async () => {
             try {
                 const res = await getUserApiKeysStatusAction();
+                if (cancelled) return;
                 if (res && res.success && res.data) {
                     setProviderKeys({
                         gemini: true,
@@ -54,10 +56,15 @@ export function CareerCopilot() {
                     }
                 }
             } catch (err) {
-                logger.error("Error fetching API keys status for Career Copilot:", err);
+                if (!cancelled) {
+                    logger.error("Error fetching API keys status for Career Copilot:", err);
+                }
             }
         };
         void fetchStatus();
+        return () => {
+            cancelled = true;
+        };
     }, [isOpen]);
 
     const transport = useMemo(() => {

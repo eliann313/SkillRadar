@@ -242,8 +242,8 @@ export default function LinkedinAuditPage() {
                             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                                 Mejoras de Redacción de Impacto
                             </h3>
-                            {auditResult.suggestions.map((s, idx) => (
-                                <Card key={idx} className="border-border bg-card">
+                            {auditResult.suggestions.map((s) => (
+                                <Card key={s.section} className="border-border bg-card">
                                     <CardHeader className="pb-2">
                                         <div className="flex justify-between items-center">
                                             <CardTitle className="text-sm font-bold text-foreground">
@@ -280,9 +280,9 @@ export default function LinkedinAuditPage() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-3">
-                                {auditResult.checklist.map((item, idx) => (
+                                {auditResult.checklist.map((item) => (
                                     <div
-                                        key={idx}
+                                        key={item.item}
                                         className="flex gap-3 items-start border-b border-border/50 pb-2.5 last:border-0 last:pb-0 text-xs"
                                     >
                                         {item.status ? (

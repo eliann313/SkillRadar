@@ -29,9 +29,9 @@ export function RepoList({ repos }: RepoListProps) {
                     </div>
                 ) : (
                     <div className="divide-y divide-border/40">
-                        {repos.map((repo, idx) => (
+                        {repos.map((repo) => (
                             <div
-                                key={idx}
+                                key={repo.url}
                                 className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4"
                             >
                                 <div className="min-w-0 flex-1">
