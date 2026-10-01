@@ -3,7 +3,7 @@
 import { logger } from "@/infrastructure/logger";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { CVUploadForm, AnalysisResults } from "@/components/cv-analysis";
+import { CVUploadForm, AnalysisResults } from "@/features/cv-analysis/presentation";
 import type { CVAnalysis } from "@/shared-kernel/types";
 import { redirect } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";

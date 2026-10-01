@@ -8,7 +8,8 @@ import {
     ContactRequestsList,
     PrivacyCard,
 } from "@/components/dashboard";
-import { TalentDashboard, RecruiterVerificationGate } from "@/components/recruiter";
+import { TalentDashboard } from "@/components/recruiter/talent-dashboard";
+import { RecruiterVerificationGate } from "@/features/recruiter/presentation/recruiter-verification-gate";
 import { redirect } from "next/navigation";
 import { db } from "@/infrastructure/db";
 import { getTranslations } from "next-intl/server";

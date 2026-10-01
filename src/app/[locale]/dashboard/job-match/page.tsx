@@ -3,7 +3,8 @@
 import { logger } from "@/infrastructure/logger";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { JobOfferInput, MatchScoreCard } from "@/components/job-match";
+import { JobOfferInput } from "@/features/job-match/presentation/job-offer-input";
+import { MatchScoreCard } from "@/components/job-match/match-score-card";
 import type { JobMatch } from "@/shared-kernel/types";
 import { redirect } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";

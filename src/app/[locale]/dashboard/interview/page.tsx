@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { MockInterviewChat, InterviewHistory } from "@/components/interview";
+import { MockInterviewChat, InterviewHistory } from "@/features/interview/presentation";
 import { redirect } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslations } from "next-intl";

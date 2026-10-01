@@ -1,9 +1,9 @@
 /**
  * Puerto del feature cv-analysis (hexagonal).
  *
- * cv-analysis define el CONTRATO de persistencia que necesita; la clase
- * `ResumeRepository` (infrastructure/) es el adaptador por defecto y expone
- * `defaultResumeStore`. El servicio solo conoce este puerto.
+ * cv-analysis define el CONTRATO de persistencia que necesita; el fichero
+ * `cv-analysis.repository.ts` (infrastructure/) es el adaptador por defecto y
+ * expone `defaultResumeStore`. El servicio solo conoce este puerto.
  */
 import type { Prisma, Resume } from "@prisma/client";
 import type { ATSAnalysis } from "./cv-analysis.types";
