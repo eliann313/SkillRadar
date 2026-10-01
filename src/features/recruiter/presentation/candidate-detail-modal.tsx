@@ -1,7 +1,5 @@
 "use client";
 
-import { logger } from "@/infrastructure/logger";
-import { useState } from "react";
 import type { TalentCard } from "@/shared-kernel/types";
 import {
     Dialog,
@@ -14,29 +12,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import {
-    Sparkles,
-    AlertCircle,
-    TrendingUp,
-    HelpCircle,
-    Download,
-    Loader2,
-    Award,
-    Mail,
-    Copy,
-    Check,
-    FileText,
-} from "lucide-react";
-import {
-    generateInterviewQuestionsAction,
-    generateCandidatePitchSummaryAction,
-    generateCandidateOutreachAction,
-} from "@/features/recruiter/application/recruiter.use-cases";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
-import { jsPDF } from "jspdf";
+import { AlertCircle, TrendingUp, HelpCircle, Award } from "lucide-react";
 import { cn } from "@/shared-kernel/utils";
+import { CandidateQuestionsSection } from "./candidate-questions.section";
+import { CandidatePitchSection } from "./candidate-pitch.section";
+import { CandidateOutreachSection } from "./candidate-outreach.section";
 
 interface CandidateDetailModalProps {
     isOpen: boolean;
@@ -45,76 +25,17 @@ interface CandidateDetailModalProps {
     jobDescription: string;
 }
 
+/**
+ * Shell del detalle de candidato (Fase 1): perfil + score + observaciones.
+ * Las secciones IA (preguntas, pitch, outreach) viven en sus propios
+ * ficheros y se remontan en cada apertura (key) para resetear su estado,
+ * replicando el reset-on-close del modal monolítico original.
+ */
 export function CandidateDetailModal({ isOpen, onOpenChange, candidate, jobDescription }: CandidateDetailModalProps) {
-    const [questions, setQuestions] = useState<{ question: string; expectedResponse: string }[] | null>(null);
-    const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
-
-    const [pitchSummary, setPitchSummary] = useState<string | null>(null);
-    const [isGeneratingPitch, setIsGeneratingPitch] = useState(false);
-    const [outreachMessage, setOutreachMessage] = useState<string | null>(null);
-    const [isGeneratingOutreach, setIsGeneratingOutreach] = useState(false);
-    const [outreachJobTitle, setOutreachJobTitle] = useState(
-        jobDescription ? jobDescription.slice(0, 45) : "Desarrollador Web",
-    );
-    const [outreachCompany, setOutreachCompany] = useState("Nuestra Empresa");
-    const [copiedOutreach, setCopiedOutreach] = useState(false);
-    const [copiedPitch, setCopiedPitch] = useState(false);
-
-    const handleGeneratePitch = async () => {
-        if (!candidate) return;
-        setIsGeneratingPitch(true);
-        try {
-            const res = await generateCandidatePitchSummaryAction(candidate.id);
-            if (res.success) {
-                setPitchSummary(res.data);
-                toast.success("¡Resumen ejecutivo generado con éxito!");
-            } else {
-                toast.error(res.error || "Error al generar el resumen.");
-            }
-        } catch {
-            toast.error("Error al conectar con el servidor.");
-        } finally {
-            setIsGeneratingPitch(false);
-        }
-    };
-
-    const handleGenerateOutreach = async () => {
-        if (!candidate) return;
-        setIsGeneratingOutreach(true);
-        try {
-            const res = await generateCandidateOutreachAction(candidate.id, outreachJobTitle, outreachCompany);
-            if (res.success) {
-                setOutreachMessage(res.data);
-                toast.success("¡Propuesta de contacto personalizada generada con éxito!");
-            } else {
-                toast.error(res.error || "Error al generar la propuesta.");
-            }
-        } catch {
-            toast.error("Error al conectar con el servidor.");
-        } finally {
-            setIsGeneratingOutreach(false);
-        }
-    };
-
-    const handleCopyOutreach = () => {
-        if (!outreachMessage) return;
-        void navigator.clipboard.writeText(outreachMessage);
-        setCopiedOutreach(true);
-        toast.success("Copiado al portapapeles");
-        setTimeout(() => setCopiedOutreach(false), 2000);
-    };
-
-    const handleCopyPitch = () => {
-        if (!pitchSummary) return;
-        void navigator.clipboard.writeText(pitchSummary);
-        setCopiedPitch(true);
-        toast.success("Copiado al portapapeles");
-        setTimeout(() => setCopiedPitch(false), 2000);
-    };
-
     if (!candidate) return null;
 
     const isAccepted = candidate.contactStatus === "accepted";
+    const displayName = isAccepted ? (candidate.name ?? candidate.anonymousId) : candidate.anonymousId;
 
     const getSeniorityColor = (level: string) => {
         switch (level) {
@@ -129,118 +50,8 @@ export function CandidateDetailModal({ isOpen, onOpenChange, candidate, jobDescr
         }
     };
 
-    const handleGenerateQuestions = async () => {
-        setIsGeneratingQuestions(true);
-        try {
-            // Nota: dado que necesitamos un resumeId, buscaremos el resume ID.
-            // Para el TalentCard, podemos asumir que su ID de candidato está relacionado.
-            // En el flujo real, rankTalentPool analiza el primer currículum de su lista.
-            // Así que pasamos candidate.id (el backend rankeador usa candidate.resumes[0].id)
-            // Por simplicidad, el backend cargará el último resume del desarrollador correspondiente al developerId (candidate.id).
-            // Modificaremos la acción para que acepte el developerId, o buscaremos su resume.
-            // Espera, en generateInterviewQuestionsAction definimos:
-            // (resumeId: string, jobDescription: string)
-            // Pero como el reclutador no tiene el resumeId directo en el TalentCard de la UI actual,
-            // podemos ajustar generateInterviewQuestionsAction para que acepte `developerId`
-            // y busque su currículum activo en el backend. Esto es 100% robusto y nos ahorra exponer el ID del CV.
-            // Vamos a invocar la acción enviándole el candidate.id (que es el developerId).
-            // Y modificaremos actions.ts y service.ts en breve para que resuelvan el resumeId a partir del developerId si es necesario.
-            const res = await generateInterviewQuestionsAction(candidate.id, jobDescription);
-            if (res.success) {
-                setQuestions(res.data);
-                toast.success("¡Preguntas de entrevista generadas con éxito!");
-            } else {
-                toast.error(res.error);
-            }
-        } catch (error) {
-            logger.error(error);
-            toast.error("Ocurrió un error al generar las preguntas");
-        } finally {
-            setIsGeneratingQuestions(false);
-        }
-    };
-
-    const handleDownloadPDF = () => {
-        if (!questions) return;
-
-        try {
-            const doc = new jsPDF();
-
-            // Título principal
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(20);
-            doc.setTextColor(30, 41, 59); // slate-800
-            doc.text("GUÍA DE ENTREVISTA TÉCNICA - IA COPILOT", 15, 20);
-
-            // Metadatos
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(100, 116, 139); // slate-500
-            doc.text(`Candidato: ${isAccepted ? candidate.name : candidate.anonymousId}`, 15, 28);
-            doc.text(`Seniority Estimado: ${candidate.estimatedSeniority.toUpperCase()}`, 15, 33);
-            doc.text(`Fecha de Generación: ${new Date().toLocaleDateString()}`, 15, 38);
-
-            // Línea divisoria
-            doc.setDrawColor(226, 232, 240); // slate-200
-            doc.line(15, 43, 195, 43);
-
-            let yOffset = 50;
-
-            questions.forEach((q, idx) => {
-                // Verificar salto de página
-                if (yOffset > 250) {
-                    doc.addPage();
-                    yOffset = 20;
-                }
-
-                // Número y Pregunta
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(12);
-                doc.setTextColor(79, 70, 229); // indigo-600
-                const qText = `${idx + 1}. ${q.question}`;
-                const splitQ = doc.splitTextToSize(qText, 180);
-                doc.text(splitQ, 15, yOffset);
-                yOffset += splitQ.length * 6;
-
-                // Respuesta Esperada
-                doc.setFont("helvetica", "normal");
-                doc.setFontSize(10);
-                doc.setTextColor(71, 85, 105); // slate-600
-                const respTitle = "Respuesta clave esperada:";
-                doc.text(respTitle, 15, yOffset);
-                yOffset += 5;
-
-                doc.setTextColor(100, 116, 139); // slate-500
-                const splitResp = doc.splitTextToSize(q.expectedResponse, 180);
-                doc.text(splitResp, 15, yOffset);
-                yOffset += splitResp.length * 5 + 10; // Espaciado entre preguntas
-            });
-
-            // Guardar el PDF
-            const nameSanitized =
-                (isAccepted ? candidate.name : candidate.anonymousId)?.replace(/\s+/g, "_") || "Candidato";
-            doc.save(`Guia_Entrevista_${nameSanitized}.pdf`);
-            toast.success("PDF descargado correctamente");
-        } catch (error) {
-            logger.error("Error generando PDF:", error);
-            toast.error("Ocurrió un error al compilar el PDF");
-        }
-    };
-
     return (
-        <Dialog
-            open={isOpen}
-            onOpenChange={(open) => {
-                if (!open) {
-                    setQuestions(null);
-                    setPitchSummary(null);
-                    setOutreachMessage(null);
-                    setCopiedOutreach(false);
-                    setCopiedPitch(false);
-                }
-                onOpenChange(open);
-            }}
-        >
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[650px] max-h-[85vh] overflow-y-auto bg-card border border-border/80">
                 <DialogHeader>
                     <div className="flex items-center gap-3">
@@ -369,226 +180,25 @@ export function CandidateDetailModal({ isOpen, onOpenChange, candidate, jobDescr
 
                     <Separator />
 
-                    {/* Preguntas de Entrevista Asistidas (Tarjeta 15.2) */}
-                    <div className="flex flex-col gap-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Sparkles className="size-4.5 text-indigo-500 animate-pulse" />
-                                <h4 className="text-sm font-semibold text-foreground">Guía de Entrevista Asistida</h4>
-                            </div>
-                            {questions && (
-                                <Button
-                                    onClick={handleDownloadPDF}
-                                    size="icon-sm"
-                                    variant="outline"
-                                    title="Descargar PDF"
-                                    className="h-8 w-8 text-primary border-primary/20 hover:bg-primary/10"
-                                >
-                                    <Download className="size-3.5" />
-                                </Button>
-                            )}
-                        </div>
+                    {/* Secciones IA: remontan en cada apertura para resetear estado */}
+                    <div key={`${candidate.id}-${isOpen ? "open" : "closed"}`} className="flex flex-col gap-6">
+                        <CandidateQuestionsSection
+                            candidateId={candidate.id}
+                            displayName={displayName}
+                            seniority={candidate.estimatedSeniority}
+                            jobDescription={jobDescription}
+                        />
 
-                        {!questions ? (
-                            <div className="rounded-lg border border-dashed border-border/80 bg-muted/10 p-5 text-center flex flex-col items-center gap-3">
-                                <p className="text-xs text-muted-foreground max-w-sm">
-                                    Genera una guía técnica estructurada con 3-5 preguntas específicas y sus respuestas
-                                    modelo, basadas en las brechas tecnológicas del candidato.
-                                </p>
-                                <Button
-                                    onClick={() => {
-                                        void handleGenerateQuestions();
-                                    }}
-                                    disabled={isGeneratingQuestions}
-                                    size="sm"
-                                    className="gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white"
-                                >
-                                    {isGeneratingQuestions ? (
-                                        <>
-                                            <Loader2 className="size-3.5 animate-spin" />
-                                            Estructurando Preguntas...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Sparkles className="size-3.5" />
-                                            Generar Preguntas de Entrevista
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
-                        ) : (
-                            <div className="flex flex-col gap-4">
-                                <div className="space-y-3">
-                                    {questions.map((q, idx) => (
-                                        <div
-                                            key={idx}
-                                            className="rounded-lg border border-border bg-muted/5 p-3.5 flex flex-col gap-2"
-                                        >
-                                            <h5 className="text-xs font-bold text-indigo-600 flex gap-1.5 items-start">
-                                                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-indigo/10 text-[10px] font-bold text-indigo">
-                                                    {idx + 1}
-                                                </span>
-                                                <span className="leading-5">{q.question}</span>
-                                            </h5>
-                                            <div className="rounded-md bg-muted/20 border border-border/40 p-2.5 text-[11px] text-muted-foreground">
-                                                <p className="font-semibold text-foreground mb-1">
-                                                    Respuesta Esperada:
-                                                </p>
-                                                <p className="leading-normal font-sans">{q.expectedResponse}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                                <Button
-                                    onClick={handleDownloadPDF}
-                                    className="w-full gap-2 mt-2 border-primary/30 text-primary"
-                                    variant="outline"
-                                >
-                                    <Download className="size-4" />
-                                    Descargar Guía de Entrevista en PDF
-                                </Button>
-                            </div>
-                        )}
-                    </div>
+                        <Separator />
 
-                    <Separator />
+                        <CandidatePitchSection candidateId={candidate.id} />
 
-                    {/* Resumen Ejecutivo IA (AI Candidate Pitch) */}
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <FileText className="size-4.5 text-primary" />
-                                <h4 className="text-sm font-semibold text-foreground">Resumen Ejecutivo IA (Pitch)</h4>
-                            </div>
-                            {pitchSummary && (
-                                <Button
-                                    onClick={handleCopyPitch}
-                                    size="icon-sm"
-                                    variant="outline"
-                                    className="h-8 w-8 text-primary border-primary/20 hover:bg-primary/10"
-                                >
-                                    {copiedPitch ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-                                </Button>
-                            )}
-                        </div>
+                        <Separator />
 
-                        {!pitchSummary ? (
-                            <div className="rounded-lg border border-dashed border-border/80 bg-muted/10 p-5 text-center flex flex-col items-center gap-3">
-                                <p className="text-xs text-muted-foreground max-w-sm">
-                                    Genera una síntesis ejecutiva en español de los puntos fuertes y perfil técnico del
-                                    desarrollador en segundos.
-                                </p>
-                                <Button
-                                    onClick={() => void handleGeneratePitch()}
-                                    disabled={isGeneratingPitch}
-                                    size="sm"
-                                    className="gap-1.5"
-                                >
-                                    {isGeneratingPitch ? (
-                                        <>
-                                            <Loader2 className="size-3.5 animate-spin" />
-                                            Sintetizando perfil...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Sparkles className="size-3.5" />
-                                            Generar Resumen Ejecutivo
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
-                        ) : (
-                            <div className="rounded-lg border border-border bg-primary/5 p-4 text-xs text-foreground/90 leading-relaxed font-sans relative">
-                                {pitchSummary}
-                            </div>
-                        )}
-                    </div>
-
-                    <Separator />
-
-                    {/* AI Outreach Writer */}
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Mail className="size-4.5 text-primary" />
-                                <h4 className="text-sm font-semibold text-foreground">
-                                    Generador de Mensaje de Contacto (Outreach)
-                                </h4>
-                            </div>
-                            {outreachMessage && (
-                                <Button
-                                    onClick={handleCopyOutreach}
-                                    size="icon-sm"
-                                    variant="outline"
-                                    className="h-8 w-8 text-primary border-primary/20 hover:bg-primary/10"
-                                >
-                                    {copiedOutreach ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-                                </Button>
-                            )}
-                        </div>
-
-                        <div className="grid gap-3 sm:grid-cols-2 p-3.5 rounded-lg border border-border/60 bg-muted/20">
-                            <div className="flex flex-col gap-1">
-                                <label className="text-[10px] font-semibold text-muted-foreground uppercase">
-                                    Título de Vacante
-                                </label>
-                                <Input
-                                    value={outreachJobTitle}
-                                    onChange={(e) => setOutreachJobTitle(e.target.value)}
-                                    className="h-8 text-xs bg-background"
-                                    placeholder="Ej: Senior Frontend Dev"
-                                />
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                <label className="text-[10px] font-semibold text-muted-foreground uppercase">
-                                    Empresa / Cliente
-                                </label>
-                                <Input
-                                    value={outreachCompany}
-                                    onChange={(e) => setOutreachCompany(e.target.value)}
-                                    className="h-8 text-xs bg-background"
-                                    placeholder="Ej: Acme Corp"
-                                />
-                            </div>
-                            <div className="sm:col-span-2 flex justify-end pt-1">
-                                <Button
-                                    onClick={() => void handleGenerateOutreach()}
-                                    disabled={isGeneratingOutreach}
-                                    size="sm"
-                                    className="gap-1.5 w-full sm:w-auto"
-                                >
-                                    {isGeneratingOutreach ? (
-                                        <>
-                                            <Loader2 className="size-3.5 animate-spin" />
-                                            Redactando mensaje...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Sparkles className="size-3.5" />
-                                            Redactar Propuesta de Contacto
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
-                        </div>
-
-                        {outreachMessage && (
-                            <div className="flex flex-col gap-2">
-                                <Textarea
-                                    value={outreachMessage}
-                                    readOnly
-                                    className="min-h-[140px] text-xs font-sans bg-background border-border"
-                                />
-                                <Button
-                                    onClick={handleCopyOutreach}
-                                    variant="outline"
-                                    className="w-full gap-2 border-primary/30 text-primary"
-                                >
-                                    <Copy className="size-4" />
-                                    Copiar Mensaje Personalizado
-                                </Button>
-                            </div>
-                        )}
+                        <CandidateOutreachSection
+                            candidateId={candidate.id}
+                            defaultJobTitle={jobDescription ? jobDescription.slice(0, 45) : "Desarrollador Web"}
+                        />
                     </div>
                 </div>
 

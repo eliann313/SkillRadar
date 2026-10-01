@@ -738,6 +738,8 @@
         "deleteAccountNetworkError": "Error deleting the account.",
         "keyClearedFull": "The key was cleared. Save changes to remove it from the database.",
         "keyClearedShort": "The key was cleared. Save changes to remove it.",
+        "keyRevoked": "Key revoked and removed from the database.",
+        "keyRevokeError": "Could not revoke the key.",
         "linkCopied": "Link copied to clipboard.",
         "markdownCopied": "Markdown snippet copied."
     },

@@ -41,6 +41,8 @@ import { toast } from "sonner";
 import {
     getUserApiKeysStatusAction,
     saveUserApiKeysAction,
+    deleteUserApiKeyAction,
+    type ApiKeyProvider,
     saveUserInferencePreferencesAction,
     getUserPublicProfileSettingsAction,
     updateUserPublicProfileSettingsAction,
@@ -294,6 +296,25 @@ export default function SettingsPage() {
             toast.error(errMsg);
         } finally {
             setSavingKeys(false);
+        }
+    };
+
+    // Revoca inmediatamente la clave BYOK de un proveedor (Fase 1).
+    const handleRevokeKey = async (
+        provider: ApiKeyProvider,
+        field: "geminiApiKey" | "groqApiKey" | "openrouterApiKey" | "openaiApiKey" | "anthropicApiKey",
+    ) => {
+        try {
+            const res = await deleteUserApiKeyAction(provider);
+            if (res.success) {
+                setApiKeys((prev) => ({ ...prev, [field]: "" }));
+                toast.success(t("keyRevoked"));
+                void fetchKeysAndPrefs(); // Recargar estados
+            } else {
+                toast.error(res.error || t("keyRevokeError"));
+            }
+        } catch {
+            toast.error(t("keyRevokeError"));
         }
     };
 
@@ -610,13 +631,7 @@ export default function SettingsPage() {
                                             {keysStatus.hasGeminiKey && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => {
-                                                        setApiKeys((prev) => ({
-                                                            ...prev,
-                                                            geminiApiKey: "",
-                                                        }));
-                                                        toast.info(t("keyClearedFull"));
-                                                    }}
+                                                    onClick={() => void handleRevokeKey("gemini", "geminiApiKey")}
                                                     className="text-[10px] text-destructive hover:underline cursor-pointer"
                                                 >
                                                     {t("delete")}
@@ -682,13 +697,7 @@ export default function SettingsPage() {
                                             {keysStatus.hasOpenaiKey && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => {
-                                                        setApiKeys((prev) => ({
-                                                            ...prev,
-                                                            openaiApiKey: "",
-                                                        }));
-                                                        toast.info(t("keyClearedShort"));
-                                                    }}
+                                                    onClick={() => void handleRevokeKey("openai", "openaiApiKey")}
                                                     className="text-[10px] text-destructive hover:underline cursor-pointer"
                                                 >
                                                     {t("delete")}
@@ -754,13 +763,7 @@ export default function SettingsPage() {
                                             {keysStatus.hasAnthropicKey && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => {
-                                                        setApiKeys((prev) => ({
-                                                            ...prev,
-                                                            anthropicApiKey: "",
-                                                        }));
-                                                        toast.info(t("keyClearedShort"));
-                                                    }}
+                                                    onClick={() => void handleRevokeKey("anthropic", "anthropicApiKey")}
                                                     className="text-[10px] text-destructive hover:underline cursor-pointer"
                                                 >
                                                     {t("delete")}
@@ -826,10 +829,7 @@ export default function SettingsPage() {
                                             {keysStatus.hasGroqKey && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => {
-                                                        setApiKeys((prev) => ({ ...prev, groqApiKey: "" }));
-                                                        toast.info(t("keyClearedShort"));
-                                                    }}
+                                                    onClick={() => void handleRevokeKey("groq", "groqApiKey")}
                                                     className="text-[10px] text-destructive hover:underline cursor-pointer"
                                                 >
                                                     {t("delete")}
@@ -895,13 +895,9 @@ export default function SettingsPage() {
                                             {keysStatus.hasOpenrouterKey && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => {
-                                                        setApiKeys((prev) => ({
-                                                            ...prev,
-                                                            openrouterApiKey: "",
-                                                        }));
-                                                        toast.info(t("keyClearedShort"));
-                                                    }}
+                                                    onClick={() =>
+                                                        void handleRevokeKey("openrouter", "openrouterApiKey")
+                                                    }
                                                     className="text-[10px] text-destructive hover:underline cursor-pointer"
                                                 >
                                                     {t("delete")}
