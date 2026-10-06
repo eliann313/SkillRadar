@@ -14,10 +14,17 @@ import {
 } from "@/components/ui/dialog";
 import type { TalentCard } from "@/shared-kernel/types";
 import { cn } from "@/shared-kernel/utils";
+import dynamic from "next/dynamic";
 import { TalentCardView } from "./talent-card";
-import { TalentMarketTab, type MarketData } from "./talent-market.tab";
+import type { MarketData } from "./talent-market.tab";
 import { TalentSourcingPanel } from "./talent-sourcing.panel";
 import { TalentFiltersToolbar } from "./talent-filters.toolbar";
+
+// recharts solo se usa en el tab Market: chunk separado que carga al abrir el tab.
+const TalentMarketTab = dynamic(() => import("./talent-market.tab").then((m) => m.TalentMarketTab), {
+    ssr: false,
+    loading: () => <div className="h-64 animate-pulse rounded-xl border border-border bg-card/30" />,
+});
 import { Search, Users, Send, ShieldAlert, Star, BarChart3 } from "lucide-react";
 import {
     rankTalentPoolAction,

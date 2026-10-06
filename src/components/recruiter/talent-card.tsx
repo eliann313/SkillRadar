@@ -105,6 +105,7 @@ export function TalentCardView({
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 p-0 text-muted-foreground hover:text-warning hover:bg-transparent shrink-0"
+                            aria-label={talent.isShortlisted ? "Quitar de shortlist" : "Guardar en shortlist"}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 void onToggleShortlist(talent.id);
