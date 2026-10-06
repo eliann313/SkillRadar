@@ -24,6 +24,7 @@ vi.mock("next-intl", () => ({
             signInTitle: "Bienvenido de nuevo",
             registerBtn: "Registrarse",
             loginBtn: "Iniciar Sesión",
+            acceptAge: "Confirmo que tengo al menos 13 años",
         };
         return translations[key] || key;
     },
@@ -90,5 +91,12 @@ describe("LoginForm Component", () => {
 
         expect(screen.getByRole("button", { name: "Dev Demo" })).toBeDefined();
         expect(screen.getByRole("button", { name: "Recruiter Demo" })).toBeDefined();
+    });
+
+    it("en modo registro exige confirmación de edad mínima", () => {
+        mockSearchParams = new URLSearchParams("register=true");
+        render(<LoginForm />);
+
+        expect(screen.getByLabelText("Confirmo que tengo al menos 13 años")).toBeDefined();
     });
 });

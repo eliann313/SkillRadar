@@ -3,9 +3,10 @@ import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 
-/** Fuente única de verdad: el provider "guest" solo existe si el flag está activo. */
+/** Fuente única de verdad: el provider "guest" existe salvo veto explícito.
+ * Default abierto (demo antes de registrarse); cerrar con ENABLE_GUEST_LOGIN=false. */
 export function isGuestLoginEnabled(): boolean {
-    return process.env.ENABLE_GUEST_LOGIN === "true";
+    return process.env.ENABLE_GUEST_LOGIN !== "false";
 }
 
 const enableGuestLogin = isGuestLoginEnabled();

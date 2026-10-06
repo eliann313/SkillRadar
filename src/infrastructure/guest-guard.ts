@@ -7,6 +7,8 @@
  * en la DB debe llamar a `rejectGuestWrite(session)` antes de persistir.
  */
 
+import type { ActionResult } from "@/shared-kernel/action-result";
+
 interface GuestSession {
     user?: { id?: string; isGuest?: boolean } | null;
 }
@@ -20,3 +22,17 @@ export function isGuestSession(session: GuestSession | null): boolean {
 }
 
 export const GUEST_WRITE_ERROR = "Acción no disponible en modo demo. Creá una cuenta gratuita para continuar.";
+
+/**
+ * Denegación explícita de escritura para sesiones demo.
+ *
+ * Uso: `const blocked = rejectGuestWrite(session); if (blocked) return blocked;`
+ * antes de cualquier persistencia. No confiar en errores de FK/ownership:
+ * el id compartido debe fallar cerrado por diseño, no por accidente.
+ */
+export function rejectGuestWrite(session: GuestSession | null): ActionResult<never> | null {
+    if (isGuestSession(session)) {
+        return { success: false, error: GUEST_WRITE_ERROR };
+    }
+    return null;
+}

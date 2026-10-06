@@ -93,7 +93,7 @@ export async function createContactRequestAction(
         // todos los visitantes, por lo que nunca debe persistir en la DB real
         // (evita contaminación cruzada: un demo pide contacto, el dev acepta y
         // otro visitante vería los datos revelados).
-        if (session.user.isGuest || session.user.id === "guest-recruiter-id") {
+        if (isGuestSession(session)) {
             return {
                 success: true,
                 data: {
@@ -159,7 +159,7 @@ export async function toggleShortlistAction(developerId: string): Promise<Action
         }
 
         // Modo Demo/Guest: solo lectura, sin persistencia compartida.
-        if (session.user.isGuest || session.user.id === "guest-recruiter-id") {
+        if (isGuestSession(session)) {
             return { success: true, data: true };
         }
 

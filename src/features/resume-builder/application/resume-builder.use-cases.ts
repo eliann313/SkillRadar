@@ -7,6 +7,7 @@ import { AIService, type AIServiceOptions } from "@/infrastructure/ai";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/shared-kernel/action-result";
+import { rejectGuestWrite } from "@/infrastructure/guest-guard";
 
 // Zod Schema for Impact Verb Analyzer
 const impactVerbAnalysisSchema = z.object({
@@ -135,6 +136,9 @@ export async function saveResumeDataAction(
         if (!session?.user?.id) {
             return { success: false, error: "No autorizado. Inicie sesión nuevamente." };
         }
+
+        const blocked = rejectGuestWrite(session);
+        if (blocked) return blocked;
 
         if (!rawTextRepresentation.trim()) {
             return { success: false, error: "El contenido del CV no puede estar vacío." };

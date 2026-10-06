@@ -1,4 +1,4 @@
-# ADR-003: Gate `audit:high` con allowlist de transitivos de Prisma
+# ADR-004: Gate `audit:high` con allowlist de transitivos de Prisma
 
 - Estado: aceptado
 - Fecha: 2026-09-27

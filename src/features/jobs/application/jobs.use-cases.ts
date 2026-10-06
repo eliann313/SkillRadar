@@ -51,7 +51,7 @@ export async function createJobPostingAction(rawInput: unknown): Promise<ActionR
         const recruiterId = session.user.id;
 
         // Límite de velocidad
-        const isGuest = session.user.isGuest === true;
+        const isGuest = isGuestSession(session);
         const identifier = isGuest ? `ip:${await getClientIp()}` : `user:${recruiterId}`;
         const limitResult = await checkJobPostingRateLimit(identifier);
 
@@ -126,7 +126,7 @@ export async function updateJobPostingAction(id: string, rawInput: unknown): Pro
             };
         }
 
-        if (session.user.isGuest === true) {
+        if (isGuestSession(session)) {
             return { success: true, data: { id, ...validation.data } as unknown as JobPosting };
         }
 
@@ -160,7 +160,7 @@ export async function publishJobPostingAction(id: string): Promise<ActionResult<
         // Modo Demo/Guest: el posting tampoco existe en la DB (ver createJobPostingAction),
         // así que no hay nada para buscar/actualizar. El cliente no lee `data` en este caso
         // (solo `success`), por eso el cast es seguro.
-        if (session.user.isGuest === true) {
+        if (isGuestSession(session)) {
             return { success: true, data: { id } as unknown as JobPosting };
         }
 
@@ -192,7 +192,7 @@ export async function closeJobPostingAction(id: string): Promise<ActionResult<Jo
             return { success: false, error: RECRUITER_PENDING_ERROR };
         }
 
-        if (session.user.isGuest === true) {
+        if (isGuestSession(session)) {
             return { success: true, data: { id } as unknown as JobPosting };
         }
 
@@ -300,7 +300,7 @@ export async function applyToJobPostingAction(jobPostingId: string): Promise<Act
         }
 
         // Rate Limiting
-        const isGuest = session.user.isGuest === true;
+        const isGuest = isGuestSession(session);
         const identifier = isGuest ? `ip:${await getClientIp()}` : `user:${developerId}`;
         const limitResult = await checkJobPostingApplyRateLimit(identifier);
 
@@ -360,7 +360,7 @@ export async function createReportAction(rawInput: unknown): Promise<ActionResul
         const reporterId = session.user.id;
 
         // Rate Limiting
-        const isGuest = session.user.isGuest === true;
+        const isGuest = isGuestSession(session);
         const identifier = isGuest ? `ip:${await getClientIp()}` : `user:${reporterId}`;
         const limitResult = await checkContentReportRateLimit(identifier);
 
