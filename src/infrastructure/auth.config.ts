@@ -3,7 +3,12 @@ import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 
-const enableGuestLogin = process.env.ENABLE_GUEST_LOGIN === "true";
+/** Fuente única de verdad: el provider "guest" solo existe si el flag está activo. */
+export function isGuestLoginEnabled(): boolean {
+    return process.env.ENABLE_GUEST_LOGIN === "true";
+}
+
+const enableGuestLogin = isGuestLoginEnabled();
 
 const providers: NextAuthConfig["providers"] = [
     GitHub({

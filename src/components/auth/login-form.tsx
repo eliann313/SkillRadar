@@ -19,7 +19,7 @@ import { useEffect } from "react";
 import { LanguageSwitcher, ThemeToggle } from "@/components/layout";
 import { useTranslations, useLocale } from "next-intl";
 
-export function LoginForm() {
+export function LoginForm({ guestEnabled = false }: { guestEnabled?: boolean }) {
     const t = useTranslations("Auth");
     const locale = useLocale();
     const searchParams = useSearchParams();
@@ -128,6 +128,11 @@ export function LoginForm() {
     };
 
     const handleGuestLogin = async (role: "developer" | "recruiter") => {
+        // Defensa en profundidad: sin provider "guest" el signIn falla en silencio
+        if (!guestEnabled) {
+            toast.error("El modo demo no está disponible en este entorno.");
+            return;
+        }
         setIsAuthLoading(true);
         try {
             // Gatilla el credentials provider aislado "guest" para modo simulación
@@ -218,26 +223,28 @@ export function LoginForm() {
                                 Continue with Google
                             </Button>
 
-                            <div className="grid grid-cols-2 gap-3 mt-1">
-                                <Button
-                                    variant="secondary"
-                                    className="w-full gap-2 text-xs hover:bg-muted"
-                                    onClick={() => void handleGuestLogin("developer")}
-                                    disabled={isLoading}
-                                >
-                                    <Bot className="size-4 shrink-0 text-primary animate-pulse" />
-                                    Dev Demo
-                                </Button>
-                                <Button
-                                    variant="secondary"
-                                    className="w-full gap-2 text-xs hover:bg-muted"
-                                    onClick={() => void handleGuestLogin("recruiter")}
-                                    disabled={isLoading}
-                                >
-                                    <Users className="size-4 shrink-0 text-indigo-500 animate-pulse" />
-                                    Recruiter Demo
-                                </Button>
-                            </div>
+                            {guestEnabled && (
+                                <div className="grid grid-cols-2 gap-3 mt-1">
+                                    <Button
+                                        variant="secondary"
+                                        className="w-full gap-2 text-xs hover:bg-muted"
+                                        onClick={() => void handleGuestLogin("developer")}
+                                        disabled={isLoading}
+                                    >
+                                        <Bot className="size-4 shrink-0 text-primary animate-pulse" />
+                                        Dev Demo
+                                    </Button>
+                                    <Button
+                                        variant="secondary"
+                                        className="w-full gap-2 text-xs hover:bg-muted"
+                                        onClick={() => void handleGuestLogin("recruiter")}
+                                        disabled={isLoading}
+                                    >
+                                        <Users className="size-4 shrink-0 text-indigo-500 animate-pulse" />
+                                        Recruiter Demo
+                                    </Button>
+                                </div>
+                            )}
 
                             <div className="flex items-center gap-4 py-2">
                                 <Separator className="flex-1" />
