@@ -271,10 +271,10 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
                 </CardHeader>
                 <CardContent>
                     <ul className="flex flex-col gap-3">
-                        {analysis.suggestions.map((suggestion, index) => (
-                            <li key={index} className="flex gap-3 text-sm">
+                        {analysis.suggestions.map((suggestion, i) => (
+                            <li key={suggestion} className="flex gap-3 text-sm">
                                 <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
-                                    {index + 1}
+                                    {i + 1}
                                 </span>
                                 <span className="text-muted-foreground">{suggestion}</span>
                             </li>

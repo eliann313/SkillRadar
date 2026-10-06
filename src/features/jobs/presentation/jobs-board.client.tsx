@@ -63,19 +63,22 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
     const fetchJobs = useCallback(async () => {
         setLoading(true);
         setLoadError(null);
-        const filters = {
-            search: search || undefined,
-            remoteType: remoteType !== "all" ? remoteType : undefined,
-            seniorityLevel: seniorityLevel !== "all" ? seniorityLevel : undefined,
-        };
-        const res = await getDeveloperJobBoardAction(filters);
-        if (res.success && res.data) {
-            setJobs(res.data);
-        } else {
-            setLoadError(t("filterError"));
-            toast.error(t("filterError"));
+        try {
+            const filters = {
+                search: search || undefined,
+                remoteType: remoteType !== "all" ? remoteType : undefined,
+                seniorityLevel: seniorityLevel !== "all" ? seniorityLevel : undefined,
+            };
+            const res = await getDeveloperJobBoardAction(filters);
+            if (res.success && res.data) {
+                setJobs(res.data);
+            } else {
+                setLoadError(t("filterError"));
+                toast.error(t("filterError"));
+            }
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }, [search, remoteType, seniorityLevel, t]);
 
     // Filtrar ofertas cuando cambien los filtros
@@ -98,45 +101,54 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
             return;
         }
         setIsSubmittingReport(true);
-        const res = await createReportAction({
-            targetType: "job_posting",
-            targetId: reportingJobId,
-            reason: reportReason,
-        });
+        try {
+            const res = await createReportAction({
+                targetType: "job_posting",
+                targetId: reportingJobId,
+                reason: reportReason,
+            });
 
-        if (res.success) {
-            toast.success(t("reportSuccess"));
-            setReportingJobId(null);
-            setReportReason("");
-            void fetchJobs(); // Recargar el listado por si se ocultó la oferta
-        } else {
-            toast.error(res.error || t("reportError"));
+            if (res.success) {
+                toast.success(t("reportSuccess"));
+                setReportingJobId(null);
+                setReportReason("");
+                void fetchJobs(); // Recargar el listado por si se ocultó la oferta
+            } else {
+                toast.error(res.error || t("reportError"));
+            }
+        } finally {
+            setIsSubmittingReport(false);
         }
-        setIsSubmittingReport(false);
     };
 
     const handleApply = async (jobId: string) => {
         setApplyingId(jobId);
-        const res = await applyToJobPostingAction(jobId);
-        if (res.success) {
-            toast.success(t("applySuccess"));
-            setJobs((prev) => prev.map((job) => (job.id === jobId ? { ...job, hasApplied: true } : job)));
-        } else {
-            toast.error(res.error || t("applyError"));
+        try {
+            const res = await applyToJobPostingAction(jobId);
+            if (res.success) {
+                toast.success(t("applySuccess"));
+                setJobs((prev) => prev.map((job) => (job.id === jobId ? { ...job, hasApplied: true } : job)));
+            } else {
+                toast.error(res.error || t("applyError"));
+            }
+        } finally {
+            setApplyingId(null);
         }
-        setApplyingId(null);
     };
 
     const handleWithdraw = async (jobId: string) => {
         setWithdrawingId(jobId);
-        const res = await withdrawApplicationAction(jobId);
-        if (res.success) {
-            toast.success(t("withdrawSuccess"));
-            setJobs((prev) => prev.map((job) => (job.id === jobId ? { ...job, hasApplied: false } : job)));
-        } else {
-            toast.error(res.error || t("withdrawError"));
+        try {
+            const res = await withdrawApplicationAction(jobId);
+            if (res.success) {
+                toast.success(t("withdrawSuccess"));
+                setJobs((prev) => prev.map((job) => (job.id === jobId ? { ...job, hasApplied: false } : job)));
+            } else {
+                toast.error(res.error || t("withdrawError"));
+            }
+        } finally {
+            setWithdrawingId(null);
         }
-        setWithdrawingId(null);
     };
 
     const getScoreColor = (score: number) => {

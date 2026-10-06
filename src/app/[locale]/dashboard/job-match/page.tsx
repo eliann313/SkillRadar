@@ -24,10 +24,12 @@ export default function JobMatchPage() {
 
     // Cargar historial de CVs del desarrollador
     useEffect(() => {
+        let cancelled = false;
         if (status === "authenticated" && session?.user?.id) {
             const loadResumes = async () => {
                 try {
                     const result = await getUserResumesAction();
+                    if (cancelled) return;
                     if (result.success && result.data) {
                         setResumes(
                             result.data.map((r) => ({
@@ -38,11 +40,16 @@ export default function JobMatchPage() {
                         );
                     }
                 } catch (error) {
-                    logger.error("Error al cargar historial de CVs:", error);
+                    if (!cancelled) {
+                        logger.error("Error al cargar historial de CVs:", error);
+                    }
                 }
             };
             void loadResumes();
         }
+        return () => {
+            cancelled = true;
+        };
     }, [status, session]);
 
     if (status === "loading") {

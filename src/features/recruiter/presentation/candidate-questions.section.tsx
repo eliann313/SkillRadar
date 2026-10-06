@@ -160,14 +160,14 @@ export function CandidateQuestionsSection({
             ) : (
                 <div className="flex flex-col gap-4">
                     <div className="space-y-3">
-                        {questions.map((q, idx) => (
+                        {questions.map((q, i) => (
                             <div
-                                key={idx}
+                                key={q.question}
                                 className="rounded-lg border border-border bg-muted/5 p-3.5 flex flex-col gap-2"
                             >
                                 <h5 className="text-xs font-bold text-indigo-600 flex gap-1.5 items-start">
                                     <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-indigo/10 text-[10px] font-bold text-indigo">
-                                        {idx + 1}
+                                        {i + 1}
                                     </span>
                                     <span className="leading-5">{q.question}</span>
                                 </h5>

@@ -147,9 +147,9 @@ export function CandidateDetailModal({ isOpen, onOpenChange, candidate, jobDescr
                             </p>
                         ) : (
                             <div className="flex flex-col gap-2.5">
-                                {candidate.technicalObservations.map((obs, idx) => (
+                                {candidate.technicalObservations.map((obs) => (
                                     <details
-                                        key={idx}
+                                        key={`${obs.category}-${obs.observation}`}
                                         className="group rounded-lg border border-border/60 bg-muted/5 overflow-hidden transition-all duration-200"
                                     >
                                         <summary className="flex items-center justify-between p-3 cursor-pointer text-xs font-medium text-foreground select-none hover:bg-muted/10">
