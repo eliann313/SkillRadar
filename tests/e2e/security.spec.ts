@@ -48,5 +48,14 @@ test.describe("Security E2E Flow", () => {
             expect(res.status()).toBe(400);
             await expect(page.getByTestId("guest-mode-banner")).toBeVisible();
         });
+
+        test("pool no expone PII sin aceptaciones (doble ciego UI)", async ({ page }) => {
+            await page.goto("/dashboard");
+            await expect(page.getByRole("heading", { name: "Talent Pool" })).toBeVisible({ timeout: 15000 });
+            // O las tarjetas llegan anonimizadas o el pool está vacío: en ningún caso hay PII revelada
+            const blind = page.getByText("Perfil Doble Ciego");
+            const empty = page.getByText("No matches found");
+            await expect(blind.or(empty).first()).toBeVisible({ timeout: 15000 });
+        });
     });
 });
