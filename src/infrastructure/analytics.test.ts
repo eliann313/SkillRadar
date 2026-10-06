@@ -52,4 +52,35 @@ describe("lib/analytics — trackServerEvent (anonimato + PII)", () => {
         await expect(trackServerEvent("user_registered")).resolves.toBeUndefined();
         expect(track).not.toHaveBeenCalled();
     });
+
+    it("persiste provider/model/latency/success solo en eventos ai_inference_* (deuda saldada)", async () => {
+        const createSpy = vi.spyOn(db.analyticsEvent, "create").mockResolvedValue({} as any);
+
+        await trackServerEvent("ai_inference_succeeded", "user-9", {
+            provider: "groq",
+            model: "openai/gpt-oss-120b",
+            latencyMs: 1234,
+            fallbackAttempt: 1,
+        });
+
+        expect(createSpy).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                name: "ai_inference_succeeded",
+                provider: "groq",
+                model: "openai/gpt-oss-120b",
+                latencyMs: 1234,
+                success: true,
+            }),
+        });
+    });
+
+    it("no persiste campos IA en eventos de producto", async () => {
+        const createSpy = vi.spyOn(db.analyticsEvent, "create").mockResolvedValue({} as any);
+
+        await trackServerEvent("cv_uploaded", "user-9", { provider: "groq" });
+
+        const saved = createSpy.mock.calls[0][0].data as Record<string, unknown>;
+        expect(saved.provider).toBeUndefined();
+        expect(saved.success).toBeUndefined();
+    });
 });

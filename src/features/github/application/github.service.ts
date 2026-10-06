@@ -128,6 +128,7 @@ ${JSON.stringify(languages, null, 2).slice(0, 3000)}
 ${JSON.stringify(repoDataForAI, null, 2).slice(0, 6000)}
 
 Devuelve señales basadas solo en lo observable en nombres/descripciones.`,
+                userId,
                 userSettings,
             });
 

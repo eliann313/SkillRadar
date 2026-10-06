@@ -31,8 +31,7 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function ProgressPage({ params }: PageProps) {
-    const { locale } = await params;
-    const session = await auth();
+    const [{ locale }, session] = await Promise.all([params, auth()]);
     if (!session?.user) {
         redirect("/");
     }
@@ -247,9 +246,9 @@ export default async function ProgressPage({ params }: PageProps) {
                                     Tecnologías Recomendadas
                                 </h3>
                                 <div className="space-y-3">
-                                    {recsRes.data.technologies.map((tech, idx) => (
+                                    {recsRes.data.technologies.map((tech) => (
                                         <div
-                                            key={idx}
+                                            key={tech.name}
                                             className="p-3 rounded-lg border border-border/60 bg-muted/20 flex items-start gap-3"
                                         >
                                             <Badge
@@ -286,9 +285,9 @@ export default async function ProgressPage({ params }: PageProps) {
                                     <Calendar className="size-4 text-primary" />
                                     Ruta de Aprendizaje Sugerida
                                 </h3>
-                                {recsRes.data.roadmaps.map((map, idx) => (
+                                {recsRes.data.roadmaps.map((map) => (
                                     <div
-                                        key={idx}
+                                        key={map.title}
                                         className="p-4 rounded-lg border border-border bg-card/60 space-y-3 relative overflow-hidden"
                                     >
                                         <div className="flex justify-between items-center">
@@ -325,9 +324,9 @@ export default async function ProgressPage({ params }: PageProps) {
                                     Proyectos Sugeridos para Potenciar tu CV
                                 </h3>
                                 <div className="grid gap-4 md:grid-cols-2">
-                                    {recsRes.data.projects.map((proj, idx) => (
+                                    {recsRes.data.projects.map((proj) => (
                                         <div
-                                            key={idx}
+                                            key={proj.title}
                                             className="p-4 rounded-lg border border-border/60 bg-muted/10 flex flex-col justify-between gap-3 hover:border-primary/30 transition-all"
                                         >
                                             <div className="space-y-2">

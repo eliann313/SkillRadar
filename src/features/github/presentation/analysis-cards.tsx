@@ -24,8 +24,8 @@ export function AnalysisCards({ analysis }: AnalysisCardsProps) {
                 </CardHeader>
                 <CardContent>
                     <ul className="space-y-2">
-                        {analysis.strengths.map((str, idx) => (
-                            <li key={idx} className="text-xs text-muted-foreground leading-relaxed flex gap-2">
+                        {analysis.strengths.map((str) => (
+                            <li key={str} className="text-xs text-muted-foreground leading-relaxed flex gap-2">
                                 <span className="text-emerald-500 shrink-0">•</span>
                                 <span>{str}</span>
                             </li>
@@ -44,8 +44,8 @@ export function AnalysisCards({ analysis }: AnalysisCardsProps) {
                 </CardHeader>
                 <CardContent>
                     <ul className="space-y-2">
-                        {analysis.weaknesses.map((weak, idx) => (
-                            <li key={idx} className="text-xs text-muted-foreground leading-relaxed flex gap-2">
+                        {analysis.weaknesses.map((weak) => (
+                            <li key={weak} className="text-xs text-muted-foreground leading-relaxed flex gap-2">
                                 <span className="text-amber-500 shrink-0">•</span>
                                 <span>{weak}</span>
                             </li>
@@ -64,8 +64,8 @@ export function AnalysisCards({ analysis }: AnalysisCardsProps) {
                 </CardHeader>
                 <CardContent>
                     <ul className="space-y-2">
-                        {analysis.suggestions.map((sug, idx) => (
-                            <li key={idx} className="text-xs text-muted-foreground leading-relaxed flex gap-2">
+                        {analysis.suggestions.map((sug) => (
+                            <li key={sug} className="text-xs text-muted-foreground leading-relaxed flex gap-2">
                                 <span className="text-blue-500 shrink-0">•</span>
                                 <span>{sug}</span>
                             </li>

@@ -42,7 +42,9 @@ function classify(spec) {
             // Nodo padre (ej. prisma, @prisma/config): hereda severidad de sus
             // dependencias vulnerables. Se resuelve en segunda pasada.
             pending.push({ entry, refs: (v.via ?? []).filter((x) => typeof x === "string") });
-        } else if (urls.some((url) => [...ALLOWLIST].some((id) => url.includes(id)))) {
+        } else if (urls.length > 0 && urls.every((url) => [...ALLOWLIST].some((id) => url.includes(id)))) {
+            // Endurecido: TODAS las URLs deben estar allowlisteadas. Con `some`,
+            // un paquete con 2 advisories (uno conocido + uno nuevo) enmascaraba el nuevo.
             allowed.push(entry);
         } else {
             flagged.push(entry);

@@ -1,4 +1,5 @@
 import { auth } from "@/infrastructure/auth";
+import { isGuestLoginEnabled } from "@/infrastructure/auth.config";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth";
 import { Suspense } from "react";
@@ -19,7 +20,7 @@ export default async function LoginPage() {
                 </div>
             }
         >
-            <LoginForm />
+            <LoginForm guestEnabled={isGuestLoginEnabled()} />
         </Suspense>
     );
 }

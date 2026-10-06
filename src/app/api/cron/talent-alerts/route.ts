@@ -37,14 +37,24 @@ export async function GET(request: Request) {
         });
 
         let created = 0;
-        for (const search of searches) {
+        // Concurrencia acotada (Fase B): serie pura tardaba ~50 queries en el peor caso;
+        // paralelo total saturaría el pool de Neon. Chunks de 5 con orden determinista.
+        const CHUNK_SIZE = 5;
+        for (let i = 0; i < searches.length; i += CHUNK_SIZE) {
+            const chunkResults = await Promise.all(
+                searches.slice(i, i + CHUNK_SIZE).map((search) => processSearch(search, since)),
+            );
+            created += chunkResults.reduce((a, b) => a + b, 0);
+        }
+
+        async function processSearch(search: (typeof searches)[number], since: Date): Promise<number> {
             const filters = safeParseJson<TalentFilters>(search.filters, {}) ?? {};
             const terms = (filters.query ?? "")
                 .toLowerCase()
                 .split(/[\s,]+/)
                 .map((t) => t.trim())
                 .filter((t) => t.length > 2);
-            if (terms.length === 0) continue;
+            if (terms.length === 0) return 0;
 
             const resumes = await db.resume.findMany({
                 where: { createdAt: { gte: since } },
@@ -52,6 +62,9 @@ export async function GET(request: Request) {
                 take: 50,
             });
 
+            // Inner serial a propósito: el dedup (dup+metadata) tiene race si se
+            // paraleliza (mismo developer con 2 CVs → doble notificación).
+            let local = 0;
             for (const resume of resumes) {
                 const haystack = (resume.rawText || "").toLowerCase();
                 const hits = terms.filter((t) => haystack.includes(t)).length;
@@ -77,8 +90,9 @@ export async function GET(request: Request) {
                     link: "/dashboard",
                     metadata: { searchId: search.id, developerId: resume.userId },
                 });
-                created += 1;
+                local += 1;
             }
+            return local;
         }
 
         const durationMs = Date.now() - startedAt;
