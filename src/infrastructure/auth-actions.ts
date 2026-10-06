@@ -8,12 +8,16 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { trackServerEvent } from "@/infrastructure/analytics";
 import { checkLoginRateLimit, getClientIp } from "@/infrastructure/rate-limit";
+import { rejectGuestWrite } from "@/infrastructure/guest-guard";
 
 export async function updateUserRole(role: "developer" | "recruiter") {
     const session = await auth();
     if (!session?.user?.id) {
         return { success: false, error: "No autorizado" };
     }
+
+    const blocked = rejectGuestWrite(session);
+    if (blocked) return blocked;
 
     try {
         await db.user.update({

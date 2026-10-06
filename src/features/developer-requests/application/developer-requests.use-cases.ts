@@ -5,6 +5,7 @@ import { auth } from "@/infrastructure/auth";
 import { db } from "@/infrastructure/db";
 import type { ActionResult } from "@/shared-kernel/action-result";
 import { revalidatePath } from "next/cache";
+import { rejectGuestWrite } from "@/infrastructure/guest-guard";
 
 /**
  * Acepta una solicitud de contacto, revelando los datos.
@@ -15,6 +16,9 @@ export async function acceptContactRequestAction(requestId: string): Promise<Act
         if (!session?.user?.id) {
             return { success: false, error: "No autorizado. Inicie sesión nuevamente." };
         }
+
+        const blocked = rejectGuestWrite(session);
+        if (blocked) return blocked;
 
         const request = await db.contactRequest.findUnique({
             where: { id: requestId },
@@ -62,6 +66,9 @@ export async function declineContactRequestAction(requestId: string): Promise<Ac
         if (!session?.user?.id) {
             return { success: false, error: "No autorizado. Inicie sesión nuevamente." };
         }
+
+        const blocked = rejectGuestWrite(session);
+        if (blocked) return blocked;
 
         const request = await db.contactRequest.findUnique({
             where: { id: requestId },

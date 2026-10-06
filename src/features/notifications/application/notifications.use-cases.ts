@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 
 import type { Notification } from "@prisma/client";
 import type { ActionResult } from "@/shared-kernel/action-result";
+import { rejectGuestWrite } from "@/infrastructure/guest-guard";
 
 export interface NotificationListResult {
     notifications: Notification[];
@@ -71,6 +72,9 @@ export async function markAsReadAction(notificationId: string): Promise<ActionRe
             return { success: false, error: "No autorizado." };
         }
 
+        const blocked = rejectGuestWrite(session);
+        if (blocked) return blocked;
+
         // Verificar propiedad antes de mutar
         const notification = await db.notification.findUnique({
             where: { id: notificationId },
@@ -106,6 +110,9 @@ export async function markAllAsReadAction(): Promise<ActionResult<boolean>> {
         if (!session?.user?.id) {
             return { success: false, error: "No autorizado." };
         }
+
+        const blocked = rejectGuestWrite(session);
+        if (blocked) return blocked;
 
         const userId = session.user.id;
 

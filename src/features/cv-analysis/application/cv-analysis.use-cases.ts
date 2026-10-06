@@ -14,6 +14,7 @@ import { db } from "@/infrastructure/db";
 import { AIService, type AIServiceOptions } from "@/infrastructure/ai";
 import { z } from "zod";
 import { env } from "@/infrastructure/env";
+import { rejectGuestWrite } from "@/infrastructure/guest-guard";
 
 interface ParseCVInput {
     fileUrl?: string;
@@ -307,6 +308,9 @@ export async function getProgressDataAction() {
 export async function setActiveResumeAction(id: string): Promise<ActionResult<boolean>> {
     try {
         const session = await assertActiveUser();
+
+        const blocked = rejectGuestWrite(session);
+        if (blocked) return blocked;
         const userId = session.user.id;
 
         await resumeStore.setActive(id, userId);
@@ -331,6 +335,9 @@ export async function deleteResumeAction(
 > {
     try {
         const session = await assertActiveUser();
+
+        const blocked = rejectGuestWrite(session);
+        if (blocked) return blocked;
         const userId = session.user.id;
 
         // Validar ownership

@@ -6,6 +6,7 @@ import { db } from "@/infrastructure/db";
 import { AIService, type AIServiceOptions } from "@/infrastructure/ai";
 import { z } from "zod";
 import type { ActionResult } from "@/shared-kernel/action-result";
+import { isGuestSession } from "@/infrastructure/guest-guard";
 
 // Schema for LinkedIn Audit Results
 const linkedinAuditSchema = z.object({
@@ -147,7 +148,7 @@ ${profileText.slice(0, 6000)}
 
         // Persistir auditoría (no guests) para historial antes/después
         try {
-            if (!session.user.isGuest) {
+            if (!isGuestSession(session)) {
                 await db.linkedInAudit.create({
                     data: {
                         userId: session.user.id,

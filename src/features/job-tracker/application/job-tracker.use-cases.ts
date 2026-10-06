@@ -8,6 +8,7 @@ import { jobApplicationSchema } from "../domain/job-tracker.types";
 import type { ActionResult } from "@/shared-kernel/action-result";
 import type { JobApplication } from "@prisma/client";
 import { z } from "zod";
+import { rejectGuestWrite } from "@/infrastructure/guest-guard";
 
 const statusSchema = z.enum(["to_apply", "applied", "interviewing", "offer"]);
 
@@ -17,6 +18,9 @@ export async function createJobApplicationAction(input: unknown): Promise<Action
         if (!session?.user?.id) {
             return { success: false, error: "No autorizado. Inicie sesión nuevamente." };
         }
+
+        const blocked = rejectGuestWrite(session);
+        if (blocked) return blocked;
 
         const result = jobApplicationSchema.safeParse(input);
         if (!result.success) {
@@ -58,6 +62,9 @@ export async function updateJobApplicationStatusAction(
             return { success: false, error: "No autorizado." };
         }
 
+        const blocked = rejectGuestWrite(session);
+        if (blocked) return blocked;
+
         const parsed = statusSchema.safeParse(status);
         if (!parsed.success) {
             return { success: false, error: "Estado inválido." };
@@ -81,6 +88,9 @@ export async function deleteJobApplicationAction(id: string): Promise<ActionResu
         if (!session?.user?.id) {
             return { success: false, error: "No autorizado." };
         }
+
+        const blocked = rejectGuestWrite(session);
+        if (blocked) return blocked;
 
         await JobTrackerService.deleteJobApplication(id, session.user.id);
         revalidatePath("/dashboard/job-tracker");
