@@ -38,10 +38,12 @@ export default function AdminDashboardPage() {
 
     const loadDashboardData = async () => {
         try {
-            // Ya es true por defecto
-            const funnelRes = await getFunnelDataAction();
-            const reportsRes = await getPendingReportsAction();
-            const verifRes = await getPendingVerificationsAction();
+            // Tres consultas independientes en paralelo
+            const [funnelRes, reportsRes, verifRes] = await Promise.all([
+                getFunnelDataAction(),
+                getPendingReportsAction(),
+                getPendingVerificationsAction(),
+            ]);
 
             if (funnelRes.success) {
                 setFunnel(funnelRes.data);

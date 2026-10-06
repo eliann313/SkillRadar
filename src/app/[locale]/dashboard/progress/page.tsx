@@ -31,8 +31,7 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function ProgressPage({ params }: PageProps) {
-    const { locale } = await params;
-    const session = await auth();
+    const [{ locale }, session] = await Promise.all([params, auth()]);
     if (!session?.user) {
         redirect("/");
     }
