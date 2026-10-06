@@ -7,11 +7,16 @@
  * - GHSA-rgwj-5xj2-c3m3 (mysql2 vía prisma; idem)
  * TODO: eliminar la allowlist cuando Prisma adopte deepmerge-ts@8.
  *
- * Uso: node scripts/audit-high.mjs  (o `npm run audit:high`)
+ * Allowlist (CVE-2026-93687 / GHSA-vfj7-8cjw-p6xm, braces<=3.0.3, SIN PARCHE):
+ * - DoS por stack-exhaustion solo con patrones glob adversarios; en este repo
+ *   braces solo se alcanza en build/lint/dev (fast-glob/micromatch vía shadcn,
+ *   eslint, tailwind, ts-morph), nunca con input de usuario en runtime/prod.
+ * TODO: quitar de la allowlist cuando micromatch/braces publique parche;
+ * Dependabot alertará (package-lock) y el gate volverá a exigir el fix.
  */
 import { execSync } from "node:child_process";
 
-const ALLOWLIST = new Set(["GHSA-ggr8-5vv4-36mx", "GHSA-3f6p-5ww8-9rcr", "GHSA-rgwj-5xj2-c3m3"]);
+const ALLOWLIST = new Set(["GHSA-ggr8-5vv4-36mx", "GHSA-3f6p-5ww8-9rcr", "GHSA-rgwj-5xj2-c3m3", "GHSA-vfj7-8cjw-p6xm"]);
 
 // Sin console.* (regla no-console del repo): salida vía stdout/stderr.
 function out(line) {
@@ -81,7 +86,7 @@ if (!raw.trim()) {
 const { flagged, allowed } = classify(JSON.parse(raw));
 
 for (const a of allowed) {
-    out(`[audit:high] allowlist (prisma-transitivo): ${a.name} [${a.severity}] ${a.urls.join(", ")}`);
+    out(`[audit:high] allowlist: ${a.name} [${a.severity}] ${a.urls.join(", ")}`);
 }
 if (flagged.length > 0) {
     err("[audit:high] vulnerabilidades high/critical NO allowlisteadas:");
