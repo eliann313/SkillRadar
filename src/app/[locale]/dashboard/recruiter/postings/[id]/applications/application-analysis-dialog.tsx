@@ -10,6 +10,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/shared-kernel/utils";
+import { formatApplicationDate } from "./application-dates";
 import { CandidateWorkspace } from "@/components/recruiter/candidate-workspace";
 import type { Application } from "./application.types";
 import { getScoreColor } from "./application-badges";
@@ -38,7 +39,7 @@ export function ApplicationAnalysisDialog({ app, open, onOpenChange }: Applicati
                                     {app.contactStatus === "accepted" ? app.developer.name : app.developer.anonymousId}
                                 </h3>
                                 <p className="text-xs text-muted-foreground">
-                                    Postulado el {new Date(app.createdAt).toLocaleDateString()}
+                                    Postulado el {formatApplicationDate(app.createdAt)}
                                 </p>
                             </div>
                             <div
