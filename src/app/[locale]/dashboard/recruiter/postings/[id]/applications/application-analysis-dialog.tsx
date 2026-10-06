@@ -9,7 +9,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { DialogFooter as DialogFooterAction } from "@/components/ui/dialog";
 import { cn } from "@/shared-kernel/utils";
 import { CandidateWorkspace } from "@/components/recruiter/candidate-workspace";
 import type { Application } from "./application.types";
@@ -131,9 +130,7 @@ export function ApplicationAnalysisDialog({ app, open, onOpenChange }: Applicati
                     </div>
                 )}
 
-                <DialogFooter>
-                    <DialogFooterAction showCloseButton />
-                </DialogFooter>
+                <DialogFooter showCloseButton />
             </DialogContent>
         </Dialog>
     );

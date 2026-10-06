@@ -10,7 +10,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { DialogFooter as DialogFooterAction } from "@/components/ui/dialog";
 import { Send } from "lucide-react";
 
 interface ContactRequestDialogProps {
@@ -43,8 +42,11 @@ export function ContactRequestDialog({
 
                 <div className="space-y-4 py-2">
                     <div className="space-y-1.5">
-                        <label className="text-xs font-semibold">Mensaje de Propuesta *</label>
+                        <label htmlFor="contact-message" className="text-xs font-semibold">
+                            Mensaje de Propuesta *
+                        </label>
                         <Textarea
+                            id="contact-message"
                             rows={5}
                             value={message}
                             onChange={(e) => onMessageChange(e.target.value)}
@@ -54,8 +56,7 @@ export function ContactRequestDialog({
                     </div>
                 </div>
 
-                <DialogFooter>
-                    <DialogFooterAction showCloseButton />
+                <DialogFooter showCloseButton>
                     <Button onClick={onSend} disabled={sending} className="flex items-center gap-1.5">
                         <Send className="size-4" />
                         <span>{sending ? "Enviando..." : "Enviar Solicitud"}</span>
