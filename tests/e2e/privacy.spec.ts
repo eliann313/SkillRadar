@@ -3,6 +3,7 @@ import { test, expect } from "@playwright/test";
 /**
  * Privacidad visible + límites del plan + explicabilidad del ATS (developer demo).
  * Deuda E2E F4.3: cubre las superficies que el feedback pidió hacer visibles.
+ * Textos en ES|EN porque el locale se negocia por Accept-Language del browser.
  */
 test.describe("Privacidad y límites (developer demo)", () => {
     test.beforeEach(async ({ page }) => {
@@ -14,9 +15,9 @@ test.describe("Privacidad y límites (developer demo)", () => {
     });
 
     test("dashboard muestra tarjeta de privacidad con acceso a settings", async ({ page }) => {
-        await expect(page.getByText("Doble ciego activo")).toBeVisible({ timeout: 15000 });
+        await expect(page.getByText(/Doble ciego activo|Double-blind active/)).toBeVisible({ timeout: 15000 });
 
-        const privacyLink = page.getByRole("link", { name: "Gestionar privacidad" });
+        const privacyLink = page.getByRole("link", { name: /Gestionar privacidad|Manage privacy/ });
         await expect(privacyLink).toBeVisible();
         await privacyLink.click();
         await page.waitForURL("**/dashboard/settings");
@@ -45,10 +46,14 @@ test.describe("Privacidad y límites (developer demo)", () => {
         await analyzeButton.click();
 
         // Panel de explicabilidad detrás del score (mock simulado con badge offline)
-        await expect(page.getByText("Análisis offline (sin IA)")).toBeVisible({ timeout: 15000 });
-        const reasoningBtn = page.getByRole("button", { name: "Ver Razonamiento" });
+        await expect(page.getByText(/Análisis offline \(sin IA\)|Offline analysis \(no AI\)/)).toBeVisible({
+            timeout: 15000,
+        });
+        const reasoningBtn = page.getByRole("button", { name: /Ver Razonamiento|View Reasoning/ });
         await expect(reasoningBtn).toBeVisible();
         await reasoningBtn.click();
-        await expect(page.getByText("Explicabilidad del Score ATS")).toBeVisible({ timeout: 10000 });
+        await expect(page.getByText(/Explicabilidad del Score ATS|ATS Score Explainability/)).toBeVisible({
+            timeout: 10000,
+        });
     });
 });

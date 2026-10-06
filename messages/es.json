@@ -197,6 +197,8 @@
         "termsOfService": "Términos de Servicio",
         "acceptTermsMid": "y la",
         "privacyPolicy": "Política de Privacidad",
+        "acceptAge": "Confirmo que tengo al menos 13 años.",
+        "acceptAgeError": "Debes confirmar que tienes al menos 13 años para registrarte.",
         "registering": "Registrando...",
         "loading": "Cargando...",
         "registerBtn": "Registrarse",

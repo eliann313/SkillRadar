@@ -3,6 +3,7 @@
 import { logger } from "@/infrastructure/logger";
 import { db } from "@/infrastructure/db";
 import { auth } from "@/infrastructure/auth";
+import { getEmailFrom } from "@/infrastructure/mail";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
@@ -46,6 +47,7 @@ const registerSchema = z.object({
         .regex(/[A-Z]/, "Debe contener al menos una letra mayúscula")
         .regex(/[0-9]/, "Debe contener al menos un número"),
     role: z.enum(["developer", "recruiter"]),
+    ageConfirmed: z.boolean().refine((v) => v === true, "Debes confirmar que tienes al menos 13 años."),
 });
 
 export async function registerUserAction(input: {
@@ -53,6 +55,7 @@ export async function registerUserAction(input: {
     email: string;
     password: string;
     role: "developer" | "recruiter";
+    ageConfirmed: boolean;
 }) {
     const result = registerSchema.safeParse(input);
     if (!result.success) {
@@ -151,7 +154,7 @@ export async function requestPasswordResetAction(email: string) {
                         Authorization: `Bearer ${resendApiKey}`,
                     },
                     body: JSON.stringify({
-                        from: "SkillRadar <onboarding@resend.dev>",
+                        from: getEmailFrom(),
                         to: sanitizedEmail,
                         subject: "Restablece tu contraseña - SkillRadar",
                         html: `<p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace para restablecerla (expira en 15 minutos):</p><p><a href="${resetLink}">${resetLink}</a></p>`,

@@ -197,6 +197,8 @@
         "termsOfService": "Terms of Service",
         "acceptTermsMid": "and the",
         "privacyPolicy": "Privacy Policy",
+        "acceptAge": "I confirm I am at least 13 years old.",
+        "acceptAgeError": "You must confirm you are at least 13 years old to sign up.",
         "registering": "Registering...",
         "loading": "Loading...",
         "registerBtn": "Sign Up",

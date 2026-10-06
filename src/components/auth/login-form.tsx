@@ -32,6 +32,7 @@ export function LoginForm({ guestEnabled = false }: { guestEnabled?: boolean }) 
     const [showPassword, setShowPassword] = useState(false);
     const [isAuthLoading, setIsAuthLoading] = useState(false);
     const [acceptTerms, setAcceptTerms] = useState(false);
+    const [acceptAge, setAcceptAge] = useState(false);
 
     const { data: session, status } = useSession();
     const errorParam = searchParams.get("error");
@@ -51,6 +52,11 @@ export function LoginForm({ guestEnabled = false }: { guestEnabled?: boolean }) 
             return;
         }
 
+        if (isRegister && !acceptAge) {
+            toast.error(t("acceptAgeError"));
+            return;
+        }
+
         setIsAuthLoading(true);
 
         try {
@@ -61,6 +67,7 @@ export function LoginForm({ guestEnabled = false }: { guestEnabled?: boolean }) 
                     email,
                     password,
                     role,
+                    ageConfirmed: acceptAge,
                 });
 
                 if (!regResult.success) {
@@ -355,38 +362,56 @@ export function LoginForm({ guestEnabled = false }: { guestEnabled?: boolean }) 
                             )}
 
                             {isRegister && (
-                                <div className="flex items-start gap-2 mt-2 animate-in fade-in duration-200">
-                                    <input
-                                        type="checkbox"
-                                        id="acceptTerms"
-                                        checked={acceptTerms}
-                                        onChange={(e) => setAcceptTerms(e.target.checked)}
-                                        className="mt-1 size-4 rounded border-border/60 text-primary focus:ring-primary cursor-pointer"
-                                        required
-                                    />
-                                    <Label
-                                        htmlFor="acceptTerms"
-                                        className="text-xs text-muted-foreground leading-normal cursor-pointer select-none"
-                                    >
-                                        {t("acceptTermsPre")}{" "}
-                                        <Link
-                                            href="/legal/terms"
-                                            className="text-primary hover:underline font-semibold"
-                                            target="_blank"
+                                <>
+                                    <div className="flex items-start gap-2 mt-2 animate-in fade-in duration-200">
+                                        <input
+                                            type="checkbox"
+                                            id="acceptTerms"
+                                            checked={acceptTerms}
+                                            onChange={(e) => setAcceptTerms(e.target.checked)}
+                                            className="mt-1 size-4 rounded border-border/60 text-primary focus:ring-primary cursor-pointer"
+                                            required
+                                        />
+                                        <Label
+                                            htmlFor="acceptTerms"
+                                            className="text-xs text-muted-foreground leading-normal cursor-pointer select-none"
                                         >
-                                            {t("termsOfService")}
-                                        </Link>{" "}
-                                        {t("acceptTermsMid")}{" "}
-                                        <Link
-                                            href="/legal/privacy"
-                                            className="text-primary hover:underline font-semibold"
-                                            target="_blank"
+                                            {t("acceptTermsPre")}{" "}
+                                            <Link
+                                                href="/legal/terms"
+                                                className="text-primary hover:underline font-semibold"
+                                                target="_blank"
+                                            >
+                                                {t("termsOfService")}
+                                            </Link>{" "}
+                                            {t("acceptTermsMid")}{" "}
+                                            <Link
+                                                href="/legal/privacy"
+                                                className="text-primary hover:underline font-semibold"
+                                                target="_blank"
+                                            >
+                                                {t("privacyPolicy")}
+                                            </Link>
+                                            .
+                                        </Label>
+                                    </div>
+                                    <div className="flex items-start gap-2 mt-2 animate-in fade-in duration-200">
+                                        <input
+                                            type="checkbox"
+                                            id="acceptAge"
+                                            checked={acceptAge}
+                                            onChange={(e) => setAcceptAge(e.target.checked)}
+                                            className="mt-1 size-4 rounded border-border/60 text-primary focus:ring-primary cursor-pointer"
+                                            required
+                                        />
+                                        <Label
+                                            htmlFor="acceptAge"
+                                            className="text-xs text-muted-foreground leading-normal cursor-pointer select-none"
                                         >
-                                            {t("privacyPolicy")}
-                                        </Link>
-                                        .
-                                    </Label>
-                                </div>
+                                            {t("acceptAge")}
+                                        </Label>
+                                    </div>
+                                </>
                             )}
 
                             {/* Botón Principal Submit */}
