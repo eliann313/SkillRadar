@@ -177,8 +177,8 @@ ANTHROPIC_API_KEY="tu_anthropic_api_key"
 RESEND_API_KEY=""
 CRON_SECRET=""
 
-# Demo invitada + flags de Neon
-ENABLE_GUEST_LOGIN="false"
+# Demo invitada (default habilitada; "false" la deshabilita) + flags de Neon
+ENABLE_GUEST_LOGIN="true"
 USE_NEON_WEBSOCKETS="true"
 
 # Upstash Redis (Límites de ratio)

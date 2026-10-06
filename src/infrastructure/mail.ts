@@ -1,4 +1,10 @@
 import { logger } from "@/infrastructure/logger";
+
+/** Remitente verificable: dominio propio vía EMAIL_FROM (legales/CAN-SPAM). */
+export function getEmailFrom(): string {
+    return process.env.EMAIL_FROM || "SkillRadar <onboarding@resend.dev>";
+}
+
 export async function sendEmail(params: { to: string; subject: string; html: string }) {
     const resendApiKey = process.env.RESEND_API_KEY;
     if (resendApiKey) {
@@ -10,7 +16,7 @@ export async function sendEmail(params: { to: string; subject: string; html: str
                     Authorization: `Bearer ${resendApiKey}`,
                 },
                 body: JSON.stringify({
-                    from: "SkillRadar <onboarding@resend.dev>",
+                    from: getEmailFrom(),
                     to: params.to,
                     subject: params.subject,
                     html: params.html,

@@ -7,6 +7,7 @@ import type { ActionResult } from "@/shared-kernel/action-result";
 import { sanitizeText } from "@/shared-kernel/sanitize";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { isGuestSession } from "@/infrastructure/guest-guard";
 
 const requestIdSchema = z.string().cuid();
 const bodySchema = z.string().min(1).max(2000);
@@ -67,7 +68,7 @@ export async function sendThreadMessageAction(requestId: string, body: string): 
         }
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "No autorizado." };
-        if (session.user.isGuest) return { success: false, error: "La demo es de solo lectura." };
+        if (isGuestSession(session)) return { success: false, error: "La demo es de solo lectura." };
 
         const { checkWriteRateLimit } = await import("@/infrastructure/rate-limit");
         const rl = await checkWriteRateLimit(`user:${session.user.id}`);

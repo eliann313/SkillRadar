@@ -7,6 +7,7 @@ import { encrypt, API_KEY_PRESET_PLACEHOLDER } from "@/infrastructure/crypto";
 import { getUserQuotaUsage } from "@/infrastructure/rate-limit";
 import { FREE_QUOTAS, getPlanId } from "@/shared-kernel/plans";
 import { revalidatePath } from "next/cache";
+import { isGuestSession } from "@/infrastructure/guest-guard";
 
 export interface ApiKeysInput {
     geminiApiKey?: string;
@@ -32,7 +33,7 @@ export async function saveUserApiKeysAction(input: ApiKeysInput) {
         }
 
         const userId = session.user.id;
-        const isGuest = session.user.isGuest === true;
+        const isGuest = isGuestSession(session);
         if (isGuest) {
             return {
                 success: true,
@@ -150,7 +151,7 @@ export async function deleteUserApiKeyAction(provider: ApiKeyProvider) {
             return { success: false, error: "No autorizado. Inicie sesión." };
         }
 
-        if (session.user.isGuest === true) {
+        if (isGuestSession(session)) {
             return { success: true, message: "Clave revocada (Modo Simulación)." };
         }
 
@@ -189,7 +190,7 @@ export async function getMyUsageAction() {
             return { success: false, error: "No autorizado. Inicie sesión." };
         }
 
-        if (session.user.isGuest === true) {
+        if (isGuestSession(session)) {
             return {
                 success: true,
                 data: {
@@ -263,7 +264,7 @@ export async function saveUserInferencePreferencesAction(input: InferencePrefere
         }
 
         const userId = session.user.id;
-        const isGuest = session.user.isGuest === true;
+        const isGuest = isGuestSession(session);
         if (isGuest) {
             return {
                 success: true,
@@ -307,7 +308,7 @@ export async function getUserApiKeysStatusAction() {
         }
 
         const userId = session.user.id;
-        const isGuest = session.user.isGuest === true;
+        const isGuest = isGuestSession(session);
         if (isGuest) {
             return {
                 success: true,
@@ -396,7 +397,7 @@ export async function getUserPublicProfileSettingsAction() {
         }
 
         const userId = session.user.id;
-        const isGuest = session.user.isGuest === true;
+        const isGuest = isGuestSession(session);
         if (isGuest) {
             return {
                 success: true,
@@ -447,7 +448,7 @@ export async function updateUserPublicProfileSettingsAction(input: PublicProfile
         }
 
         const userId = session.user.id;
-        const isGuest = session.user.isGuest === true;
+        const isGuest = isGuestSession(session);
         if (isGuest) {
             return {
                 success: true,
@@ -517,7 +518,7 @@ export async function deleteAccountAction(): Promise<{ success: boolean; message
         }
 
         const userId = session.user.id;
-        const isGuest = session.user.isGuest === true;
+        const isGuest = isGuestSession(session);
         if (isGuest) {
             return {
                 success: false,
@@ -557,7 +558,7 @@ export async function exportUserDataAction(): Promise<
         }
 
         const userId = session.user.id;
-        const isGuest = session.user.isGuest === true;
+        const isGuest = isGuestSession(session);
         if (isGuest) {
             return {
                 success: true,
@@ -703,7 +704,7 @@ export async function saveUserNotificationPreferencesAction(input: NotificationP
         }
 
         const userId = session.user.id;
-        const isGuest = session.user.isGuest === true;
+        const isGuest = isGuestSession(session);
         if (isGuest) {
             return {
                 success: true,

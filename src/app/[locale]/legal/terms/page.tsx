@@ -50,7 +50,16 @@ export default async function TermsPage({ params }: PageProps) {
                             </section>
 
                             <section className="space-y-2">
-                                <h2 className="text-base font-semibold text-foreground">2. Descripción del Servicio</h2>
+                                <h2 className="text-base font-semibold text-foreground">2. Edad mínima</h2>
+                                <p>
+                                    El Servicio está dirigido a profesionales y solo puede ser utilizado por personas de
+                                    al menos 13 años. Al registrarte confirmas que cumples este requisito. Si detectamos
+                                    una cuenta de un menor de 13 años, la cerraremos y eliminaremos sus datos.
+                                </p>
+                            </section>
+
+                            <section className="space-y-2">
+                                <h2 className="text-base font-semibold text-foreground">3. Descripción del Servicio</h2>
                                 <p>
                                     SkillRadar es una plataforma basada en inteligencia artificial diseñada para
                                     analizar perfiles profesionales de desarrolladores, optimizar currículums (CV),
@@ -61,7 +70,7 @@ export default async function TermsPage({ params }: PageProps) {
 
                             <section className="space-y-2">
                                 <h2 className="text-base font-semibold text-foreground">
-                                    3. Cuentas de Usuario y Responsabilidad
+                                    4. Cuentas de Usuario y Responsabilidad
                                 </h2>
                                 <p>
                                     Eres responsable de mantener la seguridad y confidencialidad de tu cuenta y
@@ -73,7 +82,7 @@ export default async function TermsPage({ params }: PageProps) {
 
                             <section className="space-y-2">
                                 <h2 className="text-base font-semibold text-foreground">
-                                    4. Uso de API Keys de Terceros
+                                    5. Uso de API Keys de Terceros
                                 </h2>
                                 <p>
                                     SkillRadar permite a los usuarios avanzados configurar sus propias API keys de
@@ -86,7 +95,7 @@ export default async function TermsPage({ params }: PageProps) {
 
                             <section className="space-y-2">
                                 <h2 className="text-base font-semibold text-foreground">
-                                    5. Uso Responsable de la Información del Candidato
+                                    6. Uso Responsable de la Información del Candidato
                                 </h2>
                                 <p>
                                     Para los reclutadores: La información obtenida a través de SkillRadar (incluyendo
@@ -99,7 +108,7 @@ export default async function TermsPage({ params }: PageProps) {
 
                             <section className="space-y-2">
                                 <h2 className="text-base font-semibold text-foreground">
-                                    6. Limitación de Responsabilidad
+                                    7. Limitación de Responsabilidad
                                 </h2>
                                 <p>
                                     El Servicio se proporciona &ldquo;tal cual&rdquo; y &ldquo;según
@@ -111,7 +120,7 @@ export default async function TermsPage({ params }: PageProps) {
                             </section>
 
                             <section className="space-y-2">
-                                <h2 className="text-base font-semibold text-foreground">7. Modificaciones</h2>
+                                <h2 className="text-base font-semibold text-foreground">8. Modificaciones</h2>
                                 <p>
                                     Nos reservamos el derecho de modificar estos términos en cualquier momento. El uso
                                     continuado del Servicio tras la publicación de cambios constituye la aceptación de
@@ -131,8 +140,18 @@ export default async function TermsPage({ params }: PageProps) {
                             </section>
 
                             <section className="space-y-2">
+                                <h2 className="text-base font-semibold text-foreground">2. Minimum age</h2>
+                                <p>
+                                    The Service is intended for professionals and may only be used by individuals at
+                                    least 13 years old. By registering you confirm you meet this requirement. If we
+                                    detect an account belonging to a child under 13, we will close it and delete its
+                                    data.
+                                </p>
+                            </section>
+
+                            <section className="space-y-2">
                                 <h2 className="text-base font-semibold text-foreground">
-                                    2. Description of the Service
+                                    3. Description of the Service
                                 </h2>
                                 <p>
                                     SkillRadar is an artificial intelligence powered platform designed to analyze
@@ -143,7 +162,7 @@ export default async function TermsPage({ params }: PageProps) {
 
                             <section className="space-y-2">
                                 <h2 className="text-base font-semibold text-foreground">
-                                    3. User Accounts and Responsibility
+                                    4. User Accounts and Responsibility
                                 </h2>
                                 <p>
                                     You are responsible for maintaining the security and confidentiality of your account
@@ -155,7 +174,7 @@ export default async function TermsPage({ params }: PageProps) {
 
                             <section className="space-y-2">
                                 <h2 className="text-base font-semibold text-foreground">
-                                    4. Use of Third-Party API Keys
+                                    5. Use of Third-Party API Keys
                                 </h2>
                                 <p>
                                     SkillRadar allows advanced users to configure their own API keys from Language Model
@@ -168,7 +187,7 @@ export default async function TermsPage({ params }: PageProps) {
 
                             <section className="space-y-2">
                                 <h2 className="text-base font-semibold text-foreground">
-                                    5. Responsible Use of Candidate Information
+                                    6. Responsible Use of Candidate Information
                                 </h2>
                                 <p>
                                     For recruiters: The information obtained through SkillRadar (including contact
@@ -180,7 +199,7 @@ export default async function TermsPage({ params }: PageProps) {
                             </section>
 
                             <section className="space-y-2">
-                                <h2 className="text-base font-semibold text-foreground">6. Limitation of Liability</h2>
+                                <h2 className="text-base font-semibold text-foreground">7. Limitation of Liability</h2>
                                 <p>
                                     The Service is provided &ldquo;as is&rdquo; and &ldquo;as available&rdquo;. We do
                                     not guarantee that the AI analyses will be 100% accurate or free of errors. In no
@@ -190,7 +209,7 @@ export default async function TermsPage({ params }: PageProps) {
                             </section>
 
                             <section className="space-y-2">
-                                <h2 className="text-base font-semibold text-foreground">7. Modifications</h2>
+                                <h2 className="text-base font-semibold text-foreground">8. Modifications</h2>
                                 <p>
                                     We reserve the right to modify these terms at any time. Continued use of the Service
                                     after changes are published constitutes acceptance of the new Terms of Service.

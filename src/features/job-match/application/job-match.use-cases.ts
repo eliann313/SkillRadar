@@ -8,6 +8,7 @@ import type { JobMatch } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { JobMatchService } from "./job-match.service";
 import type { ActionResult } from "@/shared-kernel/action-result";
+import { isGuestSession, rejectGuestWrite } from "@/infrastructure/guest-guard";
 
 interface CreateJobMatchActionInput {
     resumeId: string;
@@ -21,13 +22,16 @@ export async function createJobMatchAction(input: CreateJobMatchActionInput): Pr
             return { success: false, error: "No autorizado. Inicie sesión nuevamente." };
         }
 
+        const blocked = rejectGuestWrite(session);
+        if (blocked) return blocked;
+
         const { resumeId, jobOfferText } = input;
         if (!resumeId || !jobOfferText.trim()) {
             return { success: false, error: "Campos de entrada inválidos." };
         }
 
         // Validar Rate Limits
-        const isGuest = session.user.isGuest === true;
+        const isGuest = isGuestSession(session);
         const identifier = isGuest ? `ip:${await getClientIp()}` : `user:${session.user.id}`;
         const limitResult = await checkJobMatchRateLimit(identifier);
 
