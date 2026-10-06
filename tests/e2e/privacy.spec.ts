@@ -52,7 +52,11 @@ test.describe("Privacidad y límites (developer demo)", () => {
         const reasoningBtn = page.getByRole("button", { name: /Ver Razonamiento|View Reasoning/ });
         await expect(reasoningBtn).toBeVisible();
         await reasoningBtn.click();
-        await expect(page.getByText(/Explicabilidad del Score ATS|ATS Score Explainability/)).toBeVisible({
+        await expect(
+            page.locator('[data-slot="dialog-title"]', {
+                hasText: /Explicabilidad del Score ATS|ATS Score Explainability/,
+            }),
+        ).toBeVisible({
             timeout: 10000,
         });
     });

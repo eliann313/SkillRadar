@@ -176,7 +176,8 @@
         "groupOpportunities": "Oportunidades",
         "groupManage": "Gestión",
         "groupContact": "Contacto",
-        "groupPreparation": "Preparación"
+        "groupPreparation": "Preparación",
+        "groupProgress": "Progreso"
     },
     "Auth": {
         "signUpTitle": "Crear una cuenta",
