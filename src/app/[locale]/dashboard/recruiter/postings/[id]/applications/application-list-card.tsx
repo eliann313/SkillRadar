@@ -7,6 +7,7 @@ import { Eye, Mail, Shield, Award, CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@/shared-kernel/utils";
 import type { Application } from "./application.types";
 import { getContactBadge, getScoreColor, getStatusBadge } from "./application-badges";
+import { formatApplicationDate } from "./application-dates";
 
 interface ApplicationListCardProps {
     app: Application;
@@ -39,7 +40,7 @@ export function ApplicationListCard({ app, onOpenDetails, onContact, onStatusCha
                         <Award className="size-3.5" />
                         Afinidad: {app.matchScore}%
                     </span>
-                    <span>Postulado el {new Date(app.createdAt).toLocaleDateString()}</span>
+                    <span>Postulado el {formatApplicationDate(app.createdAt)}</span>
                     {isRevealed && dev.email && (
                         <span className="flex items-center gap-1 text-primary">
                             <Mail className="size-3.5" />

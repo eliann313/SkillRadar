@@ -25,7 +25,7 @@ export function ApplicationKanbanCard({ app, onOpenDetails, onContact }: Applica
             onDragStart={(e) => {
                 e.dataTransfer.setData("text/plain", app.id);
             }}
-            className="bg-card hover:bg-card/80 border border-border p-3.5 rounded-lg shadow-xs cursor-grab active:cursor-grabbing hover:border-primary/40 hover:shadow-xs transition-all space-y-3"
+            className="bg-card hover:bg-card/80 border border-border p-3.5 rounded-lg shadow-xs cursor-grab active:cursor-grabbing hover:border-primary/40 hover:shadow-xs transition-colors transition-shadow space-y-3"
         >
             <div className="flex justify-between items-start gap-2">
                 <span
