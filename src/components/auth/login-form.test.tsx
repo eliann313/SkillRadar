@@ -77,4 +77,18 @@ describe("LoginForm Component", () => {
         // Botón de submit del modo Registro
         expect(screen.getByText("Registrarse")).toBeDefined();
     });
+
+    it("oculta los botones demo cuando guestEnabled es false (prod sin flag)", () => {
+        render(<LoginForm guestEnabled={false} />);
+
+        expect(screen.queryByRole("button", { name: "Dev Demo" })).toBeNull();
+        expect(screen.queryByRole("button", { name: "Recruiter Demo" })).toBeNull();
+    });
+
+    it("muestra los botones demo cuando guestEnabled es true", () => {
+        render(<LoginForm guestEnabled />);
+
+        expect(screen.getByRole("button", { name: "Dev Demo" })).toBeDefined();
+        expect(screen.getByRole("button", { name: "Recruiter Demo" })).toBeDefined();
+    });
 });
