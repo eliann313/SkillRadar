@@ -64,7 +64,7 @@
     },
     "devDependencies": {
         "@emnapi/core": "^1.11.2",
-        "@emnapi/runtime": "1.11.2",
+        "@emnapi/runtime": "1.11.3",
         "@playwright/test": "^1.63.0",
         "@tailwindcss/postcss": "4",
         "@testing-library/dom": "^10.4.2",
