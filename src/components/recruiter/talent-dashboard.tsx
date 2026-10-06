@@ -17,7 +17,7 @@ import { cn } from "@/shared-kernel/utils";
 import dynamic from "next/dynamic";
 import { TalentCardView } from "./talent-card";
 import type { MarketData } from "./talent-market.tab";
-import { TalentSourcingPanel } from "./talent-sourcing.panel";
+import { TalentSourcingPanel, type AiSourcingMode } from "./talent-sourcing.panel";
 import { TalentFiltersToolbar } from "./talent-filters.toolbar";
 
 // recharts solo se usa en el tab Market: chunk separado que carga al abrir el tab.
@@ -98,7 +98,7 @@ export function TalentDashboard({ talents: initialTalents = [] }: TalentDashboar
     const [isMatching, setIsMatching] = useState(false);
     const [isJdApplied, setIsJdApplied] = useState(false);
 
-    const [aiSourcingMode, setAiSourcingMode] = useState<"matching" | "semantic">("matching");
+    const [aiSourcingMode, setAiSourcingMode] = useState<AiSourcingMode>("matching");
     const [aiQuery, setAiQuery] = useState("");
     const [isSourcingAI, setIsSourcingAI] = useState(false);
     const [isSourcingAIApplied, setIsSourcingAIApplied] = useState(false);

@@ -14,7 +14,7 @@ import { getUserResumesAction } from "@/features/cv-analysis/application/cv-anal
 import { safeParseJson } from "@/shared-kernel/pii";
 import { useTranslations } from "next-intl";
 import { ResumePreview } from "./resume-preview";
-import { ResumeEditorTabs } from "./resume-editor.tabs";
+import { ResumeEditorTabs, type ResumeSection } from "./resume-editor.tabs";
 import { VerbAnalysisPanel, type ImpactVerbAnalysis } from "./verb-analysis.panel";
 import type { EducationItem, ExperienceItem, LanguageItem, PersonalInfo, ProjectItem } from "./resume-builder.types";
 
@@ -144,9 +144,7 @@ export default function ResumeBuilderPage() {
     const [isSaving, setIsSaving] = useState(false);
 
     // Form editing tabs (los handlers add/remove viven en ResumeEditorTabs)
-    const [activeSection, setActiveSection] = useState<
-        "info" | "experience" | "projects" | "languages" | "education" | "skills"
-    >("info");
+    const [activeSection, setActiveSection] = useState<ResumeSection>("info");
 
     const addSkill = (e: React.FormEvent) => {
         e.preventDefault();

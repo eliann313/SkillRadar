@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
 
-export interface ImpactVerbSuggestion {
+interface ImpactVerbSuggestion {
     original: string;
     suggestion: string;
     reason: string;
