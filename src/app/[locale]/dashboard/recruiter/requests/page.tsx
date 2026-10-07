@@ -1,4 +1,5 @@
 import { auth } from "@/infrastructure/auth";
+import { isGuestSession } from "@/infrastructure/guest-guard";
 import { redirect } from "next/navigation";
 import { getSentContactRequestsAction } from "@/features/recruiter/application/recruiter.use-cases";
 import { getTranslations } from "next-intl/server";
@@ -15,6 +16,8 @@ export default async function RecruiterRequestsPage() {
     const session = await auth();
     if (!session?.user) redirect("/");
     if (session.user.role !== "recruiter") redirect("/dashboard");
+    // Modo Guest: sin DB ni acciones — volvemos al preview de solo lectura.
+    if (isGuestSession(session)) redirect("/dashboard");
 
     const res = await getSentContactRequestsAction();
 

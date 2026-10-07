@@ -115,7 +115,7 @@ export default async function Home({ params: _params }: { params: Promise<{ loca
 
             {/* Navigation Header */}
             <header className="sticky top-0 z-50 border-b border-border/40 bg-background/50 backdrop-blur-md">
-                <div className="container mx-auto flex h-16 items-center justify-between gap-2 px-4 sm:px-6">
+                <div className="container relative mx-auto flex h-16 items-center justify-between gap-2 px-4 sm:px-6">
                     <Link href="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">
                         <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent text-lg font-bold text-background shadow-lg shadow-primary/20">
                             SR
@@ -127,7 +127,7 @@ export default async function Home({ params: _params }: { params: Promise<{ loca
 
                     <nav
                         aria-label="Primary"
-                        className="hidden items-center gap-6 text-sm text-muted-foreground md:flex"
+                        className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-6 text-sm text-muted-foreground md:flex"
                     >
                         <Link href="#features" className="transition-colors hover:text-foreground">
                             {t("navFeatures")}
