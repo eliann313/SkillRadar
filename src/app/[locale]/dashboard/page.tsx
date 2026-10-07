@@ -1,4 +1,5 @@
 import { auth } from "@/infrastructure/auth";
+import { isGuestSession } from "@/infrastructure/guest-guard";
 import { safeParseJson } from "@/shared-kernel/pii";
 import {
     DashboardHeader,
@@ -9,6 +10,7 @@ import {
     PrivacyCard,
 } from "@/components/dashboard";
 import { TalentDashboard } from "@/components/recruiter/talent-dashboard";
+import { GuestRecruiterPreview } from "@/features/recruiter/presentation/guest-recruiter-preview";
 import { RecruiterVerificationGate } from "@/features/recruiter/presentation/recruiter-verification-gate";
 import { redirect } from "next/navigation";
 import { db } from "@/infrastructure/db";
@@ -29,6 +31,12 @@ export default async function DashboardPage() {
 
     // Recruiter dashboard
     if (session.user.role === "recruiter") {
+        // Modo Guest: igual que el dev demo — solo lectura con mocks, sin
+        // verificación, sin DB, sin interacción real (ver guest-guard).
+        if (isGuestSession(session)) {
+            return <GuestRecruiterPreview />;
+        }
+
         const recruiter = await db.user.findUnique({
             where: { id: session.user.id },
             select: { recruiterVerified: true, verificationRequestedAt: true },

@@ -1,4 +1,5 @@
 import { auth } from "@/infrastructure/auth";
+import { isGuestSession } from "@/infrastructure/guest-guard";
 import { redirect } from "next/navigation";
 import { JobPostingService } from "@/features/jobs/application/jobs.service";
 import { db } from "@/infrastructure/db";
@@ -18,6 +19,11 @@ export default async function JobPostingApplicationsPage({ params }: Props) {
     }
 
     if (session.user.role !== "recruiter") {
+        redirect("/dashboard");
+    }
+
+    // Modo Guest: sin DB ni acciones — volvemos al preview de solo lectura.
+    if (isGuestSession(session)) {
         redirect("/dashboard");
     }
 

@@ -769,6 +769,13 @@
         "verificationSubmit": "Solicitar verificación",
         "verificationSent": "Solicitud enviada. Te avisaremos por email.",
         "verificationPendingTitle": "Verificación en revisión",
-        "verificationPendingDesc": "Recibimos tu solicitud. Vas a poder usar las funciones de recruiter cuando un administrador la apruebe."
+        "verificationPendingDesc": "Recibimos tu solicitud. Vas a poder usar las funciones de recruiter cuando un administrador la apruebe.",
+        "talentPoolTitle": "Base de Talentos (demo)",
+        "talentPoolDesc": "Vista previa de solo lectura con perfiles ficticios anonimizados. Sin verificación, sin contacto real.",
+        "guestReadonlyHint": "Disponible con cuenta recruiter verificada",
+        "guestPreviewCta": "Vista previa",
+        "guestUpsellTitle": "¿Te gusta lo que ves?",
+        "guestUpsellDesc": "Creá tu cuenta recruiter gratis, verificá tu perfil y empezá a contactar talento real con doble ciego.",
+        "guestUpsellCta": "Crear cuenta gratis"
     }
 }
