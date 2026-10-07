@@ -39,8 +39,10 @@ test.describe("Security E2E Flow", () => {
 
         test("posteo inexistente redirige al listado (IDOR)", async ({ page }) => {
             await page.goto("/dashboard/recruiter/postings/posteo-que-no-existe/applications");
-            await page.waitForURL("**/dashboard/recruiter/postings", { timeout: 15000 });
+            // Guest: las páginas recruiter redirigen al preview de solo lectura
+            await page.waitForURL("**/dashboard", { timeout: 15000 });
             expect(page.url()).not.toContain("applications");
+            await expect(page.getByTestId("guest-recruiter-preview")).toBeVisible({ timeout: 10000 });
         });
 
         test("archivos con URL invalida devuelven 400 con sesion (SSRF)", async ({ page }) => {
@@ -58,7 +60,8 @@ test.describe("Security E2E Flow", () => {
                 0,
             );
             await expect(page.getByText("DEV-9B1C27")).toBeVisible({ timeout: 10000 });
-            await expect(page.getByRole("heading", { name: "Talent Pool" })).toHaveCount(0);
+            // El TalentDashboard real (h1 exacto "Talent Pool") nunca se renderiza
+            await expect(page.getByRole("heading", { name: "Talent Pool", exact: true })).toHaveCount(0);
         });
     });
 });
