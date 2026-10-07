@@ -1,4 +1,4 @@
-import type { CVAnalysis, JobMatch } from "@/shared-kernel/types";
+import type { CVAnalysis, JobMatch, TalentCard } from "@/shared-kernel/types";
 
 /**
  * Datos 100% ficticios para la demo pública (/demo) y la landing.
@@ -94,3 +94,59 @@ export function buildDemoGithubSignals(t: (key: string) => string) {
         suggestions: [t("demoGhSug1"), t("demoGhSug2")],
     };
 }
+
+/**
+ * Talent Pool 100% ficticio para el guest recruiter (modo demo / solo lectura).
+ * Sin PII real, sin DB, sin verificación: igual que el dev demo.
+ * Los IDs anonimizados siguen el formato DEV-XXXX del doble ciego.
+ */
+export const demoTalentPool: TalentCard[] = [
+    {
+        id: "demo-talent-1",
+        anonymousId: "DEV-9B1C27",
+        estimatedSeniority: "senior",
+        averageScore: 87,
+        topSkills: ["React", "TypeScript", "Next.js", "Node.js"],
+        languages: ["TypeScript", "JavaScript"],
+        lastActive: new Date("2026-09-28T12:00:00Z"),
+        name: null,
+        email: null,
+        githubUsername: null,
+        image: null,
+        contactStatus: "none",
+        justification: "Perfil senior con 6 años en frontend React. Evidencia sólida en TypeScript y Next.js.",
+        isShortlisted: false,
+    },
+    {
+        id: "demo-talent-2",
+        anonymousId: "DEV-4F2A91",
+        estimatedSeniority: "mid",
+        averageScore: 76,
+        topSkills: ["Node.js", "PostgreSQL", "Docker", "TypeScript"],
+        languages: ["TypeScript", "SQL"],
+        lastActive: new Date("2026-09-25T12:00:00Z"),
+        name: null,
+        email: null,
+        githubUsername: null,
+        image: null,
+        contactStatus: "none",
+        justification: "Backend mid con experiencia en APIs REST y PostgreSQL en producción.",
+        isShortlisted: false,
+    },
+    {
+        id: "demo-talent-3",
+        anonymousId: "DEV-77C0E4",
+        estimatedSeniority: "junior",
+        averageScore: 64,
+        topSkills: ["React", "JavaScript", "Tailwind CSS", "Git"],
+        languages: ["JavaScript", "CSS"],
+        lastActive: new Date("2026-09-20T12:00:00Z"),
+        name: null,
+        email: null,
+        githubUsername: null,
+        image: null,
+        contactStatus: "none",
+        justification: "Perfil junior con fundamentos sólidos en React y ganas de crecer.",
+        isShortlisted: false,
+    },
+];

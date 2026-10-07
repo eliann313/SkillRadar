@@ -769,6 +769,13 @@
         "verificationSubmit": "Request verification",
         "verificationSent": "Request sent. We will notify you by email.",
         "verificationPendingTitle": "Verification under review",
-        "verificationPendingDesc": "We received your request. You will unlock recruiter features once an admin approves it."
+        "verificationPendingDesc": "We received your request. You will unlock recruiter features once an admin approves it.",
+        "talentPoolTitle": "Talent Pool (demo)",
+        "talentPoolDesc": "Read-only preview with fictional anonymized profiles. No verification, no real contact.",
+        "guestReadonlyHint": "Available with a verified recruiter account",
+        "guestPreviewCta": "Preview",
+        "guestUpsellTitle": "Like what you see?",
+        "guestUpsellDesc": "Create your free recruiter account, verify your profile and start contacting real talent with double-blind.",
+        "guestUpsellCta": "Create free account"
     }
 }

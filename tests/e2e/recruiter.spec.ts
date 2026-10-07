@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Recruiter E2E Flow", () => {
-    test("should login as recruiter, create a draft job posting, and publish it", async ({ page }) => {
+    test("guest recruiter ve preview de solo lectura sin verificación", async ({ page }) => {
         // 1. Ir a login
         await page.goto("/login");
 
@@ -14,49 +14,14 @@ test.describe("Recruiter E2E Flow", () => {
         await page.waitForURL("**/dashboard");
         await expect(page.getByTestId("guest-mode-banner")).toBeVisible();
 
-        // 4. Navegar a Job Postings
-        await page.goto("/dashboard/recruiter/postings");
-        await page.waitForURL("**/dashboard/recruiter/postings");
+        // 4. El guest NO ve gate de verificación: ve preview mock de solo lectura
+        await expect(page.getByTestId("guest-recruiter-preview")).toBeVisible({ timeout: 15000 });
+        await expect(page.getByText(/Verificación de cuenta recruiter|Recruiter account verification/)).toHaveCount(0);
 
-        // 5. Abrir formulario de creación de oferta
-        const createButton = page.getByRole("button", { name: "Crear Oferta" }).first();
-        await expect(createButton).toBeVisible();
-        await createButton.click();
+        // 5. El preview muestra perfiles anonimizados ficticios (doble ciego)
+        await expect(page.getByText("DEV-9B1C27")).toBeVisible({ timeout: 10000 });
 
-        // 6. Rellenar campos del formulario
-        await page.getByPlaceholder("Ej: Senior Frontend Developer").fill("Staff Frontend Engineer");
-        await page.getByPlaceholder("Ej: Acme Corp").fill("SkillRadar Labs");
-        await page.getByPlaceholder("Ej: Buenos Aires, Argentina").fill("San Francisco, CA");
-        await page.getByPlaceholder("Ej: senior, semi-senior, junior").fill("Senior");
-
-        // Agregar Habilidad requerida
-        const skillInput = page.getByPlaceholder("Escribe y presiona Enter o ,");
-        await skillInput.fill("React");
-        await skillInput.press("Enter");
-
-        // Rellenar descripción
-        await page
-            .getByPlaceholder("Detalla los requerimientos, responsabilidades y lo que ofrece el puesto...")
-            .fill(
-                "Buscamos un Staff Frontend Engineer con experiencia en desarrollo de productos utilizando TypeScript, React y Next.js.",
-            );
-
-        // 7. Guardar la oferta
-        const saveButton = page.getByRole("button", { name: "Guardar Oferta" });
-        await expect(saveButton).toBeVisible();
-        await saveButton.click();
-
-        // 8. Esperar a que se guarde el borrador y se cierre el modal, y luego verificar que figura en la lista
-        await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 15000 });
-        await expect(page.getByText("Staff Frontend Engineer").first()).toBeVisible({ timeout: 10000 });
-
-        // 9. Publicar la oferta
-        // El botón tiene el título "Publicar oferta"
-        const publishButton = page.locator('button[title="Publicar oferta"]').first();
-        await expect(publishButton).toBeVisible();
-        await publishButton.click();
-
-        // 10. Confirmar que la oferta está en estado publicado (el botón de publicar ya no debe ser visible o cambia de estado)
-        await expect(publishButton).not.toBeVisible({ timeout: 10000 });
+        // 6. CTA a registro visible
+        await expect(page.getByRole("link", { name: /Crear cuenta gratis|Create free account/ })).toBeVisible();
     });
 });
