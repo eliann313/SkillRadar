@@ -49,13 +49,15 @@ test.describe("Security E2E Flow", () => {
             await expect(page.getByTestId("guest-mode-banner")).toBeVisible();
         });
 
-        test("invitado no accede al pool: ve gate de verificación (doble ciego UI)", async ({ page }) => {
-            // El guest-recruiter no está verificado: /dashboard renderiza el gate,
-            // nunca el Talent Pool, así que no hay PII que filtrar
+        test("invitado ve preview mock de solo lectura, sin verificación ni PII (doble ciego UI)", async ({ page }) => {
+            // El guest-recruiter ve preview mock de solo lectura (igual que el dev demo):
+            // nunca el gate de verificación ni el Talent Pool real, así que no hay PII que filtrar
             await page.goto("/dashboard");
-            await expect(page.getByText(/Verificación de cuenta recruiter|Recruiter account verification/)).toBeVisible(
-                { timeout: 15000 },
+            await expect(page.getByTestId("guest-recruiter-preview")).toBeVisible({ timeout: 15000 });
+            await expect(page.getByText(/Verificación de cuenta recruiter|Recruiter account verification/)).toHaveCount(
+                0,
             );
+            await expect(page.getByText("DEV-9B1C27")).toBeVisible({ timeout: 10000 });
             await expect(page.getByRole("heading", { name: "Talent Pool" })).toHaveCount(0);
         });
     });
