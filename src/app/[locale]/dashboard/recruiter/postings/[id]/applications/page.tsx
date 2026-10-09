@@ -6,6 +6,8 @@ import { db } from "@/infrastructure/db";
 import { safeParseJson } from "@/shared-kernel/pii";
 import type { Application } from "./job-applications.screen";
 import { ApplicationsClientPage } from "./job-applications.screen";
+import { GuestApplicationsPreview } from "@/features/recruiter/presentation/guest-recruiter-demos";
+import { demoPostings } from "@/mocks/demo-data";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -22,12 +24,13 @@ export default async function JobPostingApplicationsPage({ params }: Props) {
         redirect("/dashboard");
     }
 
-    // Modo Guest: sin DB ni acciones — volvemos al preview de solo lectura.
-    if (isGuestSession(session)) {
-        redirect("/dashboard");
-    }
-
     const { id: jobPostingId } = await params;
+
+    // Modo Guest: preview de solo lectura con mocks (sin DB ni acciones).
+    if (isGuestSession(session)) {
+        const demo = demoPostings.find((p) => p.id === jobPostingId) ?? demoPostings[0];
+        return <GuestApplicationsPreview postingTitle={demo.title} />;
+    }
 
     // Obtener detalles de la oferta
     const jobPosting = await db.jobPosting.findUnique({
