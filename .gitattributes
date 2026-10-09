@@ -1,0 +1,3 @@
+# Los hooks de shell deben conservar LF incluso en Windows (CRLF rompería `#!/bin/sh`).
+scripts/githooks/* text eol=lf
+.husky/* text eol=lf
