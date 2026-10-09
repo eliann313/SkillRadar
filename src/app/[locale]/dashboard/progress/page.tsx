@@ -1,4 +1,5 @@
 import { auth } from "@/infrastructure/auth";
+import { db } from "@/infrastructure/db";
 import { redirect } from "next/navigation";
 import {
     getProgressDataAction,
@@ -39,8 +40,16 @@ export default async function ProgressPage({ params }: PageProps) {
 
     const t = await getTranslations("Progress");
 
-    // En paralelo: las recomendaciones IA no deben bloquear el gráfico ni las métricas
-    const [res, recsRes] = await Promise.all([getProgressDataAction(), getCareerRecommendationsAction()]);
+    // En paralelo: las recomendaciones IA no deben bloquear el gráfico ni las métricas.
+    // getCareerRecommendationsAction ya usa el careerPath guardado como default.
+    const [res, recsRes, me] = await Promise.all([
+        getProgressDataAction(),
+        getCareerRecommendationsAction(),
+        session.user.isGuest
+            ? Promise.resolve(null)
+            : db.user.findUnique({ where: { id: session.user.id }, select: { careerPath: true } }).catch(() => null),
+    ]);
+    const savedPath = recsRes.success && recsRes.data?.targetPath ? recsRes.data.targetPath : (me?.careerPath ?? null);
     if (!res.success || !res.data) {
         return (
             <div className="flex min-h-[400px] flex-col items-center justify-center text-center p-6 border rounded-lg border-destructive/20 bg-destructive/5">
@@ -226,7 +235,7 @@ export default async function ProgressPage({ params }: PageProps) {
 
             {/* Career Copilot: camino elegible por el usuario (cualquier profesión, no solo IT) */}
             {recsRes.success && recsRes.data ? (
-                <CareerPathPanel initial={recsRes.data} />
+                <CareerPathPanel initial={recsRes.data} initialPath={savedPath} />
             ) : (
                 <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-card to-background backdrop-blur-sm shadow-xs overflow-hidden relative">
                     <CardHeader className="pb-3">
@@ -240,7 +249,7 @@ export default async function ProgressPage({ params }: PageProps) {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <CareerPathPanel initial={null} />
+                        <CareerPathPanel initial={null} initialPath={savedPath} />
                     </CardContent>
                 </Card>
             )}

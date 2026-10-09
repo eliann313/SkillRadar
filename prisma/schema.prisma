@@ -21,6 +21,7 @@ model User {
   recruiterVerified      Boolean   @default(false)
   verificationRequestedAt DateTime?
   verificationNote        String?   @db.Text
+  careerPath        String?   // Camino profesional elegido en Career Copilot (cualquier profesión, no solo IT)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -246,6 +247,7 @@ model JobPosting {
   description    String   @db.Text
   requiredSkills Json     // array de strings
   seniorityLevel String
+  field          String   @default("tech") // Rubro profesional: tech, data, design, business, science, social, other (ver shared-kernel/career-paths)
   status         String   @default("draft") // "draft" | "published" | "closed" | "under_review"
   expiresAt      DateTime?
   pipelineStages String[] // etapas personalizadas; vacío = DEFAULT_PIPELINE_STAGES

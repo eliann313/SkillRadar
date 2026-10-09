@@ -139,3 +139,46 @@ export async function importMissingSkillsAction(jobMatchId: string): Promise<Act
     revalidatePath("/dashboard/progress");
     return { success: true, data: toCreate.length };
 }
+
+const importRoadmapSchema = z.object({
+    skill: z.string().min(1).max(80),
+    title: z.string().min(1).max(140),
+    steps: z.array(z.string().min(3).max(500)).min(1).max(12),
+});
+
+/**
+ * Importa una ruta del Career Copilot como tareas tildables (sin duplicar).
+ * Convierte la ruta sugerida por IA en acción: cada paso → una RoadmapTask.
+ */
+export async function importCopilotRoadmapAction(
+    input: z.infer<typeof importRoadmapSchema>,
+): Promise<ActionResult<number>> {
+    const session = await requireUser();
+    if (!session) return { success: false, error: "No autorizado." };
+    const parsed = importRoadmapSchema.safeParse(input);
+    if (!parsed.success) return { success: false, error: "Datos inválidos." };
+    const { checkWriteRateLimit } = await import("@/infrastructure/rate-limit");
+    if (!(await checkWriteRateLimit(`user:${session.user.id}`)).success) {
+        return { success: false, error: "Límite diario de escritura alcanzado." };
+    }
+
+    const skill = parsed.data.skill.trim().slice(0, 80);
+    const existing = await db.roadmapTask.findMany({
+        where: { userId: session.user.id, done: false },
+        select: { skill: true, step: true },
+    });
+    const seen = new Set(existing.map((t) => `${t.skill.toLowerCase()}|${t.step.toLowerCase()}`));
+
+    const toCreate = parsed.data.steps
+        .map((s) => s.trim())
+        .filter((s) => s.length >= 3)
+        .slice(0, 12)
+        .map((step) => ({ userId: session.user.id, skill, step: step.slice(0, 500), source: "copilot" }))
+        .filter((t) => !seen.has(`${t.skill.toLowerCase()}|${t.step.toLowerCase()}`));
+
+    if (toCreate.length > 0) {
+        await db.roadmapTask.createMany({ data: toCreate });
+    }
+    revalidatePath("/dashboard/progress");
+    return { success: true, data: toCreate.length };
+}

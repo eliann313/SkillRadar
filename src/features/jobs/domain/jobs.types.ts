@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { JobPosting } from "@prisma/client";
+import { CAREER_FIELD_VALUES } from "@/shared-kernel/career-paths";
 
 // Zod Schema para validación de datos de oferta laboral
 export const jobPostingSchema = z.object({
@@ -12,6 +13,12 @@ export const jobPostingSchema = z.object({
     description: z.string().min(10, "La descripción es obligatoria y debe tener al menos 10 caracteres."),
     requiredSkills: z.array(z.string()).min(1, "Debe agregar al menos una habilidad requerida."),
     seniorityLevel: z.string().min(2, "El nivel de seniority es obligatorio."),
+    field: z
+        .string()
+        .min(2)
+        .max(20)
+        .default("tech")
+        .refine((v) => (CAREER_FIELD_VALUES as string[]).includes(v.toLowerCase()), "Rubro inválido."),
     pipelineStages: z
         .array(z.string().regex(/^[a-z0-9_]{1,24}$/, "Etapa inválida: solo minúsculas, números y _."))
         .max(12, "Máximo 12 etapas.")

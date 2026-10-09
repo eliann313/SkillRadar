@@ -81,6 +81,7 @@ export async function createJobPostingAction(rawInput: unknown): Promise<ActionR
                 description: validation.data.description,
                 requiredSkills: validation.data.requiredSkills,
                 seniorityLevel: validation.data.seniorityLevel,
+                field: validation.data.field,
                 pipelineStages: validation.data.pipelineStages ?? [],
                 status: "draft",
                 expiresAt: null,
@@ -253,6 +254,7 @@ export async function getDeveloperJobBoardAction(filters?: {
     remoteType?: string;
     seniorityLevel?: string;
     search?: string;
+    field?: string;
 }): Promise<ActionResult<JobPostingWithMatch[]>> {
     try {
         const session = await auth();

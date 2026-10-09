@@ -20,6 +20,11 @@ export function RecruiterVerificationGate({ requested }: { requested: boolean })
         try {
             const res = await requestRecruiterVerification(note);
             if (res.success) {
+                if ("autoApproved" in res && res.autoApproved) {
+                    toast.success(t("verificationAutoApproved"));
+                    window.location.reload();
+                    return;
+                }
                 setSent(true);
                 toast.success(t("verificationSent"));
             } else {
