@@ -19,6 +19,7 @@
         "knip": "knip",
         "postinstall": "prisma generate",
         "prepare": "husky",
+        "hooks:install": "node scripts/githooks/install.mjs",
         "doctor": "npx react-doctor@latest",
         "type-check:ts7": "node node_modules/typescript-7/bin/tsc --noEmit"
     },
