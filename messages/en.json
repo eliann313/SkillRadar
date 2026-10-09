@@ -505,7 +505,9 @@
         "sortMatch": "Best match",
         "sortNewest": "Newest",
         "onlyHighMatch": "Only high match",
-        "hideApplied": "Hide applied"
+        "hideApplied": "Hide applied",
+        "allFields": "All fields",
+        "fieldFilter": "Field"
     },
     "JobMatch": {
         "title": "Job Match",
@@ -785,6 +787,7 @@
         "inboxFallbackDesc": "Read-only preview with fictional contact requests.",
         "templatesFallbackTitle": "Templates",
         "templatesFallbackDesc": "Read-only preview with fictional outreach templates.",
-        "applicationsFallbackDesc": "Read-only preview with fictional anonymized applications."
+        "applicationsFallbackDesc": "Read-only preview with fictional anonymized applications.",
+        "verificationAutoApproved": "Auto-verified: your corporate email confirms it. Recruiter features unlocked."
     }
 }

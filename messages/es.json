@@ -505,7 +505,9 @@
         "sortMatch": "Mejor match",
         "sortNewest": "Más recientes",
         "onlyHighMatch": "Solo match alto",
-        "hideApplied": "Ocultar postuladas"
+        "hideApplied": "Ocultar postuladas",
+        "allFields": "Todos los rubros",
+        "fieldFilter": "Rubro"
     },
     "JobMatch": {
         "title": "Job Match",
@@ -785,6 +787,7 @@
         "inboxFallbackDesc": "Vista previa de solo lectura con solicitudes de contacto ficticias.",
         "templatesFallbackTitle": "Plantillas",
         "templatesFallbackDesc": "Vista previa de solo lectura con plantillas de outreach ficticias.",
-        "applicationsFallbackDesc": "Vista previa de solo lectura con postulaciones ficticias anonimizadas."
+        "applicationsFallbackDesc": "Vista previa de solo lectura con postulaciones ficticias anonimizadas.",
+        "verificationAutoApproved": "Verificación automática: tu email corporativo nos confirma. Ya podés usar las funciones de recruiter."
     }
 }

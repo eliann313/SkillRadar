@@ -24,6 +24,7 @@ import {
     closeJobPostingAction,
     extendJobPostingExpirationAction,
 } from "@/features/jobs/application/jobs.use-cases";
+import { CAREER_FIELDS } from "@/shared-kernel/career-paths";
 import { safeParseJson } from "@/shared-kernel/pii";
 import { toast } from "sonner";
 
@@ -37,6 +38,7 @@ interface JobPosting {
     description: string;
     requiredSkills: unknown; // array de strings
     seniorityLevel: string;
+    field?: string;
     pipelineStages?: string[];
     status: string;
     expiresAt?: string | Date | null;
@@ -66,6 +68,7 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
     const [skillInput, setSkillInput] = useState("");
     const [requiredSkills, setRequiredSkills] = useState<string[]>([]);
     const [seniorityLevel, setSeniorityLevel] = useState("senior");
+    const [field, setField] = useState("tech");
     const [stagesInput, setStagesInput] = useState("");
 
     const openCreateDialog = () => {
@@ -77,6 +80,7 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
         setDescription("");
         setRequiredSkills([]);
         setSeniorityLevel("senior");
+        setField("tech");
         setStagesInput("");
         setIsDialogOpen(true);
     };
@@ -97,6 +101,7 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
         }
         setRequiredSkills(skills);
         setSeniorityLevel(posting.seniorityLevel);
+        setField(typeof posting.field === "string" && posting.field ? posting.field : "tech");
         setStagesInput(Array.isArray(posting.pipelineStages) ? posting.pipelineStages.join(", ") : "");
         setIsDialogOpen(true);
     };
@@ -148,6 +153,7 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
             description,
             requiredSkills,
             seniorityLevel,
+            field,
             pipelineStages,
         };
 
@@ -294,6 +300,14 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
                                         </Badge>
                                         <Badge variant="outline" className="text-[10px] uppercase">
                                             {posting.seniorityLevel}
+                                        </Badge>
+                                        <Badge
+                                            variant="outline"
+                                            className="text-[10px] uppercase border-primary/30 text-primary"
+                                        >
+                                            {CAREER_FIELDS.find((f) => f.value === posting.field)?.labelEs ??
+                                                posting.field ??
+                                                "Tecnología / Software"}
                                         </Badge>
                                     </div>
 
@@ -448,6 +462,20 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1.5">
+                                <label className="text-xs font-semibold">Rubro profesional *</label>
+                                <select
+                                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
+                                    value={field}
+                                    onChange={(e) => setField(e.target.value)}
+                                >
+                                    {CAREER_FIELDS.map((f) => (
+                                        <option key={f.value} value={f.value}>
+                                            {f.labelEs}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="space-y-1.5">
                                 <label className="text-xs font-semibold">Seniority Requerido</label>
                                 <Input
                                     required
@@ -456,7 +484,10 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
                                     onChange={(e) => setSeniorityLevel(e.target.value)}
                                 />
                             </div>
-                            <div className="space-y-1.5">
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5 col-span-2">
                                 <label className="text-xs font-semibold">Habilidades Requeridas (tags) *</label>
                                 <Input
                                     placeholder="Escribe y presiona Enter o ,"

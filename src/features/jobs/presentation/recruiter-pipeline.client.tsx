@@ -71,12 +71,52 @@ export function PipelineClientPage({
     const entered = funnel.reduce((a, f) => a + f.count, 0);
     const hiredCount = items.filter((i) => i.status === "hired").length;
     const conversion = entered > 0 ? Math.round((hiredCount / entered) * 100) : 0;
+    const matchScores = items.map((i) => i.matchScore).filter((s) => s > 0);
+    const globalAvgMatch =
+        matchScores.length > 0 ? Math.round(matchScores.reduce((a, b) => a + b, 0) / matchScores.length) : 0;
+    const activePostings = summary.filter((s) => s.status === "published").length;
 
     return (
         <div className="flex flex-col gap-6">
             <div>
                 <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{t("title")}</h1>
                 <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
+            </div>
+
+            {/* Agregado global: todas las ofertas */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <Card className="border-border/50 bg-card/50">
+                    <CardContent className="pt-4">
+                        <p className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+                            {t("totalCandidates", { default: "Candidatos totales" })}
+                        </p>
+                        <p className="mt-1 text-2xl font-bold text-foreground">{entered}</p>
+                    </CardContent>
+                </Card>
+                <Card className="border-border/50 bg-card/50">
+                    <CardContent className="pt-4">
+                        <p className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+                            {t("globalConversion", { default: "Conversión a hire" })}
+                        </p>
+                        <p className="mt-1 text-2xl font-bold text-emerald-500">{conversion}%</p>
+                    </CardContent>
+                </Card>
+                <Card className="border-border/50 bg-card/50">
+                    <CardContent className="pt-4">
+                        <p className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+                            {t("globalAvgMatch", { default: "Match promedio" })}
+                        </p>
+                        <p className="mt-1 text-2xl font-bold text-foreground">{globalAvgMatch}%</p>
+                    </CardContent>
+                </Card>
+                <Card className="border-border/50 bg-card/50">
+                    <CardContent className="pt-4">
+                        <p className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+                            {t("activePostings", { default: "Ofertas activas" })}
+                        </p>
+                        <p className="mt-1 text-2xl font-bold text-foreground">{activePostings}</p>
+                    </CardContent>
+                </Card>
             </div>
 
             {/* Reporte de embudo global */}

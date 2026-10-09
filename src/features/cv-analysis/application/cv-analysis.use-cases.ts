@@ -15,7 +15,7 @@ import { AIService, type AIServiceOptions } from "@/infrastructure/ai";
 import { z } from "zod";
 import { env } from "@/infrastructure/env";
 import { rejectGuestWrite } from "@/infrastructure/guest-guard";
-import { normalizeCareerPath } from "../domain/career-paths";
+import { normalizeCareerPath } from "@/shared-kernel/career-paths";
 
 interface ParseCVInput {
     fileUrl?: string;
@@ -527,11 +527,28 @@ export async function getCareerRecommendationsAction(
         }
 
         const userId = session.user.id;
-        const targetPath = normalizeCareerPath(targetPathInput);
 
         // Modo Demo/Guest: mock inmediato sin DB ni IA (el guest nunca persiste CVs)
         if (session.user.isGuest) {
-            return { success: true, data: buildGuestRecommendations(targetPath) };
+            return { success: true, data: buildGuestRecommendations(normalizeCareerPath(targetPathInput)) };
+        }
+
+        // Camino por defecto: el guardado en el perfil (elegido una vez, vale en toda la app).
+        let targetPath = normalizeCareerPath(targetPathInput);
+        if (!targetPath) {
+            try {
+                const me = await db.user.findUnique({ where: { id: userId }, select: { careerPath: true } });
+                targetPath = normalizeCareerPath(me?.careerPath);
+            } catch {
+                // Sin perfil legible: se sigue en modo general.
+            }
+        } else {
+            // Elección explícita: persistir en el perfil para Job Match y Copilot.
+            try {
+                await db.user.update({ where: { id: userId }, data: { careerPath: targetPath } });
+            } catch (dbError) {
+                logger.error("[getCareerRecommendationsAction] Error al guardar careerPath:", dbError);
+            }
         }
 
         // 1. Obtener currículum activo

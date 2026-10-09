@@ -103,6 +103,7 @@ export async function POST(req: NextRequest) {
                         anthropicApiKey: true,
                         defaultAiProvider: true,
                         defaultAiModel: true,
+                        careerPath: true,
                     },
                 });
                 if (userSettings) {
@@ -118,6 +119,9 @@ export async function POST(req: NextRequest) {
                     }
                     if (userSettings.defaultAiModel) {
                         preferredModel = userSettings.defaultAiModel;
+                    }
+                    if (userSettings.careerPath?.trim() && !isRecruiter) {
+                        cvContext += `\nCamino profesional elegido por el usuario: ${userSettings.careerPath.trim()} (puede no ser IT; adapta tu vocabulario y sugerencias a ese campo).`;
                     }
                 }
             } catch {

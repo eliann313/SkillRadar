@@ -12,11 +12,13 @@ import {
     getCareerRecommendationsAction,
     type CareerRecommendations,
 } from "@/features/cv-analysis/application/cv-analysis.use-cases";
-import { CAREER_PATHS, MAX_CAREER_PATH_LENGTH } from "@/features/cv-analysis/domain/career-paths";
+import { importCopilotRoadmapAction } from "@/features/roadmap/application/roadmap.use-cases";
+import { CAREER_PATHS, MAX_CAREER_PATH_LENGTH, resolveCareerPathLabel } from "@/shared-kernel/career-paths";
 import { toast } from "sonner";
 
 interface CareerPathPanelProps {
     initial: CareerRecommendations | null;
+    initialPath?: string | null;
 }
 
 function ImportanceBadge({ level }: { level: "high" | "medium" | "low" }) {
@@ -37,12 +39,44 @@ function ImportanceBadge({ level }: { level: "high" | "medium" | "low" }) {
     );
 }
 
-export function CareerPathPanel({ initial }: CareerPathPanelProps) {
+export function CareerPathPanel({ initial, initialPath }: CareerPathPanelProps) {
     const locale = useLocale();
-    const [selected, setSelected] = useState(initial?.targetPath ?? "");
+    const [selected, setSelected] = useState(initial?.targetPath ?? initialPath ?? "");
     const [custom, setCustom] = useState("");
     const [data, setData] = useState<CareerRecommendations | null>(initial);
     const [isPending, startTransition] = useTransition();
+    const [importingTitle, setImportingTitle] = useState<string | null>(null);
+
+    const handleImportRoadmap = (map: { title: string; steps: string[] }) => {
+        const skill = data?.targetPath || data?.technologies[0]?.name || map.title;
+        setImportingTitle(map.title);
+        startTransition(async () => {
+            try {
+                const res = await importCopilotRoadmapAction({
+                    skill: skill.slice(0, 80),
+                    title: map.title.slice(0, 140),
+                    steps: map.steps,
+                });
+                if (!res.success) {
+                    toast.error(res.error || "No se pudo importar la ruta.");
+                } else if (res.data === 0) {
+                    toast.info(
+                        locale === "en"
+                            ? "Those steps are already in your roadmap."
+                            : "Esos pasos ya están en tu roadmap.",
+                    );
+                } else {
+                    toast.success(
+                        locale === "en"
+                            ? `${res.data} steps added to your roadmap.`
+                            : `${res.data} pasos agregados a tu roadmap.`,
+                    );
+                }
+            } finally {
+                setImportingTitle(null);
+            }
+        });
+    };
 
     const handleGenerate = () => {
         const path = (custom.trim() || selected).trim();
@@ -92,6 +126,7 @@ export function CareerPathPanel({ initial }: CareerPathPanelProps) {
                         </label>
                         <select
                             id="career-path-select"
+                            data-testid="career-path-select"
                             value={CAREER_PATHS.some((p) => p.value === selected) ? selected : ""}
                             onChange={(e) => {
                                 setSelected(e.target.value);
@@ -128,7 +163,12 @@ export function CareerPathPanel({ initial }: CareerPathPanelProps) {
                         </datalist>
                     </div>
                     <div className="flex gap-2">
-                        <Button onClick={handleGenerate} disabled={isPending} className="gap-1.5">
+                        <Button
+                            onClick={handleGenerate}
+                            disabled={isPending}
+                            className="gap-1.5"
+                            data-testid="career-path-generate"
+                        >
                             {isPending && <Loader2 className="size-4 animate-spin" />}
                             {locale === "en" ? "Generate" : "Generar"}
                         </Button>
@@ -142,7 +182,7 @@ export function CareerPathPanel({ initial }: CareerPathPanelProps) {
                 {data?.targetPath && (
                     <p className="mt-2 text-xs text-muted-foreground">
                         {locale === "en" ? "Showing path: " : "Mostrando camino: "}
-                        <strong className="text-foreground">{data.targetPath}</strong>
+                        <strong className="text-foreground">{resolveCareerPathLabel(data.targetPath, locale)}</strong>
                     </p>
                 )}
             </CardHeader>
@@ -217,14 +257,36 @@ export function CareerPathPanel({ initial }: CareerPathPanelProps) {
                                     key={map.title}
                                     className="relative space-y-3 overflow-hidden rounded-lg border border-border bg-card/60 p-4"
                                 >
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between gap-2">
                                         <h4 className="text-sm font-bold text-foreground">{map.title}</h4>
-                                        <Badge
-                                            variant="outline"
-                                            className="border-primary/10 bg-primary/5 font-mono text-[10px] text-primary"
-                                        >
-                                            {map.duration}
-                                        </Badge>
+                                        <div className="flex shrink-0 items-center gap-1.5">
+                                            <Badge
+                                                variant="outline"
+                                                className="border-primary/10 bg-primary/5 font-mono text-[10px] text-primary"
+                                            >
+                                                {map.duration}
+                                            </Badge>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-6 px-2 text-[10px]"
+                                                disabled={isPending || importingTitle !== null}
+                                                onClick={() => handleImportRoadmap(map)}
+                                                title={
+                                                    locale === "en"
+                                                        ? "Add steps to my roadmap"
+                                                        : "Agregar pasos a mi roadmap"
+                                                }
+                                            >
+                                                {importingTitle === map.title ? (
+                                                    <Loader2 className="size-3 animate-spin" />
+                                                ) : locale === "en" ? (
+                                                    "+ Roadmap"
+                                                ) : (
+                                                    "+ Roadmap"
+                                                )}
+                                            </Button>
+                                        </div>
                                     </div>
                                     <ol className="relative mt-2 ml-2 space-y-3.5 border-l border-border/80">
                                         {map.steps.map((step, sIdx) => (

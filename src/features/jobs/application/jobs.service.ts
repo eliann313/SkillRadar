@@ -19,6 +19,7 @@ export interface JobPostingData {
     description: string;
     requiredSkills: string[];
     seniorityLevel: string;
+    field?: string;
     pipelineStages?: string[];
 }
 
@@ -43,6 +44,7 @@ export class JobPostingService {
                 remoteType: data.remoteType,
                 requiredSkills: data.requiredSkills,
                 seniorityLevel: data.seniorityLevel,
+                field: data.field?.trim().toLowerCase().slice(0, 20) || "tech",
                 pipelineStages: data.pipelineStages ?? [],
                 status: "draft",
             },
@@ -74,6 +76,7 @@ export class JobPostingService {
         if (data.remoteType) updateData.remoteType = data.remoteType;
         if (data.requiredSkills) updateData.requiredSkills = data.requiredSkills;
         if (data.seniorityLevel) updateData.seniorityLevel = data.seniorityLevel;
+        if (data.field) updateData.field = data.field.trim().toLowerCase().slice(0, 20);
         if (data.pipelineStages !== undefined) updateData.pipelineStages = data.pipelineStages;
 
         return await db.jobPosting.update({
@@ -260,7 +263,7 @@ export class JobPostingService {
      */
     static async getDeveloperJobBoard(
         developerId: string,
-        filters?: { remoteType?: string; seniorityLevel?: string; search?: string },
+        filters?: { remoteType?: string; seniorityLevel?: string; search?: string; field?: string },
         provider?: MatchProvider,
     ) {
         // 1. Obtener el CV activo del developer
@@ -285,6 +288,9 @@ export class JobPostingService {
         }
         if (filters?.seniorityLevel && filters.seniorityLevel !== "all") {
             whereClause.seniorityLevel = filters.seniorityLevel;
+        }
+        if (filters?.field && filters.field !== "all") {
+            whereClause.field = filters.field;
         }
         if (filters?.search) {
             whereClause.OR = [
