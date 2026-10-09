@@ -3,6 +3,7 @@ import { isGuestSession } from "@/infrastructure/guest-guard";
 import { redirect } from "next/navigation";
 import { JobPostingService } from "@/features/jobs/application/jobs.service";
 import { PostingsClientPage } from "@/features/jobs/presentation/recruiter-postings.client";
+import { GuestPostingsPreview } from "@/features/recruiter/presentation/guest-recruiter-demos";
 
 import type { JobPostingWithCount } from "@/features/jobs/domain/jobs.types";
 
@@ -17,9 +18,10 @@ export default async function RecruiterPostingsPage() {
         redirect("/dashboard");
     }
 
-    // Modo Guest: sin DB ni acciones — volvemos al preview de solo lectura.
+    // Modo Guest: preview de solo lectura con mocks (sin DB ni acciones),
+    // igual que el dev demo que sí puede navegar sus páginas.
     if (isGuestSession(session)) {
-        redirect("/dashboard");
+        return <GuestPostingsPreview />;
     }
 
     const postings = await JobPostingService.getRecruiterJobPostings(session.user.id);

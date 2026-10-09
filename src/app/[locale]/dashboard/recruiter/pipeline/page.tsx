@@ -5,6 +5,7 @@ import { JobPostingService } from "@/features/jobs/application/jobs.service";
 import { getTranslations } from "next-intl/server";
 import { resolveStages, unionStages } from "@/infrastructure/pipeline-stages";
 import { PipelineClientPage, type PipelineItem } from "@/features/jobs/presentation/recruiter-pipeline.client";
+import { GuestPipelinePreview } from "@/features/recruiter/presentation/guest-recruiter-demos";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
@@ -16,8 +17,8 @@ export default async function RecruiterPipelinePage() {
     const session = await auth();
     if (!session?.user) redirect("/");
     if (session.user.role !== "recruiter") redirect("/dashboard");
-    // Modo Guest: sin DB ni acciones — volvemos al preview de solo lectura.
-    if (isGuestSession(session)) redirect("/dashboard");
+    // Modo Guest: preview de solo lectura con mocks (sin DB ni acciones).
+    if (isGuestSession(session)) return <GuestPipelinePreview />;
 
     const postings = await JobPostingService.getRecruiterJobPostings(session.user.id);
 

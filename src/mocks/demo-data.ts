@@ -150,3 +150,152 @@ export const demoTalentPool: TalentCard[] = [
         isShortlisted: false,
     },
 ];
+
+/**
+ * Previews 100% ficticios para que el guest recruiter pueda navegar
+ * Ofertas / Seguimiento / Bandeja / Plantillas sin DB ni escrituras.
+ * Todo es solo lectura con CTA a crear cuenta (igual que el dev demo,
+ * que sí puede entrar a progreso, análisis de CV, etc.).
+ */
+export interface DemoPosting {
+    id: string;
+    title: string;
+    company: string;
+    location: string;
+    remoteType: string;
+    seniorityLevel: string;
+    status: "draft" | "published" | "closed";
+    requiredSkills: string[];
+    applications: number;
+    createdAt: string;
+}
+
+export const demoPostings: DemoPosting[] = [
+    {
+        id: "demo-posting-1",
+        title: "Frontend Senior — React/Next.js",
+        company: "Demo Corp",
+        location: "Remoto · LATAM",
+        remoteType: "remote",
+        seniorityLevel: "senior",
+        status: "published",
+        requiredSkills: ["React", "TypeScript", "Next.js", "Tailwind CSS"],
+        applications: 12,
+        createdAt: "2026-09-10T12:00:00Z",
+    },
+    {
+        id: "demo-posting-2",
+        title: "Backend Mid — Node.js/PostgreSQL",
+        company: "Demo Corp",
+        location: "Híbrido · Buenos Aires",
+        remoteType: "hybrid",
+        seniorityLevel: "mid",
+        status: "published",
+        requiredSkills: ["Node.js", "PostgreSQL", "Docker"],
+        applications: 8,
+        createdAt: "2026-09-18T12:00:00Z",
+    },
+    {
+        id: "demo-posting-3",
+        title: "Fullstack Jr — Práctica supervisada",
+        company: "Demo Corp",
+        location: "Remoto",
+        remoteType: "remote",
+        seniorityLevel: "junior",
+        status: "draft",
+        requiredSkills: ["React", "Node.js", "Git"],
+        applications: 0,
+        createdAt: "2026-09-25T12:00:00Z",
+    },
+];
+
+export interface DemoPipelineItem {
+    id: string;
+    anonymousId: string;
+    postingTitle: string;
+    status: string;
+    matchScore: number;
+}
+
+export const demoPipelineItems: DemoPipelineItem[] = [
+    {
+        id: "demo-app-1",
+        anonymousId: "DEV-9B1C27",
+        postingTitle: "Frontend Senior — React/Next.js",
+        status: "shortlisted",
+        matchScore: 87,
+    },
+    {
+        id: "demo-app-2",
+        anonymousId: "DEV-4F2A91",
+        postingTitle: "Backend Mid — Node.js/PostgreSQL",
+        status: "interview",
+        matchScore: 76,
+    },
+    {
+        id: "demo-app-3",
+        anonymousId: "DEV-77C0E4",
+        postingTitle: "Frontend Senior — React/Next.js",
+        status: "reviewed",
+        matchScore: 64,
+    },
+    {
+        id: "demo-app-4",
+        anonymousId: "DEV-77C0E4",
+        postingTitle: "Fullstack Jr — Práctica supervisada",
+        status: "submitted",
+        matchScore: 61,
+    },
+];
+
+export const demoPipelineColumns = ["submitted", "reviewed", "shortlisted", "interview", "offer", "hired"];
+
+export interface DemoInboxRequest {
+    id: string;
+    anonymousId: string;
+    message: string;
+    status: "pending" | "accepted" | "declined";
+    messageCount: number;
+    lastMessageAt: string;
+}
+
+export const demoInboxRequests: DemoInboxRequest[] = [
+    {
+        id: "demo-req-1",
+        anonymousId: "DEV-9B1C27",
+        message: "Hola, nos gustó tu perfil senior en React. ¿Te interesa una charla de 20 min?",
+        status: "pending",
+        messageCount: 1,
+        lastMessageAt: "2026-09-28T12:00:00Z",
+    },
+    {
+        id: "demo-req-2",
+        anonymousId: "DEV-4F2A91",
+        message: "Vimos tu experiencia backend con PostgreSQL en producción. Te compartimos la propuesta.",
+        status: "accepted",
+        messageCount: 4,
+        lastMessageAt: "2026-09-26T12:00:00Z",
+    },
+];
+
+export interface DemoTemplate {
+    id: string;
+    name: string;
+    subject: string;
+    body: string;
+}
+
+export const demoTemplates: DemoTemplate[] = [
+    {
+        id: "demo-tpl-1",
+        name: "Primer contacto senior",
+        subject: "Oportunidad {{puesto}} en {{empresa}}",
+        body: "Hola, vi tu perfil y tu experiencia con React/TypeScript. En {{empresa}} buscamos {{puesto}} remoto LATAM. ¿Te interesa una charla de 20 min esta semana?",
+    },
+    {
+        id: "demo-tpl-2",
+        name: "Seguimiento amable",
+        subject: "Seguimiento — {{puesto}}",
+        body: "Hola de nuevo, retomo contacto por la posición de {{puesto}} en {{empresa}}. Si te interesa, coordinamos una llamada breve.",
+    },
+];

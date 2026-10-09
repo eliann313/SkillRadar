@@ -776,6 +776,15 @@
         "guestPreviewCta": "Preview",
         "guestUpsellTitle": "Like what you see?",
         "guestUpsellDesc": "Create your free recruiter account, verify your profile and start contacting real talent with double-blind.",
-        "guestUpsellCta": "Create free account"
+        "guestUpsellCta": "Create free account",
+        "jobPostingsFallbackTitle": "Job Postings",
+        "jobPostingsFallbackDesc": "Read-only preview with fictional postings. Create an account to publish real jobs.",
+        "pipelineFallbackTitle": "Pipeline",
+        "pipelineFallbackDesc": "Read-only kanban preview with fictional anonymized candidates.",
+        "inboxFallbackTitle": "Inbox",
+        "inboxFallbackDesc": "Read-only preview with fictional contact requests.",
+        "templatesFallbackTitle": "Templates",
+        "templatesFallbackDesc": "Read-only preview with fictional outreach templates.",
+        "applicationsFallbackDesc": "Read-only preview with fictional anonymized applications."
     }
 }

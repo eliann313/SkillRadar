@@ -776,6 +776,15 @@
         "guestPreviewCta": "Vista previa",
         "guestUpsellTitle": "¿Te gusta lo que ves?",
         "guestUpsellDesc": "Creá tu cuenta recruiter gratis, verificá tu perfil y empezá a contactar talento real con doble ciego.",
-        "guestUpsellCta": "Crear cuenta gratis"
+        "guestUpsellCta": "Crear cuenta gratis",
+        "jobPostingsFallbackTitle": "Ofertas de Empleo",
+        "jobPostingsFallbackDesc": "Vista previa de solo lectura con ofertas ficticias. Creá una cuenta para publicar vacantes reales.",
+        "pipelineFallbackTitle": "Seguimiento",
+        "pipelineFallbackDesc": "Vista previa de solo lectura del kanban con candidatos ficticios anonimizados.",
+        "inboxFallbackTitle": "Bandeja",
+        "inboxFallbackDesc": "Vista previa de solo lectura con solicitudes de contacto ficticias.",
+        "templatesFallbackTitle": "Plantillas",
+        "templatesFallbackDesc": "Vista previa de solo lectura con plantillas de outreach ficticias.",
+        "applicationsFallbackDesc": "Vista previa de solo lectura con postulaciones ficticias anonimizadas."
     }
 }
