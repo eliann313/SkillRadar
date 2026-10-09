@@ -37,12 +37,27 @@ test.describe("Security E2E Flow", () => {
             await expect(page.getByText("404", { exact: true })).toBeVisible({ timeout: 15000 });
         });
 
-        test("posteo inexistente redirige al listado (IDOR)", async ({ page }) => {
+        test("posteo inexistente muestra preview demo sin filtrar datos (IDOR)", async ({ page }) => {
             await page.goto("/dashboard/recruiter/postings/posteo-que-no-existe/applications");
-            // Guest: las páginas recruiter redirigen al preview de solo lectura
-            await page.waitForURL("**/dashboard", { timeout: 15000 });
-            expect(page.url()).not.toContain("applications");
-            await expect(page.getByTestId("guest-recruiter-preview")).toBeVisible({ timeout: 10000 });
+            // Guest: cada página recruiter renderiza su propio preview de solo lectura
+            // (ya no hay fallback al dashboard): sin DB, sin PII, sin redirección.
+            await expect(page.getByTestId("guest-applications-preview")).toBeVisible({ timeout: 15000 });
+            expect(page.url()).toContain("applications");
+            await expect(page.getByText("DEV-9B1C27")).toBeVisible({ timeout: 10000 });
+        });
+
+        test("guest recruiter navega ofertas, seguimiento, bandeja y plantillas sin fallback", async ({ page }) => {
+            await page.goto("/dashboard/recruiter/postings");
+            await expect(page.getByTestId("guest-postings-preview")).toBeVisible({ timeout: 15000 });
+
+            await page.goto("/dashboard/recruiter/pipeline");
+            await expect(page.getByTestId("guest-pipeline-preview")).toBeVisible({ timeout: 15000 });
+
+            await page.goto("/dashboard/recruiter/requests");
+            await expect(page.getByTestId("guest-inbox-preview")).toBeVisible({ timeout: 15000 });
+
+            await page.goto("/dashboard/recruiter/templates");
+            await expect(page.getByTestId("guest-templates-preview")).toBeVisible({ timeout: 15000 });
         });
 
         test("archivos con URL invalida devuelven 400 con sesion (SSRF)", async ({ page }) => {

@@ -31,7 +31,7 @@ import { AccountTypeCard } from "./account-type.card";
 import { NotificationsCard } from "./notifications.card";
 import { SecurityDataCard } from "./security-data.card";
 
-export function getProviderModels(prov: string) {
+function getProviderModels(prov: string) {
     switch (prov) {
         case "gemini":
             return PROVIDER_MODELS.gemini;

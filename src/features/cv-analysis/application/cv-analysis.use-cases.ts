@@ -15,6 +15,7 @@ import { AIService, type AIServiceOptions } from "@/infrastructure/ai";
 import { z } from "zod";
 import { env } from "@/infrastructure/env";
 import { rejectGuestWrite } from "@/infrastructure/guest-guard";
+import { normalizeCareerPath } from "../domain/career-paths";
 
 interface ParseCVInput {
     fileUrl?: string;
@@ -405,12 +406,120 @@ export interface CareerRecommendations {
         technologies: string[];
         difficulty: "beginner" | "intermediate" | "advanced";
     }>;
+    opportunities: Array<{
+        title: string;
+        description: string;
+        demand: "high" | "medium" | "low";
+    }>;
+    targetPath?: string | null;
+}
+
+/**
+ * Recomendaciones genéricas offline para un camino no-IT / sin claves IA.
+ * Evita el sesgo determinista anterior (Docker/AWS/Jest) cuando el usuario
+ * elige p.ej. sociología, educación o marketing.
+ */
+function buildOfflineRecommendationsForPath(targetPath: string): CareerRecommendations {
+    const path = targetPath;
+    return {
+        technologies: [
+            {
+                name: `Fundamentos de ${path}`,
+                importance: "high",
+                reason: `Base conceptual imprescindible para posicionarte en ${path} frente a la demanda actual.`,
+            },
+            {
+                name: `Herramientas aplicadas a ${path}`,
+                importance: "medium",
+                reason: `El mercado valora el dominio práctico de herramientas reales usadas en ${path}.`,
+            },
+            {
+                name: "Comunicación y portafolio",
+                importance: "medium",
+                reason: "Documentar tu trabajo (casos, métricas, aprendizajes) multiplica tu credibilidad en cualquier campo.",
+            },
+        ],
+        roadmaps: [
+            {
+                title: `Hoja de Ruta: ${path} en 12 semanas`,
+                steps: [
+                    `Semanas 1-3: fundamentos teóricos de ${path} + vocabulario profesional del campo.`,
+                    `Semanas 4-7: práctica guiada con 2-3 ejercicios reales de ${path} y feedback.`,
+                    `Semanas 8-10: proyecto integrador publicable con documentación y métricas de impacto.`,
+                    `Semanas 11-12: portafolio, simulacros de entrevista y plan de postulación en ${path}.`,
+                ],
+                duration: "12 semanas",
+            },
+        ],
+        projects: [
+            {
+                title: `Proyecto integrador en ${path}`,
+                description: `Desarrolla un caso práctico de ${path} de principio a fin: problema, metodología, resultados y aprendizajes. Incluye un README que explique el reto y cómo replicar tu solución.`,
+                technologies: [path, "Documentación", "Portafolio"],
+                difficulty: "intermediate" as const,
+            },
+        ],
+        opportunities: [
+            {
+                title: `Rol inicial en ${path}`,
+                description: `Posiciones de entrada donde aplicar fundamentos de ${path} con supervisión y curva de aprendizaje.`,
+                demand: "high" as const,
+            },
+            {
+                title: `Rol intermedio / especialista en ${path}`,
+                description: `Roles con autonomía donde el portafolio y la experiencia práctica en ${path} son el diferenciador.`,
+                demand: "medium" as const,
+            },
+        ],
+        targetPath: path,
+    };
+}
+
+/** Mock de invitado sensible al camino elegido (sin DB ni IA). */
+function buildGuestRecommendations(targetPath: string | null): CareerRecommendations {
+    if (targetPath) return buildOfflineRecommendationsForPath(targetPath);
+    return {
+        technologies: [
+            { name: "Docker", importance: "high", reason: "Demandado en la mayoría de ofertas backend." },
+            { name: "CI/CD", importance: "high", reason: "Diferenciador clave en despliegues modernos." },
+            { name: "Testing", importance: "medium", reason: "Mejora la credibilidad técnica del perfil." },
+        ],
+        roadmaps: [
+            {
+                title: "Ruta DevOps esencial",
+                steps: ["Dockeriza un proyecto", "Automatiza CI con GitHub Actions", "Despliega en la nube"],
+                duration: "4 semanas",
+            },
+        ],
+        projects: [
+            {
+                title: "API con CI/CD completo",
+                description: "API REST con tests, pipeline y deploy automático.",
+                technologies: ["Node.js", "Docker", "GitHub Actions"],
+                difficulty: "intermediate",
+            },
+        ],
+        opportunities: [
+            {
+                title: "Backend Developer",
+                description: "Roles backend donde Docker y CI/CD son requisitos frecuentes.",
+                demand: "high",
+            },
+        ],
+        targetPath: null,
+    };
 }
 
 /**
  * Obtiene recomendaciones inteligentes del Career Copilot basadas en el CV del usuario y la demanda laboral.
+ *
+ * Si se indica `targetPath` (p.ej. "Ciencia de Datos", "Sociología"), la IA razona
+ * sobre ese camino concreto — SkillRadar sirve a cualquier profesión, no solo IT —
+ * y devuelve oportunidades, habilidades/tecnologías, ruta de aprendizaje y proyectos.
  */
-export async function getCareerRecommendationsAction(): Promise<ActionResult<CareerRecommendations>> {
+export async function getCareerRecommendationsAction(
+    targetPathInput?: string,
+): Promise<ActionResult<CareerRecommendations>> {
     try {
         const session = await auth();
         if (!session?.user?.id) {
@@ -418,38 +527,11 @@ export async function getCareerRecommendationsAction(): Promise<ActionResult<Car
         }
 
         const userId = session.user.id;
+        const targetPath = normalizeCareerPath(targetPathInput);
 
         // Modo Demo/Guest: mock inmediato sin DB ni IA (el guest nunca persiste CVs)
         if (session.user.isGuest) {
-            return {
-                success: true,
-                data: {
-                    technologies: [
-                        { name: "Docker", importance: "high", reason: "Demandado en la mayoría de ofertas backend." },
-                        { name: "CI/CD", importance: "high", reason: "Diferenciador clave en despliegues modernos." },
-                        { name: "Testing", importance: "medium", reason: "Mejora la credibilidad técnica del perfil." },
-                    ],
-                    roadmaps: [
-                        {
-                            title: "Ruta DevOps esencial",
-                            steps: [
-                                "Dockeriza un proyecto",
-                                "Automatiza CI con GitHub Actions",
-                                "Despliega en la nube",
-                            ],
-                            duration: "4 semanas",
-                        },
-                    ],
-                    projects: [
-                        {
-                            title: "API con CI/CD completo",
-                            description: "API REST con tests, pipeline y deploy automático.",
-                            technologies: ["Node.js", "Docker", "GitHub Actions"],
-                            difficulty: "intermediate",
-                        },
-                    ],
-                },
-            };
+            return { success: true, data: buildGuestRecommendations(targetPath) };
         }
 
         // 1. Obtener currículum activo
@@ -466,13 +548,22 @@ export async function getCareerRecommendationsAction(): Promise<ActionResult<Car
             return { success: false, error: "Sube un currículum para recibir sugerencias inteligentes de carrera." };
         }
 
-        // Si ya existen recomendaciones en el análisis de este currículum, las devolvemos inmediatamente
         const existingAnalysis = resume.analysis as Record<string, unknown> | null;
-        if (existingAnalysis && existingAnalysis.careerRecommendations) {
-            return {
-                success: true,
-                data: existingAnalysis.careerRecommendations as unknown as CareerRecommendations,
-            };
+
+        // Sin camino elegido: comportamiento legacy (caché única + Job Board).
+        if (!targetPath) {
+            if (existingAnalysis && existingAnalysis.careerRecommendations) {
+                return {
+                    success: true,
+                    data: existingAnalysis.careerRecommendations as unknown as CareerRecommendations,
+                };
+            }
+        } else {
+            // Con camino elegido: caché por camino para no pisar la recomendación general.
+            const byPath = (existingAnalysis?.careerRecommendationsByPath as Record<string, unknown> | undefined) ?? {};
+            if (byPath[targetPath.toLowerCase()]) {
+                return { success: true, data: byPath[targetPath.toLowerCase()] as CareerRecommendations };
+            }
         }
 
         // 2. Obtener ofertas publicadas del Job Board
@@ -548,10 +639,22 @@ export async function getCareerRecommendationsAction(): Promise<ActionResult<Car
                     difficulty: z.enum(["beginner", "intermediate", "advanced"]),
                 }),
             ),
+            opportunities: z
+                .array(
+                    z.object({
+                        title: z.string(),
+                        description: z.string(),
+                        demand: z.enum(["high", "medium", "low"]),
+                    }),
+                )
+                .default([]),
         });
 
         if (!hasGlobalKeys && !hasUserKeys) {
             // Simulación offline
+            if (targetPath) {
+                return { success: true, data: buildOfflineRecommendationsForPath(targetPath) };
+            }
             const resumeLower = (resume.rawText || "").toLowerCase();
             const missingTech = [];
             if (!resumeLower.includes("docker"))
@@ -616,6 +719,14 @@ export async function getCareerRecommendationsAction(): Promise<ActionResult<Car
                             difficulty: "intermediate" as const,
                         },
                     ],
+                    opportunities: [
+                        {
+                            title: "Desarrollador Fullstack",
+                            description: "Demanda sostenida en el Job Board para perfiles con este stack.",
+                            demand: "high" as const,
+                        },
+                    ],
+                    targetPath: null,
                 },
             };
         }
@@ -630,15 +741,21 @@ export async function getCareerRecommendationsAction(): Promise<ActionResult<Car
             ),
         );
 
+        const pathDirective = targetPath
+            ? `El usuario eligió explícitamente el camino profesional: "${targetPath}". Razona SOBRE ESE CAMINO (aunque no sea IT: puede ser sociología, educación, marketing, salud, derecho, etc.). Adapta todo el vocabulario: en vez de "tecnologías" usa habilidades/herramientas propias de ese campo; las oportunidades deben ser roles reales de ese campo; la ruta y los proyectos deben ser publicables en ese campo (no asumas GitHub/código salvo que el camino sea software).`
+            : `Sin camino elegido: analiza el CV y compáralo con las tecnologías del Job Board (o las más demandadas de la industria actual).`;
+
         const result = await AIService.generateStructuredObject<CareerRecommendations>({
             schema: careerRecommendationsSchema,
-            system: `Eres el Career Copilot de SkillRadar. Tu misión es analizar el CV activo del desarrollador y compararlo con las tecnologías solicitadas en el Job Board (o las más demandadas de la industria actual).
-Debes identificar las brechas técnicas (skills ausentes o poco reforzados) y generar recomendaciones personalizadas estructuradas:
-1. Tecnologías específicas a aprender con un nivel de importancia (high, medium, low) y una razón motivadora y real vinculada a la demanda laboral.
-2. Un roadmap sugerido paso a paso para dominar la habilidad prioritaria.
-3. Propuestas de proyectos prácticos (indicando dificultad) que el programador pueda crear y subir a su GitHub para sumar a su CV y capacidad.
-El idioma debe ser español, profesional, constructivo y alentador.`,
-            prompt: `Compara las habilidades del candidato con la demanda laboral y genera las sugerencias:
+            system: `Eres el Career Copilot de SkillRadar. Sirves a CUALQUIER profesión, no solo a desarrolladores de software.
+${pathDirective}
+Debes identificar brechas (skills ausentes o poco reforzados) y generar recomendaciones personalizadas estructuradas:
+1. Oportunidades laborales concretas del camino elegido (2-4 roles con nivel de demanda high/medium/low y descripción realista).
+2. Habilidades/tecnologías específicas a aprender con importancia (high, medium, low) y razón motivadora vinculada a la demanda laboral real.
+3. Una ruta de aprendizaje sugerida paso a paso para dominar la habilidad prioritaria (con duración estimada).
+4. Propuestas de proyectos prácticos (con dificultad beginner/intermediate/advanced) que la persona pueda crear y sumar a su CV/portafolio.
+El idioma debe ser español, profesional, constructivo y alentador. Nunca inventes certificaciones oficiales inexistentes.`,
+            prompt: `${targetPath ? `CAMINO ELEGIDO POR EL USUARIO: ${targetPath}\n\n` : ""}Compara las habilidades del candidato con la demanda laboral y genera las sugerencias:
 
 === TEXTO COMPLETO DEL CV ===
 ${resume.rawText}
@@ -649,26 +766,48 @@ ${demandedSkills.join(", ") || "React, Node.js, TypeScript, Next.js, Docker, AWS
             userSettings,
         });
 
-        // Guardar el resultado en caché dentro de la propiedad `careerRecommendations` del análisis de este resume
+        const resultWithPath: CareerRecommendations = { ...result, targetPath: targetPath ?? null };
+
+        // Guardar en caché: general o por camino (sin pisar la otra).
         try {
-            await db.resume.update({
-                where: { id: resume.id },
-                data: {
-                    analysis: {
-                        ...(typeof existingAnalysis === "object" && existingAnalysis !== null
-                            ? (existingAnalysis as Record<string, unknown>)
-                            : {}),
-                        careerRecommendations: JSON.parse(JSON.stringify(result)) as Prisma.InputJsonValue,
+            const baseAnalysis =
+                typeof existingAnalysis === "object" && existingAnalysis !== null
+                    ? (existingAnalysis as Record<string, unknown>)
+                    : {};
+            const serialized = JSON.parse(JSON.stringify(resultWithPath)) as Prisma.InputJsonValue;
+            if (targetPath) {
+                const prevByPath =
+                    (baseAnalysis.careerRecommendationsByPath as Record<string, unknown> | undefined) ?? {};
+                await db.resume.update({
+                    where: { id: resume.id },
+                    data: {
+                        analysis: {
+                            ...baseAnalysis,
+                            careerRecommendationsByPath: {
+                                ...prevByPath,
+                                [targetPath.toLowerCase()]: serialized,
+                            } as unknown as Prisma.InputJsonValue,
+                        },
                     },
-                },
-            });
+                });
+            } else {
+                await db.resume.update({
+                    where: { id: resume.id },
+                    data: {
+                        analysis: {
+                            ...baseAnalysis,
+                            careerRecommendations: serialized,
+                        },
+                    },
+                });
+            }
         } catch (dbError) {
             logger.error("[getCareerRecommendationsAction] Error al guardar en caché:", dbError);
         }
 
         return {
             success: true,
-            data: result,
+            data: resultWithPath,
         };
     } catch (error: unknown) {
         logger.error("[getCareerRecommendationsAction] Error:", error);
