@@ -5,6 +5,7 @@ import { getSentContactRequestsAction } from "@/features/recruiter/application/r
 import { getTranslations } from "next-intl/server";
 import { RequestsClientPage } from "@/features/recruiter/presentation/recruiter-requests.client";
 import { ContactThread } from "@/features/contact-thread/presentation/contact-thread.panel";
+import { GuestInboxPreview } from "@/features/recruiter/presentation/guest-recruiter-demos";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
@@ -16,8 +17,8 @@ export default async function RecruiterRequestsPage() {
     const session = await auth();
     if (!session?.user) redirect("/");
     if (session.user.role !== "recruiter") redirect("/dashboard");
-    // Modo Guest: sin DB ni acciones — volvemos al preview de solo lectura.
-    if (isGuestSession(session)) redirect("/dashboard");
+    // Modo Guest: preview de solo lectura con mocks (sin DB ni acciones).
+    if (isGuestSession(session)) return <GuestInboxPreview />;
 
     const res = await getSentContactRequestsAction();
 
