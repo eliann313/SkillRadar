@@ -1,0 +1,54 @@
+name: DB Migrate (prod)
+
+# Aplica las migraciones de Prisma a la base de producción después de cada
+# merge a main que toque el schema. Sin este paso, el cliente Prisma del deploy
+# diverge de las tablas (fue lo que pasó con User.careerPath / JobPosting.field).
+#
+# Requiere el secret PROD_DATABASE_URL (Settings → Secrets → Actions):
+# la connection string pooled de Neon de producción, NUNCA commiteada.
+# El job falla con mensaje explícito si el secret no existe.
+
+on:
+    push:
+        branches: [main]
+        paths:
+            - "prisma/**"
+
+permissions:
+    contents: read
+
+concurrency:
+    group: db-migrate-prod
+    cancel-in-progress: false
+
+env:
+    NODE_VERSION: "24"
+
+jobs:
+    deploy:
+        name: Prisma migrate deploy
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7 # nosemgrep
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v7 # nosemgrep
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Check PROD_DATABASE_URL secret
+              run: |
+                  if [ -z "${{ secrets.PROD_DATABASE_URL }}" ]; then
+                    echo "::error::Falta el secret PROD_DATABASE_URL (Settings → Secrets and variables → Actions). Sin él no se puede migrar la DB de producción."
+                    exit 1
+                  fi
+
+            - name: Prisma migrate deploy
+              run: npx prisma migrate deploy
+              env:
+                  DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
