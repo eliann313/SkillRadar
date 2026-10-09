@@ -3,10 +3,11 @@ npx lint-staged
 # React Doctor sobre archivos stageados (solo errores bloquean; warnings no)
 npx react-doctor --staged --blocking error --no-score || echo "⚠️ [Husky] react-doctor reportó errores: revisalos antes de pushear."
 
-# Intentar ejecutar Semgrep local si está instalado en el PATH o en node_modules
+# Intentar ejecutar Semgrep local si está instalado en el PATH o en node_modules.
+# No bloquea: si App Control impide ejecutar su binario, CodeQL lo cubre en CI.
 if command -v semgrep >/dev/null 2>&1 || npx semgrep --version >/dev/null 2>&1; then
   echo "🛡️ [Husky] Detectado Semgrep CLI. Corriendo análisis estático local..."
-  npm run security:scan
+  npm run security:scan || echo "⚠️ [Husky] Semgrep no pudo ejecutarse en esta máquina. Lo cubre CodeQL en CI."
 else
   echo "⚠️ [Husky] Semgrep CLI no está instalado en este sistema. Omitiendo escaneo rápido pre-commit."
   echo "   (Despreocúpate: el pipeline de GitHub con CodeQL auditará la seguridad al subir el código)."

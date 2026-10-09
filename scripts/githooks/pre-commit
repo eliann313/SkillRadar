@@ -1,0 +1,30 @@
+#!/bin/sh
+# Espejo nativo del hook husky `pre-commit` — sin dependencia de husky.
+#
+# Por qué existe: en entornos donde el runner de husky está bloqueado
+# (p. ej. App Control en Windows), este hook permite correr las mismas
+# verificaciones con git puro. Husky queda intacto: es una alternativa opt-in.
+#
+# Instalación: `npm run hooks:install` (copia este archivo a .git/hooks/).
+# Solo usa binarios LOCALES de node_modules (nada de `npx <pkg>@latest`,
+# nada de descargas en el commit).
+set -e
+
+# 1. lint-staged (eslint --fix + prettier sobre archivos stageados)
+./node_modules/.bin/lint-staged
+
+# 2. React Doctor sobre archivos stageados (solo errores bloquean; warnings no)
+./node_modules/.bin/react-doctor --staged --blocking error --no-score \
+    || echo "⚠️ [githooks] react-doctor reportó errores: revisalos antes de pushear."
+
+# 3. Semgrep SOLO si ya está instalado localmente (sin descargas ni installs).
+# No bloquea: en máquinas donde App Control impide ejecutar su binario
+# (OSError WinError 4551), CodeQL lo cubre en CI.
+if command -v semgrep >/dev/null 2>&1; then
+    echo "🛡️ [githooks] Detectado Semgrep CLI. Corriendo análisis estático local..."
+    npm run security:scan \
+        || echo "⚠️ [githooks] Semgrep no pudo ejecutarse en esta máquina (¿App Control?). Lo cubre CodeQL en CI."
+else
+    echo "⚠️ [githooks] Semgrep CLI no está instalado en este sistema. Omitiendo escaneo rápido pre-commit."
+    echo "   (Despreocúpate: el pipeline de GitHub con CodeQL auditará la seguridad al subir el código)."
+fi
