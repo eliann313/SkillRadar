@@ -21,7 +21,7 @@ test.describe("Career Path E2E Flow", () => {
         await select.selectOption("sociologia");
         await page.getByTestId("career-path-generate").click();
         // Mock guest sensible al camino: usa el valor crudo (independiente del locale)
-        await expect(page.getByText("Fundamentos de sociologia")).toBeVisible({ timeout: 15000 });
+        await expect(page.getByRole("heading", { name: "Fundamentos de sociologia" })).toBeVisible({ timeout: 15000 });
     });
 
     test("el job board expone filtro por rubro", async ({ page }) => {
