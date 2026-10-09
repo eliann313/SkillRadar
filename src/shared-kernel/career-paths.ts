@@ -62,6 +62,25 @@ export const CAREER_PATHS: CareerPathOption[] = [
 
 export const MAX_CAREER_PATH_LENGTH = 80;
 
+/** Rubros profesionales del Job Board (multi-rubro, no solo IT). */
+export interface CareerFieldOption {
+    value: string;
+    labelEs: string;
+    labelEn: string;
+}
+
+export const CAREER_FIELDS: CareerFieldOption[] = [
+    { value: "tech", labelEs: "Tecnología / Software", labelEn: "Technology / Software" },
+    { value: "data", labelEs: "Datos / IA", labelEn: "Data / AI" },
+    { value: "design", labelEs: "Diseño / Producto", labelEn: "Design / Product" },
+    { value: "business", labelEs: "Negocios / Marketing / Finanzas", labelEn: "Business / Marketing / Finance" },
+    { value: "science", labelEs: "Ciencia / Ingeniería / Salud", labelEn: "Science / Engineering / Health" },
+    { value: "social", labelEs: "Ciencias Sociales / Educación", labelEn: "Social Sciences / Education" },
+    { value: "other", labelEs: "Otro", labelEn: "Other" },
+];
+
+export const CAREER_FIELD_VALUES = CAREER_FIELDS.map((f) => f.value);
+
 /** Normaliza el input libre del usuario (trim + tope de longitud). */
 export function normalizeCareerPath(input: unknown): string | null {
     if (typeof input !== "string") return null;

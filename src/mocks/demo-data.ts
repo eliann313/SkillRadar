@@ -164,6 +164,7 @@ export interface DemoPosting {
     location: string;
     remoteType: string;
     seniorityLevel: string;
+    field: string;
     status: "draft" | "published" | "closed";
     requiredSkills: string[];
     applications: number;
@@ -178,6 +179,7 @@ export const demoPostings: DemoPosting[] = [
         location: "Remoto · LATAM",
         remoteType: "remote",
         seniorityLevel: "senior",
+        field: "tech",
         status: "published",
         requiredSkills: ["React", "TypeScript", "Next.js", "Tailwind CSS"],
         applications: 12,
@@ -190,6 +192,7 @@ export const demoPostings: DemoPosting[] = [
         location: "Híbrido · Buenos Aires",
         remoteType: "hybrid",
         seniorityLevel: "mid",
+        field: "tech",
         status: "published",
         requiredSkills: ["Node.js", "PostgreSQL", "Docker"],
         applications: 8,
@@ -202,10 +205,24 @@ export const demoPostings: DemoPosting[] = [
         location: "Remoto",
         remoteType: "remote",
         seniorityLevel: "junior",
+        field: "tech",
         status: "draft",
         requiredSkills: ["React", "Node.js", "Git"],
         applications: 0,
         createdAt: "2026-09-25T12:00:00Z",
+    },
+    {
+        id: "demo-posting-4",
+        title: "Analista de Marketing Digital Jr",
+        company: "Demo Corp",
+        location: "Remoto · LATAM",
+        remoteType: "remote",
+        seniorityLevel: "junior",
+        field: "business",
+        status: "published",
+        requiredSkills: ["SEO", "Google Analytics", "Redes Sociales"],
+        applications: 5,
+        createdAt: "2026-09-27T12:00:00Z",
     },
 ];
 

@@ -6,7 +6,12 @@ import { escapeHtml, isSafeInternalLink } from "@/shared-kernel/pii";
 export async function createNotification(params: {
     userId: string;
     type:
-        "new_job_match" | "new_application" | "application_status_changed" | "contact_status_changed" | "talent_alert";
+        | "new_job_match"
+        | "new_application"
+        | "application_status_changed"
+        | "contact_status_changed"
+        | "talent_alert"
+        | "job_alert";
     title: string;
     message: string;
     link: string;
@@ -48,6 +53,8 @@ export async function createNotification(params: {
                 } else if (params.type === "contact_status_changed" && user.emailContactUpdates) {
                     shouldSendEmail = true;
                 } else if (params.type === "new_job_match" && user.emailJobMatches) {
+                    shouldSendEmail = true;
+                } else if (params.type === "job_alert" && user.emailJobMatches) {
                     shouldSendEmail = true;
                 }
 

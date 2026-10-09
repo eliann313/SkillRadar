@@ -17,9 +17,11 @@ import { toast } from "sonner";
 import { cn } from "@/shared-kernel/utils";
 import { safeParseJson } from "@/shared-kernel/pii";
 import { Flag } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
+import { CAREER_FIELDS } from "@/shared-kernel/career-paths";
+import { SaveSearchAlert } from "@/components/jobs/save-search-alert";
 
 interface JobPosting {
     id: string;
@@ -31,6 +33,7 @@ interface JobPosting {
     description: string;
     requiredSkills: unknown;
     seniorityLevel: string;
+    field?: string;
     status: string;
     createdAt: string | Date;
     updatedAt: string | Date;
@@ -44,10 +47,12 @@ interface JobsClientPageProps {
 
 export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
     const t = useTranslations("Jobs");
+    const locale = useLocale();
     const [jobs, setJobs] = useState<JobPosting[]>(initialJobs);
     const [search, setSearch] = useState("");
     const [remoteType, setRemoteType] = useState("all");
     const [seniorityLevel, setSeniorityLevel] = useState("all");
+    const [field, setField] = useState("all");
     const [sortBy, setSortBy] = useState<"match" | "newest">("match");
     const [onlyHighMatch, setOnlyHighMatch] = useState(false);
     const [hideApplied, setHideApplied] = useState(false);
@@ -68,6 +73,7 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                 search: search || undefined,
                 remoteType: remoteType !== "all" ? remoteType : undefined,
                 seniorityLevel: seniorityLevel !== "all" ? seniorityLevel : undefined,
+                field: field !== "all" ? field : undefined,
             };
             const res = await getDeveloperJobBoardAction(filters);
             if (res.success && res.data) {
@@ -79,7 +85,7 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
         } finally {
             setLoading(false);
         }
-    }, [search, remoteType, seniorityLevel, t]);
+    }, [search, remoteType, seniorityLevel, field, t]);
 
     // Filtrar ofertas cuando cambien los filtros
     useEffect(() => {
@@ -185,7 +191,7 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
 
             {/* Barra de Filtros */}
             <Card className="border border-border bg-card shadow-xs">
-                <CardContent className="pt-6 grid gap-4 sm:grid-cols-4">
+                <CardContent className="pt-6 grid gap-4 sm:grid-cols-5">
                     <div className="relative col-span-2">
                         <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
                         <Input
@@ -194,6 +200,23 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
+                    </div>
+
+                    <div>
+                        <select
+                            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
+                            value={field}
+                            onChange={(e) => setField(e.target.value)}
+                            aria-label={t("fieldFilter", { default: "Rubro" })}
+                            data-testid="job-field-filter"
+                        >
+                            <option value="all">{t("allFields", { default: "Todos los rubros" })}</option>
+                            {CAREER_FIELDS.map((f) => (
+                                <option key={f.value} value={f.value}>
+                                    {locale === "en" ? f.labelEn : f.labelEs}
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
                     <div>
@@ -253,6 +276,12 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                         />
                         {t("hideApplied", { default: "Ocultar aplicadas" })}
                     </label>
+                    <SaveSearchAlert
+                        search={search}
+                        remoteType={remoteType}
+                        seniorityLevel={seniorityLevel}
+                        field={field}
+                    />
                 </CardContent>
             </Card>
 
@@ -305,6 +334,15 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                                             <span className="text-xs text-muted-foreground font-semibold px-2 py-0.5 rounded-md bg-muted">
                                                 {job.company}
                                             </span>
+                                            {job.field && (
+                                                <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-md bg-primary/10 text-primary">
+                                                    {CAREER_FIELDS.find((f) => f.value === job.field)
+                                                        ? locale === "en"
+                                                            ? CAREER_FIELDS.find((f) => f.value === job.field)!.labelEn
+                                                            : CAREER_FIELDS.find((f) => f.value === job.field)!.labelEs
+                                                        : job.field}
+                                                </span>
+                                            )}
                                         </div>
 
                                         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
