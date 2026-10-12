@@ -8,11 +8,25 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { ProgressRecharts } from "@/components/dashboard";
-import { RoadmapChecklist } from "@/components/dashboard";
-import { ExportReportButton } from "@/components/dashboard";
-import { CareerPathPanel } from "@/components/dashboard";
-import { TrendingUp, Award, CheckCircle2, ArrowRight, FileText, Calendar, Sparkles, Flame } from "lucide-react";
+import {
+    ProgressRecharts,
+    RoadmapChecklist,
+    ExportReportButton,
+    CareerPathPanel,
+    SkillRadarChart,
+    PublicProfileShareCard,
+} from "@/components/dashboard";
+import {
+    TrendingUp,
+    Award,
+    CheckCircle2,
+    ArrowRight,
+    FileText,
+    Calendar,
+    Sparkles,
+    Flame,
+    Terminal,
+} from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/shared-kernel/utils";
 import { getTranslations } from "next-intl/server";
@@ -64,7 +78,15 @@ export default async function ProgressPage({ params }: PageProps) {
         );
     }
 
-    const { resumes, totalMatches, averageScore, closedSkills } = res.data;
+    const {
+        resumes,
+        totalMatches,
+        averageScore,
+        closedSkills,
+        latestKeywords = [],
+        publicProfile = null,
+        githubLanguages = {},
+    } = res.data;
 
     // Si el usuario no tiene historial de CVs
     if (resumes.length === 0) {
@@ -214,6 +236,63 @@ export default async function ProgressPage({ params }: PageProps) {
                         </div>
                     </CardContent>
                 </Card>
+            </div>
+
+            {/* Skill Radar en Vivo & Perfil Público */}
+            <div className="grid gap-6 lg:grid-cols-12">
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm lg:col-span-7 flex flex-col justify-between">
+                    <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="text-base font-semibold flex items-center gap-2">
+                                <Sparkles className="size-5 text-primary" />
+                                {t("radarSectionTitle", { default: "Tu Skill Radar en Vivo" })}
+                            </CardTitle>
+                            <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">
+                                {t("radarLiveBadge", { default: "En Vivo" })}
+                            </Badge>
+                        </div>
+                        <CardDescription>
+                            {t("radarSectionDesc", {
+                                default:
+                                    "Distribución técnica calculada a partir de tu último CV analizado y proyectos.",
+                            })}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-1 flex flex-col items-center justify-center pt-2">
+                        <SkillRadarChart keywords={latestKeywords} showBreakdown />
+                        {Object.keys(githubLanguages).length > 0 && (
+                            <div className="w-full mt-4 pt-3 border-t border-border/30">
+                                <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 mb-2">
+                                    <Terminal className="size-3.5 text-indigo-400" />
+                                    {t("githubLanguages", { default: "Distribución de GitHub detectada:" })}
+                                </p>
+                                <div className="space-y-1.5">
+                                    {Object.entries(githubLanguages)
+                                        .sort(([, a], [, b]) => b - a)
+                                        .slice(0, 3)
+                                        .map(([lang, pct]) => (
+                                            <div key={lang} className="space-y-0.5">
+                                                <div className="flex justify-between text-[11px]">
+                                                    <span className="font-medium text-foreground">{lang}</span>
+                                                    <span className="font-mono text-muted-foreground">{pct}%</span>
+                                                </div>
+                                                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-primary transition-all duration-300"
+                                                        style={{ width: `${pct}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
+                <div className="lg:col-span-5 flex flex-col">
+                    <PublicProfileShareCard publicProfile={publicProfile} />
+                </div>
             </div>
 
             {/* Gráfico de Progreso */}

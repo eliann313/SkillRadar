@@ -237,21 +237,68 @@ export async function getProgressDataAction() {
                     totalMatches: 8,
                     averageScore: 78,
                     closedSkills,
+                    latestKeywords: [
+                        "React",
+                        "TypeScript",
+                        "Next.js",
+                        "Node.js",
+                        "PostgreSQL",
+                        "Docker",
+                        "AWS",
+                        "CI/CD",
+                        "Tailwind CSS",
+                        "REST API",
+                        "Jest",
+                    ],
+                    publicProfile: {
+                        isPublicProfile: true,
+                        publicUsername: "demo-developer",
+                        showSkills: true,
+                        showGithub: true,
+                        showSeniority: true,
+                    },
+                    githubLanguages: {
+                        TypeScript: 65,
+                        JavaScript: 20,
+                        CSS: 10,
+                        HTML: 5,
+                    },
                 },
             };
         }
 
-        // Obtener resumes ordenados por fecha ascendente para el gráfico
-        const resumes = await db.resume.findMany({
-            where: { userId, atsScore: { not: null } },
-            orderBy: { createdAt: "asc" },
-            select: {
-                id: true,
-                fileName: true,
-                atsScore: true,
-                createdAt: true,
-            },
-        });
+        // Obtener resumes ordenados por fecha ascendente para el gráfico y análisis
+        const [resumes, userProfile, latestGithub] = await Promise.all([
+            db.resume.findMany({
+                where: { userId, atsScore: { not: null } },
+                orderBy: { createdAt: "asc" },
+                select: {
+                    id: true,
+                    fileName: true,
+                    atsScore: true,
+                    createdAt: true,
+                    analysis: true,
+                },
+            }),
+            db.user.findUnique({
+                where: { id: userId },
+                select: {
+                    publicUsername: true,
+                    isPublicProfile: true,
+                    showSkills: true,
+                    showGithub: true,
+                    showSeniority: true,
+                },
+            }),
+            db.githubAnalysis.findFirst({
+                where: { userId },
+                orderBy: { createdAt: "desc" },
+                select: {
+                    languages: true,
+                    githubUser: true,
+                },
+            }),
+        ]);
 
         // Obtener job matches ordenados por fecha descendente para los cálculos
         const matches = await db.jobMatch.findMany({
@@ -290,6 +337,30 @@ export async function getProgressDataAction() {
             closedSkills = firstMissing.filter((skill: string) => !lastMissing.includes(skill));
         }
 
+        // Extraer palabras clave del último currículum subido
+        let latestKeywords: string[] = [];
+        if (resumes.length > 0) {
+            const lastResume = resumes[resumes.length - 1];
+            const analysis = lastResume.analysis as { keywords?: string[] } | null;
+            if (Array.isArray(analysis?.keywords)) {
+                latestKeywords = analysis.keywords;
+            }
+        }
+
+        // Extraer lenguajes de GitHub
+        let githubLanguages: Record<string, number> = {};
+        if (latestGithub?.languages) {
+            const raw = (latestGithub.languages as Record<string, number>) || {};
+            const totalBytes = Object.values(raw).reduce((a, b) => a + b, 0);
+            if (totalBytes > 0) {
+                for (const [lang, bytes] of Object.entries(raw)) {
+                    githubLanguages[lang] = Math.round((bytes / totalBytes) * 100);
+                }
+            } else {
+                githubLanguages = raw;
+            }
+        }
+
         return {
             success: true,
             data: {
@@ -297,6 +368,9 @@ export async function getProgressDataAction() {
                 totalMatches,
                 averageScore,
                 closedSkills,
+                latestKeywords,
+                publicProfile: userProfile,
+                githubLanguages,
             },
         };
     } catch (error: unknown) {
