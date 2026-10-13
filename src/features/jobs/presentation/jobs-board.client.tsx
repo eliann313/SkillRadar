@@ -334,15 +334,19 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                                             <span className="text-xs text-muted-foreground font-semibold px-2 py-0.5 rounded-md bg-muted">
                                                 {job.company}
                                             </span>
-                                            {job.field && (
-                                                <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-md bg-primary/10 text-primary">
-                                                    {CAREER_FIELDS.find((f) => f.value === job.field)
-                                                        ? locale === "en"
-                                                            ? CAREER_FIELDS.find((f) => f.value === job.field)!.labelEn
-                                                            : CAREER_FIELDS.find((f) => f.value === job.field)!.labelEs
-                                                        : job.field}
-                                                </span>
-                                            )}
+                                            {job.field &&
+                                                (() => {
+                                                    const fieldMatch = CAREER_FIELDS.find((f) => f.value === job.field);
+                                                    return (
+                                                        <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-md bg-primary/10 text-primary">
+                                                            {fieldMatch
+                                                                ? locale === "en"
+                                                                    ? fieldMatch.labelEn
+                                                                    : fieldMatch.labelEs
+                                                                : job.field}
+                                                        </span>
+                                                    );
+                                                })()}
                                         </div>
 
                                         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">

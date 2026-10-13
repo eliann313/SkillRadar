@@ -13,13 +13,14 @@ import { Mail, Loader2, Bot, Users, Lock, User, Eye, EyeOff, Sparkles } from "lu
 import { RoleSelector } from "./role-selector";
 import { registerUserAction } from "@/infrastructure/auth-actions";
 import { toast } from "sonner";
-import { Link } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { LanguageSwitcher, ThemeToggle } from "@/components/layout";
 import { useTranslations, useLocale } from "next-intl";
 
 export function LoginForm({ guestEnabled = false }: { guestEnabled?: boolean }) {
+    const router = useRouter();
     const t = useTranslations("Auth");
     const locale = useLocale();
     const searchParams = useSearchParams();
@@ -90,7 +91,8 @@ export function LoginForm({ guestEnabled = false }: { guestEnabled?: boolean }) 
                     toast.error("Error al iniciar sesión tras el registro. Por favor ingresa manualmente.");
                     setIsRegister(false); // Llevar al login
                 } else {
-                    window.location.href = "/dashboard";
+                    router.push("/dashboard");
+                    router.refresh();
                 }
             } else {
                 // --- FLUJO DE INICIO DE SESIÓN ---
@@ -111,7 +113,8 @@ export function LoginForm({ guestEnabled = false }: { guestEnabled?: boolean }) 
                         toast.error("Credenciales inválidas. Verifica tu correo y contraseña.");
                     }
                 } else {
-                    window.location.href = "/dashboard";
+                    router.push("/dashboard");
+                    router.refresh();
                 }
             }
         } catch (err: unknown) {

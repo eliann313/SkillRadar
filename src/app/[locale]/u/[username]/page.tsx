@@ -1,3 +1,4 @@
+import { auth } from "@/infrastructure/auth";
 import { db } from "@/infrastructure/db";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +10,9 @@ import Link from "next/link";
 import { cn } from "@/shared-kernel/utils";
 import { trackServerEvent } from "@/infrastructure/analytics";
 import { getTranslations } from "next-intl/server";
+import { PublicProfileOwnerBanner } from "@/components/public-profile/public-profile-owner-banner";
+import { PublicProfileShareMenu } from "@/components/public-profile/public-profile-share-menu";
+import { FeaturedReposCard, type FeaturedRepo } from "@/components/public-profile/featured-repos-card";
 
 interface PageProps {
     params: Promise<{
@@ -61,7 +65,7 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function PublicProfilePage({ params }: PageProps) {
-    const { username, locale } = await params;
+    const [{ username, locale }, session] = await Promise.all([params, auth()]);
     const t = await getTranslations({ locale, namespace: "PublicProfile" });
 
     // Cargar datos del usuario
@@ -84,6 +88,9 @@ export default async function PublicProfilePage({ params }: PageProps) {
     if (!user || !user.isPublicProfile) {
         notFound();
     }
+
+    const isOwner = Boolean(session?.user?.id && session.user.id === user.id);
+    const isRecruiter = session?.user?.role === "recruiter";
 
     // Registrar evento de vista de perfil público
     void trackServerEvent("public_profile_viewed", user.id, { username });
@@ -120,6 +127,10 @@ export default async function PublicProfilePage({ params }: PageProps) {
         githubUpdatedAt = latestGithub.createdAt;
     }
 
+    // Extraer repositorios destacados
+    const rawRepos = Array.isArray(latestGithub?.repos) ? (latestGithub.repos as unknown as FeaturedRepo[]) : [];
+    const featuredRepos: FeaturedRepo[] = [...rawRepos].sort((a, b) => (b.stars || 0) - (a.stars || 0)).slice(0, 3);
+
     const dateToShow = resumeUpdatedAt || githubUpdatedAt || user.createdAt;
     const dateString = new Date(dateToShow).toLocaleDateString(locale === "es" ? "es-ES" : "en-US", {
         day: "numeric",
@@ -128,152 +139,195 @@ export default async function PublicProfilePage({ params }: PageProps) {
     });
 
     return (
-        <div className="min-h-screen bg-background text-foreground flex flex-col justify-between py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl w-full mx-auto space-y-8">
-                {/* Header del Perfil */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6 border-b border-border/40">
-                    <div className="flex items-center gap-4">
-                        <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-2xl border-2 border-primary/25">
-                            {user.name
-                                ?.split(" ")
-                                .map((n) => n[0])
-                                .join("")
-                                .toUpperCase() || username[0].toUpperCase()}
+        <div className="min-h-screen bg-background text-foreground flex flex-col justify-between">
+            {isOwner && <PublicProfileOwnerBanner username={username} />}
+
+            <div className="flex-1 py-12 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-4xl w-full mx-auto space-y-8">
+                    {/* Header del Perfil */}
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6 border-b border-border/40">
+                        <div className="flex items-center gap-4">
+                            <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-2xl border-2 border-primary/25">
+                                {user.name
+                                    ?.split(" ")
+                                    .map((n) => n[0])
+                                    .join("")
+                                    .toUpperCase() || username[0].toUpperCase()}
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                                    {user.name || username}
+                                </h1>
+                                <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
+                                    <Globe className="size-4 text-emerald-500" />
+                                    {t("verifiedProfile")}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                                {user.name || username}
-                            </h1>
-                            <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
-                                <Globe className="size-4 text-emerald-500" />
-                                {t("verifiedProfile")}
-                            </p>
+
+                        <div className="flex items-center gap-3">
+                            {user.showSeniority && seniority !== t("notDefined") && (
+                                <Badge
+                                    variant="secondary"
+                                    className="capitalize text-sm px-3 py-1 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors"
+                                >
+                                    {seniority} Developer
+                                </Badge>
+                            )}
+                            <PublicProfileShareMenu username={username} />
                         </div>
                     </div>
-                    {user.showSeniority && seniority !== t("notDefined") && (
-                        <Badge
-                            variant="secondary"
-                            className="capitalize text-sm px-3 py-1 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors"
-                        >
-                            {seniority} Developer
-                        </Badge>
-                    )}
-                </div>
 
-                <div className="grid gap-6 md:grid-cols-12">
-                    {/* Gráfico de Radar (Core) */}
-                    <Card className="border-border/50 bg-card/40 backdrop-blur-sm md:col-span-6 flex flex-col justify-between">
-                        <CardHeader>
-                            <CardTitle className="text-base font-semibold flex items-center gap-2">
-                                <Sparkles className="size-5 text-primary" />
-                                {t("chartTitle")}
-                            </CardTitle>
-                            <CardDescription>{t("chartDesc")}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex-1 flex items-center justify-center p-4">
-                            <SkillRadarChart keywords={keywords} />
-                        </CardContent>
-                    </Card>
-
-                    {/* GitHub Languages (Derecha superior) */}
-                    {user.showGithub && (
+                    <div className="grid gap-6 md:grid-cols-12">
+                        {/* Gráfico de Radar (Core) */}
                         <Card className="border-border/50 bg-card/40 backdrop-blur-sm md:col-span-6 flex flex-col justify-between">
                             <CardHeader>
                                 <CardTitle className="text-base font-semibold flex items-center gap-2">
-                                    <Terminal className="size-5 text-indigo-500" />
-                                    {t("githubTitle")}
+                                    <Sparkles className="size-5 text-primary" />
+                                    {t("chartTitle")}
                                 </CardTitle>
-                                <CardDescription>{t("githubDesc")}</CardDescription>
+                                <CardDescription>{t("chartDesc")}</CardDescription>
                             </CardHeader>
-                            <CardContent className="flex-1 flex flex-col justify-center p-6 pt-0">
-                                {Object.keys(githubLanguages).length === 0 ? (
-                                    <div className="text-center text-muted-foreground py-6">
-                                        <p className="text-xs">{t("noGithubData")}</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        {Object.entries(githubLanguages)
-                                            .sort(([, a], [, b]) => b - a)
-                                            .slice(0, 5)
-                                            .map(([lang, percentage]) => (
-                                                <div key={lang} className="space-y-1">
-                                                    <div className="flex justify-between text-xs font-semibold">
-                                                        <span>{lang}</span>
-                                                        <span>{Math.round(percentage)}%</span>
+                            <CardContent className="flex-1 flex items-center justify-center p-4">
+                                <SkillRadarChart keywords={keywords} showBreakdown />
+                            </CardContent>
+                        </Card>
+
+                        {/* GitHub Languages (Derecha superior) */}
+                        {user.showGithub && (
+                            <Card className="border-border/50 bg-card/40 backdrop-blur-sm md:col-span-6 flex flex-col justify-between">
+                                <CardHeader>
+                                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                                        <Terminal className="size-5 text-indigo-500" />
+                                        {t("githubTitle")}
+                                    </CardTitle>
+                                    <CardDescription>{t("githubDesc")}</CardDescription>
+                                </CardHeader>
+                                <CardContent className="flex-1 flex flex-col justify-center p-6 pt-0">
+                                    {Object.keys(githubLanguages).length === 0 ? (
+                                        <div className="text-center text-muted-foreground py-6">
+                                            <p className="text-xs">{t("noGithubData")}</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            {Object.entries(githubLanguages)
+                                                .sort(([, a], [, b]) => b - a)
+                                                .slice(0, 5)
+                                                .map(([lang, percentage]) => (
+                                                    <div key={lang} className="space-y-1">
+                                                        <div className="flex justify-between text-xs font-semibold">
+                                                            <span>{lang}</span>
+                                                            <span>{Math.round(percentage)}%</span>
+                                                        </div>
+                                                        <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                                                            <div
+                                                                className="h-full bg-primary transition-all duration-500"
+                                                                style={{ width: `${percentage}%` }}
+                                                            />
+                                                        </div>
                                                     </div>
-                                                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                                                        <div
-                                                            className="h-full bg-primary transition-all duration-500"
-                                                            style={{ width: `${percentage}%` }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            ))}
-                                    </div>
-                                )}
+                                                ))}
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+
+                    {/* Top Skills Badges */}
+                    {user.showSkills && keywords.length > 0 && (
+                        <Card className="border-border/50 bg-card/40 backdrop-blur-sm">
+                            <CardHeader>
+                                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                                    <FileText className="size-5 text-emerald-500" />
+                                    {t("topSkillsTitle")}
+                                </CardTitle>
+                                <CardDescription>{t("topSkillsDesc")}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex flex-wrap gap-2 pt-0">
+                                {keywords.slice(0, 15).map((skill) => (
+                                    <Badge
+                                        key={skill}
+                                        variant="secondary"
+                                        className="bg-primary/5 hover:bg-primary/10 text-primary border-primary/20 px-2.5 py-1 text-xs transition-colors capitalize"
+                                    >
+                                        {skill}
+                                    </Badge>
+                                ))}
                             </CardContent>
                         </Card>
                     )}
-                </div>
 
-                {/* Top Skills Badges */}
-                {user.showSkills && keywords.length > 0 && (
-                    <Card className="border-border/50 bg-card/40 backdrop-blur-sm">
-                        <CardHeader>
-                            <CardTitle className="text-base font-semibold flex items-center gap-2">
-                                <FileText className="size-5 text-emerald-500" />
-                                {t("topSkillsTitle")}
-                            </CardTitle>
-                            <CardDescription>{t("topSkillsDesc")}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex flex-wrap gap-2 pt-0">
-                            {keywords.slice(0, 15).map((skill) => (
-                                <Badge
-                                    key={skill}
-                                    variant="secondary"
-                                    className="bg-primary/5 hover:bg-primary/10 text-primary border-primary/20 px-2.5 py-1 text-xs transition-colors capitalize"
-                                >
-                                    {skill}
-                                </Badge>
-                            ))}
-                        </CardContent>
-                    </Card>
-                )}
+                    {/* Proyectos Públicos Destacados de GitHub */}
+                    {user.showGithub && featuredRepos.length > 0 && (
+                        <FeaturedReposCard repos={featuredRepos} locale={locale} />
+                    )}
 
-                {/* Footer Metadata */}
-                <div className="flex justify-between items-center text-xs text-muted-foreground pt-4 border-t border-border/20">
-                    <p className="flex items-center gap-1">
-                        <Calendar className="size-3.5" />
-                        {t("lastSync", { date: dateString })}
-                    </p>
-                    <p className="flex items-center gap-1">
-                        <Shield className="size-3.5" />
-                        {t("protectedProfile")}
-                    </p>
-                </div>
-            </div>
-
-            {/* CTA Viral Growth Loop */}
-            <div className="mt-16 text-center max-w-sm mx-auto">
-                <Card className="border-primary/25 bg-primary/5 backdrop-blur-md p-6 flex flex-col items-center gap-4">
-                    <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                        <Sparkles className="size-5" />
+                    {/* Footer Metadata */}
+                    <div className="flex justify-between items-center text-xs text-muted-foreground pt-4 border-t border-border/20">
+                        <p className="flex items-center gap-1">
+                            <Calendar className="size-3.5" />
+                            {t("lastSync", { date: dateString })}
+                        </p>
+                        <p className="flex items-center gap-1">
+                            <Shield className="size-3.5" />
+                            {t("protectedProfile")}
+                        </p>
                     </div>
-                    <div className="space-y-1">
-                        <h3 className="text-sm font-bold text-foreground">{t("ctaTitle")}</h3>
-                        <p className="text-[11px] text-muted-foreground leading-normal">{t("ctaDesc")}</p>
+
+                    {/* CTA Viral Growth / Recruiter Loop */}
+                    <div className="mt-16 text-center max-w-md mx-auto">
+                        <Card className="border-primary/25 bg-primary/5 backdrop-blur-md p-6 flex flex-col items-center gap-4">
+                            <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                <Sparkles className="size-5" />
+                            </div>
+                            {isRecruiter ? (
+                                <>
+                                    <div className="space-y-1">
+                                        <h3 className="text-sm font-bold text-foreground">
+                                            {t("recruiterCtaTitle", { default: "¿Interesado en este desarrollador?" })}
+                                        </h3>
+                                        <p className="text-[11px] text-muted-foreground leading-normal">
+                                            {t("recruiterCtaDesc", {
+                                                default:
+                                                    "Inicia una solicitud de contacto protegida por doble ciego a través de SkillRadar.",
+                                            })}
+                                        </p>
+                                    </div>
+                                    <Link
+                                        href="/dashboard/recruiter/pipeline"
+                                        className={cn(
+                                            buttonVariants({ variant: "default", size: "sm" }),
+                                            "w-full group flex items-center justify-center gap-1",
+                                        )}
+                                    >
+                                        {t("recruiterCtaButton", { default: "Contactar Candidato" })}
+                                        <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+                                    </Link>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="space-y-1">
+                                        <h3 className="text-sm font-bold text-foreground">{t("ctaTitle")}</h3>
+                                        <p className="text-[11px] text-muted-foreground leading-normal">
+                                            {t("ctaDesc")}
+                                        </p>
+                                    </div>
+                                    <Link
+                                        href="/"
+                                        className={cn(
+                                            buttonVariants({ variant: "default", size: "sm" }),
+                                            "w-full group flex items-center justify-center gap-1",
+                                        )}
+                                    >
+                                        {t("ctaButton")}
+                                        <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+                                    </Link>
+                                </>
+                            )}
+                        </Card>
                     </div>
-                    <Link
-                        href="/"
-                        className={cn(
-                            buttonVariants({ variant: "default", size: "sm" }),
-                            "w-full group flex items-center justify-center gap-1",
-                        )}
-                    >
-                        {t("ctaButton")}
-                        <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-                    </Link>
-                </Card>
+                </div>
             </div>
         </div>
     );
