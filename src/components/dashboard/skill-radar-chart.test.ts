@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getRadarAxisBreakdown } from "./skill-radar-chart";
+import { getRadarAxisBreakdown } from "./skill-radar-chart.utils";
 
 describe("getRadarAxisBreakdown", () => {
     it("debe calcular puntajes base de 20 cuando no hay coincidencias", () => {

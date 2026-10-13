@@ -29,9 +29,9 @@ const LANGUAGE_COLORS: Record<string, string> = {
 };
 
 export async function FeaturedReposCard({ repos, locale }: FeaturedReposCardProps) {
-    const t = await getTranslations({ locale, namespace: "PublicProfile" });
-
     if (!repos || repos.length === 0) return null;
+
+    const t = await getTranslations({ locale, namespace: "PublicProfile" });
 
     return (
         <Card className="border-border/50 bg-card/40 backdrop-blur-sm">
@@ -59,7 +59,7 @@ export async function FeaturedReposCard({ repos, locale }: FeaturedReposCardProp
                                 href={repo.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="group relative flex flex-col justify-between p-3.5 rounded-lg border border-border/40 bg-card/80 hover:bg-card hover:border-primary/40 transition-all hover:shadow-xs"
+                                className="group relative flex flex-col justify-between p-3.5 rounded-lg border border-border/40 bg-card/80 hover:bg-card hover:border-primary/40 transition-colors hover:shadow-xs"
                             >
                                 <div className="space-y-1.5">
                                     <div className="flex items-center justify-between gap-1">

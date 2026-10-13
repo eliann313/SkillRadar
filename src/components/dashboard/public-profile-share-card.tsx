@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,22 +19,29 @@ interface PublicProfileShareCardProps {
     } | null;
 }
 
+const emptySubscribe = () => () => {};
+
 export function PublicProfileShareCard({ publicProfile }: PublicProfileShareCardProps) {
     const t = useTranslations("Progress");
     const [copiedLink, setCopiedLink] = useState(false);
     const [copiedBadge, setCopiedBadge] = useState(false);
+    const origin = useSyncExternalStore(
+        emptySubscribe,
+        () => (typeof window !== "undefined" ? window.location.origin : ""),
+        () => "",
+    );
 
     const isPublic = Boolean(publicProfile?.isPublicProfile && publicProfile?.publicUsername);
     const username = publicProfile?.publicUsername || "";
-
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const publicUrl = username ? `${origin}/u/${username}` : "";
-    const badgeMarkdown = username ? `[![SkillRadar](${origin}/api/badge/${username})](${origin}/u/${username})` : "";
+    const publicPath = username ? `/u/${username}` : "";
+    const displayUrl = origin ? `${origin}${publicPath}` : publicPath;
 
     const handleCopyLink = () => {
-        if (!publicUrl) return;
+        if (!username) return;
+        const currentOrigin = typeof window !== "undefined" ? window.location.origin : origin;
+        const fullUrl = `${currentOrigin}/u/${username}`;
         navigator.clipboard
-            .writeText(publicUrl)
+            .writeText(fullUrl)
             .then(() => {
                 setCopiedLink(true);
                 toast.success(t("linkCopied", { default: "Enlace copiado al portapapeles" }));
@@ -46,7 +53,9 @@ export function PublicProfileShareCard({ publicProfile }: PublicProfileShareCard
     };
 
     const handleCopyBadge = () => {
-        if (!badgeMarkdown) return;
+        if (!username) return;
+        const currentOrigin = typeof window !== "undefined" ? window.location.origin : origin;
+        const badgeMarkdown = `[![SkillRadar](${currentOrigin}/api/badge/${username})](${currentOrigin}/u/${username})`;
         navigator.clipboard
             .writeText(badgeMarkdown)
             .then(() => {
@@ -92,7 +101,9 @@ export function PublicProfileShareCard({ publicProfile }: PublicProfileShareCard
                     <>
                         <div className="rounded-lg border border-border/50 bg-muted/20 p-3 space-y-2">
                             <div className="flex items-center justify-between gap-2 text-xs">
-                                <span className="font-mono text-muted-foreground truncate">{publicUrl}</span>
+                                <span className="font-mono text-muted-foreground truncate" suppressHydrationWarning>
+                                    {displayUrl}
+                                </span>
                                 <div className="flex items-center gap-1 shrink-0">
                                     <Button
                                         variant="ghost"

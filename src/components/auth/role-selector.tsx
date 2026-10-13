@@ -9,6 +9,7 @@ import { updateUserRole } from "@/infrastructure/auth-actions";
 import type { UserRole } from "@/shared-kernel/types";
 import { Code2, Users, ArrowRight, Check } from "lucide-react";
 import { cn } from "@/shared-kernel/utils";
+import { useRouter } from "@/i18n/routing";
 
 const roles: {
     id: UserRole;
@@ -34,6 +35,7 @@ const roles: {
 ];
 
 export function RoleSelector() {
+    const router = useRouter();
     const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
     const { update } = useSession();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,7 +47,8 @@ export function RoleSelector() {
             const result = await updateUserRole(selectedRole);
             if (result.success) {
                 await update({ role: selectedRole });
-                window.location.href = "/dashboard";
+                router.push("/dashboard");
+                router.refresh();
             } else {
                 logger.error("Failed to update role:", result.error);
             }

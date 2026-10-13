@@ -11,9 +11,10 @@ vi.mock("next-auth/react", () => ({
     signIn: vi.fn(),
 }));
 
-// Mock routing Link
+// Mock routing Link and useRouter
 vi.mock("@/i18n/routing", () => ({
     Link: ({ children, href }: any) => <a href={href}>{children}</a>,
+    useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
 
 // Mock next-intl useTranslations

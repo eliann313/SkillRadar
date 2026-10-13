@@ -15,7 +15,7 @@ export function PublicProfileOwnerBanner({ username }: PublicProfileOwnerBannerP
     const t = useTranslations("PublicProfile");
 
     return (
-        <div className="sticky top-0 z-50 w-full border-b border-primary/20 bg-background/85 backdrop-blur-md px-4 py-2.5 transition-all">
+        <div className="sticky top-0 z-50 w-full border-b border-primary/20 bg-background/85 backdrop-blur-md px-4 py-2.5 transition-colors">
             <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div className="flex items-center gap-2 text-xs font-medium text-foreground">
                     <span className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-primary">
