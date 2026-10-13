@@ -26,7 +26,7 @@ test.describe("Career Path E2E Flow", () => {
 
     test("el job board expone filtro por rubro", async ({ page }) => {
         await page.goto("/dashboard/jobs");
-        const fieldFilter = page.getByTestId("job-field-filter");
+        const fieldFilter = page.getByTestId("job-field-filter").first();
         await expect(fieldFilter).toBeVisible({ timeout: 15000 });
         await fieldFilter.selectOption("business");
         // El filtro aplica sin romper la página (con o sin ofertas)
