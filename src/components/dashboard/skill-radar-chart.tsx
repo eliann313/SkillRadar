@@ -3,9 +3,7 @@
 import { useEffect, useState } from "react";
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
 
-import { getRadarAxisBreakdown, type RadarAxisInfo } from "./skill-radar-chart.utils";
-
-export type { RadarAxisInfo };
+import { getRadarAxisBreakdown } from "./skill-radar-chart.utils";
 
 export function SkillRadarChart({ keywords, showBreakdown = false }: { keywords: string[]; showBreakdown?: boolean }) {
     const [mounted, setMounted] = useState(false);

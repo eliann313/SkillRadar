@@ -1,4 +1,4 @@
-export const EJE_KEYWORDS = {
+const EJE_KEYWORDS = {
     Frontend: [
         "react",
         "next.js",
