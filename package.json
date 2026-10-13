@@ -27,7 +27,7 @@
         "type-check:ts7": "node node_modules/typescript-7/bin/tsc --noEmit"
     },
     "dependencies": {
-        "@ai-sdk/anthropic": "^4.0.39",
+        "@ai-sdk/anthropic": "^4.0.72",
         "@ai-sdk/google": "^4.0.49",
         "@ai-sdk/openai": "^4.0.78",
         "@ai-sdk/react": "^4.0.80",
