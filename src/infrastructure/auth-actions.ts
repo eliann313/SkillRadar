@@ -1,5 +1,6 @@
 "use server";
 
+import { createHash, randomBytes } from "node:crypto";
 import { logger } from "@/infrastructure/logger";
 import { db } from "@/infrastructure/db";
 import { auth } from "@/infrastructure/auth";
@@ -109,7 +110,7 @@ export async function registerUserAction(input: {
 }
 
 const resetPasswordSchema = z.object({
-    token: z.string(),
+    token: z.string().regex(/^[a-f0-9]{64}$/i, "El token de restablecimiento no es válido."),
     password: z
         .string()
         .min(8, "La contraseña debe tener al menos 8 caracteres")
@@ -119,64 +120,84 @@ const resetPasswordSchema = z.object({
 });
 
 export async function requestPasswordResetAction(email: string) {
-    if (!email) return { success: false, error: "El correo es requerido." };
-    const sanitizedEmail = email.toLowerCase().trim();
+    const emailResult = z.string().email("Correo electrónico inválido.").safeParse(email);
+    if (!emailResult.success) {
+        return { success: false, error: "Correo electrónico inválido." };
+    }
+
+    const sanitizedEmail = emailResult.data.toLowerCase().trim();
+    const genericResponse = {
+        success: true,
+        message: "Si el correo está registrado, se enviarán las instrucciones.",
+    };
 
     try {
+        const ip = await getClientIp();
+        const [ipLimit, emailLimit] = await Promise.all([
+            checkLoginRateLimit(`password-reset:ip:${ip}`),
+            checkLoginRateLimit(`password-reset:email:${sanitizedEmail}`),
+        ]);
+        if (!ipLimit.success || !emailLimit.success) {
+            return genericResponse;
+        }
+
+        const resendApiKey = process.env.RESEND_API_KEY;
+        if (!resendApiKey) {
+            logger.error("[requestPasswordResetAction] Resend no está configurado; no se emitió un token.");
+            return genericResponse;
+        }
+
         const user = await db.user.findUnique({
             where: { email: sanitizedEmail },
         });
 
         if (!user) {
-            return { success: true, message: "Si el correo está registrado, se enviarán las instrucciones." };
+            return genericResponse;
         }
 
-        const token = crypto.randomUUID();
-        const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+        // El token aleatorio solo se guarda en forma de hash; el enlace nunca se escribe en logs.
+        const token = randomBytes(32).toString("hex");
+        const tokenHash = createHash("sha256").update(token).digest("hex");
+        const expires = new Date(Date.now() + 15 * 60 * 1000);
 
         await db.user.update({
             where: { id: user.id },
             data: {
-                passwordResetToken: token,
+                passwordResetToken: tokenHash,
                 passwordResetExpires: expires,
             },
         });
 
         const resetLink = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/reset-password?token=${token}`;
+        const response = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${resendApiKey}`,
+            },
+            body: JSON.stringify({
+                from: getEmailFrom(),
+                to: sanitizedEmail,
+                subject: "Restablece tu contraseña - SkillRadar",
+                html: `<p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace para restablecerla (expira en 15 minutos):</p><p><a href="${resetLink}">${resetLink}</a></p>`,
+            }),
+            signal: AbortSignal.timeout(10_000),
+        });
 
-        const resendApiKey = process.env.RESEND_API_KEY;
-        if (resendApiKey) {
-            try {
-                await fetch("https://api.resend.com/emails", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${resendApiKey}`,
-                    },
-                    body: JSON.stringify({
-                        from: getEmailFrom(),
-                        to: sanitizedEmail,
-                        subject: "Restablece tu contraseña - SkillRadar",
-                        html: `<p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace para restablecerla (expira en 15 minutos):</p><p><a href="${resetLink}">${resetLink}</a></p>`,
-                    }),
-                });
-                logger.warn(`✉️ [Resend] Correo enviado a ${sanitizedEmail}`);
-            } catch (mailError) {
-                logger.error("❌ Error al enviar email con Resend:", mailError);
-            }
-        } else {
-            logger.warn(
-                `\n🔑 [Reset Password Simulation] Link de restablecimiento para ${sanitizedEmail}:\n🔗 ${resetLink}\n`,
-            );
+        if (!response.ok) {
+            await db.user.update({
+                where: { id: user.id },
+                data: { passwordResetToken: null, passwordResetExpires: null },
+            });
+            logger.error("[requestPasswordResetAction] Resend rechazó el correo de restablecimiento.");
         }
 
-        return { success: true, message: "Si el correo está registrado, se enviarán las instrucciones." };
+        return genericResponse;
     } catch (error: unknown) {
         logger.error("[requestPasswordResetAction] Error:", error);
-        return { success: false, error: "Error al solicitar el restablecimiento." };
+        return genericResponse;
     }
 }
-
 export async function resetPasswordAction(input: z.infer<typeof resetPasswordSchema>) {
     const result = resetPasswordSchema.safeParse(input);
     if (!result.success) {
@@ -186,8 +207,9 @@ export async function resetPasswordAction(input: z.infer<typeof resetPasswordSch
     const { token, password } = result.data;
 
     try {
+        const tokenHash = createHash("sha256").update(token).digest("hex");
         const user = await db.user.findFirst({
-            where: { passwordResetToken: token },
+            where: { passwordResetToken: tokenHash },
         });
 
         if (!user || !user.passwordResetExpires || user.passwordResetExpires < new Date()) {

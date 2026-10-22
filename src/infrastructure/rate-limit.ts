@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { logger } from "@/infrastructure/logger";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
@@ -231,9 +232,11 @@ if (!githubLimiter) {
     githubLimiter = githubMemoryFallback;
 }
 
-if (!loginLimiter) {
+if (!loginLimiter && !hasUpstashConfig) {
     logger.warn("⚠️ [RateLimit] Usando limitador en memoria para login (Límite: 5/15min).");
     loginLimiter = loginMemoryFallback;
+} else if (!loginLimiter) {
+    logger.error("❌ [RateLimit] Upstash está configurado pero el limitador de login no pudo inicializarse; los intentos se bloquearán.");
 }
 
 if (!jobPostingLimiter) {
@@ -406,11 +409,12 @@ export async function checkJobMatchRateLimit(identifier: string): Promise<RateLi
  * Verifica el límite de intentos de login para un identificador (IP).
  */
 export async function checkLoginRateLimit(identifier: string): Promise<RateLimitResult> {
-    const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
+    // Hash antes de almacenar para evitar colisiones y no exponer IP/correo en Redis.
+    const rateLimitKey = createHash("sha256").update(identifier).digest("hex");
 
     if (loginLimiter instanceof Ratelimit) {
         try {
-            const result = await loginLimiter.limit(sanitizedIdentifier);
+            const result = await loginLimiter.limit(rateLimitKey);
             return {
                 success: result.success,
                 limit: result.limit,
@@ -418,15 +422,27 @@ export async function checkLoginRateLimit(identifier: string): Promise<RateLimit
                 reset: result.reset,
             };
         } catch (error) {
-            logger.warn(
-                "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para Login, cayendo en fallback en memoria:",
-                error,
-            );
-            return await loginMemoryFallback.limitRequest(sanitizedIdentifier);
+            logger.error("[RateLimit] Upstash falló para login; se bloquea el intento.", error);
+            return {
+                success: false,
+                limit: LOGIN_LIMIT,
+                remaining: 0,
+                reset: Date.now() + LOGIN_WINDOW_MS,
+            };
         }
-    } else {
-        return await loginLimiter!.limitRequest(sanitizedIdentifier);
     }
+
+    if (loginLimiter instanceof InMemorySlidingWindow) {
+        return await loginLimiter.limitRequest(rateLimitKey);
+    }
+
+    // Una configuración de Upstash presente sin un limitador funcional nunca habilita fallback local.
+    return {
+        success: false,
+        limit: LOGIN_LIMIT,
+        remaining: 0,
+        reset: Date.now() + LOGIN_WINDOW_MS,
+    };
 }
 
 /**

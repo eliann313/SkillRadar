@@ -1,22 +1,14 @@
 /**
- * Gate de auditoría: falla con vulnerabilidades high/critical NUEVAS.
+ * Gate de auditoría: falla con vulnerabilidades high/critical nuevas.
  *
- * Allowlist (transitivas de prisma@7, sin fix no-breaking;cubiertas por Dependabot):
- * - GHSA-ggr8-5vv4-36mx (deepmerge-ts <8 vía @prisma/config; fix exige prisma@6, breaking)
- * - GHSA-3f6p-5ww8-9rcr (mysql2 vía prisma; idem)
- * - GHSA-rgwj-5xj2-c3m3 (mysql2 vía prisma; idem)
- * TODO: eliminar la allowlist cuando Prisma adopte deepmerge-ts@8.
- *
- * Allowlist (CVE-2026-93687 / GHSA-vfj7-8cjw-p6xm, braces<=3.0.3, SIN PARCHE):
- * - DoS por stack-exhaustion solo con patrones glob adversarios; en este repo
- *   braces solo se alcanza en build/lint/dev (fast-glob/micromatch vía shadcn,
- *   eslint, tailwind, ts-morph), nunca con input de usuario en runtime/prod.
- * TODO: quitar de la allowlist cuando micromatch/braces publique parche;
- * Dependabot alertará (package-lock) y el gate volverá a exigir el fix.
+ * La única excepción es GHSA-vfj7-8cjw-p6xm (braces <=3.0.3), sin versión corregida.
+ * Se alcanza por herramientas de desarrollo (shadcn y ESLint) y patrones de glob
+ * controlados por el repositorio; shadcn queda en devDependencies.
+ * TODO: quitar la excepción cuando upstream publique un parche.
  */
 import { execSync } from "node:child_process";
 
-const ALLOWLIST = new Set(["GHSA-ggr8-5vv4-36mx", "GHSA-3f6p-5ww8-9rcr", "GHSA-rgwj-5xj2-c3m3", "GHSA-vfj7-8cjw-p6xm"]);
+const ALLOWLIST = new Set(["GHSA-vfj7-8cjw-p6xm"]);
 
 // Sin console.* (regla no-console del repo): salida vía stdout/stderr.
 function out(line) {
@@ -52,7 +44,7 @@ function classify(spec) {
     }
     const allowedNames = new Set(allowed.map((a) => a.name));
     // Punto fijo: los padres se allowlistean cuando TODAS sus refs ya lo están
-    // (cadenas como prisma → @prisma/config → deepmerge-ts).
+    // (cadenas como shadcn → fast-glob → micromatch → braces).
     let changed = true;
     const remaining = [...pending];
     while (changed && remaining.length > 0) {
@@ -98,3 +90,4 @@ if (flagged.length > 0) {
     process.exit(1);
 }
 out("[audit:high] OK: sin vulnerabilidades high/critical fuera de la allowlist.");
+}

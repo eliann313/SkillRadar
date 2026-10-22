@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { logger } from "@/infrastructure/logger";
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
@@ -11,7 +12,7 @@ export const { handlers, auth } = NextAuth({
     adapter: PrismaAdapter(db),
     session: { strategy: "jwt" },
     secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
-    debug: true,
+    debug: process.env.NODE_ENV !== "production",
     ...authConfig,
     callbacks: {
         ...authConfig.callbacks,
@@ -43,25 +44,23 @@ export const { handlers, auth } = NextAuth({
             async authorize(credentials) {
                 if (!credentials?.email || !credentials?.password) return null;
 
-                // 1. Control de fuerza bruta por IP (Upstash Redis)
-                try {
-                    const ip = await getClientIp();
-                    const rateResult = await checkLoginRateLimit(ip);
-                    if (!rateResult.success) {
-                        throw new Error("RATE_LIMIT_EXCEEDED");
-                    }
-                } catch (limitError: unknown) {
-                    if (limitError instanceof Error && limitError.message === "RATE_LIMIT_EXCEEDED") {
-                        throw limitError;
-                    }
-                    logger.warn(
-                        "⚠️ [Auth] Falló validación de rate limit para login, omitiendo por seguridad:",
-                        limitError,
-                    );
-                }
-
                 const email = String(credentials.email).toLowerCase().trim();
                 const password = String(credentials.password);
+
+                // Limitar tanto por IP como por cuenta; el limitador guarda solo hashes.
+                try {
+                    const ip = await getClientIp();
+                    const [ipLimit, accountLimit] = await Promise.all([
+                        checkLoginRateLimit(`ip:${ip}`),
+                        checkLoginRateLimit(`email:${email}`),
+                    ]);
+                    if (!ipLimit.success || !accountLimit.success) {
+                        return null;
+                    }
+                } catch (limitError: unknown) {
+                    logger.error("[Auth] No se pudo validar el rate limit de login; se bloquea el intento.", limitError);
+                    return null;
+                }
 
                 try {
                     const user = await db.user.findUnique({

@@ -1,22 +1,27 @@
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
-import { auth } from "@/infrastructure/auth";
+import { assertActiveUser } from "@/infrastructure/auth";
 import { MAX_CV_FILE_SIZE } from "@/infrastructure/file-storage";
 
 export async function POST(request: Request): Promise<Response> {
-    const body = (await request.json()) as HandleUploadBody;
+    let session: Awaited<ReturnType<typeof assertActiveUser>>;
+    try {
+        session = await assertActiveUser();
+    } catch {
+        return Response.json({ error: "No autorizado. Inicie sesión nuevamente." }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+    if (!userId || session.user.isGuest === true) {
+        return Response.json({ error: "Solo las cuentas activas pueden subir CVs." }, { status: 403 });
+    }
 
     try {
+        const body = (await request.json()) as HandleUploadBody;
         const jsonResponse = await handleUpload({
             body,
             request,
             onBeforeGenerateToken: async (_pathname, clientPayload) => {
-                // Solo usuarios autenticados (no guests) pueden subir CVs
-                const session = await auth();
-                const userId = session?.user?.id;
-                if (!userId || session?.user?.isGuest === true) {
-                    throw new Error("No autorizado");
-                }
-                // El cliente declara su userId: debe coincidir con la sesión (anti-spoofing)
+                // El cliente declara su userId: debe coincidir con la sesión activa (anti-spoofing).
                 if (clientPayload !== userId) {
                     throw new Error("No autorizado");
                 }

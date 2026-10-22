@@ -1,4 +1,4 @@
-import { auth } from "@/infrastructure/auth";
+import { assertActiveUser } from "@/infrastructure/auth";
 import { checkCVRateLimit } from "@/infrastructure/rate-limit";
 import { validateBlobFileUrl } from "@/infrastructure/file-storage";
 import { get as getBlob } from "@vercel/blob";
@@ -11,9 +11,14 @@ import { get as getBlob } from "@vercel/blob";
  * Query: GET /api/files?url=<blobUrl codificada>
  */
 export async function GET(request: Request): Promise<Response> {
-    const session = await auth();
-    if (!session?.user?.id) {
+    let session: Awaited<ReturnType<typeof assertActiveUser>>;
+    try {
+        session = await assertActiveUser();
+    } catch {
         return Response.json({ error: "No autorizado. Inicie sesión nuevamente." }, { status: 401 });
+    }
+    if (!session.user.id || session.user.isGuest === true) {
+        return Response.json({ error: "Solo las cuentas activas pueden descargar CVs." }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);

@@ -1,7 +1,7 @@
 "use server";
 
 import { logger } from "@/infrastructure/logger";
-import { auth, assertActiveUser } from "@/infrastructure/auth";
+import { assertActiveUser } from "@/infrastructure/auth";
 import { trackServerEvent } from "@/infrastructure/analytics";
 import { CVAnalysisService } from "./cv-analysis.service";
 import { defaultResumeStore as resumeStore } from "../infrastructure/cv-analysis.repository";
@@ -34,7 +34,7 @@ interface ParseCVResult {
 export async function uploadAndParseCVAction(input: ParseCVInput): Promise<ActionResult<ParseCVResult>> {
     try {
         // 1. Validar autenticación
-        const session = await auth();
+        const session = await assertActiveUser();
         if (!session?.user?.id) {
             return {
                 success: false,
@@ -191,7 +191,7 @@ export async function uploadAndParseCVAction(input: ParseCVInput): Promise<Actio
 
 export async function getUserResumesAction(): Promise<ActionResult<Resume[]>> {
     try {
-        const session = await auth();
+        const session = await assertActiveUser();
         if (!session?.user?.id) {
             return { success: false, error: "No autorizado." };
         }
@@ -209,7 +209,7 @@ export async function getUserResumesAction(): Promise<ActionResult<Resume[]>> {
 
 export async function getProgressDataAction() {
     try {
-        const session = await auth();
+        const session = await assertActiveUser();
         if (!session?.user?.id) {
             return { success: false, error: "No autorizado." };
         }
@@ -595,7 +595,7 @@ export async function getCareerRecommendationsAction(
     targetPathInput?: string,
 ): Promise<ActionResult<CareerRecommendations>> {
     try {
-        const session = await auth();
+        const session = await assertActiveUser();
         if (!session?.user?.id) {
             return { success: false, error: "No autorizado. Inicie sesión nuevamente." };
         }
@@ -919,12 +919,15 @@ export async function getSignedFileUrlAction(
 ): Promise<{ success: boolean; url?: string; error?: string }> {
     try {
         // 1. Validar autenticación
-        const session = await auth();
+        const session = await assertActiveUser();
         if (!session?.user?.id) {
             return {
                 success: false,
                 error: "No autorizado. Inicie sesión nuevamente.",
             };
+        }
+        if (session.user.isGuest === true) {
+            return { success: false, error: "Solo las cuentas activas pueden ver sus archivos." };
         }
 
         // 2. Validar que la URL pertenece a nuestro storage (barrera anti-SSRF)

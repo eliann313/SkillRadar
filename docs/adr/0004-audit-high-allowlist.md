@@ -1,4 +1,4 @@
-# ADR-004: Gate `audit:high` con allowlist de transitivos de Prisma
+# ADR-004: Gate `audit:high` y excepciones documentadas
 
 - Estado: aceptado
 - Fecha: 2026-09-27
@@ -6,26 +6,27 @@
 
 ## Contexto
 
-`npm audit --audit-level=high` falla por 3 advisories en dependencias
-transitivas de `prisma@7` (`deepmerge-ts` vía `@prisma/config`, `mysql2` ×2)
-cuyo único fix es dowgradear a `prisma@6` (breaking). Prisma 8 RC aún usa
-`deepmerge-ts@7`, así que no hay upgrade que lo resuelva hoy. Dependabot ya
-los trackea (rama `prisma-7.10.0` y siguientes).
+El gate cubre todas las dependencias instaladas y falla ante vulnerabilidades
+high/critical que no estén documentadas. El lockfile anterior tenía dos
+excepciones que ya no aplican: `mysql2` se resuelve a `3.24.4`, corregido
+para las alertas de severidad high, y `deepmerge-ts` ahora se fuerza a
+`8.0.2` mediante un override. Prisma hizo el mismo cambio para su rama v7
+en [prisma/orm#30189](https://github.com/prisma/orm/pull/30189).
 
 ## Decisión
 
-- `scripts/audit-high.mjs` (sin `console.*`, por `no-console`): corre
-  `npm audit --json`, falla con cualquier vulnerabilidad high/critical
-  EXCEPTO la allowlist documentada en el propio script:
-  `GHSA-ggr8-5vv4-36mx`, `GHSA-3f6p-5ww8-9rcr`, `GHSA-rgwj-5xj2-c3m3`
-  (incluye resolución transitiva: padres como `prisma`/`@prisma/config`
-  heredan el veredicto de sus dependencias).
-- CI (`arch` job) usa `npm run audit:high` en vez de `npm audit` crudo.
-- `npm audit fix` (no-force) sí se aplicó: `browserslist`, `fast-uri`,
-  `hono` actualizados sin breaking changes.
+- `scripts/audit-high.mjs` corre `npm audit --json` y falla con cualquier
+  vulnerabilidad high/critical excepto `GHSA-vfj7-8cjw-p6xm` en `braces`.
+- No hay versión corregida de `braces`; la dependencia viene de herramientas
+  de desarrollo y sus patrones son controlados por el repositorio.
+  `shadcn` se clasifica como `devDependency` para excluir esa cadena del
+  árbol instalado en producción.
+- Las dos alertas de `mysql2` se quitan de la allowlist porque la versión
+  resuelta en el lockfile ya está corregida.
+- El override de `deepmerge-ts` se elimina cuando `@prisma/config` adopte
+  una versión corregida por sí misma.
 
 ## Consecuencias
 
-- El gate bloquea toda vulnerabilidad high/critical nueva; la allowlist solo
-  cubre los 3 GHSA listados.
-- TODO: eliminar la allowlist cuando Prisma adopte `deepmerge-ts@8`.
+El gate mantiene una excepción visible solo para la alerta upstream de
+`braces`; todas las demás high/critical quedan bloqueadas.
