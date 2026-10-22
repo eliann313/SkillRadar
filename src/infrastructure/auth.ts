@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { logger } from "@/infrastructure/logger";
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
