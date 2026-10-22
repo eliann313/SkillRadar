@@ -236,7 +236,9 @@ if (!loginLimiter && !hasUpstashConfig) {
     logger.warn("⚠️ [RateLimit] Usando limitador en memoria para login (Límite: 5/15min).");
     loginLimiter = loginMemoryFallback;
 } else if (!loginLimiter) {
-    logger.error("❌ [RateLimit] Upstash está configurado pero el limitador de login no pudo inicializarse; los intentos se bloquearán.");
+    logger.error(
+        "❌ [RateLimit] Upstash está configurado pero el limitador de login no pudo inicializarse; los intentos se bloquearán.",
+    );
 }
 
 if (!jobPostingLimiter) {

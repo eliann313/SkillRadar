@@ -57,7 +57,10 @@ export const { handlers, auth } = NextAuth({
                         return null;
                     }
                 } catch (limitError: unknown) {
-                    logger.error("[Auth] No se pudo validar el rate limit de login; se bloquea el intento.", limitError);
+                    logger.error(
+                        "[Auth] No se pudo validar el rate limit de login; se bloquea el intento.",
+                        limitError,
+                    );
                     return null;
                 }
 

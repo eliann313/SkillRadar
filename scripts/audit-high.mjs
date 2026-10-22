@@ -90,4 +90,3 @@ if (flagged.length > 0) {
     process.exit(1);
 }
 out("[audit:high] OK: sin vulnerabilidades high/critical fuera de la allowlist.");
-}
