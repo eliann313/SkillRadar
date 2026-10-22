@@ -60,9 +60,9 @@ test.describe("Security E2E Flow", () => {
             await expect(page.getByTestId("guest-templates-preview")).toBeVisible({ timeout: 15000 });
         });
 
-        test("rechaza archivos con URL invalida para recruiter invitado (401)", async ({ page }) => {
+        test("rechaza archivos con URL invalida para recruiter invitado (403)", async ({ page }) => {
             const res = await page.request.get("/api/files?url=notaurl");
-            expect(res.status()).toBe(401);
+            expect(res.status()).toBe(403);
             await expect(page.getByTestId("guest-mode-banner")).toBeVisible();
         });
 
