@@ -77,7 +77,19 @@ if (!raw.trim()) {
     process.exit(2);
 }
 
-const { flagged, allowed } = classify(JSON.parse(raw));
+const report = JSON.parse(raw);
+const { flagged, allowed } = classify(report);
+const vulnerabilities = report.vulnerabilities ?? report.advisories ?? {};
+const moderate = Object.entries(vulnerabilities).filter(([, v]) => v.severity === "moderate");
+
+for (const [name, vulnerability] of moderate) {
+    const details = (vulnerability.via ?? [])
+        .filter((item) => typeof item === "object" && item !== null)
+        .map((item) => `${item.title ?? "advisory"} ${item.url ?? ""}`.trim());
+    const advisory = details.length > 0 ? details.join("; ") : "transitive dependency";
+    const fix = JSON.stringify(vulnerability.fixAvailable ?? false);
+    out(`[audit:moderate] ${name} [${vulnerability.range ?? "unknown range"}] ${advisory}; fix=${fix}`);
+}
 
 for (const a of allowed) {
     out(`[audit:high] allowlist: ${a.name} [${a.severity}] ${a.urls.join(", ")}`);
