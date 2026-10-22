@@ -9,12 +9,12 @@ import { test, expect } from "@playwright/test";
  *   (el enforcement servidor esta cubierto en recruiter.service.test.ts).
  */
 test.describe("Security E2E Flow", () => {
-    test("rechaza descarga de archivos sin sesion (401) y con URL invalida (400)", async ({ request }) => {
+    test("rechaza el acceso a archivos sin sesion activa (401)", async ({ request }) => {
         const anon = await request.get("/api/files?url=https://evil.example/x.pdf");
         expect(anon.status()).toBe(401);
 
         const anonUpload = await request.post("/api/files/upload", { data: {} });
-        expect(anonUpload.status()).toBe(400);
+        expect(anonUpload.status()).toBe(401);
     });
 
     test("redirige al home al visitar el dashboard sin sesion", async ({ page }) => {
@@ -60,9 +60,9 @@ test.describe("Security E2E Flow", () => {
             await expect(page.getByTestId("guest-templates-preview")).toBeVisible({ timeout: 15000 });
         });
 
-        test("archivos con URL invalida devuelven 400 con sesion (SSRF)", async ({ page }) => {
+        test("rechaza archivos con URL invalida para recruiter invitado (401)", async ({ page }) => {
             const res = await page.request.get("/api/files?url=notaurl");
-            expect(res.status()).toBe(400);
+            expect(res.status()).toBe(401);
             await expect(page.getByTestId("guest-mode-banner")).toBeVisible();
         });
 
