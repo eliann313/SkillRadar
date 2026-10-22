@@ -127,7 +127,7 @@ export async function requestPasswordResetAction(email: string) {
 
     const sanitizedEmail = emailResult.data.toLowerCase().trim();
     const genericResponse = {
-        success: true,
+        success: true as const,
         message: "Si el correo está registrado, se enviarán las instrucciones.",
     };
 
