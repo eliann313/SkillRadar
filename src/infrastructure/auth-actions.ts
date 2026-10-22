@@ -122,7 +122,7 @@ const resetPasswordSchema = z.object({
 export async function requestPasswordResetAction(email: string) {
     const emailResult = z.string().email("Correo electrónico inválido.").safeParse(email);
     if (!emailResult.success) {
-        return { success: false, error: "Correo electrónico inválido." };
+        return { success: false as const, error: "Correo electrónico inválido." };
     }
 
     const sanitizedEmail = emailResult.data.toLowerCase().trim();
