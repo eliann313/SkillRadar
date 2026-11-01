@@ -9,8 +9,37 @@ import { env } from "@/infrastructure/env";
 const UNTRUSTED_GITHUB_DATA_START = "<<<BEGIN_UNTRUSTED_GITHUB_DATA>>>";
 const UNTRUSTED_GITHUB_DATA_END = "<<<END_UNTRUSTED_GITHUB_DATA>>>";
 
+function sanitizeUntrustedTextForPrompt(text: string): string {
+    return text
+        .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
+        .replace(/[\u202A-\u202E\u2066-\u2069]/g, "")
+        .replace(/<\|\s*(?:im_start|im_end|system|assistant|developer|user)\s*\|>/gi, "[token de control omitido]")
+        .replace(/\[\s*\/?\s*(?:INST|SYSTEM|ASSISTANT|DEVELOPER)\s*\]/gi, "[marcador de rol omitido]")
+        .replace(/(^|\n)\s*(?:#{1,6}\s*)?(?:system|assistant|developer)\s*:\s*/gi, "$1[etiqueta de rol]: ")
+        .replace(
+            /\b(?:ignore|disregard|forget|override)\s+(?:(?:all|any|the)\s+)?(?:(?:previous|prior|above|system|developer)\s+)?(?:instructions?|prompts?)\b/gi,
+            "[possible prompt injection omitted]",
+        )
+        .replace(
+            /\b(?:ignora|omite|olvida|desestima|anula)\s+(?:(?:todas?\s+las?|las?|cualquier)\s+)?(?:instrucciones?|prompts?|directivas?)(?:\s+(?:anteriores?|previas?|del sistema|de desarrollo))?\b/gi,
+            "[posible prompt injection omitido]",
+        );
+}
+
+function sanitizeUntrustedGithubPayloadForPrompt(data: unknown): unknown {
+    if (typeof data === "string") return sanitizeUntrustedTextForPrompt(data);
+    if (Array.isArray(data)) return data.map(sanitizeUntrustedGithubPayloadForPrompt);
+    if (data && typeof data === "object") {
+        return Object.fromEntries(
+            Object.entries(data).map(([key, value]) => [key, sanitizeUntrustedGithubPayloadForPrompt(value)]),
+        );
+    }
+    return data;
+}
+
 function serializeUntrustedGithubData(data: unknown): string {
-    const serialized = (JSON.stringify(data, null, 2) ?? "null").slice(0, 12500);
+    const sanitizedData = sanitizeUntrustedGithubPayloadForPrompt(data);
+    const serialized = (JSON.stringify(sanitizedData, null, 2) ?? "null").slice(0, 12500);
     return serialized.replace(/<<<\s*(?:BEGIN|END)_UNTRUSTED_GITHUB_DATA\s*>>>/gi, "[marcador de límite escapado]");
 }
 

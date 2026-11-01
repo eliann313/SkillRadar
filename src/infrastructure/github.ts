@@ -106,8 +106,8 @@ export class GitHubConnector {
             const res = await fetch(url, { headers });
             if (!res.ok) return null;
             return await res.text();
-        } catch (error) {
-            logger.warn(`[GitHubConnector] Error obteniendo README para ${owner}/${repo}:`, error);
+        } catch {
+            logger.warn("[GitHubConnector] Error obteniendo README; se omite el contenido.");
             return null;
         }
     }
