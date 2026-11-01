@@ -69,12 +69,12 @@ export function PublicProfileShareCard({ publicProfile }: PublicProfileShareCard
     };
 
     return (
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm flex flex-col justify-between h-full">
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm flex flex-col h-full">
             <CardHeader className="pb-3">
                 <div className="flex items-center justify-between gap-2">
                     <CardTitle className="text-base font-semibold flex items-center gap-2">
                         <Globe className="size-5 text-primary" />
-                        {t("publicProfileCardTitle", { default: "Tu Perfil Público & Badge" })}
+                        {t("publicProfileCardTitle", { default: "Tu Perfil Público y Badge" })}
                     </CardTitle>
                     <Badge
                         variant={isPublic ? "default" : "secondary"}
@@ -96,89 +96,135 @@ export function PublicProfileShareCard({ publicProfile }: PublicProfileShareCard
                 </CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-4 pt-1">
+            <CardContent className="flex-1 flex flex-col justify-between gap-4 pt-1">
                 {isPublic ? (
                     <>
-                        <div className="rounded-lg border border-border/50 bg-muted/20 p-3 space-y-2">
-                            <div className="flex items-center justify-between gap-2 text-xs">
-                                <span className="font-mono text-muted-foreground truncate" suppressHydrationWarning>
-                                    {displayUrl}
-                                </span>
-                                <div className="flex items-center gap-1 shrink-0">
+                        <div className="space-y-4">
+                            {/* URL Pública */}
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                                    <Globe className="size-3.5 text-primary" />
+                                    <span>
+                                        {t("publicProfileUrlLabel", { default: "Enlace a tu perfil público:" })}
+                                    </span>
+                                </label>
+                                <div className="rounded-lg border border-border/50 bg-muted/20 p-2.5 flex items-center justify-between gap-2">
+                                    <span
+                                        className="font-mono text-xs text-foreground/90 truncate"
+                                        suppressHydrationWarning
+                                    >
+                                        {displayUrl}
+                                    </span>
+                                    <div className="flex items-center gap-1 shrink-0">
+                                        <Button
+                                            variant="secondary"
+                                            size="xs"
+                                            onClick={handleCopyLink}
+                                            className="h-7 px-2.5 text-xs gap-1"
+                                            title={t("copyPublicLink", { default: "Copiar enlace" })}
+                                        >
+                                            {copiedLink ? (
+                                                <>
+                                                    <Check className="size-3 text-emerald-500" />
+                                                    <span className="text-emerald-500 font-medium">
+                                                        {t("copied", { default: "Copiado" })}
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Copy className="size-3" />
+                                                    <span>{t("copy", { default: "Copiar" })}</span>
+                                                </>
+                                            )}
+                                        </Button>
+                                        <Link
+                                            href={`/u/${username}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-muted-foreground hover:text-foreground inline-flex items-center justify-center size-7 rounded-md hover:bg-muted/60 transition-colors"
+                                            title={t("viewPublicProfile", { default: "Ver perfil público" })}
+                                            aria-label={t("viewPublicProfile", { default: "Ver perfil público" })}
+                                        >
+                                            <ExternalLink className="size-3.5" />
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Previsualización del Badge SVG */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="flex items-center gap-1.5 font-medium text-foreground">
+                                        <Sparkles className="size-3.5 text-primary" />
+                                        GitHub README Badge:
+                                    </span>
+                                    <Button
+                                        variant="outline"
+                                        size="xs"
+                                        onClick={handleCopyBadge}
+                                        className="h-7 px-2.5 text-xs gap-1.5 border-primary/20 hover:bg-primary/5 hover:text-primary transition-colors"
+                                    >
+                                        {copiedBadge ? (
+                                            <>
+                                                <Check className="size-3.5 text-emerald-500" />
+                                                <span className="text-emerald-500 font-semibold">
+                                                    {t("copied", { default: "Copiado" })}
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Code2 className="size-3.5 text-primary" />
+                                                <span>{t("copyBadgeMarkdown", { default: "Copiar Markdown" })}</span>
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+
+                                {/* Preview container */}
+                                <div className="p-3 rounded-xl bg-background/90 border border-border/60 shadow-xs flex flex-col items-center justify-center gap-2 group relative overflow-hidden">
+                                    <div className="w-full flex items-center justify-center py-1">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                            src={`/api/badge/${username}`}
+                                            alt="SkillRadar Badge preview"
+                                            className="w-full max-w-[440px] h-auto rounded-lg shadow-sm transition-transform duration-300 group-hover:scale-[1.01]"
+                                            loading="lazy"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Código Markdown interactivo */}
+                                <div className="rounded-lg border border-border/40 bg-muted/30 p-2 font-mono text-[11px] text-muted-foreground flex items-center justify-between gap-2 overflow-hidden">
+                                    <span className="truncate select-all text-slate-300">
+                                        {`[![SkillRadar](${origin || "https://skillradar-app.vercel.app"}/api/badge/${username})](${origin || "https://skillradar-app.vercel.app"}/u/${username})`}
+                                    </span>
                                     <Button
                                         variant="ghost"
                                         size="icon-xs"
-                                        onClick={handleCopyLink}
-                                        title={t("copyPublicLink", { default: "Copiar enlace" })}
-                                        aria-label={t("copyPublicLink", { default: "Copiar enlace" })}
+                                        onClick={handleCopyBadge}
+                                        className="shrink-0 size-6"
+                                        title={t("copyBadgeMarkdown", { default: "Copiar Markdown" })}
                                     >
-                                        {copiedLink ? (
-                                            <Check className="size-3.5 text-emerald-500" />
+                                        {copiedBadge ? (
+                                            <Check className="size-3 text-emerald-500" />
                                         ) : (
-                                            <Copy className="size-3.5" />
+                                            <Copy className="size-3" />
                                         )}
                                     </Button>
-                                    <Link
-                                        href={`/u/${username}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-muted-foreground hover:text-foreground inline-flex items-center p-1 rounded-sm hover:bg-muted"
-                                        title={t("viewPublicProfile", { default: "Ver perfil público" })}
-                                        aria-label={t("viewPublicProfile", { default: "Ver perfil público" })}
-                                    >
-                                        <ExternalLink className="size-3.5" />
-                                    </Link>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Previsualización del Badge SVG */}
-                        <div className="space-y-1.5">
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1 font-medium">
-                                    <Sparkles className="size-3 text-primary" />
-                                    GitHub README Badge:
-                                </span>
-                                <Button
-                                    variant="ghost"
-                                    size="xs"
-                                    onClick={handleCopyBadge}
-                                    className="h-6 px-2 text-xs gap-1"
-                                >
-                                    {copiedBadge ? (
-                                        <>
-                                            <Check className="size-3 text-emerald-500" />
-                                            <span>Copiado</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Code2 className="size-3" />
-                                            <span>{t("copyBadgeMarkdown", { default: "Copiar Markdown" })}</span>
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
-                            <div className="p-2 rounded-md bg-background/80 border border-border/40 overflow-x-auto flex justify-center">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                    src={`/api/badge/${username}`}
-                                    alt="SkillRadar Badge preview"
-                                    className="max-h-20 h-auto rounded"
-                                    loading="lazy"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="pt-2 flex items-center justify-between text-xs border-t border-border/30">
-                            <span className="flex items-center gap-1 text-muted-foreground text-[11px]">
+                        <div className="pt-3 flex items-center justify-between text-xs border-t border-border/30 mt-auto">
+                            <span className="flex items-center gap-1.5 text-muted-foreground text-[11px]">
                                 <ShieldCheck className="size-3.5 text-emerald-500" />
-                                Perfil verificado
+                                {t("verifiedProfile", { default: "Perfil verificado" })}
                             </span>
                             <Link
                                 href="/dashboard/settings"
-                                className="flex items-center gap-1 text-primary hover:underline text-[11px] font-medium"
+                                className="flex items-center gap-1.5 text-primary hover:underline text-[11px] font-medium"
                             >
-                                <Settings className="size-3" />
+                                <Settings className="size-3.5" />
                                 {t("configurePublicProfile", { default: "Configurar visibilidad" })}
                             </Link>
                         </div>

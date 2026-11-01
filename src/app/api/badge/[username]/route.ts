@@ -44,12 +44,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     if (latestResume) {
         const analysis = latestResume.analysis as { estimatedSeniority?: string; keywords?: string[] } | null;
-        if (analysis?.estimatedSeniority) {
+        if (user.showSeniority && analysis?.estimatedSeniority) {
             seniority = analysis.estimatedSeniority.charAt(0).toUpperCase() + analysis.estimatedSeniority.slice(1);
             if (seniority === "Semi-senior") seniority = "Mid-level";
             seniority = `${seniority} Developer`;
         }
-        if (Array.isArray(analysis?.keywords) && analysis.keywords.length > 0) {
+        if (user.showSkills && Array.isArray(analysis?.keywords) && analysis.keywords.length > 0) {
             // Capitalizar skills y filtrar únicos
             skills = Array.from(
                 new Set(
@@ -71,8 +71,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const displayName = escapeXml(user.name || username);
     const safeSeniority = escapeXml(seniority);
-    const safeSkills = skills.map((s) => escapeXml(s));
-    const displaySkills = safeSkills.length > 0 ? safeSkills : ["Sin análisis aún"];
+    const safeSkills = skills.map((s) => {
+        const trimmed = s.length > 18 ? `${s.slice(0, 16)}…` : s;
+        return escapeXml(trimmed);
+    });
+    const displaySkills = safeSkills.length > 0 ? safeSkills : [user.showSkills ? "Sin análisis aún" : "Privado"];
 
     // 3. Calcular dimensiones de píldoras dinámicamente para evitar solapamientos
     const pill1Width = Math.max(65, displaySkills[0].length * 8 + 22);

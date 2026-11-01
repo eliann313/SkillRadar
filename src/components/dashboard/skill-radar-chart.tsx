@@ -25,17 +25,12 @@ export function SkillRadarChart({ keywords, showBreakdown = false }: { keywords:
     }));
 
     return (
-        <div className="w-full flex flex-col items-center">
-            <div className="h-[260px] w-full flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
+        <div className="@container w-full max-w-full overflow-hidden flex flex-col items-center">
+            <div className="h-[260px] w-full max-w-full overflow-hidden flex items-center justify-center min-w-0">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                    <RadarChart cx="50%" cy="50%" outerRadius="65%" data={data}>
                         <PolarGrid className="stroke-border/30" />
-                        <PolarAngleAxis
-                            dataKey="subject"
-                            stroke="var(--muted-foreground)"
-                            fontSize={12}
-                            tickSize={10}
-                        />
+                        <PolarAngleAxis dataKey="subject" stroke="var(--muted-foreground)" fontSize={11} tickSize={8} />
                         <PolarRadiusAxis
                             angle={30}
                             domain={[0, 100]}
@@ -56,15 +51,19 @@ export function SkillRadarChart({ keywords, showBreakdown = false }: { keywords:
                 </ResponsiveContainer>
             </div>
             {showBreakdown && (
-                <div className="w-full pt-3 border-t border-border/30 mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 text-xs">
+                <div className="w-full max-w-full overflow-hidden pt-3 border-t border-border/30 mt-2 grid grid-cols-2 sm:grid-cols-3 @[340px]:grid-cols-3 @[560px]:grid-cols-5 gap-2 text-xs">
                     {breakdown.map((item) => (
                         <div
                             key={item.subject}
-                            className="rounded-md border border-border/40 bg-card/60 p-2 flex flex-col gap-1 text-left"
+                            className="rounded-md border border-border/40 bg-card/60 p-2 flex flex-col gap-1 text-left min-w-0 overflow-hidden"
                         >
-                            <div className="flex justify-between items-center">
-                                <span className="font-semibold text-foreground text-xs">{item.subject}</span>
-                                <span className="text-[11px] font-mono font-bold text-primary">{item.score}%</span>
+                            <div className="flex justify-between items-center gap-1.5 min-w-0">
+                                <span className="font-semibold text-foreground text-xs truncate" title={item.subject}>
+                                    {item.subject}
+                                </span>
+                                <span className="text-[11px] font-mono font-bold text-primary shrink-0">
+                                    {item.score}%
+                                </span>
                             </div>
                             <p
                                 className="text-[10px] text-muted-foreground truncate"
