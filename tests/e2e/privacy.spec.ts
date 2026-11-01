@@ -24,8 +24,8 @@ test.describe("Privacidad y límites (developer demo)", () => {
     });
 
     test("dashboard muestra uso de límites del plan free", async ({ page }) => {
-        // Fracción usado/límite del plan gratuito (CV: 0/5 para cuenta nueva)
-        await expect(page.getByText("0/5").first()).toBeVisible({ timeout: 15000 });
+        // La tarjeta muestra cuota restante/límite (CV: 5/5 para la demo nueva).
+        await expect(page.getByText("5/5", { exact: true })).toBeVisible({ timeout: 15000 });
     });
 
     test("el análisis de CV ofrece razonamiento con evidencia", async ({ page }) => {
