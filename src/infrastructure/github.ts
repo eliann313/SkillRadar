@@ -88,6 +88,7 @@ export class GitHubConnector {
     /**
      * Obtiene el contenido en texto plano del README de un repositorio (si existe).
      * Usa la API oficial de GitHub: GET /repos/{owner}/{repo}/readme con Accept raw.
+     * El resultado es contenido externo no confiable; cualquier prompt de IA debe delimitarlo como dato.
      */
     static async getRepoReadme(owner: string, repo: string, oauthToken?: string | null): Promise<string | null> {
         const headers: HeadersInit = {

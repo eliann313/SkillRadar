@@ -221,7 +221,7 @@ export default async function ProgressPage({ params }: PageProps) {
 
             {/* Racha y mejora */}
             <div className="grid gap-4 sm:grid-cols-2 w-full max-w-full">
-                <Card className="border-border/60 bg-card/60 backdrop-blur-sm hover:border-warning/30 transition-all duration-300 w-full max-w-full overflow-hidden">
+                <Card className="border-border/60 bg-card/60 backdrop-blur-sm hover:border-warning/30 transition-colors duration-300 w-full max-w-full overflow-hidden">
                     <CardContent className="p-5 flex items-start gap-4">
                         <div className="size-12 rounded-xl bg-warning/10 text-warning flex items-center justify-center shrink-0 border border-warning/20 shadow-xs">
                             <Flame className="size-6 text-warning" />
@@ -245,7 +245,7 @@ export default async function ProgressPage({ params }: PageProps) {
 
                 <Card
                     className={cn(
-                        "border-border/60 bg-card/60 backdrop-blur-sm transition-all duration-300 w-full max-w-full overflow-hidden",
+                        "border-border/60 bg-card/60 backdrop-blur-sm transition-colors duration-300 w-full max-w-full overflow-hidden",
                         scoreDelta > 0 && "hover:border-emerald/30",
                         scoreDelta < 0 && "hover:border-destructive/30",
                         scoreDelta === 0 && "hover:border-primary/30",
