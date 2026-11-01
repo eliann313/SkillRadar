@@ -88,9 +88,10 @@ try {
 }
 
 if (report.error || (!report.vulnerabilities && !report.advisories)) {
-    const detail = [report.error?.code, report.error?.summary || report.error?.message || report.error?.detail]
-        .filter(Boolean)
-        .join(": ") || "npm audit respondió sin un reporte de vulnerabilidades.";
+    const detail =
+        [report.error?.code, report.error?.summary || report.error?.message || report.error?.detail]
+            .filter(Boolean)
+            .join(": ") || "npm audit respondió sin un reporte de vulnerabilidades.";
     err("[audit:high] No se pudo completar npm audit: " + detail);
     process.exit(2);
 }
