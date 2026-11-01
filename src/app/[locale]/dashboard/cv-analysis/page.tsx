@@ -12,6 +12,7 @@ import { uploadAndParseCVAction } from "@/features/cv-analysis/application/cv-an
 import { toast } from "sonner";
 import type { ATSAnalysis } from "@/features/cv-analysis/domain/cv-analysis.types";
 import { useTranslations } from "next-intl";
+import { cn } from "@/shared-kernel/utils";
 
 export default function CVAnalysisPage() {
     const { data: session, status } = useSession();
@@ -21,13 +22,12 @@ export default function CVAnalysisPage() {
 
     if (status === "loading") {
         return (
-            <div className="space-y-6">
-                <Skeleton className="h-8 w-48" />
-                <Skeleton className="h-4 w-96" />
-                <div className="grid gap-6 lg:grid-cols-2">
-                    <Skeleton className="h-[300px]" />
-                    <Skeleton className="h-[300px]" />
+            <div className="mx-auto max-w-2xl space-y-6">
+                <div className="space-y-2 text-center">
+                    <Skeleton className="mx-auto h-8 w-48" />
+                    <Skeleton className="mx-auto h-4 w-96 max-w-full" />
                 </div>
+                <Skeleton className="h-[320px] w-full rounded-xl" />
             </div>
         );
     }
@@ -105,32 +105,32 @@ export default function CVAnalysisPage() {
     };
 
     return (
-        <>
-            <div className="mb-8">
+        <div className={cn("mx-auto space-y-8 transition-all", analysis ? "max-w-5xl" : "max-w-2xl")}>
+            <div className={cn("space-y-1.5", !analysis ? "text-center" : "text-left")}>
                 <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">{t("title")}</h1>
-                <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
+                <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
-                <CVUploadForm
-                    onAnalyze={(content, name) => {
-                        void handleAnalyze(content, name);
-                    }}
-                    isLoading={isLoading}
-                />
+            <div className="space-y-8">
+                <div className={cn(analysis && "mx-auto max-w-2xl")}>
+                    <CVUploadForm
+                        onAnalyze={(content, name) => {
+                            void handleAnalyze(content, name);
+                        }}
+                        isLoading={isLoading}
+                    />
+                </div>
 
                 {isLoading ? (
-                    <div className="flex justify-center lg:col-span-2">
+                    <div className="flex justify-center">
                         <div className="w-full max-w-2xl">
                             <AnalysisSkeleton />
                         </div>
                     </div>
                 ) : analysis ? (
-                    <div className="lg:col-span-2">
-                        <AnalysisResults analysis={analysis} />
-                    </div>
+                    <AnalysisResults analysis={analysis} />
                 ) : null}
             </div>
-        </>
+        </div>
     );
 }

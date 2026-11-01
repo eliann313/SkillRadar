@@ -23,9 +23,10 @@ interface MetricsGridProps {
         analysis: unknown;
     } | null;
     limits: {
-        cvAnalysis: { used: number; limit: number };
-        jobMatch: { used: number; limit: number };
-        mockInterview: { used: number; limit: number };
+        isByok?: boolean;
+        cvAnalysis: { remaining: number; limit: number };
+        jobMatch: { remaining: number; limit: number };
+        mockInterview: { remaining: number; limit: number };
     };
 }
 
@@ -163,10 +164,10 @@ export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGri
                     <div className="flex items-center justify-between">
                         <CardTitle className="text-base font-medium">{t("limitsCardTitle")}</CardTitle>
                         <Badge variant="outline" className="text-xs">
-                            {t("limitsCardCta")}
+                            {limits.isByok ? t("limitsByokActive") : t("limitsCardCta")}
                         </Badge>
                     </div>
-                    <CardDescription>{t("limitsCardDesc")}</CardDescription>
+                    <CardDescription>{limits.isByok ? t("limitsByokDesc") : t("limitsCardDesc")}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4 pt-4">
                     {/* CV Analysis */}
@@ -177,10 +178,29 @@ export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGri
                                 <span className="text-muted-foreground">{t("limitsCardCv")}</span>
                             </div>
                             <span className="font-medium">
-                                {limits.cvAnalysis.used}/{limits.cvAnalysis.limit}
+                                {limits.isByok
+                                    ? t("limitsUnlimited")
+                                    : `${limits.cvAnalysis.remaining}/${limits.cvAnalysis.limit}`}
                             </span>
                         </div>
-                        <Progress value={(limits.cvAnalysis.used / limits.cvAnalysis.limit) * 100} className="h-1.5" />
+                        <Progress
+                            value={
+                                limits.isByok
+                                    ? 0
+                                    : Math.min(
+                                          100,
+                                          Math.max(
+                                              0,
+                                              Math.round(
+                                                  ((limits.cvAnalysis.limit - limits.cvAnalysis.remaining) /
+                                                      limits.cvAnalysis.limit) *
+                                                      100,
+                                              ),
+                                          ),
+                                      )
+                            }
+                            className="h-1.5"
+                        />
                     </div>
 
                     {/* Job Match */}
@@ -191,10 +211,29 @@ export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGri
                                 <span className="text-muted-foreground">{t("limitsCardMatch")}</span>
                             </div>
                             <span className="font-medium">
-                                {limits.jobMatch.used}/{limits.jobMatch.limit}
+                                {limits.isByok
+                                    ? t("limitsUnlimited")
+                                    : `${limits.jobMatch.remaining}/${limits.jobMatch.limit}`}
                             </span>
                         </div>
-                        <Progress value={(limits.jobMatch.used / limits.jobMatch.limit) * 100} className="h-1.5" />
+                        <Progress
+                            value={
+                                limits.isByok
+                                    ? 0
+                                    : Math.min(
+                                          100,
+                                          Math.max(
+                                              0,
+                                              Math.round(
+                                                  ((limits.jobMatch.limit - limits.jobMatch.remaining) /
+                                                      limits.jobMatch.limit) *
+                                                      100,
+                                              ),
+                                          ),
+                                      )
+                            }
+                            className="h-1.5"
+                        />
                     </div>
 
                     {/* Mock Interview */}
@@ -205,11 +244,27 @@ export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGri
                                 <span className="text-muted-foreground">{t("limitsCardInterview")}</span>
                             </div>
                             <span className="font-medium">
-                                {limits.mockInterview.used}/{limits.mockInterview.limit}
+                                {limits.isByok
+                                    ? t("limitsUnlimited")
+                                    : `${limits.mockInterview.remaining}/${limits.mockInterview.limit}`}
                             </span>
                         </div>
                         <Progress
-                            value={(limits.mockInterview.used / limits.mockInterview.limit) * 100}
+                            value={
+                                limits.isByok
+                                    ? 0
+                                    : Math.min(
+                                          100,
+                                          Math.max(
+                                              0,
+                                              Math.round(
+                                                  ((limits.mockInterview.limit - limits.mockInterview.remaining) /
+                                                      limits.mockInterview.limit) *
+                                                      100,
+                                              ),
+                                          ),
+                                      )
+                            }
                             className="h-1.5"
                         />
                     </div>
@@ -222,7 +277,7 @@ export function MetricsGrid({ latestResume, latestJobMatch, limits }: MetricsGri
                         })}
                         disabled
                     >
-                        {t("limitsCardCta")}
+                        {limits.isByok ? t("limitsByokActive") : t("limitsCardCta")}
                     </button>
                 </CardContent>
             </Card>

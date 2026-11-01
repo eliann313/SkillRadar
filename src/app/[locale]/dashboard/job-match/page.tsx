@@ -14,6 +14,7 @@ import { createJobMatchAction } from "@/features/job-match/application/job-match
 import { toast } from "sonner";
 import type { JobMatchAnalysis } from "@/features/job-match/domain/job-match.types";
 import { useTranslations } from "next-intl";
+import { cn } from "@/shared-kernel/utils";
 
 export default function JobMatchPage() {
     const t = useTranslations("JobMatch");
@@ -54,13 +55,12 @@ export default function JobMatchPage() {
 
     if (status === "loading") {
         return (
-            <div className="space-y-6">
-                <Skeleton className="h-8 w-48" />
-                <Skeleton className="h-4 w-96" />
-                <div className="grid gap-6 lg:grid-cols-2">
-                    <Skeleton className="h-[300px]" />
-                    <Skeleton className="h-[300px]" />
+            <div className="mx-auto max-w-2xl space-y-6">
+                <div className="space-y-2 text-center">
+                    <Skeleton className="mx-auto h-8 w-48" />
+                    <Skeleton className="mx-auto h-4 w-96 max-w-full" />
                 </div>
+                <Skeleton className="h-[320px] w-full rounded-xl" />
             </div>
         );
     }
@@ -120,13 +120,13 @@ export default function JobMatchPage() {
     };
 
     return (
-        <>
-            <div className="mb-8">
+        <div className={cn("mx-auto space-y-8 transition-all", match || isLoading ? "max-w-6xl" : "max-w-2xl")}>
+            <div className={cn("space-y-1.5", !match && !isLoading ? "text-center" : "text-left")}>
                 <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">{t("title")}</h1>
-                <p className="mt-1 text-sm text-muted-foreground">{t("description")}</p>
+                <p className="text-sm text-muted-foreground">{t("description")}</p>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className={cn("grid gap-6", match || isLoading ? "items-start lg:grid-cols-2" : "grid-cols-1")}>
                 <JobOfferInput
                     resumes={resumes}
                     onMatch={(resumeId, offer) => {
@@ -137,6 +137,6 @@ export default function JobMatchPage() {
 
                 {isLoading ? <MatchSkeleton /> : match ? <MatchScoreCard match={match} /> : null}
             </div>
-        </>
+        </div>
     );
 }

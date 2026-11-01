@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Star, ExternalLink } from "lucide-react";
 
@@ -16,17 +17,16 @@ interface RepoListProps {
 }
 
 export function RepoList({ repos }: RepoListProps) {
+    const t = useTranslations("Github");
     return (
         <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-md">
             <CardHeader>
-                <CardTitle className="text-lg">Proyectos Públicos</CardTitle>
-                <CardDescription>Repositorios analizados en el perfil</CardDescription>
+                <CardTitle className="text-lg">{t("reposTitle")}</CardTitle>
+                <CardDescription>{t("reposDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
                 {repos.length === 0 ? (
-                    <div className="text-center py-8 text-sm text-muted-foreground">
-                        No se encontraron repositorios públicos.
-                    </div>
+                    <div className="text-center py-8 text-sm text-muted-foreground">{t("noRepos")}</div>
                 ) : (
                     <div className="divide-y divide-border/40">
                         {repos.map((repo) => (
@@ -44,7 +44,7 @@ export function RepoList({ repos }: RepoListProps) {
                                         )}
                                     </div>
                                     <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-md">
-                                        {repo.description || "Sin descripción."}
+                                        {repo.description || t("noDescription")}
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-4 shrink-0 text-muted-foreground text-xs">

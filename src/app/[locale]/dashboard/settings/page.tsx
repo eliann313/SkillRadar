@@ -133,7 +133,11 @@ export default function SettingsPage() {
 
     const fetchKeysAndPrefs = useCallback(async () => {
         try {
-            const res = await getUserApiKeysStatusAction();
+            const [res, publicRes, usageRes] = await Promise.all([
+                getUserApiKeysStatusAction(),
+                getUserPublicProfileSettingsAction(),
+                getMyUsageAction(),
+            ]);
 
             if (res.success && res.data) {
                 const d = res.data;
@@ -186,7 +190,6 @@ export default function SettingsPage() {
             }
 
             // Cargar configuración de perfil público
-            const publicRes = await getUserPublicProfileSettingsAction();
             if (publicRes.success && publicRes.data) {
                 setPublicSettings({
                     isPublicProfile: publicRes.data.isPublicProfile,
@@ -197,7 +200,6 @@ export default function SettingsPage() {
                 });
             }
             // Cargar uso del plan
-            const usageRes = await getMyUsageAction();
             if (usageRes.success && usageRes.data) {
                 setUsage(usageRes.data);
             }

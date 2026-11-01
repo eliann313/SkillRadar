@@ -15,8 +15,11 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/shared-kernel/utils";
 import type { Notification } from "@prisma/client";
+import { useTranslations, useLocale } from "next-intl";
 
 export function NotificationBell() {
+    const t = useTranslations("Notifications");
+    const locale = useLocale();
     const router = useRouter();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -83,9 +86,9 @@ export function NotificationBell() {
 
         const res = await markAllAsReadAction();
         if (res.success) {
-            toast.success("Todas las notificaciones marcadas como leídas");
+            toast.success(t("allMarkedRead"));
         } else {
-            toast.error("Error al marcar las notificaciones");
+            toast.error(t("errorMarking"));
             void fetchNotifications(true);
         }
     };
@@ -96,7 +99,7 @@ export function NotificationBell() {
                 render={
                     <button
                         type="button"
-                        aria-label="Notificaciones"
+                        aria-label={t("title")}
                         className="relative rounded-full p-2 text-muted-foreground hover:bg-accent hover:text-foreground focus:outline-none transition-colors"
                     >
                         <Bell className="size-5" />
@@ -105,7 +108,7 @@ export function NotificationBell() {
                                 {unreadCount > 9 ? "9+" : unreadCount}
                             </Badge>
                         )}
-                        <span className="sr-only">Notificaciones</span>
+                        <span className="sr-only">{t("title")}</span>
                     </button>
                 }
             />
@@ -114,7 +117,7 @@ export function NotificationBell() {
                 className="w-80 p-0 shadow-lg border border-border bg-popover text-popover-foreground"
             >
                 <div className="flex items-center justify-between px-4 py-2.5 font-semibold text-sm border-b border-border bg-muted/20">
-                    <span>Notificaciones</span>
+                    <span>{t("title")}</span>
                     {unreadCount > 0 && (
                         <Button
                             variant="ghost"
@@ -124,16 +127,16 @@ export function NotificationBell() {
                             }}
                             className="h-auto text-xs px-2 py-1 text-primary hover:text-primary/80 hover:bg-transparent"
                         >
-                            Marcar leídas
+                            {t("markAllAsRead")}
                         </Button>
                     )}
                 </div>
 
                 <div className="max-h-72 overflow-y-auto divide-y divide-border">
                     {loading && notifications.length === 0 ? (
-                        <div className="p-4 text-center text-xs text-muted-foreground">Cargando...</div>
+                        <div className="p-4 text-center text-xs text-muted-foreground">{t("loading")}</div>
                     ) : notifications.length === 0 ? (
-                        <div className="p-6 text-center text-xs text-muted-foreground">No tienes notificaciones</div>
+                        <div className="p-6 text-center text-xs text-muted-foreground">{t("empty")}</div>
                     ) : (
                         notifications.map((notif) => (
                             <button
@@ -153,10 +156,13 @@ export function NotificationBell() {
                                             {notif.title}
                                         </span>
                                         <span className="text-[10px] text-muted-foreground">
-                                            {new Date(notif.createdAt).toLocaleDateString([], {
-                                                month: "short",
-                                                day: "numeric",
-                                            })}
+                                            {new Date(notif.createdAt).toLocaleDateString(
+                                                locale === "es" ? "es-ES" : "en-US",
+                                                {
+                                                    month: "short",
+                                                    day: "numeric",
+                                                },
+                                            )}
                                         </span>
                                     </div>
                                     <p className="text-muted-foreground leading-relaxed line-clamp-2">

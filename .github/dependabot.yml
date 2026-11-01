@@ -21,31 +21,16 @@ updates:
           prefix-development: "chore(dev-deps)"
           include: "scope"
       groups:
-          # Group all non-breaking Next.js / React updates
-          nextjs-ecosystem:
+          # Agrupa TODAS las actualizaciones de seguridad en una sola PR
+          security-updates:
+              applies-to: security-updates
               patterns:
-                  - "next"
-                  - "react"
-                  - "react-dom"
-                  - "@types/react*"
-              update-types:
-                  - "minor"
-                  - "patch"
-          # Group TypeScript tooling
-          typescript-tooling:
+                  - "*"
+          # Agrupa todas las dependencias regulares (minor y patch) para no saturar CI
+          all-dependencies:
+              applies-to: version-updates
               patterns:
-                  - "typescript"
-                  - "@typescript-eslint/*"
-                  - "ts-*"
-              update-types:
-                  - "minor"
-                  - "patch"
-          # Group linting/formatting
-          linting:
-              patterns:
-                  - "eslint*"
-                  - "prettier*"
-                  - "@eslint/*"
+                  - "*"
               update-types:
                   - "minor"
                   - "patch"
@@ -71,3 +56,7 @@ updates:
           - "github-actions"
       commit-message:
           prefix: "chore(actions)"
+      groups:
+          actions:
+              patterns:
+                  - "*"

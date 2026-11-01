@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Briefcase, Eye, Inbox, Kanban, Lock, Mail } from "lucide-react";
 import { Link } from "@/i18n/routing";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
     demoInboxRequests,
     demoPipelineColumns,
@@ -74,6 +74,7 @@ function DemoDisabledButton({ label }: { label: string }) {
 
 export function GuestPostingsPreview() {
     const t = useTranslations("Recruiter");
+    const locale = useLocale();
     return (
         <GuestDemoShell
             title={`${t("talentPoolTitle")} · ${t("jobPostingsFallbackTitle")}`}
@@ -89,7 +90,7 @@ export function GuestPostingsPreview() {
                                     {p.status}
                                 </Badge>
                                 <span className="text-[11px] text-muted-foreground">
-                                    {new Date(p.createdAt).toLocaleDateString()}
+                                    {new Date(p.createdAt).toLocaleDateString(locale === "es" ? "es-ES" : "en-US")}
                                 </span>
                             </div>
                             <CardTitle className="text-base leading-tight">{p.title}</CardTitle>

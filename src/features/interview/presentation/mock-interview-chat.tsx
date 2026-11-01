@@ -305,7 +305,12 @@ export function MockInterviewChat() {
     }
 
     return (
-        <Card className="flex h-[600px] flex-col border-border/50 bg-card/50 backdrop-blur-sm shadow-xl">
+        <Card
+            className={cn(
+                "flex flex-col border-border/50 bg-card/50 backdrop-blur-sm shadow-xl transition-all",
+                sessionId ? "h-[600px]" : "min-h-[480px] sm:h-[600px]",
+            )}
+        >
             <CardHeader className="shrink-0 border-b border-border flex flex-row items-center justify-between py-4">
                 <div>
                     <CardTitle className="flex items-center gap-2">
@@ -328,40 +333,44 @@ export function MockInterviewChat() {
 
             <CardContent className="flex flex-1 flex-col gap-4 overflow-hidden p-0">
                 {/* Scroll Area */}
-                <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+                <ScrollArea className="flex-1 p-3 sm:p-4" ref={scrollRef}>
                     {!sessionId ? (
-                        <div className="flex h-full flex-col items-center justify-center gap-5 py-16">
-                            <div className="flex size-16 items-center justify-center rounded-full bg-primary/10">
-                                <Sparkles className="size-8 text-primary animate-pulse" />
+                        <div className="flex min-h-full flex-col items-center justify-center gap-3.5 py-4 sm:gap-5 sm:py-10 md:py-14">
+                            <div className="flex size-12 sm:size-16 items-center justify-center rounded-full bg-primary/10">
+                                <Sparkles className="size-6 sm:size-8 text-primary animate-pulse" />
                             </div>
-                            <div className="text-center">
-                                <h3 className="font-semibold text-foreground">{t("readyQuestion")}</h3>
-                                <p className="mt-1 text-sm text-muted-foreground max-w-xs">{t("readyDescription")}</p>
+                            <div className="text-center px-2">
+                                <h3 className="font-semibold text-foreground text-sm sm:text-base">
+                                    {t("readyQuestion")}
+                                </h3>
+                                <p className="mt-1 text-xs sm:text-sm text-muted-foreground max-w-xs">
+                                    {t("readyDescription")}
+                                </p>
                             </div>
 
                             {/* 18.2: Mode Selector */}
-                            <div className="grid grid-cols-1 gap-3 w-full max-w-sm sm:grid-cols-3">
+                            <div className="grid grid-cols-1 gap-2.5 w-full max-w-sm sm:grid-cols-3 sm:gap-3">
                                 {(
                                     [
                                         {
                                             mode: "standard" as const,
                                             label: t("modeStandardLabel"),
                                             description: t("modeStandardDesc"),
-                                            icon: <Bot className="size-5 text-primary" />,
+                                            icon: <Bot className="size-5 shrink-0 text-primary" />,
                                             color: "border-primary/30 bg-primary/5",
                                         },
                                         {
                                             mode: "pressure" as const,
                                             label: t("modePressureLabel"),
                                             description: t("modePressureDesc"),
-                                            icon: <Flame className="size-5 text-orange-500" />,
+                                            icon: <Flame className="size-5 shrink-0 text-orange-500" />,
                                             color: "border-orange-500/30 bg-orange-500/5",
                                         },
                                         {
                                             mode: "recruiter_simulation" as const,
                                             label: t("modeRecruiterLabel"),
                                             description: t("modeRecruiterDesc"),
-                                            icon: <Users className="size-5 text-indigo-500" />,
+                                            icon: <Users className="size-5 shrink-0 text-indigo-500" />,
                                             color: "border-indigo-500/30 bg-indigo-500/5",
                                         },
                                     ] as const
@@ -371,7 +380,8 @@ export function MockInterviewChat() {
                                         id={`interview-mode-${mode}`}
                                         onClick={() => setInterviewMode(mode)}
                                         className={cn(
-                                            "flex flex-col items-center gap-2 rounded-xl border p-3 text-center transition-all cursor-pointer",
+                                            "flex items-center gap-3 rounded-xl border p-2.5 text-left transition-all cursor-pointer",
+                                            "sm:flex-col sm:items-center sm:text-center sm:gap-2 sm:p-3",
                                             color,
                                             interviewMode === mode
                                                 ? "ring-2 ring-primary/50 ring-offset-1 ring-offset-background"
@@ -379,17 +389,19 @@ export function MockInterviewChat() {
                                         )}
                                     >
                                         {icon}
-                                        <span className="text-xs font-semibold text-foreground">{label}</span>
-                                        <span className="text-[10px] text-muted-foreground leading-tight">
-                                            {description}
-                                        </span>
+                                        <div className="flex flex-col min-w-0 flex-1 sm:items-center">
+                                            <span className="text-xs font-semibold text-foreground">{label}</span>
+                                            <span className="text-[11px] sm:text-[10px] text-muted-foreground leading-tight">
+                                                {description}
+                                            </span>
+                                        </div>
                                     </button>
                                 ))}
                             </div>
 
                             <Button
                                 onClick={() => void startInterview()}
-                                className="gap-2 cursor-pointer"
+                                className="gap-2 cursor-pointer w-full max-w-xs sm:w-auto mt-1"
                                 disabled={isStarting}
                             >
                                 {isStarting ? (

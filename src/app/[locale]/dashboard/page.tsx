@@ -14,15 +14,11 @@ import { GuestRecruiterPreview } from "@/features/recruiter/presentation/guest-r
 import { RecruiterVerificationGate } from "@/features/recruiter/presentation/recruiter-verification-gate";
 import { redirect } from "next/navigation";
 import { db } from "@/infrastructure/db";
-import { getTranslations } from "next-intl/server";
-
-const DEFAULT_LIMITS = {
-    cvAnalysis: 5,
-    jobMatch: 3,
-    mockInterview: 2,
-};
+import { getTranslations, getLocale } from "next-intl/server";
+import { getUserQuotaUsage } from "@/infrastructure/rate-limit";
 
 export default async function DashboardPage() {
+    const locale = await getLocale();
     const session = await auth();
 
     if (!session?.user) {
@@ -171,49 +167,62 @@ export default async function DashboardPage() {
     // Formatear el historial para el gráfico (tras el Promise.all de abajo)
     const formatHistoricalScores = (history: Array<{ createdAt: Date; atsScore: number | null; fileName: string }>) =>
         history.map((r) => ({
-            date: new Date(r.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+            date: new Date(r.createdAt).toLocaleDateString(locale === "es" ? "es-ES" : "en-US", {
+                month: "short",
+                day: "numeric",
+            }),
             score: r.atsScore || 0,
             name: r.fileName,
         }));
 
-    // 4. Calcular el uso de límites del mes en curso
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
+    // 4. Calcular el uso de límites y cuotas reales
+    const userKeysPromise = db.user.findUnique({
+        where: { id: userId },
+        select: {
+            geminiApiKey: true,
+            groqApiKey: true,
+            openrouterApiKey: true,
+            openaiApiKey: true,
+            anthropicApiKey: true,
+        },
+    });
 
-    // Lecturas independientes en paralelo (Fase B): 7 queries de solo lectura.
-    const [
-        latestJobMatch,
-        resumesHistory,
-        cvMonthCount,
-        jobMatchMonthCount,
-        interviewMonthCount,
-        totalResumes,
-        totalMatches,
-    ] = await Promise.all([
+    const [latestJobMatch, resumesHistory, userKeys, userQuotas, totalResumes, totalMatches] = await Promise.all([
         latestJobMatchPromise,
         resumesHistoryPromise,
-        db.resume.count({
-            where: {
-                userId,
-                createdAt: { gte: startOfMonth },
-            },
-        }),
-        db.jobMatch.count({
-            where: {
-                userId,
-                createdAt: { gte: startOfMonth },
-            },
-        }),
-        db.interviewSession.count({
-            where: {
-                userId,
-                createdAt: { gte: startOfMonth },
-            },
-        }),
+        userKeysPromise,
+        getUserQuotaUsage(userId),
         db.resume.count({ where: { userId } }),
         db.jobMatch.count({ where: { userId } }),
     ]);
+
+    const isByok = !!(
+        userKeys?.geminiApiKey ||
+        userKeys?.groqApiKey ||
+        userKeys?.openrouterApiKey ||
+        userKeys?.openaiApiKey ||
+        userKeys?.anthropicApiKey
+    );
+
+    const cvQuota = userQuotas.find((q) => q.key === "cv-analysis");
+    const matchQuota = userQuotas.find((q) => q.key === "job-match");
+    const chatQuota = userQuotas.find((q) => q.key === "ai-chat");
+
+    const limits = {
+        isByok,
+        cvAnalysis: {
+            remaining: isByok ? 999 : (cvQuota?.remaining ?? 5),
+            limit: cvQuota?.limit ?? 5,
+        },
+        jobMatch: {
+            remaining: isByok ? 999 : (matchQuota?.remaining ?? 10),
+            limit: matchQuota?.limit ?? 10,
+        },
+        mockInterview: {
+            remaining: isByok ? 999 : (chatQuota?.remaining ?? 20),
+            limit: chatQuota?.limit ?? 20,
+        },
+    };
 
     // 5. Determinar la acción recomendada dinámicamente
     const t = await getTranslations("Dashboard");
@@ -243,12 +252,6 @@ export default async function DashboardPage() {
             ctaLink: "/dashboard/interview",
         };
     }
-
-    const limits = {
-        cvAnalysis: { used: cvMonthCount, limit: DEFAULT_LIMITS.cvAnalysis },
-        jobMatch: { used: jobMatchMonthCount, limit: DEFAULT_LIMITS.jobMatch },
-        mockInterview: { used: interviewMonthCount, limit: DEFAULT_LIMITS.mockInterview },
-    };
 
     // Consultar solicitudes de contacto pendientes (Doble Ciego)
     const contactRequests = await db.contactRequest.findMany({

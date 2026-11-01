@@ -20,8 +20,8 @@ export const PROVIDER_MODELS: Record<string, Array<{ id: string; name: string }>
     ],
     openai: [
         {
-            id: "gpt-6-sol",
-            name: "GPT-6 Sol (Flagship 2026 - trabajo complejo)",
+            id: "gpt-6.1-sol",
+            name: "GPT-6.1 Sol (Flagship 2026 - trabajo complejo)",
         },
         {
             id: "gpt-6-luna",
@@ -31,13 +31,20 @@ export const PROVIDER_MODELS: Record<string, Array<{ id: string; name: string }>
             id: "gpt-6-astra",
             name: "GPT-6 Astra (Máxima capacidad)",
         },
-        { id: "gpt-4o", name: "GPT-4o (Clásico multipropósito)" },
         { id: "custom", name: "➕ Ingresar ID personalizado..." },
     ],
     anthropic: [
         {
             id: "claude-opus-5-5",
             name: "Claude Opus 5.5 (Recomendado - agentes y código)",
+        },
+        {
+            id: "claude-sonnet-5.5",
+            name: "Claude Sonnet 5.5 (Equilibrio perfecto velocidad/inteligencia)",
+        },
+        {
+            id: "claude-haiku-5.5",
+            name: "Claude Haiku 5.5 (Velocidad extrema y bajo costo)",
         },
         {
             id: "claude-fable-5-1",
@@ -55,20 +62,20 @@ export const PROVIDER_MODELS: Record<string, Array<{ id: string; name: string }>
     ],
     groq: [
         {
-            id: "openai/gpt-oss-120b",
-            name: "GPT-OSS 120B (Recomendado Groq - agentes)",
+            id: "llama-3.3-70b-versatile",
+            name: "Llama 3.3 70B Versatile (Recomendado Groq - alta capacidad)",
         },
         {
-            id: "openai/gpt-oss-20b",
-            name: "GPT-OSS 20B (Ultra rápido, 1000 tps)",
+            id: "llama-3.1-8b-instant",
+            name: "Llama 3.1 8B Instant (Ultra rápido y eficiente)",
         },
         {
             id: "qwen/qwen3-32b",
             name: "Qwen3 32B (Rápido y capaz)",
         },
         {
-            id: "llama-3.3-70b-versatile",
-            name: "Llama 3.3 70B (Legacy, puede estar deshabilitado)",
+            id: "deepseek-r1-distill-llama-70b",
+            name: "DeepSeek R1 Distill Llama 70B (Razonamiento)",
         },
         { id: "custom", name: "➕ Ingresar ID personalizado..." },
     ],
@@ -78,20 +85,24 @@ export const PROVIDER_MODELS: Record<string, Array<{ id: string; name: string }>
             name: "OpenRouter Free (Router gratuito automático)",
         },
         {
+            id: "meta-llama/llama-3.3-70b-instruct:free",
+            name: "Llama 3.3 70B Instruct Free (Gratuito)",
+        },
+        {
+            id: "deepseek/deepseek-r1:free",
+            name: "DeepSeek R1 Free (Razonamiento gratuito)",
+        },
+        {
             id: "google/gemini-3.8-flash",
             name: "Gemini 3.8 Flash vía OpenRouter",
         },
         {
             id: "google/gemini-3.7-flash",
-            name: "Gemini 3.7 Flash (Pago)",
-        },
-        {
-            id: "openai/gpt-oss-120b:free",
-            name: "GPT-OSS 120B Free (Gratuito)",
+            name: "Gemini 3.7 Flash vía OpenRouter",
         },
         {
             id: "meta-llama/llama-3.3-70b-instruct",
-            name: "Llama 3.3 70B Instruct (Pago)",
+            name: "Llama 3.3 70B Instruct (Alta precisión)",
         },
         { id: "custom", name: "➕ Ingresar ID personalizado..." },
     ],

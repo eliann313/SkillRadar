@@ -57,26 +57,24 @@ export function SaveSearchAlert({
     };
 
     return (
-        <span className="ml-auto flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 w-full sm:w-auto sm:ml-auto">
             <Input
                 value={alertName}
                 onChange={(e) => setAlertName(e.target.value)}
                 placeholder={t("alertNamePh", { default: "Nombre de la alerta…" })}
-                className="h-7 w-40 text-xs"
+                className="h-7 flex-1 sm:w-40 text-xs min-w-0"
                 maxLength={60}
             />
             <Button
                 size="sm"
                 variant="outline"
-                className="h-7 text-xs"
+                className="h-7 text-xs shrink-0"
                 disabled={savingAlert}
                 onClick={() => void handleSaveAlert()}
-                title={t("alertSaveHint", {
-                    default: "Guardar filtros actuales y recibir avisos de nuevas ofertas",
-                })}
+                title={t("alertSaveHint", { default: "Guardar filtros actuales y recibir avisos de nuevas ofertas" })}
             >
                 {t("alertSave", { default: "Crear alerta" })}
             </Button>
-        </span>
+        </div>
     );
 }

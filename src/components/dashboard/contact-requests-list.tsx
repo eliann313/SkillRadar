@@ -13,6 +13,7 @@ import {
 import { createReportAction } from "@/features/jobs/application/jobs.use-cases";
 import { ContactThread } from "@/features/contact-thread/presentation/contact-thread.panel";
 import { toast } from "sonner";
+import { useLocale } from "next-intl";
 
 export interface RequestItem {
     id: string;
@@ -29,6 +30,7 @@ interface ContactRequestsListProps {
 }
 
 export function ContactRequestsList({ requests: initialRequests }: ContactRequestsListProps) {
+    const locale = useLocale();
     const [requests, setRequests] = useState<RequestItem[]>(initialRequests);
     const [actionId, setActionId] = useState<string | null>(null);
     const [reportingReqId, setReportingReqId] = useState<string | null>(null);
@@ -123,7 +125,7 @@ export function ContactRequestsList({ requests: initialRequests }: ContactReques
             <CardContent className="flex flex-col gap-4">
                 {requests.map((req) => {
                     const isBusy = actionId === req.id;
-                    const dateStr = new Date(req.createdAt).toLocaleDateString(undefined, {
+                    const dateStr = new Date(req.createdAt).toLocaleDateString(locale === "es" ? "es-ES" : "en-US", {
                         month: "short",
                         day: "numeric",
                         hour: "2-digit",

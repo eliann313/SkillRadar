@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { SentContactRequest } from "@/features/recruiter/application/recruiter.use-cases";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { cn } from "@/shared-kernel/utils";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Inbox } from "lucide-react";
@@ -21,6 +21,7 @@ interface RequestsClientPageProps {
 
 export function RequestsClientPage({ initial, renderThread }: RequestsClientPageProps) {
     const t = useTranslations("Inbox");
+    const locale = useLocale();
     const [filter, setFilter] = useState<(typeof STATUSES)[number]>("all");
     const [openId, setOpenId] = useState<string | null>(null);
 
@@ -71,7 +72,11 @@ export function RequestsClientPage({ initial, renderThread }: RequestsClientPage
                             <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                                 <span>
                                     {r.messageCount} {t("messages")}
-                                    {r.lastMessageAt ? ` · ${new Date(r.lastMessageAt).toLocaleDateString()}` : ""}
+                                    {r.lastMessageAt
+                                        ? ` · ${new Date(r.lastMessageAt).toLocaleDateString(
+                                              locale === "es" ? "es-ES" : "en-US",
+                                          )}`
+                                        : ""}
                                 </span>
                                 <Button size="sm" variant="outline" onClick={() => setOpenId(r.id)}>
                                     {t("open")}

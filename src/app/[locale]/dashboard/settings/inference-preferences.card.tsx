@@ -96,7 +96,7 @@ export function InferencePreferencesCard({
                         required
                     />
                     <p className="text-[10px] text-muted-foreground mt-0.5 leading-normal">
-                        {t("customModelHelpPrefix")} <code>gpt-6-sol</code> {t("customModelHelpOr")}{" "}
+                        {t("customModelHelpPrefix")} <code>gpt-6.1-sol</code> {t("customModelHelpOr")}{" "}
                         <code>gpt-6-luna</code>
                     </p>
                 </div>

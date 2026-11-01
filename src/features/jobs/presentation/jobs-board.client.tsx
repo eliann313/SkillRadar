@@ -191,20 +191,20 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
 
             {/* Barra de Filtros */}
             <Card className="border border-border bg-card shadow-xs">
-                <CardContent className="pt-6 grid gap-4 sm:grid-cols-5">
-                    <div className="relative col-span-2">
+                <CardContent className="pt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+                    <div className="relative col-span-1 sm:col-span-2 lg:col-span-2">
                         <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
                         <Input
                             placeholder={t("searchPlaceholder")}
-                            className="pl-9"
+                            className="pl-9 text-xs sm:text-sm h-9"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
 
-                    <div>
+                    <div className="col-span-1 min-w-0">
                         <select
-                            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
+                            className="flex h-9 w-full min-w-0 rounded-md border border-input bg-background px-2.5 sm:px-3 py-1 text-xs sm:text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
                             value={field}
                             onChange={(e) => setField(e.target.value)}
                             aria-label={t("fieldFilter", { default: "Rubro" })}
@@ -219,9 +219,9 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                         </select>
                     </div>
 
-                    <div>
+                    <div className="col-span-1 min-w-0">
                         <select
-                            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
+                            className="flex h-9 w-full min-w-0 rounded-md border border-input bg-background px-2.5 sm:px-3 py-1 text-xs sm:text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
                             value={remoteType}
                             onChange={(e) => setRemoteType(e.target.value)}
                         >
@@ -232,9 +232,9 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                         </select>
                     </div>
 
-                    <div>
+                    <div className="col-span-1 min-w-0">
                         <select
-                            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
+                            className="flex h-9 w-full min-w-0 rounded-md border border-input bg-background px-2.5 sm:px-3 py-1 text-xs sm:text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
                             value={seniorityLevel}
                             onChange={(e) => setSeniorityLevel(e.target.value)}
                         >
@@ -246,36 +246,38 @@ export function JobsClientPage({ initialJobs }: JobsClientPageProps) {
                         </select>
                     </div>
                 </CardContent>
-                <CardContent className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-0 text-xs text-muted-foreground">
-                    <label className="flex items-center gap-1.5">
-                        {t("sortBy", { default: "Orden:" })}
-                        <select
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value as "match" | "newest")}
-                            className="rounded-md border border-input bg-background px-2 py-1 text-xs"
-                        >
-                            <option value="match">{t("sortMatch", { default: "Mayor afinidad" })}</option>
-                            <option value="newest">{t("sortNewest", { default: "Más recientes" })}</option>
-                        </select>
-                    </label>
-                    <label className="flex cursor-pointer items-center gap-1.5">
-                        <input
-                            type="checkbox"
-                            className="size-3.5 accent-primary"
-                            checked={onlyHighMatch}
-                            onChange={(e) => setOnlyHighMatch(e.target.checked)}
-                        />
-                        {t("onlyHighMatch", { default: "Solo ≥75% afinidad" })}
-                    </label>
-                    <label className="flex cursor-pointer items-center gap-1.5">
-                        <input
-                            type="checkbox"
-                            className="size-3.5 accent-primary"
-                            checked={hideApplied}
-                            onChange={(e) => setHideApplied(e.target.checked)}
-                        />
-                        {t("hideApplied", { default: "Ocultar aplicadas" })}
-                    </label>
+                <CardContent className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3 pt-0 text-xs text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                        <label className="flex items-center gap-1.5">
+                            {t("sortBy", { default: "Orden:" })}
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value as "match" | "newest")}
+                                className="rounded-md border border-input bg-background px-2 py-1 text-xs"
+                            >
+                                <option value="match">{t("sortMatch", { default: "Mayor afinidad" })}</option>
+                                <option value="newest">{t("sortNewest", { default: "Más recientes" })}</option>
+                            </select>
+                        </label>
+                        <label className="flex cursor-pointer items-center gap-1.5">
+                            <input
+                                type="checkbox"
+                                className="size-3.5 accent-primary"
+                                checked={onlyHighMatch}
+                                onChange={(e) => setOnlyHighMatch(e.target.checked)}
+                            />
+                            {t("onlyHighMatch", { default: "Solo ≥75% afinidad" })}
+                        </label>
+                        <label className="flex cursor-pointer items-center gap-1.5">
+                            <input
+                                type="checkbox"
+                                className="size-3.5 accent-primary"
+                                checked={hideApplied}
+                                onChange={(e) => setHideApplied(e.target.checked)}
+                            />
+                            {t("hideApplied", { default: "Ocultar aplicadas" })}
+                        </label>
+                    </div>
                     <SaveSearchAlert
                         search={search}
                         remoteType={remoteType}

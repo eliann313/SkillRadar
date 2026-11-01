@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
 interface ExportReportButtonProps {
     resumes: Array<{ fileName: string; atsScore: number | null; createdAt: string }>;
@@ -14,6 +14,7 @@ interface ExportReportButtonProps {
 
 export function ExportReportButton({ resumes, averageScore, totalMatches, closedSkills }: ExportReportButtonProps) {
     const t = useTranslations("Progress");
+    const locale = useLocale();
     const [exporting, setExporting] = useState(false);
 
     const handleExport = () => {
@@ -28,7 +29,8 @@ export function ExportReportButton({ resumes, averageScore, totalMatches, closed
                 ``,
                 `## ${t("versionsTitle")}`,
                 ...resumes.map(
-                    (r) => `- ${r.fileName}: ${r.atsScore ?? "—"}/100 (${new Date(r.createdAt).toLocaleDateString()})`,
+                    (r) =>
+                        `- ${r.fileName}: ${r.atsScore ?? "—"}/100 (${new Date(r.createdAt).toLocaleDateString(locale === "es" ? "es-ES" : "en-US")})`,
                 ),
             ];
             const blob = new Blob([lines.join("\n")], { type: "text/markdown;charset=utf-8" });

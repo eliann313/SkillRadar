@@ -17,6 +17,7 @@ import { cn } from "@/shared-kernel/utils";
 import { CandidateQuestionsSection } from "./candidate-questions.section";
 import { CandidatePitchSection } from "./candidate-pitch.section";
 import { CandidateOutreachSection } from "./candidate-outreach.section";
+import { useLocale } from "next-intl";
 
 interface CandidateDetailModalProps {
     isOpen: boolean;
@@ -32,6 +33,7 @@ interface CandidateDetailModalProps {
  * replicando el reset-on-close del modal monolítico original.
  */
 export function CandidateDetailModal({ isOpen, onOpenChange, candidate, jobDescription }: CandidateDetailModalProps) {
+    const locale = useLocale();
     if (!candidate) return null;
 
     const isAccepted = candidate.contactStatus === "accepted";
@@ -95,7 +97,7 @@ export function CandidateDetailModal({ isOpen, onOpenChange, candidate, jobDescr
                         <div className="text-right flex flex-col gap-0.5">
                             <span className="text-xs text-muted-foreground">Última Actividad</span>
                             <span className="text-xs font-medium text-foreground">
-                                {new Date(candidate.lastActive).toLocaleDateString()}
+                                {new Date(candidate.lastActive).toLocaleDateString(locale === "es" ? "es-ES" : "en-US")}
                             </span>
                         </div>
                     </div>

@@ -2,6 +2,7 @@
 import { logger } from "@/infrastructure/logger";
 
 import { useEffect, useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -23,6 +24,8 @@ const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export default function LinkedinAuditPage() {
+    const t = useTranslations("LinkedInAudit");
+    const locale = useLocale();
     const [profileText, setProfileText] = useState("");
     const [auditResult, setAuditResult] = useState<LinkedinAuditResult | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -38,7 +41,7 @@ export default function LinkedinAuditPage() {
 
     const handleRunAudit = async () => {
         if (!profileText.trim()) {
-            toast.error("Por favor, ingresa el texto de tu perfil de LinkedIn para auditar.");
+            toast.error(t("emptyInputError"));
             return;
         }
 
@@ -47,18 +50,18 @@ export default function LinkedinAuditPage() {
             const result = await auditLinkedinProfileAction(profileText);
             if (result.success) {
                 setAuditResult(result.data);
-                toast.success("¡Auditoría de perfil completada con éxito!");
+                toast.success(t("auditSuccess"));
                 getLinkedinAuditHistoryAction()
                     .then((res) => {
                         if (res.success) setHistory(res.data);
                     })
                     .catch(() => undefined);
             } else {
-                toast.error(result.error || "Error al realizar la auditoría.");
+                toast.error(result.error || t("auditError"));
             }
         } catch (e) {
             logger.error(e);
-            toast.error("Error inesperado al conectar con el servicio de auditoría.");
+            toast.error(t("networkError"));
         } finally {
             setIsAnalyzing(false);
         }
@@ -74,15 +77,12 @@ export default function LinkedinAuditPage() {
     return (
         <div className="flex flex-col gap-6 w-full max-w-5xl mx-auto">
             {/* Header */}
-            <div className="flex flex-col gap-1">
+            <div className={cn("flex flex-col gap-1", !auditResult && "text-center items-center")}>
                 <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl flex items-center gap-2">
                     <LinkedinIcon className="size-8 text-primary fill-primary/10" />
-                    LinkedIn Profile Auditor
+                    {t("title")}
                 </h1>
-                <p className="text-sm text-muted-foreground">
-                    Audita el SEO de tu perfil de LinkedIn. Descubre cómo te ven los reclutadores y algoritmos de
-                    búsqueda.
-                </p>
+                <p className="text-sm text-muted-foreground max-w-xl">{t("subtitle")}</p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-12 items-start">
@@ -92,13 +92,14 @@ export default function LinkedinAuditPage() {
                             <CardHeader className="pb-2">
                                 <CardTitle className="flex items-center gap-2 text-sm">
                                     <History className="size-4 text-primary" />
-                                    Historial (antes / después)
+                                    {t("historyTitle")}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="flex flex-wrap gap-2">
                                 {history.map((h) => (
                                     <Badge key={h.id} variant="outline" className="gap-1.5 text-[11px]">
-                                        {new Date(h.createdAt).toLocaleDateString()} · SEO {h.seo}%
+                                        {new Date(h.createdAt).toLocaleDateString(locale === "es" ? "es-ES" : "en-US")}{" "}
+                                        · SEO {h.seo}%
                                     </Badge>
                                 ))}
                             </CardContent>
@@ -109,20 +110,17 @@ export default function LinkedinAuditPage() {
                 <div
                     className={cn(
                         "md:col-span-5 space-y-4",
-                        auditResult ? "md:col-span-5" : "md:col-span-12 max-w-3xl mx-auto w-full",
+                        auditResult ? "md:col-span-5" : "md:col-span-12 max-w-2xl mx-auto w-full",
                     )}
                 >
                     <Card className="border-border bg-card">
                         <CardHeader>
-                            <CardTitle className="text-base font-semibold">Pega tu Perfil de LinkedIn</CardTitle>
-                            <CardDescription>
-                                Copia y pega las secciones clave de tu perfil (Titular, Acerca de, Experiencia) para ser
-                                auditado por nuestra IA.
-                            </CardDescription>
+                            <CardTitle className="text-base font-semibold">{t("inputCardTitle")}</CardTitle>
+                            <CardDescription>{t("inputCardDesc")}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <Textarea
-                                placeholder="Pega el texto aquí... (Ej: Titular: Software Engineer | Acerca de: Desarrollador apasionado...)"
+                                placeholder={t("inputPlaceholder")}
                                 value={profileText}
                                 onChange={(e) => setProfileText(e.target.value)}
                                 className="min-h-[220px] bg-background border-border text-sm"
@@ -138,12 +136,12 @@ export default function LinkedinAuditPage() {
                                 {isAnalyzing ? (
                                     <>
                                         <div className="size-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                                        Analizando perfil...
+                                        {t("analyzing")}
                                     </>
                                 ) : (
                                     <>
                                         <Sparkles className="size-4" />
-                                        Auditar Perfil de LinkedIn
+                                        {t("submitBtn")}
                                     </>
                                 )}
                             </Button>
@@ -159,7 +157,7 @@ export default function LinkedinAuditPage() {
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-base font-semibold flex items-center gap-2">
                                     <TrendingUp className="size-5 text-primary" />
-                                    Resumen del Score de SEO
+                                    {t("scoreSummaryTitle")}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="flex flex-col sm:flex-row items-center justify-around gap-6 py-4">
@@ -192,7 +190,7 @@ export default function LinkedinAuditPage() {
                                             {auditResult.seoScore}%
                                         </span>
                                         <span className="text-[9px] font-bold text-muted-foreground uppercase">
-                                            SEO Score
+                                            {t("seoScoreLabel")}
                                         </span>
                                     </div>
                                 </div>
@@ -200,7 +198,7 @@ export default function LinkedinAuditPage() {
                                 {/* Component scores list */}
                                 <div className="space-y-2.5 w-full sm:w-1/2">
                                     <div className="flex justify-between items-center text-xs">
-                                        <span className="text-muted-foreground">Titular (Headline)</span>
+                                        <span className="text-muted-foreground">{t("headlineLabel")}</span>
                                         <span className="font-bold text-foreground">{auditResult.headlineScore}%</span>
                                     </div>
                                     <div className="w-full bg-muted rounded-full h-1.5">
@@ -211,7 +209,7 @@ export default function LinkedinAuditPage() {
                                     </div>
 
                                     <div className="flex justify-between items-center text-xs">
-                                        <span className="text-muted-foreground">Acerca de (About)</span>
+                                        <span className="text-muted-foreground">{t("aboutLabel")}</span>
                                         <span className="font-bold text-foreground">{auditResult.aboutScore}%</span>
                                     </div>
                                     <div className="w-full bg-muted rounded-full h-1.5">
@@ -222,7 +220,7 @@ export default function LinkedinAuditPage() {
                                     </div>
 
                                     <div className="flex justify-between items-center text-xs">
-                                        <span className="text-muted-foreground">Experiencia</span>
+                                        <span className="text-muted-foreground">{t("experienceLabel")}</span>
                                         <span className="font-bold text-foreground">
                                             {auditResult.experienceScore}%
                                         </span>
@@ -240,7 +238,7 @@ export default function LinkedinAuditPage() {
                         {/* Suggestions and Improvements */}
                         <div className="space-y-4">
                             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                                Mejoras de Redacción de Impacto
+                                {t("suggestionsTitle")}
                             </h3>
                             {auditResult.suggestions.map((s) => (
                                 <Card key={s.section} className="border-border bg-card">
@@ -253,14 +251,16 @@ export default function LinkedinAuditPage() {
                                                 variant="outline"
                                                 className={cn("text-[10px] px-1.5 py-0.5", getScoreColor(s.score))}
                                             >
-                                                Score: {s.score}%
+                                                {t("scoreBadge", { score: s.score })}
                                             </Badge>
                                         </div>
                                     </CardHeader>
                                     <CardContent className="text-xs space-y-3">
                                         <p className="text-muted-foreground leading-relaxed">{s.feedback}</p>
                                         <div className="p-3 rounded-lg border border-primary/10 bg-primary/5 text-primary-foreground font-sans">
-                                            <p className="font-semibold text-primary mb-1">Propuesta Recomendada:</p>
+                                            <p className="font-semibold text-primary mb-1">
+                                                {t("recommendedProposal")}
+                                            </p>
                                             <p className="leading-relaxed text-foreground/90 font-medium italic">
                                                 &ldquo;{s.improvedExample}&rdquo;
                                             </p>
@@ -273,11 +273,8 @@ export default function LinkedinAuditPage() {
                         {/* SEO Checklists */}
                         <Card className="border-border bg-card">
                             <CardHeader>
-                                <CardTitle className="text-sm font-semibold">SEO Checklist de Visibilidad</CardTitle>
-                                <CardDescription className="text-xs">
-                                    Pautas esenciales que determinan cómo rankea tu perfil ante las búsquedas de
-                                    recruiters técnicos.
-                                </CardDescription>
+                                <CardTitle className="text-sm font-semibold">{t("checklistTitle")}</CardTitle>
+                                <CardDescription className="text-xs">{t("checklistDesc")}</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-3">
                                 {auditResult.checklist.map((item) => (
@@ -294,7 +291,7 @@ export default function LinkedinAuditPage() {
                                             <p className="font-semibold text-foreground">{item.item}</p>
                                             <p className="text-muted-foreground">
                                                 <span className="text-[10px] uppercase font-bold text-primary mr-1">
-                                                    Impacto:
+                                                    {t("impactLabel")}
                                                 </span>{" "}
                                                 {item.impact}
                                             </p>

@@ -5,7 +5,7 @@ import { auth } from "@/infrastructure/auth";
 import { db } from "@/infrastructure/db";
 import { encrypt, API_KEY_PRESET_PLACEHOLDER } from "@/infrastructure/crypto";
 import { getUserQuotaUsage } from "@/infrastructure/rate-limit";
-import { FREE_QUOTAS, getPlanId } from "@/shared-kernel/plans";
+import { getPlanId, getQuotasForRole } from "@/shared-kernel/plans";
 import { revalidatePath } from "next/cache";
 import { isGuestSession } from "@/infrastructure/guest-guard";
 
@@ -190,12 +190,15 @@ export async function getMyUsageAction() {
             return { success: false, error: "No autorizado. Inicie sesión." };
         }
 
+        const roleQuotas = getQuotasForRole(session.user.role);
+        const roleKeys = new Set(roleQuotas.map((q) => q.key));
+
         if (isGuestSession(session)) {
             return {
                 success: true,
                 data: {
                     plan: "free" as const,
-                    quotas: FREE_QUOTAS.map((q) => ({
+                    quotas: roleQuotas.map((q) => ({
                         key: q.key,
                         limit: q.limit,
                         remaining: q.limit,
@@ -233,7 +236,7 @@ export async function getMyUsageAction() {
                 success: true,
                 data: {
                     plan,
-                    quotas: FREE_QUOTAS.map((q) => ({
+                    quotas: roleQuotas.map((q) => ({
                         key: q.key,
                         limit: q.limit,
                         remaining: q.limit,
@@ -244,7 +247,8 @@ export async function getMyUsageAction() {
             };
         }
 
-        const quotas = await getUserQuotaUsage(session.user.id);
+        const allQuotas = await getUserQuotaUsage(session.user.id);
+        const quotas = allQuotas.filter((q) => roleKeys.has(q.key as (typeof roleQuotas)[number]["key"]));
         return { success: true, data: { plan, quotas } };
     } catch (error: unknown) {
         const errMessage = error instanceof Error ? error.message : "Error al obtener el uso del plan.";
