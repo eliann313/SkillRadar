@@ -102,12 +102,12 @@ export function PublicProfileShareCard({ publicProfile }: PublicProfileShareCard
                         <div className="space-y-4">
                             {/* URL Pública */}
                             <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                                <div className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
                                     <Globe className="size-3.5 text-primary" />
                                     <span>
                                         {t("publicProfileUrlLabel", { default: "Enlace a tu perfil público:" })}
                                     </span>
-                                </label>
+                                </div>
                                 <div className="rounded-lg border border-border/50 bg-muted/20 p-2.5 flex items-center justify-between gap-2">
                                     <span
                                         className="font-mono text-xs text-foreground/90 truncate"
