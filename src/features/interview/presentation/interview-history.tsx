@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
     getInterviewHistoryAction,
     type InterviewHistoryItem,
@@ -11,6 +11,7 @@ import {
 
 export function InterviewHistory() {
     const t = useTranslations("MockInterview");
+    const locale = useLocale();
     const [items, setItems] = useState<InterviewHistoryItem[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -44,7 +45,9 @@ export function InterviewHistory() {
                         key={item.id}
                         className="flex items-center gap-3 rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-xs"
                     >
-                        <span className="text-muted-foreground">{new Date(item.createdAt).toLocaleDateString()}</span>
+                        <span className="text-muted-foreground">
+                            {new Date(item.createdAt).toLocaleDateString(locale === "es" ? "es-ES" : "en-US")}
+                        </span>
                         {item.company ? <span className="font-semibold text-foreground">{item.company}</span> : null}
                         {item.mode ? (
                             <Badge variant="outline" className="text-[10px] capitalize">

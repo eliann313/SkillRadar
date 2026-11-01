@@ -69,11 +69,11 @@ export function buildDemoJobMatch(t: (key: string) => string): JobMatch {
         actionPlan: [
             {
                 skill: "CI/CD",
-                steps: ["Lee la doc de GitHub Actions", "Agrega un workflow de test+lint", "Conecta deploy automático"],
+                steps: [t("demoMatchPlanCicdStep1"), t("demoMatchPlanCicdStep2"), t("demoMatchPlanCicdStep3")],
             },
             {
                 skill: "Testing",
-                steps: ["Instala Vitest", "Cubre utils críticos", "Agrega badge de cobertura al README"],
+                steps: [t("demoMatchPlanTestingStep1"), t("demoMatchPlanTestingStep2"), t("demoMatchPlanTestingStep3")],
             },
         ],
     };

@@ -1,11 +1,4 @@
-/**
- * Modelo de planes (Fase 5): formaliza en código lo que ya existe implícito.
- * - `free`: cuota del sistema vía rate-limiters (24h por defecto).
- * - `byok`: el usuario aporta sus claves (bypass 999 en check*RateLimit).
- *
- * Sin migración de schema: el plan se deriva de `hasApiKeys` y las cuotas
- * espejan las constantes de `@/infrastructure/rate-limit`.
- */
+import type { UserRole } from "./types";
 
 export type PlanId = "free" | "byok";
 
@@ -40,4 +33,22 @@ export const FREE_QUOTAS: readonly PlanQuota[] = [
 
 export function getPlanId(hasApiKeys: boolean): PlanId {
     return hasApiKeys ? "byok" : "free";
+}
+
+const DEVELOPER_QUOTA_KEYS: ReadonlyArray<PlanQuota["key"]> = [
+    "cv-analysis",
+    "job-match",
+    "github-analysis",
+    "ai-chat",
+    "job-applications",
+    "writes",
+];
+
+const RECRUITER_QUOTA_KEYS: ReadonlyArray<PlanQuota["key"]> = ["ai-sourcing", "job-postings", "ai-chat", "writes"];
+
+export function getQuotasForRole(role?: UserRole | string | null): readonly PlanQuota[] {
+    if (role === "recruiter") {
+        return FREE_QUOTAS.filter((q) => RECRUITER_QUOTA_KEYS.includes(q.key));
+    }
+    return FREE_QUOTAS.filter((q) => DEVELOPER_QUOTA_KEYS.includes(q.key));
 }

@@ -2,6 +2,7 @@
 
 import { auth } from "@/infrastructure/auth";
 import { db } from "@/infrastructure/db";
+import { logger } from "@/infrastructure/logger";
 import type { ActionResult } from "@/shared-kernel/action-result";
 import { z } from "zod";
 
@@ -28,57 +29,73 @@ async function requireUser() {
 export async function listSavedSearchesAction(
     scope: "talent_pool" | "job_board",
 ): Promise<ActionResult<SavedSearchDTO[]>> {
-    const session = await requireUser();
-    if (!session) return { success: false, error: "No autorizado." };
-    const items = await db.savedSearch.findMany({
-        where: { userId: session.user.id, scope },
-        orderBy: { createdAt: "desc" },
-    });
-    return {
-        success: true,
-        data: items.map((i) => ({
-            id: i.id,
-            name: i.name,
-            scope: i.scope,
-            filters: (i.filters ?? {}) as Record<string, unknown>,
-            createdAt: i.createdAt.toISOString(),
-        })),
-    };
+    try {
+        const session = await requireUser();
+        if (!session) return { success: false, error: "No autorizado." };
+        const items = await db.savedSearch.findMany({
+            where: { userId: session.user.id, scope },
+            orderBy: { createdAt: "desc" },
+        });
+        return {
+            success: true,
+            data: items.map((i) => ({
+                id: i.id,
+                name: i.name,
+                scope: i.scope,
+                filters: (i.filters ?? {}) as Record<string, unknown>,
+                createdAt: i.createdAt.toISOString(),
+            })),
+        };
+    } catch (err: unknown) {
+        logger.error("[listSavedSearchesAction] Error:", err);
+        return { success: false, error: "Error al listar las alertas guardadas." };
+    }
 }
 
 export async function saveSearchAction(input: z.infer<typeof saveSchema>): Promise<ActionResult<SavedSearchDTO>> {
-    const session = await requireUser();
-    if (!session) return { success: false, error: "No autorizado." };
-    const { checkWriteRateLimit } = await import("@/infrastructure/rate-limit");
-    if (!(await checkWriteRateLimit(`user:${session.user.id}`)).success) {
-        return { success: false, error: "Límite diario de escritura alcanzado." };
+    try {
+        const session = await requireUser();
+        if (!session) return { success: false, error: "No autorizado. Inicia sesión para guardar alertas." };
+        const { checkWriteRateLimit } = await import("@/infrastructure/rate-limit");
+        if (!(await checkWriteRateLimit(`user:${session.user.id}`)).success) {
+            return { success: false, error: "Límite diario de escritura alcanzado." };
+        }
+        const parsed = saveSchema.safeParse(input);
+        if (!parsed.success) return { success: false, error: "Datos inválidos." };
+        const created = await db.savedSearch.create({
+            data: {
+                userId: session.user.id,
+                name: parsed.data.name.trim(),
+                scope: parsed.data.scope,
+                filters: parsed.data.filters as object,
+            },
+        });
+        return {
+            success: true,
+            data: {
+                id: created.id,
+                name: created.name,
+                scope: created.scope,
+                filters: parsed.data.filters,
+                createdAt: created.createdAt.toISOString(),
+            },
+        };
+    } catch (err: unknown) {
+        logger.error("[saveSearchAction] Error:", err);
+        const message = err instanceof Error ? err.message : "Error inesperado al guardar la alerta.";
+        return { success: false, error: message };
     }
-    const parsed = saveSchema.safeParse(input);
-    if (!parsed.success) return { success: false, error: "Datos inválidos." };
-    const created = await db.savedSearch.create({
-        data: {
-            userId: session.user.id,
-            name: parsed.data.name.trim(),
-            scope: parsed.data.scope,
-            filters: parsed.data.filters as object,
-        },
-    });
-    return {
-        success: true,
-        data: {
-            id: created.id,
-            name: created.name,
-            scope: created.scope,
-            filters: parsed.data.filters,
-            createdAt: created.createdAt.toISOString(),
-        },
-    };
 }
 
 export async function deleteSavedSearchAction(id: string): Promise<ActionResult<boolean>> {
-    if (!z.string().cuid().safeParse(id).success) return { success: false, error: "No autorizado." };
-    const session = await requireUser();
-    if (!session) return { success: false, error: "No autorizado." };
-    await db.savedSearch.deleteMany({ where: { id, userId: session.user.id } });
-    return { success: true, data: true };
+    try {
+        if (!z.string().cuid().safeParse(id).success) return { success: false, error: "No autorizado." };
+        const session = await requireUser();
+        if (!session) return { success: false, error: "No autorizado." };
+        await db.savedSearch.deleteMany({ where: { id, userId: session.user.id } });
+        return { success: true, data: true };
+    } catch (err: unknown) {
+        logger.error("[deleteSavedSearchAction] Error:", err);
+        return { success: false, error: "Error al eliminar la alerta guardada." };
+    }
 }

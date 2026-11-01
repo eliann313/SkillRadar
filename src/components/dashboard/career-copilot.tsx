@@ -13,6 +13,7 @@ import { Bot, X, MessageCircle, Send, Loader2, Minimize2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { getUserApiKeysStatusAction } from "@/app/[locale]/dashboard/settings/actions";
+import { PROVIDER_MODELS } from "@/infrastructure/ai/models";
 
 export function CareerCopilot() {
     const t = useTranslations("CareerCopilot");
@@ -175,18 +176,18 @@ export function CareerCopilot() {
                         <>
                             {/* Model Selector Bar */}
                             <div className="flex items-center justify-between border-b border-border/20 bg-muted/40 px-4 py-2 text-[11px] text-muted-foreground shrink-0 select-none">
-                                <span className="font-medium tracking-wide">MODEL:</span>
+                                <span className="font-medium tracking-wide">{t("modelLabel")}</span>
                                 <div className="flex items-center gap-2">
                                     <select
                                         value={provider}
                                         onChange={(e) => {
                                             const newProvider = e.target.value;
                                             setProvider(newProvider);
-                                            if (newProvider === "gemini") setModel("gemini-3.8-flash");
-                                            else if (newProvider === "groq") setModel("openai/gpt-oss-120b");
-                                            else if (newProvider === "openrouter") setModel("google/gemini-3.8-flash");
-                                            else if (newProvider === "openai") setModel("gpt-6-sol");
-                                            else if (newProvider === "anthropic") setModel("claude-opus-5-5");
+                                            const available =
+                                                PROVIDER_MODELS[newProvider]?.filter((m) => m.id !== "custom") || [];
+                                            if (available.length > 0) {
+                                                setModel(available[0].id);
+                                            }
                                         }}
                                         className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none font-bold text-foreground text-[11px] cursor-pointer hover:text-primary transition-colors pr-1"
                                     >
@@ -229,131 +230,17 @@ export function CareerCopilot() {
                                         onChange={(e) => setModel(e.target.value)}
                                         className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-[11px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer max-w-[150px] truncate pr-1"
                                     >
-                                        {provider === "gemini" && (
-                                            <>
+                                        {(PROVIDER_MODELS[provider] || [])
+                                            .filter((m) => m.id !== "custom")
+                                            .map((m) => (
                                                 <option
-                                                    value="gemini-3.8-flash"
+                                                    key={m.id}
+                                                    value={m.id}
                                                     className="bg-popover text-popover-foreground"
                                                 >
-                                                    Gemini 3.8 Flash
+                                                    {m.name.replace(/\s*\(.*?\)/g, "")}
                                                 </option>
-                                                <option
-                                                    value="gemini-3.7-flash"
-                                                    className="bg-popover text-popover-foreground"
-                                                >
-                                                    Gemini 3.7 Flash
-                                                </option>
-                                                <option
-                                                    value="gemini-3.5-flash-lite"
-                                                    className="bg-popover text-popover-foreground"
-                                                >
-                                                    Gemini 3.5 Flash-Lite
-                                                </option>
-                                                <option
-                                                    value="gemini-3.1-pro-preview"
-                                                    className="bg-popover text-popover-foreground"
-                                                >
-                                                    Gemini 3.1 Pro Preview
-                                                </option>
-                                            </>
-                                        )}
-                                        {provider === "groq" && (
-                                            <>
-                                                <option
-                                                    value="openai/gpt-oss-120b"
-                                                    className="bg-popover text-popover-foreground"
-                                                >
-                                                    GPT-OSS 120B
-                                                </option>
-                                                <option
-                                                    value="openai/gpt-oss-20b"
-                                                    className="bg-popover text-popover-foreground"
-                                                >
-                                                    GPT-OSS 20B
-                                                </option>
-                                                <option
-                                                    value="qwen/qwen3-32b"
-                                                    className="bg-popover text-popover-foreground"
-                                                >
-                                                    Qwen3 32B
-                                                </option>
-                                            </>
-                                        )}
-                                        {provider === "openrouter" && (
-                                            <>
-                                                <option
-                                                    value="openrouter/free"
-                                                    className="bg-popover text-popover-foreground"
-                                                >
-                                                    Free Router
-                                                </option>
-                                                <option
-                                                    value="google/gemini-3.8-flash"
-                                                    className="bg-popover text-popover-foreground"
-                                                >
-                                                    Gemini 3.8
-                                                </option>
-                                                <option
-                                                    value="google/gemini-3.7-flash"
-                                                    className="bg-popover text-popover-foreground"
-                                                >
-                                                    Gemini 3.7
-                                                </option>
-                                                <option
-                                                    value="openai/gpt-oss-120b:free"
-                                                    className="bg-popover text-popover-foreground"
-                                                >
-                                                    GPT-OSS 120B Free
-                                                </option>
-                                            </>
-                                        )}
-                                        {provider === "openai" && (
-                                            <>
-                                                <option
-                                                    value="gpt-6-sol"
-                                                    className="bg-popover text-popover-foreground"
-                                                >
-                                                    GPT-6 Sol
-                                                </option>
-                                                <option
-                                                    value="gpt-6-luna"
-                                                    className="bg-popover text-popover-foreground"
-                                                >
-                                                    GPT-6 Luna
-                                                </option>
-                                                <option value="gpt-4o" className="bg-popover text-popover-foreground">
-                                                    GPT-4o
-                                                </option>
-                                            </>
-                                        )}
-                                        {provider === "anthropic" && (
-                                            <>
-                                                <option
-                                                    value="claude-opus-5-5"
-                                                    className="bg-popover text-popover-foreground"
-                                                >
-                                                    Claude Opus 5.5
-                                                </option>
-                                                <option
-                                                    value="claude-fable-5-1"
-                                                    className="bg-popover text-popover-foreground"
-                                                >
-                                                    Claude Fable 5.1
-                                                </option>
-                                                <option
-                                                    value="claude-sonnet-5"
-                                                    className="bg-popover text-popover-foreground"
-                                                >
-                                                    Claude Sonnet 5
-                                                </option>
-                                                <option
-                                                    value="claude-haiku-4-5"
-                                                    className="bg-popover text-popover-foreground"
-                                                >
-                                                    Claude Haiku 4.5
-                                                </option>
-                                            </>
-                                        )}
+                                            ))}
                                     </select>
                                 </div>
                             </div>

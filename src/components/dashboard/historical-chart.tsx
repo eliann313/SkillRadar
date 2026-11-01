@@ -32,29 +32,29 @@ export function HistoricalChart({ scores }: HistoricalChartProps) {
     }
 
     return (
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm col-span-full">
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm col-span-full w-full max-w-full overflow-hidden">
             <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <CardTitle className="text-base font-medium flex items-center gap-2">
-                            <TrendingUp className="size-4 text-primary" />
+                <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
+                    <div className="min-w-0">
+                        <CardTitle className="text-base font-medium flex items-center gap-2 truncate">
+                            <TrendingUp className="size-4 text-primary shrink-0" />
                             {t("atsEvolution", { default: "ATS Score Evolution" })}
                         </CardTitle>
-                        <CardDescription>
+                        <CardDescription className="truncate">
                             {t("atsEvolutionDesc", { default: "Progression of your CV analysis score over time" })}
                         </CardDescription>
                     </div>
                     {hasData && (
-                        <div className="flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full font-semibold">
+                        <div className="flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full font-semibold shrink-0">
                             <Award className="size-3" />
                             {t("latest", { default: "Latest" })}: {scores[scores.length - 1].score}
                         </div>
                     )}
                 </div>
             </CardHeader>
-            <CardContent className="pt-4 flex flex-col items-center justify-center min-h-[180px]">
+            <CardContent className="pt-4 flex flex-col items-center justify-center min-h-[180px] w-full max-w-full overflow-hidden">
                 {!hasData ? (
-                    <div className="flex flex-col items-center text-center p-6 text-muted-foreground">
+                    <div className="flex flex-col items-center text-center p-6 text-muted-foreground w-full max-w-full">
                         <div className="size-12 rounded-full bg-muted/40 flex items-center justify-center mb-3">
                             <TrendingUp className="size-6 text-muted-foreground/60" />
                         </div>
@@ -69,8 +69,8 @@ export function HistoricalChart({ scores }: HistoricalChartProps) {
                         </p>
                     </div>
                 ) : (
-                    <div className="h-[150px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
+                    <div className="h-[150px] w-full max-w-full overflow-hidden min-w-0">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                             <AreaChart data={scores} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="historicalColorScore" x1="0" y1="0" x2="0" y2="1">

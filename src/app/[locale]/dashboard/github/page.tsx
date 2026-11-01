@@ -1,5 +1,6 @@
 import { auth } from "@/infrastructure/auth";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { GithubAnalysisRepository } from "@/features/github/infrastructure/github.repository";
 import { GitHubDashboardClient } from "@/features/github/presentation/github-dashboard.client";
 
@@ -12,6 +13,8 @@ export default async function GithubDashboardPage() {
     if (session.user.role !== "developer") {
         redirect("/dashboard");
     }
+
+    const t = await getTranslations("Github");
 
     // Obtener último análisis guardado
     const latestAnalysis = await GithubAnalysisRepository.findLatestByUserId(session.user.id);
@@ -43,10 +46,8 @@ export default async function GithubDashboardPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Análisis de GitHub</h1>
-                <p className="mt-1 text-sm text-muted-foreground">
-                    Analiza la calidad de tu código, diversidad técnica y repositorios públicos con IA.
-                </p>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">{t("title")}</h1>
+                <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
             </div>
 
             <GitHubDashboardClient initialData={initialData} />

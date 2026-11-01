@@ -24,8 +24,48 @@ export interface AIServiceOptions {
     };
 }
 
+function normalizeModel(provider: string, model: string): string {
+    if (provider === "gemini") {
+        if (
+            model.startsWith("gemini-1.") ||
+            model.startsWith("gemini-2.") ||
+            model === "gemini-flash" ||
+            model === "gemini-pro"
+        ) {
+            logger.warn(`🔄 [AIService] Modelo Gemini desactualizado "${model}" mapeado a "gemini-3.8-flash".`);
+            return "gemini-3.8-flash";
+        }
+    }
+    if (provider === "openai") {
+        if (model === "gpt-4o" || model === "gpt-6-sol") {
+            logger.warn(`🔄 [AIService] Modelo OpenAI desactualizado "${model}" mapeado a "gpt-6.1-sol".`);
+            return "gpt-6.1-sol";
+        }
+    }
+    if (provider === "groq") {
+        if (model === "openai/gpt-oss-120b" || model === "openai/gpt-oss-20b") {
+            logger.warn(`🔄 [AIService] Modelo Groq desactualizado "${model}" mapeado a "llama-3.3-70b-versatile".`);
+            return "llama-3.3-70b-versatile";
+        }
+    }
+    if (provider === "openrouter") {
+        if (model.includes("gemini-2.")) {
+            return "google/gemini-3.8-flash";
+        }
+        if (model === "openai/gpt-oss-120b:free") {
+            return "meta-llama/llama-3.3-70b-instruct:free";
+        }
+    }
+    return model;
+}
+
 export class AIService {
-    public static getModelInstance(provider: string, model: string, userSettings?: AIServiceOptions["userSettings"]) {
+    public static getModelInstance(
+        provider: string,
+        rawModel: string,
+        userSettings?: AIServiceOptions["userSettings"],
+    ) {
+        const model = normalizeModel(provider, rawModel);
         let apiKey: string | undefined;
 
         logger.warn(`🔮 [AIService] Instanciando proveedor: "${provider}" con modelo: "${model}"`);
@@ -117,13 +157,16 @@ export class AIService {
 
     static async generateStructuredObject<T extends object>(options: AIServiceOptions): Promise<T> {
         const primaryProvider = options.userSettings?.preferredProvider || "gemini";
-        const primaryModel = options.userSettings?.preferredModel || "gemini-3.8-flash";
+        const primaryModel = normalizeModel(
+            primaryProvider,
+            options.userSettings?.preferredModel || "gemini-3.8-flash",
+        );
 
         // Cola de cascada estándar del sistema para fallbacks
         const cascadeQueue = [
             { provider: "gemini", model: "gemini-3.8-flash" },
             { provider: "gemini", model: "gemini-3.7-flash" },
-            { provider: "groq", model: "openai/gpt-oss-120b" },
+            { provider: "groq", model: "llama-3.3-70b-versatile" },
             {
                 provider: "openrouter",
                 model: "google/gemini-3.8-flash",

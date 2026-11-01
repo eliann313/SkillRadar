@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Gauge } from "lucide-react";
@@ -22,9 +23,31 @@ interface PlanUsageCardProps {
     usage: UsageState | null;
 }
 
-/** Uso del plan con barras por cuota (ex bloque Fase 5 de settings/page). */
+function formatCountdown(resetMs: number, nowMs: number, t: (key: string) => string): string {
+    const diffMs = resetMs - nowMs;
+    if (diffMs <= 0) {
+        return t("quotaResetsSoon");
+    }
+    const totalMinutes = Math.ceil(diffMs / (60 * 1000));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours > 0) {
+        return `${t("quotaResetsIn")} ${hours}h ${minutes}m`;
+    }
+    return `${t("quotaResetsIn")} ${minutes}m`;
+}
+
+/** Uso del plan con barras por cuota y contador dinámico de renovación. */
 export function PlanUsageCard({ usage }: PlanUsageCardProps) {
     const t = useTranslations("Settings");
+    const [now, setNow] = useState<number>(() => Date.now());
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setNow(Date.now());
+        }, 30000);
+        return () => clearInterval(interval);
+    }, []);
 
     return (
         <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
@@ -48,6 +71,9 @@ export function PlanUsageCard({ usage }: PlanUsageCardProps) {
                         {usage.quotas.map((q) => {
                             const used = q.limit - q.remaining;
                             const pct = q.limit > 0 ? Math.min(100, Math.round((used / q.limit) * 100)) : 0;
+                            const isFull = q.remaining >= q.limit;
+                            const timeStatus = isFull ? t("quotaAvailable") : formatCountdown(q.reset, now, t);
+
                             return (
                                 <div key={q.key} className="flex flex-col gap-1">
                                     <div className="flex items-center justify-between text-xs">
@@ -58,13 +84,18 @@ export function PlanUsageCard({ usage }: PlanUsageCardProps) {
                                             {q.unlimited === true ? (
                                                 t("usageUnlimited")
                                             ) : (
-                                                <>
-                                                    {q.remaining}/{q.limit} · {t("usageResets")}{" "}
-                                                    {new Date(q.reset).toLocaleTimeString([], {
-                                                        hour: "2-digit",
-                                                        minute: "2-digit",
-                                                    })}
-                                                </>
+                                                <span
+                                                    title={
+                                                        isFull
+                                                            ? undefined
+                                                            : `Reinicio: ${new Date(q.reset).toLocaleTimeString([], {
+                                                                  hour: "2-digit",
+                                                                  minute: "2-digit",
+                                                              })}`
+                                                    }
+                                                >
+                                                    {q.remaining}/{q.limit} · {timeStatus}
+                                                </span>
                                             )}
                                         </span>
                                     </div>

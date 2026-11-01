@@ -5,10 +5,13 @@
  * Se alcanza por herramientas de desarrollo (shadcn y ESLint) y patrones de glob
  * controlados por el repositorio; shadcn queda en devDependencies.
  * TODO: quitar la excepción cuando upstream publique un parche.
+ *
+ * Excepción GHSA-mrhx-c7xc-m3w5: la app usa zod 4.6.7; la instancia vulnerable
+ * de zod 3 solo llega por eslint-plugin-react-compiler en tooling de desarrollo.
  */
 import { execSync } from "node:child_process";
 
-const ALLOWLIST = new Set(["GHSA-vfj7-8cjw-p6xm"]);
+const ALLOWLIST = new Set(["GHSA-vfj7-8cjw-p6xm", "GHSA-mrhx-c7xc-m3w5"]);
 
 // Sin console.* (regla no-console del repo): salida vía stdout/stderr.
 function out(line) {
@@ -51,7 +54,11 @@ function classify(spec) {
         changed = false;
         for (let i = remaining.length - 1; i >= 0; i--) {
             const { entry, refs } = remaining[i];
-            if (refs.length > 0 && refs.every((r) => allowedNames.has(r))) {
+            const highCritRefs = refs.filter((r) => {
+                const severity = vulns[r]?.severity;
+                return severity === "high" || severity === "critical";
+            });
+            if (highCritRefs.length > 0 && highCritRefs.every((r) => allowedNames.has(r))) {
                 allowedNames.add(entry.name);
                 allowed.push(entry);
                 remaining.splice(i, 1);
@@ -72,12 +79,22 @@ try {
     // npm audit sale con código != 0 cuando hay vulnerabilidades, pero igual imprime el JSON
     raw = err.stdout?.toString() ?? "";
 }
-if (!raw.trim()) {
-    err("[audit:high] npm audit no devolvió JSON.");
+let report;
+try {
+    report = JSON.parse(raw);
+} catch {
+    err("[audit:high] npm audit no devolvió JSON válido.");
     process.exit(2);
 }
 
-const report = JSON.parse(raw);
+if (report.error || (!report.vulnerabilities && !report.advisories)) {
+    const detail =
+        [report.error?.code, report.error?.summary || report.error?.message || report.error?.detail]
+            .filter(Boolean)
+            .join(": ") || "npm audit respondió sin un reporte de vulnerabilidades.";
+    err("[audit:high] No se pudo completar npm audit: " + detail);
+    process.exit(2);
+}
 const { flagged, allowed } = classify(report);
 const vulnerabilities = report.vulnerabilities ?? report.advisories ?? {};
 const moderate = Object.entries(vulnerabilities).filter(([, v]) => v.severity === "moderate");

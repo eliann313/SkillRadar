@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,16 +58,25 @@ interface GitHubDashboardClientProps {
 }
 
 export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProps) {
+    const t = useTranslations("Github");
     const [data, setData] = useState(initialData);
     const [usernameInput, setUsernameInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+
+    const frequencyLabels: Record<string, string> = {
+        daily: t("frequency.daily"),
+        weekly: t("frequency.weekly"),
+        sporadic: t("frequency.sporadic"),
+        inactive: t("frequency.inactive"),
+    };
+    const formatFrequency = (freq: string) => frequencyLabels[freq.toLowerCase()] ?? freq;
 
     const handleAnalyze = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         const targetUsername = data ? data.githubUser : usernameInput;
 
         if (!targetUsername.trim()) {
-            toast.error("El nombre de usuario es requerido.");
+            toast.error(t("usernameRequired"));
             return;
         }
 
@@ -74,7 +84,7 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
         const promise = analyzeGithubUserAction(targetUsername);
 
         toast.promise(promise, {
-            loading: "Analizando perfil y repositorios de GitHub...",
+            loading: t("analyzingToast"),
             success: (res: {
                 success: boolean;
                 data?: {
@@ -116,10 +126,10 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
                     };
                     setData(mappedData);
                     setIsLoading(false);
-                    return "¡Análisis de GitHub completado con éxito!";
+                    return t("successToast");
                 } else {
                     setIsLoading(false);
-                    throw new Error(res.error || "Ocurrió un error al analizar.");
+                    throw new Error(res.error || t("errorToast"));
                 }
             },
             error: (err: Error) => {
@@ -136,19 +146,17 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
                     <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-primary/10">
                         <GitHubLogoIcon className="size-6 text-primary" />
                     </div>
-                    <CardTitle>Vincular Perfil GitHub</CardTitle>
-                    <CardDescription>
-                        Ingresa tu nombre de usuario para importar y evaluar tus contribuciones y proyectos de código.
-                    </CardDescription>
+                    <CardTitle>{t("linkProfileTitle")}</CardTitle>
+                    <CardDescription>{t("linkProfileDesc")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={(e) => void handleAnalyze(e)} className="space-y-4">
                         <div className="flex flex-col gap-1.5">
-                            <Label htmlFor="github-username">Usuario de GitHub</Label>
+                            <Label htmlFor="github-username">{t("usernameLabel")}</Label>
                             <Input
                                 id="github-username"
                                 type="text"
-                                placeholder="ej: octocat"
+                                placeholder={t("usernamePlaceholder")}
                                 value={usernameInput}
                                 onChange={(e) => setUsernameInput(e.target.value)}
                                 required
@@ -159,12 +167,12 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
                             {isLoading ? (
                                 <>
                                     <Loader2 className="size-4 animate-spin" />
-                                    Analizando...
+                                    {t("analyzing")}
                                 </>
                             ) : (
                                 <>
                                     <Sparkles className="size-4 animate-pulse" />
-                                    Analizar Perfil
+                                    {t("analyzeProfile")}
                                 </>
                             )}
                         </Button>
@@ -186,7 +194,7 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
                         <h2 className="text-lg font-bold text-foreground">@{data.githubUser}</h2>
                         <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
                             <Calendar className="size-3.5" />
-                            Último análisis: {data.createdAt.toLocaleString()}
+                            {t("lastAnalysis", { date: data.createdAt.toLocaleString() })}
                         </p>
                     </div>
                 </div>
@@ -194,7 +202,7 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
                 <div className="flex items-center gap-4">
                     {/* Score Circular / Badge */}
                     <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-muted-foreground">Portfolio Score:</span>
+                        <span className="text-xs font-semibold text-muted-foreground">{t("portfolioScore")}</span>
                         <span className="text-xl font-black text-primary bg-primary/10 px-3 py-1 rounded-lg">
                             {data.profileScore}
                         </span>
@@ -208,7 +216,7 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
                         className="gap-2"
                     >
                         <RefreshCw className={`size-4 ${isLoading ? "animate-spin" : ""}`} />
-                        Sincronizar
+                        {t("sync")}
                     </Button>
                 </div>
             </div>
@@ -221,8 +229,8 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
                 <div className="rounded-xl border border-border/50 bg-card/30 backdrop-blur-sm p-5 space-y-4">
                     <div className="flex items-center gap-2">
                         <TrendingUp className="size-5 text-primary" />
-                        <h3 className="text-base font-semibold text-foreground">Seniority Intelligence</h3>
-                        <span className="text-xs text-muted-foreground ml-auto">Evidence-based Skills</span>
+                        <h3 className="text-base font-semibold text-foreground">{t("seniorityTitle")}</h3>
+                        <span className="text-xs text-muted-foreground ml-auto">{t("seniorityEvidenceBadge")}</span>
                     </div>
 
                     {/* Métricas rápidas */}
@@ -230,17 +238,17 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
                         {data.commitFrequency && (
                             <div className="flex flex-col gap-1 rounded-lg bg-muted/30 p-3">
                                 <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <GitCommit className="size-3" /> Commit Frequency
+                                    <GitCommit className="size-3" /> {t("commitFrequency")}
                                 </span>
                                 <Badge variant="outline" className="w-fit capitalize text-xs">
-                                    {data.commitFrequency}
+                                    {formatFrequency(data.commitFrequency)}
                                 </Badge>
                             </div>
                         )}
                         {data.readmeQualityScore !== null && (
                             <div className="flex flex-col gap-1 rounded-lg bg-muted/30 p-3">
                                 <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <Star className="size-3" /> README Quality
+                                    <Star className="size-3" /> {t("readmeQuality")}
                                 </span>
                                 <span className="text-lg font-bold text-primary">
                                     {data.readmeQualityScore}
@@ -250,10 +258,10 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
                         )}
                         {data.longestStreakDays !== null && (
                             <div className="flex flex-col gap-1 rounded-lg bg-muted/30 p-3">
-                                <span className="text-xs text-muted-foreground">Longest Streak</span>
+                                <span className="text-xs text-muted-foreground">{t("longestStreak")}</span>
                                 <span className="text-lg font-bold text-primary">
                                     {data.longestStreakDays}
-                                    <span className="text-xs text-muted-foreground"> days</span>
+                                    <span className="text-xs text-muted-foreground"> {t("days")}</span>
                                 </span>
                             </div>
                         )}
@@ -262,17 +270,17 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
                     {/* Detected Patterns Checklist */}
                     <div>
                         <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                            Detected Patterns
+                            {t("detectedPatterns")}
                         </p>
                         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                             {(
                                 [
-                                    { key: "hasCI", label: "CI/CD" },
-                                    { key: "hasTesting", label: "Testing" },
-                                    { key: "hasDocker", label: "Docker" },
-                                    { key: "hasAuthImplementation", label: "Auth Flow" },
-                                    { key: "hasCaching", label: "Caching" },
-                                    { key: "hasObservability", label: "Observability" },
+                                    { key: "hasCI", label: t("patterns.hasCI") },
+                                    { key: "hasTesting", label: t("patterns.hasTesting") },
+                                    { key: "hasDocker", label: t("patterns.hasDocker") },
+                                    { key: "hasAuthImplementation", label: t("patterns.hasAuthImplementation") },
+                                    { key: "hasCaching", label: t("patterns.hasCaching") },
+                                    { key: "hasObservability", label: t("patterns.hasObservability") },
                                 ] as const
                             ).map(({ key, label }) => {
                                 const detected = data.detectedPatterns?.[key] ?? false;
@@ -301,7 +309,7 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
                     {data.senioritySignals && data.senioritySignals.length > 0 && (
                         <div>
                             <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                                Seniority Evidence
+                                {t("seniorityEvidence")}
                             </p>
                             <div className="flex flex-wrap gap-2">
                                 {data.senioritySignals.map((signal) => (
@@ -317,7 +325,7 @@ export function GitHubDashboardClient({ initialData }: GitHubDashboardClientProp
                     {data.topRepoTopics && data.topRepoTopics.length > 0 && (
                         <div>
                             <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                                Top Topics
+                                {t("topTopics")}
                             </p>
                             <div className="flex flex-wrap gap-2">
                                 {data.topRepoTopics.map((topic) => (

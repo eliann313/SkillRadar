@@ -273,6 +273,62 @@ if (!writeLimiter) {
     writeLimiter = writeMemoryFallback;
 }
 
+let upstashUnavailableUntil = 0;
+const UPSTASH_TIMEOUT_MS = 500;
+
+function isUpstashAvailable(): boolean {
+    return Date.now() > upstashUnavailableUntil;
+}
+
+function tripUpstashCircuitBreaker(error: unknown, context: string): void {
+    upstashUnavailableUntil = Date.now() + 5 * 60_000;
+    const msg = error instanceof Error ? error.message : String(error);
+    logger.warn(`⚠️ [RateLimit] Upstash inaccesible en ${context} (${msg}). Conmutando temporalmente a memoria.`);
+}
+
+/**
+ * Aplica un timeout agresivo (por defecto 500ms) a las llamadas de red a Upstash
+ * para prevenir cuelgues prolongados por caídas de DNS o red.
+ */
+async function withUpstashTimeout<T>(promise: Promise<T>, timeoutMs = UPSTASH_TIMEOUT_MS): Promise<T> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => {
+            reject(new Error(`Upstash timeout tras ${timeoutMs}ms`));
+        }, timeoutMs);
+    });
+
+    try {
+        return await Promise.race([promise, timeoutPromise]);
+    } finally {
+        if (timer) clearTimeout(timer);
+    }
+}
+
+async function executeLimitWithFallback(
+    limiter: Ratelimit | InMemorySlidingWindow | null,
+    fallback: InMemorySlidingWindow,
+    sanitizedIdentifier: string,
+    contextName: string,
+): Promise<RateLimitResult> {
+    if (isUpstashAvailable() && limiter instanceof Ratelimit) {
+        try {
+            const result = await withUpstashTimeout(limiter.limit(sanitizedIdentifier));
+            return {
+                success: result.success,
+                limit: result.limit,
+                remaining: result.remaining,
+                reset: result.reset,
+            };
+        } catch (error) {
+            tripUpstashCircuitBreaker(error, contextName);
+            return await fallback.limitRequest(sanitizedIdentifier);
+        }
+    }
+    const target = limiter instanceof Ratelimit ? fallback : limiter || fallback;
+    return await target.limitRequest(sanitizedIdentifier);
+}
+
 /**
  * Resuelve la dirección IP del cliente desde los headers HTTP de Next.js.
  */
@@ -348,63 +404,18 @@ export async function checkCVRateLimit(identifier: string): Promise<RateLimitRes
     }
 
     const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
-
-    if (cvLimiter instanceof Ratelimit) {
-        try {
-            const result = await cvLimiter.limit(sanitizedIdentifier);
-            return {
-                success: result.success,
-                limit: result.limit,
-                remaining: result.remaining,
-                reset: result.reset,
-            };
-        } catch (error) {
-            logger.warn(
-                "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para CV, cayendo en fallback en memoria:",
-                error,
-            );
-            return await cvMemoryFallback.limitRequest(sanitizedIdentifier);
-        }
-    } else {
-        return await cvLimiter!.limitRequest(sanitizedIdentifier);
-    }
+    return await executeLimitWithFallback(cvLimiter, cvMemoryFallback, sanitizedIdentifier, "CV");
 }
 
 /**
  * Verifica el límite de Job Match para un identificador (UserId o IP).
  */
 export async function checkJobMatchRateLimit(identifier: string): Promise<RateLimitResult> {
-    // Primero verificar el bypass de llaves personales de usuario
     if (await checkUserHasApiKeyBypass(identifier)) {
-        return {
-            success: true,
-            limit: 999,
-            remaining: 999,
-            reset: Date.now() + WINDOW_DURATION_MS,
-        };
+        return { success: true, limit: 999, remaining: 999, reset: Date.now() + WINDOW_DURATION_MS };
     }
-
     const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
-
-    if (jobMatchLimiter instanceof Ratelimit) {
-        try {
-            const result = await jobMatchLimiter.limit(sanitizedIdentifier);
-            return {
-                success: result.success,
-                limit: result.limit,
-                remaining: result.remaining,
-                reset: result.reset,
-            };
-        } catch (error) {
-            logger.warn(
-                "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para Job Match, cayendo en fallback en memoria:",
-                error,
-            );
-            return await jobMatchMemoryFallback.limitRequest(sanitizedIdentifier);
-        }
-    } else {
-        return await jobMatchLimiter!.limitRequest(sanitizedIdentifier);
-    }
+    return await executeLimitWithFallback(jobMatchLimiter, jobMatchMemoryFallback, sanitizedIdentifier, "Job Match");
 }
 
 /**
@@ -451,37 +462,11 @@ export async function checkLoginRateLimit(identifier: string): Promise<RateLimit
  * Verifica el límite de análisis de GitHub para un identificador (UserId o IP).
  */
 export async function checkGithubRateLimit(identifier: string): Promise<RateLimitResult> {
-    // Primero verificar el bypass de llaves personales de usuario
     if (await checkUserHasApiKeyBypass(identifier)) {
-        return {
-            success: true,
-            limit: 999,
-            remaining: 999,
-            reset: Date.now() + WINDOW_DURATION_MS,
-        };
+        return { success: true, limit: 999, remaining: 999, reset: Date.now() + WINDOW_DURATION_MS };
     }
-
     const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
-
-    if (githubLimiter instanceof Ratelimit) {
-        try {
-            const result = await githubLimiter.limit(sanitizedIdentifier);
-            return {
-                success: result.success,
-                limit: result.limit,
-                remaining: result.remaining,
-                reset: result.reset,
-            };
-        } catch (error) {
-            logger.warn(
-                "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para GitHub, cayendo en fallback en memoria:",
-                error,
-            );
-            return await githubMemoryFallback.limitRequest(sanitizedIdentifier);
-        }
-    } else {
-        return await githubLimiter!.limitRequest(sanitizedIdentifier);
-    }
+    return await executeLimitWithFallback(githubLimiter, githubMemoryFallback, sanitizedIdentifier, "GitHub");
 }
 
 /**
@@ -489,26 +474,12 @@ export async function checkGithubRateLimit(identifier: string): Promise<RateLimi
  */
 export async function checkJobPostingRateLimit(identifier: string): Promise<RateLimitResult> {
     const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
-
-    if (jobPostingLimiter instanceof Ratelimit) {
-        try {
-            const result = await jobPostingLimiter.limit(sanitizedIdentifier);
-            return {
-                success: result.success,
-                limit: result.limit,
-                remaining: result.remaining,
-                reset: result.reset,
-            };
-        } catch (error) {
-            logger.warn(
-                "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para Job Postings, cayendo en fallback en memoria:",
-                error,
-            );
-            return await jobPostingMemoryFallback.limitRequest(sanitizedIdentifier);
-        }
-    } else {
-        return await jobPostingLimiter!.limitRequest(sanitizedIdentifier);
-    }
+    return await executeLimitWithFallback(
+        jobPostingLimiter,
+        jobPostingMemoryFallback,
+        sanitizedIdentifier,
+        "Job Postings",
+    );
 }
 
 /**
@@ -516,26 +487,12 @@ export async function checkJobPostingRateLimit(identifier: string): Promise<Rate
  */
 export async function checkJobPostingApplyRateLimit(identifier: string): Promise<RateLimitResult> {
     const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
-
-    if (jobPostingApplyLimiter instanceof Ratelimit) {
-        try {
-            const result = await jobPostingApplyLimiter.limit(sanitizedIdentifier);
-            return {
-                success: result.success,
-                limit: result.limit,
-                remaining: result.remaining,
-                reset: result.reset,
-            };
-        } catch (error) {
-            logger.warn(
-                "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para Job Postings Apply, cayendo en fallback en memoria:",
-                error,
-            );
-            return await jobPostingApplyMemoryFallback.limitRequest(sanitizedIdentifier);
-        }
-    } else {
-        return await jobPostingApplyLimiter!.limitRequest(sanitizedIdentifier);
-    }
+    return await executeLimitWithFallback(
+        jobPostingApplyLimiter,
+        jobPostingApplyMemoryFallback,
+        sanitizedIdentifier,
+        "Job Postings Apply",
+    );
 }
 
 /**
@@ -543,26 +500,12 @@ export async function checkJobPostingApplyRateLimit(identifier: string): Promise
  */
 export async function checkProactiveMatchingRateLimit(identifier: string): Promise<RateLimitResult> {
     const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
-
-    if (proactiveMatchingLimiter instanceof Ratelimit) {
-        try {
-            const result = await proactiveMatchingLimiter.limit(sanitizedIdentifier);
-            return {
-                success: result.success,
-                limit: result.limit,
-                remaining: result.remaining,
-                reset: result.reset,
-            };
-        } catch (error) {
-            logger.warn(
-                "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para Proactive Matching, cayendo en fallback en memoria:",
-                error,
-            );
-            return await proactiveMatchingMemoryFallback.limitRequest(sanitizedIdentifier);
-        }
-    } else {
-        return await proactiveMatchingLimiter!.limitRequest(sanitizedIdentifier);
-    }
+    return await executeLimitWithFallback(
+        proactiveMatchingLimiter,
+        proactiveMatchingMemoryFallback,
+        sanitizedIdentifier,
+        "Proactive Matching",
+    );
 }
 
 /**
@@ -570,26 +513,12 @@ export async function checkProactiveMatchingRateLimit(identifier: string): Promi
  */
 export async function checkContentReportRateLimit(identifier: string): Promise<RateLimitResult> {
     const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
-
-    if (contentReportLimiter instanceof Ratelimit) {
-        try {
-            const result = await contentReportLimiter.limit(sanitizedIdentifier);
-            return {
-                success: result.success,
-                limit: result.limit,
-                remaining: result.remaining,
-                reset: result.reset,
-            };
-        } catch (error) {
-            logger.warn(
-                "⚠️ [RateLimit] Falló la llamada a Upstash Redis en runtime para Content Report, cayendo en fallback en memoria:",
-                error,
-            );
-            return await contentReportMemoryFallback.limitRequest(sanitizedIdentifier);
-        }
-    } else {
-        return await contentReportLimiter!.limitRequest(sanitizedIdentifier);
-    }
+    return await executeLimitWithFallback(
+        contentReportLimiter,
+        contentReportMemoryFallback,
+        sanitizedIdentifier,
+        "Content Report",
+    );
 }
 
 /** Límite para operaciones costosas de sourcing/entrevistas/pitch/outreach y audits IA. */
@@ -598,15 +527,12 @@ export async function checkAISourcingRateLimit(identifier: string): Promise<Rate
         return { success: true, limit: 999, remaining: 999, reset: Date.now() + WINDOW_DURATION_MS };
     }
     const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
-    if (aiSourcingLimiter instanceof Ratelimit) {
-        try {
-            const result = await aiSourcingLimiter.limit(sanitizedIdentifier);
-            return { success: result.success, limit: result.limit, remaining: result.remaining, reset: result.reset };
-        } catch {
-            return await aiSourcingMemoryFallback.limitRequest(sanitizedIdentifier);
-        }
-    }
-    return await aiSourcingLimiter!.limitRequest(sanitizedIdentifier);
+    return await executeLimitWithFallback(
+        aiSourcingLimiter,
+        aiSourcingMemoryFallback,
+        sanitizedIdentifier,
+        "AI Sourcing",
+    );
 }
 
 /** Límite para chats IA (career-copilot / interview streaming). */
@@ -615,29 +541,13 @@ export async function checkAIChatRateLimit(identifier: string): Promise<RateLimi
         return { success: true, limit: 999, remaining: 999, reset: Date.now() + WINDOW_DURATION_MS };
     }
     const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
-    if (aiChatLimiter instanceof Ratelimit) {
-        try {
-            const result = await aiChatLimiter.limit(sanitizedIdentifier);
-            return { success: result.success, limit: result.limit, remaining: result.remaining, reset: result.reset };
-        } catch {
-            return await aiChatMemoryFallback.limitRequest(sanitizedIdentifier);
-        }
-    }
-    return await aiChatLimiter!.limitRequest(sanitizedIdentifier);
+    return await executeLimitWithFallback(aiChatLimiter, aiChatMemoryFallback, sanitizedIdentifier, "AI Chat");
 }
 
 /** Límite genérico para escrituras CRUD (notas, roadmap, templates, thread, trackers). */
 export async function checkWriteRateLimit(identifier: string): Promise<RateLimitResult> {
     const sanitizedIdentifier = identifier.replace(/[^a-zA-Z0-9_\-:]/g, "");
-    if (writeLimiter instanceof Ratelimit) {
-        try {
-            const result = await writeLimiter.limit(sanitizedIdentifier);
-            return { success: result.success, limit: result.limit, remaining: result.remaining, reset: result.reset };
-        } catch {
-            return await writeMemoryFallback.limitRequest(sanitizedIdentifier);
-        }
-    }
-    return await writeLimiter!.limitRequest(sanitizedIdentifier);
+    return await executeLimitWithFallback(writeLimiter, writeMemoryFallback, sanitizedIdentifier, "Writes");
 }
 
 export interface UserQuotaUsage {
@@ -685,19 +595,37 @@ const USER_QUOTA_LIMITERS: ReadonlyArray<{
  */
 export async function getUserQuotaUsage(userId: string): Promise<UserQuotaUsage[]> {
     const identifier = `user:${userId}`.replace(/[^a-zA-Z0-9_\-:]/g, "");
-    // Lecturas independientes: en paralelo (react-doctor/async-await-in-loop).
+
+    // Si Upstash ya está conmutado por el circuit breaker, responder de memoria instantáneamente
+    if (!isUpstashAvailable()) {
+        return Promise.all(
+            USER_QUOTA_LIMITERS.map(async (q): Promise<UserQuotaUsage> => {
+                try {
+                    const r = await q.memory.peekRemaining(identifier);
+                    return { key: q.key, ...r };
+                } catch {
+                    return { key: q.key, limit: q.limit, remaining: q.limit, reset: Date.now() + WINDOW_DURATION_MS };
+                }
+            }),
+        );
+    }
+
     return Promise.all(
         USER_QUOTA_LIMITERS.map(async (q): Promise<UserQuotaUsage> => {
             const limiter = q.resolve();
-            try {
-                if (limiter instanceof Ratelimit) {
-                    const r = await limiter.getRemaining(identifier);
+            if (isUpstashAvailable() && limiter instanceof Ratelimit) {
+                try {
+                    const r = await withUpstashTimeout(limiter.getRemaining(identifier));
                     return { key: q.key, limit: r.limit, remaining: r.remaining, reset: r.reset };
+                } catch (error) {
+                    tripUpstashCircuitBreaker(error, `getUserQuotaUsage:${q.key}`);
                 }
+            }
+
+            try {
                 const r = await q.memory.peekRemaining(identifier);
                 return { key: q.key, ...r };
-            } catch (error) {
-                logger.error(`[RateLimit] Error leyendo uso de ${q.key}:`, error);
+            } catch {
                 return { key: q.key, limit: q.limit, remaining: q.limit, reset: Date.now() + WINDOW_DURATION_MS };
             }
         }),

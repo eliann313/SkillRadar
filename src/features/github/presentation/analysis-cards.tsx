@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, AlertTriangle, Lightbulb } from "lucide-react";
 
@@ -12,6 +13,7 @@ interface AnalysisCardsProps {
 }
 
 export function AnalysisCards({ analysis }: AnalysisCardsProps) {
+    const t = useTranslations("Github");
     return (
         <div className="grid gap-4 md:grid-cols-3">
             {/* Fortalezas */}
@@ -19,7 +21,7 @@ export function AnalysisCards({ analysis }: AnalysisCardsProps) {
                 <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-bold flex items-center gap-2 text-emerald-500">
                         <CheckCircle2 className="size-4 shrink-0" />
-                        Fortalezas Detectadas
+                        {t("strengthsTitle")}
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -39,7 +41,7 @@ export function AnalysisCards({ analysis }: AnalysisCardsProps) {
                 <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-bold flex items-center gap-2 text-amber-500">
                         <AlertTriangle className="size-4 shrink-0" />
-                        Áreas de Oportunidad
+                        {t("weaknessesTitle")}
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -59,7 +61,7 @@ export function AnalysisCards({ analysis }: AnalysisCardsProps) {
                 <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-bold flex items-center gap-2 text-blue-500">
                         <Lightbulb className="size-4 shrink-0" />
-                        Sugerencias de Mejora
+                        {t("suggestionsTitle")}
                     </CardTitle>
                 </CardHeader>
                 <CardContent>

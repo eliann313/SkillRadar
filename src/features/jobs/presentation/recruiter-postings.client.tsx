@@ -27,6 +27,7 @@ import {
 import { CAREER_FIELDS } from "@/shared-kernel/career-paths";
 import { safeParseJson } from "@/shared-kernel/pii";
 import { toast } from "sonner";
+import { useLocale } from "next-intl";
 
 interface JobPosting {
     id: string;
@@ -54,6 +55,7 @@ interface PostingsClientPageProps {
 }
 
 export function PostingsClientPage({ initialPostings }: PostingsClientPageProps) {
+    const locale = useLocale();
     const [postings, setPostings] = useState<JobPosting[]>(initialPostings);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingPosting, setEditingPosting] = useState<JobPosting | null>(null);
@@ -270,7 +272,9 @@ export function PostingsClientPage({ initialPostings }: PostingsClientPageProps)
                                     <div className="flex items-center justify-between mb-2">
                                         {getStatusBadge(posting.status)}
                                         <span className="text-[11px] text-muted-foreground">
-                                            {new Date(posting.createdAt).toLocaleDateString()}
+                                            {new Date(posting.createdAt).toLocaleDateString(
+                                                locale === "es" ? "es-ES" : "en-US",
+                                            )}
                                         </span>
                                     </div>
                                     <CardTitle className="text-base font-semibold leading-tight line-clamp-1">

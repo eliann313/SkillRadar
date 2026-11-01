@@ -1,7 +1,7 @@
 "use client";
 
 import { logger } from "@/infrastructure/logger";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSession } from "next-auth/react";
@@ -10,35 +10,42 @@ import type { UserRole } from "@/shared-kernel/types";
 import { Code2, Users, ArrowRight, Check } from "lucide-react";
 import { cn } from "@/shared-kernel/utils";
 import { useRouter } from "@/i18n/routing";
-
-const roles: {
-    id: UserRole;
-    title: string;
-    description: string;
-    icon: React.ReactNode;
-    features: string[];
-}[] = [
-    {
-        id: "developer",
-        title: "Developer",
-        description: "Analyze your CV, match with jobs, and practice interviews",
-        icon: <Code2 className="size-6" />,
-        features: ["CV & ATS Score Analysis", "Job Offer Matching", "AI Mock Interviews", "Skills Gap Detection"],
-    },
-    {
-        id: "recruiter",
-        title: "Recruiter",
-        description: "Find and filter talent based on skills and experience",
-        icon: <Users className="size-6" />,
-        features: ["Anonymous Talent Pool", "Skill-Based Search", "Seniority Filtering", "Candidate Scoring"],
-    },
-];
+import { useTranslations } from "next-intl";
 
 export function RoleSelector() {
+    const t = useTranslations("Auth");
     const router = useRouter();
     const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
     const { update } = useSession();
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const roles = useMemo<
+        {
+            id: UserRole;
+            title: string;
+            description: string;
+            icon: React.ReactNode;
+            features: string[];
+        }[]
+    >(
+        () => [
+            {
+                id: "developer",
+                title: t("developer"),
+                description: t("developerRoleDesc"),
+                icon: <Code2 className="size-6" />,
+                features: [t("devFeat1"), t("devFeat2"), t("devFeat3"), t("devFeat4")],
+            },
+            {
+                id: "recruiter",
+                title: t("recruiter"),
+                description: t("recruiterRoleDesc"),
+                icon: <Users className="size-6" />,
+                features: [t("recFeat1"), t("recFeat2"), t("recFeat3"), t("recFeat4")],
+            },
+        ],
+        [t],
+    );
 
     const handleContinue = async () => {
         if (!selectedRole || isSubmitting) return;
@@ -77,10 +84,8 @@ export function RoleSelector() {
                             <path d="M2 12l10 5 10-5" />
                         </svg>
                     </div>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground">Welcome to SkillRadar</h1>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        Tell us about yourself to personalize your experience
-                    </p>
+                    <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("roleSelectorWelcome")}</h1>
+                    <p className="mt-1 text-sm text-muted-foreground">{t("roleSelectorSubtitle")}</p>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -138,7 +143,7 @@ export function RoleSelector() {
                         onClick={() => void handleContinue()}
                         className="gap-2"
                     >
-                        {isSubmitting ? "Saving..." : "Continue"}
+                        {isSubmitting ? t("saving") : t("continueBtn")}
                         <ArrowRight data-icon="inline-end" />
                     </Button>
                 </div>

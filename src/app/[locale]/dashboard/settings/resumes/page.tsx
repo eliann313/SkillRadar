@@ -34,6 +34,7 @@ import {
     deleteResumeAction,
 } from "@/features/cv-analysis/application/cv-analysis.use-cases";
 import { ResumeDiff, type DiffableResume } from "@/features/cv-analysis/presentation";
+import { useLocale } from "next-intl";
 
 interface ResumeItem {
     id: string;
@@ -45,6 +46,7 @@ interface ResumeItem {
 }
 
 export default function ResumesSettingsPage() {
+    const locale = useLocale();
     const { data: session, status } = useSession();
     const [resumes, setResumes] = useState<ResumeItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -262,7 +264,9 @@ export default function ResumesSettingsPage() {
                                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                                             <span className="flex items-center gap-1">
                                                 <Calendar className="size-3.5" />
-                                                {resume.createdAt.toLocaleDateString()}
+                                                {new Date(resume.createdAt).toLocaleDateString(
+                                                    locale === "es" ? "es-ES" : "en-US",
+                                                )}
                                             </span>
                                             {resume.atsScore !== null && (
                                                 <span className="flex items-center gap-1 text-emerald-500 font-medium">

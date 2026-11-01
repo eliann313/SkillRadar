@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 interface LanguageChartProps {
@@ -7,6 +8,7 @@ interface LanguageChartProps {
 }
 
 export function LanguageChart({ languages }: LanguageChartProps) {
+    const t = useTranslations("Github");
     const totalBytes = Object.values(languages).reduce((a, b) => a + b, 0);
 
     const sortedLangs = Object.entries(languages)
@@ -22,12 +24,12 @@ export function LanguageChart({ languages }: LanguageChartProps) {
     return (
         <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-md">
             <CardHeader>
-                <CardTitle className="text-lg">Lenguajes de Programación</CardTitle>
-                <CardDescription>Distribución de código en repositorios públicos</CardDescription>
+                <CardTitle className="text-lg">{t("languagesTitle")}</CardTitle>
+                <CardDescription>{t("languagesDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 {sortedLangs.length === 0 ? (
-                    <div className="text-center py-6 text-sm text-muted-foreground">No se detectaron lenguajes.</div>
+                    <div className="text-center py-6 text-sm text-muted-foreground">{t("noLanguages")}</div>
                 ) : (
                     <>
                         {/* Barra de progreso unificada tipo github */}

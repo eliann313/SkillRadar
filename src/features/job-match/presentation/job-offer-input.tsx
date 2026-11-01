@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Sparkles, Loader2, FileText } from "lucide-react";
 import { Link } from "@/i18n/routing";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
 interface ResumeOption {
     id: string;
@@ -23,6 +23,7 @@ interface JobOfferInputProps {
 
 export function JobOfferInput({ resumes, onMatch, isLoading = false }: JobOfferInputProps) {
     const t = useTranslations("JobMatch");
+    const locale = useLocale();
     const [offerText, setOfferText] = useState("");
     const [selectedResumeId, setSelectedResumeId] = useState("");
 
@@ -40,7 +41,7 @@ export function JobOfferInput({ resumes, onMatch, isLoading = false }: JobOfferI
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <Briefcase className="size-5 text-primary" />
-                    {t("title")} & CV Match
+                    {t("inputCardTitle", { default: t("title") })}
                 </CardTitle>
                 <CardDescription>{t("description")}</CardDescription>
             </CardHeader>
@@ -79,7 +80,10 @@ export function JobOfferInput({ resumes, onMatch, isLoading = false }: JobOfferI
                                 {resumes.map((resume) => (
                                     <option key={resume.id} value={resume.id} className="bg-background text-foreground">
                                         {resume.fileName} ({t("uploadedOn", { default: "subido el" })}{" "}
-                                        {new Date(resume.createdAt).toLocaleDateString()})
+                                        {new Date(resume.createdAt).toLocaleDateString(
+                                            locale === "es" ? "es-ES" : "en-US",
+                                        )}
+                                        )
                                     </option>
                                 ))}
                             </select>

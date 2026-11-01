@@ -8,6 +8,10 @@ export interface GitHubRepoInfo {
     language: string | null;
     languagesUrl: string;
     url: string;
+    topics?: string[];
+    homepage?: string | null;
+    isFork?: boolean;
+    updatedAt?: string;
 }
 
 export class GitHubConnector {
@@ -61,6 +65,10 @@ export class GitHubConnector {
             language: string | null;
             languages_url: string;
             html_url: string;
+            topics?: string[];
+            homepage?: string | null;
+            fork?: boolean;
+            updated_at?: string;
         }>;
 
         return data.map((repo) => ({
@@ -70,7 +78,38 @@ export class GitHubConnector {
             language: repo.language,
             languagesUrl: repo.languages_url,
             url: repo.html_url,
+            ...(repo.topics ? { topics: repo.topics } : {}),
+            ...(repo.homepage ? { homepage: repo.homepage } : {}),
+            ...(typeof repo.fork === "boolean" ? { isFork: repo.fork } : {}),
+            ...(repo.updated_at ? { updatedAt: repo.updated_at } : {}),
         }));
+    }
+
+    /**
+     * Obtiene el contenido en texto plano del README de un repositorio (si existe).
+     * Usa la API oficial de GitHub: GET /repos/{owner}/{repo}/readme con Accept raw.
+     * El resultado es contenido externo no confiable; cualquier prompt de IA debe delimitarlo como dato.
+     */
+    static async getRepoReadme(owner: string, repo: string, oauthToken?: string | null): Promise<string | null> {
+        const headers: HeadersInit = {
+            Accept: "application/vnd.github.raw+json",
+        };
+
+        if (oauthToken) {
+            headers.Authorization = `Bearer ${oauthToken}`;
+        } else if (process.env.GITHUB_PERSONAL_ACCESS_TOKEN) {
+            headers.Authorization = `Bearer ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`;
+        }
+
+        try {
+            const url = `https://api.github.com/repos/${owner}/${repo}/readme`;
+            const res = await fetch(url, { headers });
+            if (!res.ok) return null;
+            return await res.text();
+        } catch {
+            logger.warn("[GitHubConnector] Error obteniendo README; se omite el contenido.");
+            return null;
+        }
     }
 
     /**

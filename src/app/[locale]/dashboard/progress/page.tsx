@@ -18,6 +18,8 @@ import {
 } from "@/components/dashboard";
 import {
     TrendingUp,
+    TrendingDown,
+    Minus,
     Award,
     CheckCircle2,
     ArrowRight,
@@ -91,7 +93,7 @@ export default async function ProgressPage({ params }: PageProps) {
     // Si el usuario no tiene historial de CVs
     if (resumes.length === 0) {
         return (
-            <div className="space-y-6">
+            <div className="space-y-6 w-full max-w-full overflow-hidden">
                 <div className="mb-6">
                     <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">{t("title")}</h1>
                     <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
@@ -111,6 +113,8 @@ export default async function ProgressPage({ params }: PageProps) {
                         <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                     </Link>
                 </Card>
+
+                <PublicProfileShareCard publicProfile={publicProfile} />
             </div>
         );
     }
@@ -133,14 +137,19 @@ export default async function ProgressPage({ params }: PageProps) {
         },
     );
 
+    const initialScore = resumes[0]?.atsScore ?? 0;
+    const latestScore = resumes[resumes.length - 1]?.atsScore ?? 0;
+    const scoreDelta = latestScore - initialScore;
+    const hasMultipleVersions = resumes.length > 1;
+
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="space-y-6 w-full max-w-full overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full max-w-full">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">{t("title")}</h1>
                     <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                     <ExportReportButton
                         resumes={resumes.map((r) => ({
                             fileName: r.fileName,
@@ -162,7 +171,7 @@ export default async function ProgressPage({ params }: PageProps) {
             </div>
 
             {/* Malla de Métricas */}
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-3 w-full max-w-full">
                 <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -211,43 +220,123 @@ export default async function ProgressPage({ params }: PageProps) {
             </div>
 
             {/* Racha y mejora */}
-            <div className="grid gap-4 sm:grid-cols-2">
-                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-                    <CardContent className="flex items-center gap-3 pt-6">
-                        <Flame className="size-8 text-warning" />
-                        <div>
-                            <p className="text-sm font-semibold text-foreground">
-                                {t("streakTitle", { count: resumes.length })}
-                            </p>
-                            <p className="text-[11px] text-muted-foreground">{t("streakDesc")}</p>
+            <div className="grid gap-4 sm:grid-cols-2 w-full max-w-full">
+                <Card className="border-border/60 bg-card/60 backdrop-blur-sm hover:border-warning/30 transition-colors duration-300 w-full max-w-full overflow-hidden">
+                    <CardContent className="p-5 flex items-start gap-4">
+                        <div className="size-12 rounded-xl bg-warning/10 text-warning flex items-center justify-center shrink-0 border border-warning/20 shadow-xs">
+                            <Flame className="size-6 text-warning" />
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-1.5">
+                            <div className="flex items-center justify-between gap-2">
+                                <p className="text-sm font-bold text-foreground">
+                                    {t("streakTitle", { count: resumes.length })}
+                                </p>
+                                <Badge
+                                    variant="outline"
+                                    className="text-[10px] px-2 py-0.5 bg-warning/5 text-warning border-warning/20 shrink-0 font-medium"
+                                >
+                                    {t("streakBadge", { count: resumes.length })}
+                                </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground leading-relaxed">{t("streakDesc")}</p>
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-                    <CardContent className="flex items-center gap-3 pt-6">
-                        <TrendingUp className="size-8 text-emerald" />
-                        <div>
-                            <p className="text-sm font-semibold text-foreground">
-                                {t("improvementTitle", {
-                                    delta: (resumes[resumes.length - 1].atsScore ?? 0) - (resumes[0].atsScore ?? 0),
-                                })}
+
+                <Card
+                    className={cn(
+                        "border-border/60 bg-card/60 backdrop-blur-sm transition-colors duration-300 w-full max-w-full overflow-hidden",
+                        scoreDelta > 0 && "hover:border-emerald/30",
+                        scoreDelta < 0 && "hover:border-destructive/30",
+                        scoreDelta === 0 && "hover:border-primary/30",
+                    )}
+                >
+                    <CardContent className="p-5 flex items-start gap-4">
+                        <div
+                            className={cn(
+                                "size-12 rounded-xl flex items-center justify-center shrink-0 border shadow-xs",
+                                scoreDelta > 0 && "bg-emerald/10 text-emerald border-emerald/20",
+                                scoreDelta < 0 && "bg-destructive/10 text-destructive border-destructive/20",
+                                scoreDelta === 0 && "bg-primary/10 text-primary border-primary/20",
+                            )}
+                        >
+                            {scoreDelta > 0 ? (
+                                <TrendingUp className="size-6 text-emerald" />
+                            ) : scoreDelta < 0 ? (
+                                <TrendingDown className="size-6 text-destructive" />
+                            ) : (
+                                <Minus className="size-6 text-primary" />
+                            )}
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-1.5">
+                            <div className="flex items-center justify-between gap-2">
+                                <p className="text-sm font-bold text-foreground">
+                                    {scoreDelta > 0
+                                        ? t("improvementPositiveTitle", {
+                                              delta: scoreDelta,
+                                              default: `+${scoreDelta} puntos de mejora total`,
+                                          })
+                                        : scoreDelta < 0
+                                          ? t("improvementNegativeTitle", {
+                                                delta: Math.abs(scoreDelta),
+                                                default: `${Math.abs(scoreDelta)} puntos de variación`,
+                                            })
+                                          : t("improvementNeutralTitle", { default: "Puntaje constante" })}
+                                </p>
+                                <Badge
+                                    variant="outline"
+                                    className={cn(
+                                        "text-[10px] px-2 py-0.5 shrink-0 font-mono font-bold",
+                                        scoreDelta > 0 && "bg-emerald/10 text-emerald border-emerald/20",
+                                        scoreDelta < 0 && "bg-destructive/10 text-destructive border-destructive/20",
+                                        scoreDelta === 0 && "bg-muted text-muted-foreground border-border",
+                                    )}
+                                >
+                                    {scoreDelta > 0
+                                        ? `+${scoreDelta} pts`
+                                        : scoreDelta < 0
+                                          ? `${scoreDelta} pts`
+                                          : "0 pts"}
+                                </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                                {hasMultipleVersions
+                                    ? scoreDelta > 0
+                                        ? t("improvementDescPositive", {
+                                              delta: scoreDelta,
+                                              default: `Diferencia acumulada entre tu primera y última versión analizada (+${scoreDelta} pts).`,
+                                          })
+                                        : scoreDelta < 0
+                                          ? t("improvementDescNegative", {
+                                                delta: Math.abs(scoreDelta),
+                                                default: `Tu última versión está ${Math.abs(scoreDelta)} pts por debajo de la inicial.`,
+                                            })
+                                          : t("improvementDescNeutral", {
+                                                default:
+                                                    "Tu puntaje se mantiene igual respecto a la primera versión analizada.",
+                                            })
+                                    : t("singleVersionDesc", {
+                                          default: "Sube nuevas versiones de tu CV para medir tu evolución temporal.",
+                                      })}
                             </p>
-                            <p className="text-[11px] text-muted-foreground">{t("improvementDesc")}</p>
                         </div>
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Skill Radar en Vivo & Perfil Público */}
-            <div className="grid gap-6 lg:grid-cols-12">
-                <Card className="border-border/50 bg-card/50 backdrop-blur-sm lg:col-span-7 flex flex-col justify-between">
+            {/* Skill Radar en Vivo y Perfil Público */}
+            <div className="grid gap-6 lg:grid-cols-12 w-full max-w-full">
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm lg:col-span-7 flex flex-col justify-between w-full max-w-full overflow-hidden">
                     <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
                             <CardTitle className="text-base font-semibold flex items-center gap-2">
-                                <Sparkles className="size-5 text-primary" />
+                                <Sparkles className="size-5 text-primary shrink-0" />
                                 {t("radarSectionTitle", { default: "Tu Skill Radar en Vivo" })}
                             </CardTitle>
-                            <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">
+                            <Badge
+                                variant="outline"
+                                className="text-xs bg-primary/10 text-primary border-primary/20 shrink-0"
+                            >
                                 {t("radarLiveBadge", { default: "En Vivo" })}
                             </Badge>
                         </div>
@@ -258,10 +347,10 @@ export default async function ProgressPage({ params }: PageProps) {
                             })}
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-1 flex flex-col items-center justify-center pt-2">
+                    <CardContent className="flex-1 flex flex-col items-center justify-center pt-2 w-full max-w-full overflow-hidden">
                         <SkillRadarChart keywords={latestKeywords} showBreakdown />
                         {Object.keys(githubLanguages).length > 0 && (
-                            <div className="w-full mt-4 pt-3 border-t border-border/30">
+                            <div className="w-full max-w-full overflow-hidden mt-4 pt-3 border-t border-border/30">
                                 <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 mb-2">
                                     <Terminal className="size-3.5 text-indigo-400" />
                                     {t("githubLanguages", { default: "Distribución de GitHub detectada:" })}
@@ -290,21 +379,21 @@ export default async function ProgressPage({ params }: PageProps) {
                     </CardContent>
                 </Card>
 
-                <div className="lg:col-span-5 flex flex-col">
+                <div className="lg:col-span-5 flex flex-col w-full max-w-full overflow-hidden">
                     <PublicProfileShareCard publicProfile={publicProfile} />
                 </div>
             </div>
 
             {/* Gráfico de Progreso */}
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <Card className="border-border/50 bg-card/50 backdrop-blur-sm w-full max-w-full overflow-hidden">
                 <CardHeader>
                     <CardTitle className="text-base font-semibold flex items-center gap-2">
-                        <TrendingUp className="size-5 text-primary" />
+                        <TrendingUp className="size-5 text-primary shrink-0" />
                         {t("versionsTitle")}
                     </CardTitle>
                     <CardDescription>{t("versionsDesc")}</CardDescription>
                 </CardHeader>
-                <CardContent className="pt-2">
+                <CardContent className="pt-2 w-full max-w-full overflow-hidden min-w-0">
                     <ProgressRecharts data={chartData} />
                 </CardContent>
             </Card>
@@ -333,12 +422,12 @@ export default async function ProgressPage({ params }: PageProps) {
                 </Card>
             )}
 
-            <div className="grid gap-6 md:grid-cols-12">
+            <div className="grid gap-6 md:grid-cols-12 w-full max-w-full">
                 {/* Habilidades Cerradas (Logros) */}
-                <Card className="border-border/50 bg-card/50 backdrop-blur-sm md:col-span-5 flex flex-col">
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm md:col-span-5 flex flex-col w-full max-w-full overflow-hidden">
                     <CardHeader>
                         <CardTitle className="text-base font-semibold flex items-center gap-2">
-                            <Award className="size-5 text-emerald-500" />
+                            <Award className="size-5 text-emerald-500 shrink-0" />
                             {t("closedSkillsTitle")}
                         </CardTitle>
                         <CardDescription>{t("closedSkillsDesc")}</CardDescription>
@@ -377,10 +466,10 @@ export default async function ProgressPage({ params }: PageProps) {
                 </Card>
 
                 {/* Historial de CVs */}
-                <Card className="border-border/50 bg-card/50 backdrop-blur-sm md:col-span-7">
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm md:col-span-7 w-full max-w-full overflow-hidden">
                     <CardHeader>
                         <CardTitle className="text-base font-semibold flex items-center gap-2">
-                            <FileText className="size-5 text-primary" />
+                            <FileText className="size-5 text-primary shrink-0" />
                             {t("versionsTitle")}
                         </CardTitle>
                         <CardDescription>{t("versionsDesc")}</CardDescription>
@@ -390,21 +479,21 @@ export default async function ProgressPage({ params }: PageProps) {
                             {[...resumes].reverse().map((resume) => (
                                 <div
                                     key={resume.id}
-                                    className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
+                                    className="flex items-center justify-between py-3 first:pt-0 last:pb-0 gap-2 min-w-0"
                                 >
-                                    <div className="flex items-center gap-3 overflow-hidden">
+                                    <div className="flex items-center gap-3 overflow-hidden min-w-0 flex-1">
                                         <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                                             <FileText className="size-5 text-primary" />
                                         </div>
-                                        <div className="overflow-hidden">
+                                        <div className="overflow-hidden min-w-0 flex-1">
                                             <p
-                                                className="text-sm font-semibold truncate text-foreground pr-4"
+                                                className="text-sm font-semibold truncate text-foreground pr-2"
                                                 title={resume.fileName}
                                             >
                                                 {resume.fileName}
                                             </p>
-                                            <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                                                <Calendar className="size-3" />
+                                            <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5 truncate">
+                                                <Calendar className="size-3 shrink-0" />
                                                 {new Date(resume.createdAt).toLocaleDateString(
                                                     locale === "es" ? "es-ES" : "en-US",
                                                     {

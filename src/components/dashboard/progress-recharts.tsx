@@ -23,8 +23,8 @@ export function ProgressRecharts({ data }: { data: ScorePoint[] }) {
 
     // Adaptado al tema dark/light usando variables CSS del tema
     return (
-        <div className="h-[240px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[240px] w-full max-w-full overflow-hidden min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                         <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">

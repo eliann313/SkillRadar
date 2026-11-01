@@ -46,9 +46,9 @@ describe("lib/ai — AIService.getModelInstance", () => {
         process.env.ANTHROPIC_API_KEY = "a";
 
         expect(AIService.getModelInstance("gemini", "gemini-3.8-flash")).toBeTruthy();
-        expect(AIService.getModelInstance("groq", "openai/gpt-oss-120b")).toBeTruthy();
-        expect(AIService.getModelInstance("openai", "gpt-6-sol")).toBeTruthy();
-        expect(AIService.getModelInstance("anthropic", "claude-sonnet-5")).toBeTruthy();
+        expect(AIService.getModelInstance("groq", "llama-3.3-70b-versatile")).toBeTruthy();
+        expect(AIService.getModelInstance("openai", "gpt-6.1-sol")).toBeTruthy();
+        expect(AIService.getModelInstance("anthropic", "claude-sonnet-5.5")).toBeTruthy();
         expect(AIService.getModelInstance("openrouter", "openrouter/free")).toBeTruthy();
     });
 

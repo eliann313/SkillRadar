@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { GitHubConnector } from "./github";
 import { db } from "@/infrastructure/db";
+import { logger } from "@/infrastructure/logger";
 
 describe("lib/github — GitHubConnector", () => {
     const realFetch = globalThis.fetch;
@@ -99,6 +100,18 @@ describe("lib/github — GitHubConnector", () => {
 
             globalThis.fetch = vi.fn().mockRejectedValue(new Error("red caída")) as any;
             await expect(GitHubConnector.getRepoLanguages("https://x")).resolves.toEqual({});
+        });
+    });
+
+    describe("getRepoReadme", () => {
+        it("no registra detalles del error de una solicitud autenticada", async () => {
+            const warnSpy = vi.spyOn(logger, "warn").mockImplementation(() => undefined);
+            globalThis.fetch = vi.fn().mockRejectedValue(new Error("Authorization: Bearer secret-token")) as any;
+
+            await expect(GitHubConnector.getRepoReadme("octocat", "private-repo", "gho_secret")).resolves.toBeNull();
+
+            expect(warnSpy).toHaveBeenCalledWith("[GitHubConnector] Error obteniendo README; se omite el contenido.");
+            expect(JSON.stringify(warnSpy.mock.calls)).not.toContain("secret-token");
         });
     });
 });
