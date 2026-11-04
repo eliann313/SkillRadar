@@ -3,7 +3,6 @@ import { db } from "@/infrastructure/db";
 import { createNotification } from "@/infrastructure/notifications";
 import { sanitizeText } from "@/shared-kernel/sanitize";
 import {
-    resolveDefaultMatchProvider,
     type MatchProvider,
     type MatchProviderInput,
     type MatchProviderResult,
@@ -90,7 +89,7 @@ export class JobPostingService {
      * Dispara el trigger de matching masivo (con límite de 10 devs más recientes para evitar spam)
      * y notifica si el match score >= 75%.
      */
-    static async publishJobPosting(recruiterId: string, id: string): Promise<JobPosting> {
+    static async publishJobPosting(recruiterId: string, id: string, provider: MatchProvider): Promise<JobPosting> {
         const jobPosting = await db.jobPosting.findUnique({
             where: { id },
         });
@@ -113,7 +112,7 @@ export class JobPostingService {
         });
 
         // Iniciar el trigger de matching asíncronamente para no bloquear el request principal
-        void this.triggerProactiveMatching(updatedPosting.id);
+        void this.triggerProactiveMatching(updatedPosting.id, provider);
 
         return updatedPosting;
     }
@@ -196,7 +195,7 @@ export class JobPostingService {
         jobPostingId: string,
         jobOfferText: string,
         developerId: string,
-        provider?: MatchProvider,
+        provider: MatchProvider,
     ): Promise<MatchProviderResult> {
         // 1. Intentar obtener de la caché
         const cached = await db.jobPostingMatchCache.findUnique({
@@ -216,9 +215,9 @@ export class JobPostingService {
         }
 
         // 2. Si no existe, invocar la IA vía el puerto MatchProvider
-        // (ver ./ports.ts). Adaptador por defecto: job-match.
+        // El proveedor se inyecta desde el punto de composición.
         try {
-            const matchProvider = provider ?? (await resolveDefaultMatchProvider());
+            const matchProvider = provider;
             const matchInput: MatchProviderInput = {
                 userId: developerId,
                 resumeId,
@@ -263,8 +262,8 @@ export class JobPostingService {
      */
     static async getDeveloperJobBoard(
         developerId: string,
-        filters?: { remoteType?: string; seniorityLevel?: string; search?: string; field?: string },
-        provider?: MatchProvider,
+        filters: { remoteType?: string; seniorityLevel?: string; search?: string; field?: string } | undefined,
+        provider: MatchProvider,
     ) {
         // 1. Obtener el CV activo del developer
         const latestResume =
@@ -689,7 +688,7 @@ export class JobPostingService {
      * Calcula el match score contra los developers recientes y los notifica si el match score >= 75%.
      * Para evitar spam y sobrecarga a la IA (Tarjeta 20.2), limita el procesamiento a los 10 devs más recientemente activos.
      */
-    private static async triggerProactiveMatching(jobPostingId: string) {
+    private static async triggerProactiveMatching(jobPostingId: string, provider: MatchProvider) {
         try {
             const jobPosting = await db.jobPosting.findUnique({
                 where: { id: jobPostingId },
@@ -736,6 +735,7 @@ export class JobPostingService {
                     jobPosting.id,
                     jobPosting.description,
                     dev.id,
+                    provider,
                 );
                 const score = match.matchScore ?? 0;
 

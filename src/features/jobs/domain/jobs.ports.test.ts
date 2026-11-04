@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { resolveDefaultMatchProvider } from "./jobs.ports";
+import { matchProvider } from "@/composition/jobs-match";
 import { JobPostingService } from "../application/jobs.service";
 import { db } from "@/infrastructure/db";
 
@@ -26,7 +26,7 @@ describe("jobs/ports — MatchProvider (F4.2)", () => {
             analysis: { totalScore: 82 },
         } as any);
 
-        const provider = await resolveDefaultMatchProvider();
+        const provider = matchProvider;
         const result = await provider.createJobMatch({
             userId: "dev-1",
             resumeId: "resume-1",
