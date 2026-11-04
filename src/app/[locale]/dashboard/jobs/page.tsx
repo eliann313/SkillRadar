@@ -1,3 +1,4 @@
+import { matchProvider } from "@/composition/jobs-match";
 import { auth } from "@/infrastructure/auth";
 import { redirect } from "next/navigation";
 import { JobPostingService } from "@/features/jobs/application/jobs.service";
@@ -17,7 +18,7 @@ export default async function DeveloperJobsPage() {
     }
 
     // Carga inicial sin filtros
-    const jobs = await JobPostingService.getDeveloperJobBoard(session.user.id);
+    const jobs = await JobPostingService.getDeveloperJobBoard(session.user.id, undefined, matchProvider);
 
     const serializedJobs = jobs.map((job: JobPostingWithMatch) => ({
         ...job,

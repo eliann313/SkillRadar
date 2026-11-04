@@ -1,10 +1,6 @@
 /** @type {import('dependency-cruiser').IConfiguration} */
 module.exports = {
-    // F4.2: reglas hexagonales en "error" (bloquean CI). La única excepción
-    // es jobs/domain/jobs.ports.ts → job-match/service (adaptador por defecto del puerto
-    // MatchProvider): excluida de la regla general vía `pathNot` y auditada
-    // por la regla informativa `hex-jobs-port-adapter` (+ ADR-002).
-    // Todo borde nuevo feature-to-feature rompe el build.
+    // Los features se conectan mediante puertos y un punto de composición externo.
     forbidden: [
         {
             name: "hex-no-feature-to-feature",
@@ -13,17 +9,9 @@ module.exports = {
                 "Hexagonal: un feature nunca importa de otro feature. Compartir vía lib/shared-kernel o puerto explícito. Tests (*.test.*) pueden cablear adaptadores.",
             from: {
                 path: "^src/features/([^/]+)/",
-                pathNot: ["^src/features/jobs/domain/jobs\\.ports\\.ts$", "\\.test\\."],
+                pathNot: ["\\.test\\."],
             },
             to: { path: "^src/features/", pathNot: "^src/features/$1/" },
-        },
-        {
-            name: "hex-jobs-port-adapter",
-            severity: "info",
-            comment:
-                "Excepción explícita y única (ADR-002 en docs/adr/0002-puerto-matching-jobs-jobmatch.md): el adaptador por defecto del puerto MatchProvider vive en job-match. Informativa: no bloquea.",
-            from: { path: "^src/features/jobs/domain/jobs\\.ports\\.ts$" },
-            to: { path: "^src/features/" },
         },
         {
             name: "hex-no-app-in-features",

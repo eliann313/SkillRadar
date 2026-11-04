@@ -1,5 +1,7 @@
 "use server";
 
+import { matchProvider } from "@/composition/jobs-match";
+
 import { logger } from "@/infrastructure/logger";
 import { auth } from "@/infrastructure/auth";
 import { isGuestSession, GUEST_WRITE_ERROR } from "@/infrastructure/guest-guard";
@@ -165,7 +167,7 @@ export async function publishJobPostingAction(id: string): Promise<ActionResult<
             return { success: true, data: { id } as unknown as JobPosting };
         }
 
-        const publishedJob = await JobPostingService.publishJobPosting(session.user.id, id);
+        const publishedJob = await JobPostingService.publishJobPosting(session.user.id, id, matchProvider);
 
         revalidatePath("/dashboard/recruiter/postings");
         revalidatePath("/dashboard/jobs");
@@ -262,7 +264,7 @@ export async function getDeveloperJobBoardAction(filters?: {
             return { success: false, error: "No autorizado. Solo desarrolladores pueden ver el Job Board." };
         }
 
-        const jobs = await JobPostingService.getDeveloperJobBoard(session.user.id, filters);
+        const jobs = await JobPostingService.getDeveloperJobBoard(session.user.id, filters, matchProvider);
         return { success: true, data: jobs as JobPostingWithMatch[] };
     } catch (error) {
         logger.error("[getDeveloperJobBoardAction] Error:", error);
