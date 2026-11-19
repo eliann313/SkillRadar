@@ -37,3 +37,7 @@ Inversión de dependencias en el seam, sin mover la implementación:
 - `npm run arch`: 0 errores, 0 warnings.
 - Deuda explícita: si el puerto suma más adaptadores, evaluar mover el
   contrato a `lib/` y el wiring a la capa de aplicación.
+
+## Adenda 2026-11-04: composición fuera del dominio
+
+El contrato permanece en `jobs/domain/jobs.ports.ts`. El adaptador vive en `src/composition/jobs-match.ts` y se inyecta en el tablero y al publicar ofertas, incluyendo el matching proactivo. Se eliminó la excepción de dependency-cruiser: ningún feature importa otro feature. El adaptador carga job-match de forma diferida.
